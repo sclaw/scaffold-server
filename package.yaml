@@ -60,6 +60,17 @@ library:
     - bytestring
     - containers
     - template-haskell
+    - hslogger
+    - hspec-pg-transact
+    - groundhog
+    - groundhog-th
+    - groundhog-postgresql
+    - yaml
+    - extra
+    - colorful-monoids
+    - hspec
+    - resource-pool
+    - tmp-postgres
   source-dirs:
     - src/core
     - src/extended
