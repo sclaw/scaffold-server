@@ -5,6 +5,27 @@ license:             BSD3
 author:              "Author name here"
 maintainer:          "example@example.com"
 copyright:           "2018 Author name here"
+ghc-options:
+  - -threaded
+  - -rtsopts
+  - -with-rtsopts=-N
+  - -O2
+  - -Werror
+  - -fwarn-unused-imports
+  - -Wredundant-constraints
+  - -Wduplicate-exports
+  - -Widentities
+  - -Wincomplete-record-updates
+  - -Wmissing-fields
+  - -Wmissing-exported-signatures
+  - -Wunused-binds
+  - -Wwrong-do-bind
+  - -Wcpp-undef
+  - -Wunused-do-bind
+  - -Wunused-pattern-binds
+  - -Wtabs
+  - -Wmissing-pattern-synonym-signatures
+  - -XMonadFailDesugaring
 
 extra-source-files:
 - README.md
@@ -23,26 +44,27 @@ dependencies:
 - base >= 4.7 && < 5
 
 library:
-  source-dirs: src
-
+  dependencies:
+    - tasty
+    - tasty-hspec
+    - tasty-hunit
+    - tasty-html
+  source-dirs:
+    - src/core
+    - src/extended
+    - test
+    - app
+    
 executables:
-  web-exe:
-    main:                Main.hs
-    source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+  app:
+    main:                app.hs
+    source-dirs:         prog
     dependencies:
     - web
 
 tests:
   web-test:
-    main:                Spec.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+    main:                test.hs
+    source-dirs:         prog
     dependencies:
     - web

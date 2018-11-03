@@ -1,3 +1,4 @@
 .stack-work/
 web.cabal
 *~
+test/*.html
