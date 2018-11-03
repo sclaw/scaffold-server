@@ -26,6 +26,7 @@ ghc-options:
   - -Wtabs
   - -Wmissing-pattern-synonym-signatures
   - -XMonadFailDesugaring
+  - -XOverloadedStrings
 
 extra-source-files:
 - README.md
@@ -49,6 +50,16 @@ library:
     - tasty-hspec
     - tasty-hunit
     - tasty-html
+    - aeson
+    - lens
+    - lens-aeson
+    - async
+    - lifted-async
+    - monad-control
+    - text
+    - bytestring
+    - containers
+    - template-haskell
   source-dirs:
     - src/core
     - src/extended
