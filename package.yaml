@@ -71,6 +71,9 @@ library:
     - hspec
     - resource-pool
     - tmp-postgres
+    - directory
+    - filepath
+    - time
   source-dirs:
     - src/core
     - src/extended

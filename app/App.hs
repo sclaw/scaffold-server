@@ -1,5 +1,10 @@
 module App where
 
+import Logger (init)
+import Prelude hiding (init)
 
 main :: IO ()
-main = print "sadv"
+main = 
+    do
+      init   
+      print "run app"
