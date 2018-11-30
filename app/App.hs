@@ -6,5 +6,5 @@ import Prelude hiding (init)
 main :: IO ()
 main = 
     do
-      init   
+      _ <- init "log"
       print "run app"

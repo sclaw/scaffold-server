@@ -28,17 +28,17 @@ data TestDBPGSql =
       }
 
 -- start a temporary postgres process and create a pool of connections to it
-setupDBGroundhog :: Migration (Action Postgresql) -> IO TestDBPGSql
-setupDBGroundhog migration =
+-- start a temporary postgres process and create a pool of connections to it
+setupDBGroundhog :: Migration (Action Postgresql) -> Action Postgresql () -> IO TestDBPGSql
+setupDBGroundhog migration populate =
     do
       e <- Temp.start []
       tempDB <- either throwIO return e
       let connStr = Temp.connectionString tempDB
       putStrLn $ "connection to tmp psql set up: " ++ connStr
       pool <- connStr `createPostgresqlPool` 10
-      withPostgresqlConn
-       connStr
-       (runMigration migration `runDbConn`)
+      let prepare = runMigration migration >> populate            
+      withPostgresqlConn connStr (prepare `runDbConn`)
       return TestDBPGSql {..}
 
 -- drop all the connections and shutdown the postgres process
@@ -58,8 +58,18 @@ runDBGroundhog = flip withDBGroundhog
 itDBGroundhog :: String -> Action Postgresql a -> SpecWith TestDBPGSql
 itDBGroundhog msg action = msg `it` (void . withDBGroundhog action)
 
-describeDBGroundhog  :: Migration (Action Postgresql) -> String -> SpecWith TestDBPGSql -> Spec
-describeDBGroundhog  migrate str =
-      beforeAll (setupDBGroundhog migrate)
+describeDBGroundhog :: Migration (Action Postgresql) -> String -> SpecWith TestDBPGSql -> Spec
+describeDBGroundhog  migrate discribeTest =
+      beforeAll (setupDBGroundhog migrate (return ()))
     . afterAll teardownDBGroundhog
-    . describe str
+    . describe discribeTest
+
+describeDBGroundhogWithTablePopulated 
+       :: Migration (Action Postgresql) 
+       -> Action Postgresql () 
+       -> String 
+       -> SpecWith TestDBPGSql -> Spec
+describeDBGroundhogWithTablePopulated migrate populate discribeTest =
+      beforeAll (setupDBGroundhog migrate populate)
+    . afterAll teardownDBGroundhog
+    . describe discribeTest

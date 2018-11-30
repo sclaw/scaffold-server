@@ -3,6 +3,7 @@ module System.Log.Logger.Extended
        (
            module System.Log.Logger
          , debugMColored
+         , debugMColoredPretty
          , infoMColored
          , noticeMColored
          , warningMColored
@@ -15,10 +16,16 @@ module System.Log.Logger.Extended
 
 import System.Log.Logger
 import Data.Monoid.Colorful
-
+import Text.Pretty.Simple (pShowOpt, defaultOutputOptionsNoColor)
+import Data.Text.Lazy (toStrict)
+import Control.Lens.Extended ((^.), to, from, stextiso)
 
 debugMColored :: String -> String -> IO ()
 debugMColored logger msg = getTerm >>= (`printColoredIO` Fg (RGB 210 84 16) (Value (logger `debugM` msg)))
+
+debugMColoredPretty :: Show a => String -> String -> a -> IO ()
+debugMColoredPretty logger msg x = getTerm >>= (`printColoredIO` Fg (RGB 210 84 16) (Value (logger `debugM` (msg ++ "\n" ++ xStr))))
+    where xStr = pShowOpt defaultOutputOptionsNoColor x^.to toStrict.from stextiso
 
 infoMColored :: String -> String -> IO ()
 infoMColored logger msg = getTerm >>= (`printColoredIO` Fg (RGB 3 141 255) (Value (logger `infoM` msg)))

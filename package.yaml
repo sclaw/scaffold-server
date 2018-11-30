@@ -27,6 +27,7 @@ ghc-options:
   - -Wmissing-pattern-synonym-signatures
   - -XMonadFailDesugaring
   - -XOverloadedStrings
+  - -ddump-splices
 
 extra-source-files:
 - README.md
@@ -74,6 +75,9 @@ library:
     - directory
     - filepath
     - time
+    - pretty-simple
+    - brick
+    - process
   source-dirs:
     - src/core
     - src/extended
