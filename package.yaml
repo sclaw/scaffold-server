@@ -78,6 +78,7 @@ library:
     - pretty-simple
     - brick
     - process
+    - random
   source-dirs:
     - src/core
     - src/extended
