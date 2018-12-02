@@ -4,39 +4,18 @@
 {-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
-----------------------------------------------------------------------------
-
--- Module      :  TH.InstanceGenerator
--- Maintainer  :  fclaw007@gmail.com
---
--- The "TH.InstanceGenerator" generate various type class instance
-
------------------------------------------------------------------------------
-
-module TH.InstanceGenerator
-       ( mkEnumTypeRandomInstance
-       , derivePrimitivePersistField
+module TH.InstanceBuilder
+       ( 
+         derivePrimitivePersistField
        , deriveWrappedPrimitivePersistField
-       , deriveNumInstanceFromNumTypes
+       , deriveNumInstanceFromWrappedNum
        )
        where
 
 import Control.Lens
 import Database.Groundhog.Core
 import Language.Haskell.TH
-import System.Random
 
-
-mkEnumTypeRandomInstance :: Name -> Q [Dec]
-mkEnumTypeRandomInstance name = [d|
-  instance (Enum $a, Bounded $a) => Random $a where
-      randomR (l :: $a, u) g = (toEnum i :: $a, g')
-          where
-              (i, g') = (fromEnum l, fromEnum u) `randomR` g
-      random g = (minBound :: $a, maxBound :: $a) `randomR` g
-  |]
-  where
-    a = conT name
 
 derivePrimitivePersistField :: Name -> ExpQ -> Q [Dec]
 derivePrimitivePersistField name iso = [d|
@@ -59,8 +38,8 @@ deriveWrappedPrimitivePersistField name = do
   decs2 <- derivePrimitivePersistField name [| _Wrapped' |]
   pure $ decs1 ++ decs2
 
-deriveNumInstanceFromNumTypes :: Name -> ExpQ -> Q [Dec]
-deriveNumInstanceFromNumTypes name iso =
+deriveNumInstanceFromWrappedNum :: Name -> ExpQ -> Q [Dec]
+deriveNumInstanceFromWrappedNum name iso =
   do
     let x = mkName "x"
         y = mkName "y"

@@ -79,6 +79,8 @@ library:
     - brick
     - process
     - random
+    - servant
+    - servant-server
   source-dirs:
     - src/core
     - src/extended
