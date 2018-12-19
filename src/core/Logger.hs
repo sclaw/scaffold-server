@@ -1,4 +1,4 @@
-module Logger (getPath) where
+module Logger (getPath, mkNextDayPath) where
 
 import           Control.Exception     (ErrorCall (ErrorCall), throwIO)
 import           Data.List             (sortBy)
@@ -8,6 +8,8 @@ import           Data.Time.Clock
 import           Prelude               hiding (init)
 import           System.Directory
 import           System.FilePath.Posix (FilePath, takeBaseName, (<.>), (</>))
+import           Control.Concurrent    (threadDelay)
+import           Control.Concurrent.MVar
 
 
 mkFileName (y, m, d) = show y ++ "-" ++ show m ++ "-" ++ show d
@@ -38,3 +40,18 @@ getPath path now =
         splitDay tmp ys (x:xs)
           | x == '-' = splitDay [] (tmp : ys) xs
           | otherwise = splitDay (tmp ++ [x]) ys xs
+
+mkNextDayPath :: FilePath -> UTCTime -> MVar FilePath -> IO ()
+mkNextDayPath path t var =
+    do
+      threadDelay (300 * 10 ^ 6)
+      now <- getCurrentTime
+      let curr = toGregorian $ utctDay now
+      let old = toGregorian $ utctDay t
+      if curr /= old then
+        do
+          let new = path </> mkFileName curr <.> "log"  
+          var `putMVar` new 
+          mkNextDayPath path now var   
+      else
+        mkNextDayPath path t var
