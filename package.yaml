@@ -81,6 +81,10 @@ library:
     - random
     - servant
     - servant-server
+    - katip
+    - transformers-base
+    - mtl
+    - transformers
   source-dirs:
     - src/core
     - src/extended

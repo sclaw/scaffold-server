@@ -4,7 +4,8 @@ module Database.Groundhog.Extended
   ( module Database.Groundhog
   , contains
   ) where
-import Control.Lens.Extended (from, stextiso, view)
+import Control.Lens (from, view)
+import Control.Lens.Iso.Extended (stextiso)
 import Data.Char
 import Data.Semigroup ((<>))
 import Database.Groundhog

@@ -27,7 +27,4 @@ protoHash :: ExpQ
 protoHash = lift protoHashIO
 
 location :: ExpQ
-location =
-    let value = (LitE . StringL . loc_module) `fmap` 
-                qLocation
-    in [| fromString $value |]
+location = [| fromString $((LitE . StringL . loc_module) `fmap` qLocation) |]

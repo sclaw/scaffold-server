@@ -7,12 +7,10 @@
 module Control.Lens.Extended
   ( module Control.Lens,
     module Control.Lens.Extras,
-    module Control.Lens.Iso,
     mkLensesWithSuffix
   ) where
 
 import           Control.Lens
-import           Control.Lens.Iso
 import           Control.Lens.Extras
 import           Language.Haskell.TH
 

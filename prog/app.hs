@@ -1,2 +1,1 @@
-{-# LANGUAGE NoImplicitPrelude #-}
-import App
+import App (main)
