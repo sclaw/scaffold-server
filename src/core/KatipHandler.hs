@@ -19,6 +19,7 @@ import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Reader
 import           Katip
 import           Servant.Server             (Handler)
+import           Control.Monad.Reader.Class (MonadReader)
 
 
 data Config =
@@ -31,7 +32,7 @@ data Config =
 makeFields ''Config
 
 newtype KatipHandler a = KatipHandler { runKatipHandler :: ReaderT Config Handler a }
-    deriving (Functor, Applicative, Monad, MonadIO)
+    deriving (Functor, Applicative, Monad, MonadIO, (MonadReader Config))
 
 -- These instances get even easier with lenses!
 instance Katip KatipHandler where
