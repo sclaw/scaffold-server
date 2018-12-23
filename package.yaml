@@ -85,6 +85,8 @@ library:
     - transformers-base
     - mtl
     - transformers
+    - servant-server
+    - warp
   source-dirs:
     - src/core
     - src/extended
