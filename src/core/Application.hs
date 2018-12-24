@@ -2,6 +2,9 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators   #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module Application (App, AppEnv (AppEnv), app) where
@@ -29,7 +32,7 @@ appApi :: Proxy AppApi
 appApi = Proxy
 
 server :: ServerT AppApi KatipHandler
-server = const [1, 2, 4] `fmap` $(logTM) DebugS "exec getAllIntegers"
+server = const [1, 2, 4] `fmap` $(logTM) DebugS "getAllIntegers"
 
 app :: KatipContextT App ()
 app =
@@ -43,5 +46,7 @@ app =
             configNm <-  getKatipNamespace
             return $ Config {..}
       cfg <- initCfg
-      let runKH = (`runReaderT` cfg) . runKatipHandler
+      let runKH =
+             (`runReaderT` cfg)
+           . runKatipHandler
       liftIO $ run 11000 (serve appApi (hoistServer appApi runKH server))

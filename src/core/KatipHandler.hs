@@ -3,6 +3,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE UndecidableInstances       #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module KatipHandler
@@ -24,6 +25,8 @@ import           Data.Pool                     (Pool)
 import           Database.Groundhog.Postgresql (Postgresql)
 import           Katip
 import           Servant.Server                (Handler)
+import           Control.Monad.Trans.Control   (MonadBaseControl)
+import           Control.Monad.Base            (MonadBase)
 
 
 data Config =
@@ -36,8 +39,18 @@ data Config =
 
 makeFields ''Config
 
-newtype KatipHandler a = KatipHandler { runKatipHandler :: ReaderT Config Handler a }
-    deriving (Functor, Applicative, Monad, MonadIO, (MonadReader Config))
+newtype KatipHandler a =
+        KatipHandler
+        { runKatipHandler :: ReaderT Config Handler a }
+    deriving
+     ( Functor
+     , Applicative
+     , Monad
+     , MonadIO
+     , (MonadReader Config)
+     , MonadBase IO
+     , MonadBaseControl IO
+     )
 
 -- These instances get even easier with lenses!
 instance Katip KatipHandler where

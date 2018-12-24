@@ -92,7 +92,7 @@ library:
     - src/extended
     - test
     - app
-    
+
 executables:
   app:
     main:                app.hs
