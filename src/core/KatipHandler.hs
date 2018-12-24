@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE FunctionalDependencies     #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
@@ -11,15 +12,18 @@ module KatipHandler
        , nm
        , ctx
        , env
+       , cm
        ) where
 
 import           Control.Lens
-import           Control.Lens.TH            (makeFields)
+import           Control.Lens.TH               (makeFields)
 import           Control.Monad.IO.Class
+import           Control.Monad.Reader.Class    (MonadReader)
 import           Control.Monad.Trans.Reader
+import           Data.Pool                     (Pool)
+import           Database.Groundhog.Postgresql (Postgresql)
 import           Katip
-import           Servant.Server             (Handler)
-import           Control.Monad.Reader.Class (MonadReader)
+import           Servant.Server                (Handler)
 
 
 data Config =
@@ -27,6 +31,7 @@ data Config =
       { configNm  :: Namespace
       , configCtx :: LogContexts
       , configEnv :: LogEnv
+      , configCm  :: Pool Postgresql
       }
 
 makeFields ''Config

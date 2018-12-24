@@ -9,7 +9,8 @@ module Application (App, AppEnv (AppEnv), app) where
 import           KatipHandler
 
 import           Control.Monad.IO.Class
-import           Control.Monad.Trans.Reader    (ReaderT, runReaderT)
+import           Control.Monad.Trans.Class
+import           Control.Monad.Trans.Reader    (ReaderT, ask, runReaderT)
 import           Data.Monoid.Colorful          (Term)
 import           Data.Pool                     (Pool)
 import           Database.Groundhog.Postgresql (Postgresql)
@@ -34,6 +35,7 @@ app :: KatipContextT App ()
 app =
     do
       $(logTM) DebugS "app run.."
+      configCm <- appEnvCm `fmap` lift ask
       let initCfg =
            do
             configEnv <-  getLogEnv
