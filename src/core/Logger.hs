@@ -41,17 +41,17 @@ getPath path now =
           | x == '-' = splitDay [] (tmp : ys) xs
           | otherwise = splitDay (tmp ++ [x]) ys xs
 
-mkNextDayPath :: FilePath -> UTCTime -> MVar FilePath -> IO ()
-mkNextDayPath path t var =
+mkNextDayPath :: FilePath -> UTCTime -> MVar FilePath -> Int -> IO ()
+mkNextDayPath path t var i =
     do
-      threadDelay (300 * 10 ^ 6)
+      threadDelay (10 ^ 6)
       now <- getCurrentTime
+      let diff = diffUTCTime now t
       let curr = toGregorian $ utctDay now
-      let old = toGregorian $ utctDay t
-      if curr /= old then
+      if diff > 5 then
         do
-          let new = path </> mkFileName curr <.> "log"  
-          var `putMVar` new 
-          mkNextDayPath path now var   
+          let new = path </> mkFileName curr ++ ":" ++ show i <.> "log"
+          var `putMVar` new
+          mkNextDayPath path now var (i +1)
       else
-        mkNextDayPath path t var
+        mkNextDayPath path t var i
