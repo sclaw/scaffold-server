@@ -87,6 +87,7 @@ library:
     - transformers
     - servant-server
     - warp
+    - rotating-log
   source-dirs:
     - src/core
     - src/extended

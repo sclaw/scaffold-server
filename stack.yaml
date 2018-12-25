@@ -45,6 +45,7 @@ extra-deps:
  - vty-5.25.1@sha256:45ecd481dc319d68cf5969fc2ff18b22b8ae03f7534d94bd4bc8ad3dfe94fc3b,20267
  - word-wrap-0.4.1@sha256:f72233b383ef569c557bfd9812cbb8e306c415ce509082c0bd15ee51c0239ccc,1606
  - megaparsec-7.0.4@sha256:a7397151601cbe6b8f831f8bdad1a10118dcd6d9a7ee50d6bbdcfbd1181b4ba2,6202
+ - rotating-log-0.4.3@sha256:ae14ce4b89df481746ffa4edb269b25b0479f7fb4cd08e457541ccef3f8052d4
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a

@@ -6,12 +6,9 @@ import           Application
 import           BuildInfo                       (protoHash)
 import           Logger
 
-import           Control.Concurrent.Async.Lifted (race_)
-import           Control.Concurrent.MVar         (newEmptyMVar)
 import           Control.Exception               (bracket)
 import           Control.Lens                    ((^.))
 import           Control.Lens.Iso.Extended       (stextiso)
-import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Reader      (runReaderT)
 import           Data.Monoid.Colorful            (hGetTerm)
 import           Data.Time.Clock                 (getCurrentTime)
@@ -32,13 +29,8 @@ main =
       let mkNm = Namespace [("<" ++ $(protoHash) ++ ">")^.stextiso]
       env <- initLogEnv mkNm "production"
       env' <- registerScribe "stdout" std defaultScribeSettings env
-      var <- newEmptyMVar
       let env'' = registerScribe "file" file defaultScribeSettings env'
-      let runApp le =
-           runKatipContextT le
-           (mempty :: LogContexts)
-           mempty
-           (race_ (app var) (liftIO (mkNextDayPath "log" now var 1)))
+      let runApp le = runKatipContextT le (mempty :: LogContexts) mempty app
       bracket env''
        closeScribes
        ((`runReaderT` appEnv) . runApp)
