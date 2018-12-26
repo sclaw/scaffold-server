@@ -88,6 +88,9 @@ library:
     - servant-server
     - warp
     - rotating-log
+    - servant-swagger-ui
+    - servant-swagger
+    - swagger2
   source-dirs:
     - src/core
     - src/extended

@@ -20,7 +20,10 @@ import           Database.Groundhog.Postgresql (Postgresql)
 import           Katip
 import           Network.Wai.Handler.Warp      (run)
 import           Servant
-
+import           Servant.Swagger.UI
+import           Servant.Swagger
+import           Data.Swagger
+import           Control.Lens
 
 type App = ReaderT AppEnv IO
 
@@ -41,7 +44,7 @@ app =
       configCm <- appEnvCm `fmap` lift ask
       let initCfg =
            do
-            configEnv <-  getLogEnv
+            configEnv <- getLogEnv
             configCtx <- getKatipContext
             configNm <-  getKatipNamespace
             return $ Config {..}
@@ -49,4 +52,16 @@ app =
       let runKH =
              (`runReaderT` cfg)
            . runKatipHandler
-      liftIO $ run 11000 (serve appApi (hoistServer appApi runKH server))
+      let swaggerServer =
+           hoistServer appApi runKH server :<|>
+           swaggerSchemaUIServer appSwagger
+          swaggerApi :: Proxy AppApi -> Proxy (AppApi :<|> SwaggerSchemaUI "swagger" "swagger.json")
+          swaggerApi _ = Proxy
+      liftIO $ run 11000 (serve (swaggerApi appApi) swaggerServer)
+
+appSwagger :: Swagger
+appSwagger =
+    toSwagger appApi
+    & info.title   .~ "web server"
+    & info.description ?~ ""
+    & info.version .~ "0.0.1"
