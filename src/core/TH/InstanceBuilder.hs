@@ -5,10 +5,11 @@
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module TH.InstanceBuilder
-       ( 
+       (
          derivePrimitivePersistField
        , deriveWrappedPrimitivePersistField
        , deriveNumInstanceFromWrappedNum
+       , deriveWrappedForDataWithSingleField
        )
        where
 
@@ -48,7 +49,7 @@ deriveNumInstanceFromWrappedNum name iso =
         abs = mkName "abs"
         minus = mkName "-"
         sig = mkName "signum"
-    TyConI (DataD _ _ _ _ [RecC cons _] _) <- reify name  
+    TyConI (DataD _ _ _ _ [RecC cons _] _) <- reify name
     [d|
        instance Num $(conT name) where
          (+) $(conP cons [varP x]) $(conP cons [varP y]) =
@@ -61,3 +62,23 @@ deriveNumInstanceFromWrappedNum name iso =
          (-) $(conP cons [varP x]) $(conP cons [varP y]) =
              $(conE cons) $(infixE (Just (varE x)) (varE minus) (Just (varE y)))
      |]
+
+deriveWrappedForDataWithSingleField :: Name -> Q [Dec]
+deriveWrappedForDataWithSingleField name =
+  do
+    TyConI (DataD _ _ _ _ [c] _) <- reify name
+    let derive inner =
+          do
+            let x = mkName "x"
+            let t = mkName $ nameBase name
+            let from = lamE [conP t [varP x]] (varE x)
+            let to = lamE [varP x] (appE (conE t) (varE x))
+            [d|
+               instance Wrapped $(conT t) where
+                 type Unwrapped $(conT t) = $(conT inner)
+                 _Wrapped' = iso $from $to
+             |]
+    case c of
+      RecC _ [(_, _, ConT inner)] -> derive inner
+      NormalC _ [(_, ConT inner)] -> derive inner
+      _                           -> error "data not supported"
