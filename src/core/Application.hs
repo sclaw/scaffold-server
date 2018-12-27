@@ -18,6 +18,7 @@ import           Data.Monoid.Colorful          (Term)
 import           Data.Pool                     (Pool)
 import           Database.Groundhog.Postgresql (Postgresql)
 import           Katip
+import           Katip.Core.Extended           (getLoc, logItemIO)
 import           Network.Wai.Handler.Warp      (run)
 import           Servant
 import           Servant.Swagger.UI
@@ -57,6 +58,10 @@ app =
            swaggerSchemaUIServer appSwagger
           swaggerApi :: Proxy AppApi -> Proxy (AppApi :<|> SwaggerSchemaUI "swagger" "swagger.json")
           swaggerApi _ = Proxy
+
+      env <- getLogEnv
+      liftIO $ testKatip env
+
       liftIO $ run 11000 (serve (swaggerApi appApi) swaggerServer)
 
 appSwagger :: Swagger
@@ -65,3 +70,5 @@ appSwagger =
     & info.title   .~ "web server"
     & info.description ?~ ""
     & info.version .~ "0.0.1"
+
+testKatip env = logItemIO env getLoc (mempty :: SimpleLogPayload) mempty DebugS DebugS (ls ("katip in io!!" :: String))
