@@ -9,6 +9,12 @@ ghc-options:
   - -threaded
   - -rtsopts
   - -with-rtsopts=-N
+  - -with-rtsopts=-T
+  - -with-rtsopts=-n4m
+  - -with-rtsopts=-A32m
+  - -with-rtsopts=-qb0
+  - -with-rtsopts=-I0
+  - -with-rtsopts=-s
   - -O2
   - -Werror
   - -fwarn-unused-imports
@@ -40,7 +46,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/web#readme>
+description: Please see the README on GitHub at <https://github.com/githubuser/web#readme>
 
 dependencies:
 - base >= 4.7 && < 5

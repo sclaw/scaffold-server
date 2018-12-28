@@ -9,7 +9,10 @@
 # to be used for project dependencies. For example:
 #
 # resolver: lts-3.5
-resolver: nightly-2018-12-17
+resolver: lts-13.0
+
+allow-newer: true
+
 # lts-11.22
 # resolver: ghc-7.10.2
 #
@@ -46,6 +49,7 @@ extra-deps:
  - word-wrap-0.4.1@sha256:f72233b383ef569c557bfd9812cbb8e306c415ce509082c0bd15ee51c0239ccc,1606
  - megaparsec-7.0.4@sha256:a7397151601cbe6b8f831f8bdad1a10118dcd6d9a7ee50d6bbdcfbd1181b4ba2,6202
  - rotating-log-0.4.3@sha256:ae14ce4b89df481746ffa4edb269b25b0479f7fb4cd08e457541ccef3f8052d4
+ - groundhog-th-0.10.2@sha256:6e2715a263266be00c989e164f831dd739554de82d8f4f0c58ce6c1b0e46b4a0,1340
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
