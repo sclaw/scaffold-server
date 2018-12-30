@@ -97,6 +97,7 @@ library:
     - servant-swagger-ui
     - servant-swagger
     - swagger2
+    - doctest
   source-dirs:
     - src/core
     - src/extended
@@ -111,8 +112,14 @@ executables:
     - web
 
 tests:
-  web-test:
+  tasty:
     main:                test.hs
     source-dirs:         prog
     dependencies:
     - web
+  doctest:
+    main:             doctest.hs
+    source-dirs:      prog
+    dependencies:
+    - web
+    - doctest-discover
