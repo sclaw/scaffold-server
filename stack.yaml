@@ -9,7 +9,7 @@
 # to be used for project dependencies. For example:
 #
 # resolver: lts-3.5
-resolver: lts-13.0
+resolver: lts-13.16
 
 allow-newer: true
 
@@ -53,6 +53,7 @@ extra-deps:
  - groundhog-th-0.10.2@sha256:6e2715a263266be00c989e164f831dd739554de82d8f4f0c58ce6c1b0e46b4a0,1340
  - git: git@github.com:sclaw/doctest-discover.git
    commit: 62ecf0786d0cf28644c5cc106004e259d1388b4a
+ - servant-websockets-1.1.0   
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
@@ -82,3 +83,21 @@ extra-deps:
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
+
+docker:
+  enable: true
+  auto-pull: true
+  repo: "sclaw/stack-ext:v.1"
+  
+image:
+  container:
+    name: web
+    base: "sclaw/stack-ext:v.1"
+    add:
+     ".git": /.git
+    
+nix:
+  enable: true
+  pure: true
+  shell-file: shell.nix
+

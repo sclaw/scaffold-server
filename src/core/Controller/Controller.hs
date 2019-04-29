@@ -1,12 +1,35 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -fno-warn-missing-exported-signatures #-}
 
 module Controller.Controller (execQuery) where
 
 import           Api
 import           Katip
 import           KatipHandler
-import           Servant
+import           Servant hiding (Application)
+import           Network.WebSockets.Connection
+import           Control.Monad.IO.Class
+import           Data.ByteString.Char8 (pack)
+import           Control.Monad.Reader.Class
+import           Servant.API.WebSocket
+import           Servant.Server.Generic
+import           Servant.API.Generic
+import           Control.Lens
+import           Data.Text
+import           Pretty
+import           Servant.Server.Internal.ServantErr
+import           Data.Monoid.Colorful
 
+execQuery :: Application (AsServerT KatipHandler)
+execQuery = ApplicationApi { home = toServant (HomeApi { getAllIntegers = getAllIntegersAction } :: HomeApi (AsServerT KatipHandler))  }
 
-execQuery :: ServerT AppApi KatipHandler
-execQuery = const [1, 2, 4] `fmap` $(logTM) DebugS "getAllIntegers"
+getAllIntegersAction :: Connection -> KatipHandler ()
+getAllIntegersAction conn = 
+    do
+      term <- (^.katipEnv.terminal) `fmap` ask
+      let s = showColoredS term (Fg Red (Value "hello"))
+      $(logTM) InfoS (logStr (mkPretty "debug info: " (s mempty)))
+      liftIO $ conn `sendTextData` ("hello" :: Text)

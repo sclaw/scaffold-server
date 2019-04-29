@@ -9,10 +9,13 @@
 module KatipHandler
        ( Config (..)
        , KatipHandler (..)
+       , KatipEnv (..)
         -- * lens
        , nm
        , ctx
        , env
+       , katipEnv
+       , terminal
        , cm
        ) where
 
@@ -27,17 +30,20 @@ import           Katip
 import           Servant.Server                (Handler)
 import           Control.Monad.Trans.Control   (MonadBaseControl)
 import           Control.Monad.Base            (MonadBase)
+import           Control.Monad.Error.Class
+import           Servant.Server.Internal.ServantErr
+import           Data.Monoid.Colorful          (Term)
 
+
+data KatipEnv = KatipEnv { katipEnvTerminal :: Term, katipEnvCm :: Pool Postgresql }
 
 data Config =
      Config
-      { configNm  :: Namespace
-      , configCtx :: LogContexts
-      , configEnv :: LogEnv
-      , configCm  :: Pool Postgresql
+      { configNm       :: !Namespace
+      , configCtx      :: !LogContexts
+      , configEnv      :: !LogEnv
+      , configKatipEnv :: !KatipEnv
       }
-
-makeFields ''Config
 
 newtype KatipHandler a =
         KatipHandler
@@ -50,7 +56,11 @@ newtype KatipHandler a =
      , (MonadReader Config)
      , MonadBase IO
      , MonadBaseControl IO
+     , MonadError ServantErr
      )
+
+makeFields ''Config
+makeFields ''KatipEnv
 
 -- These instances get even easier with lenses!
 instance Katip KatipHandler where

@@ -8,13 +8,13 @@ copyright:           "2018 Author name here"
 ghc-options:
   - -threaded
   - -rtsopts
-  - -with-rtsopts=-N
-  - -with-rtsopts=-T
-  - -with-rtsopts=-n4m
-  - -with-rtsopts=-A32m
-  - -with-rtsopts=-qb0
-  - -with-rtsopts=-I0
-  - -with-rtsopts=-s
+  # - -with-rtsopts=-N
+  # - -with-rtsopts=-T
+  # - -with-rtsopts=-n4m
+  # - -with-rtsopts=-A32m
+  # - -with-rtsopts=-qb0
+  # - -with-rtsopts=-I0
+  # - -with-rtsopts=-s
   - -O2
   - -Werror
   - -fwarn-unused-imports
@@ -94,10 +94,11 @@ library:
     - servant-server
     - warp
     - rotating-log
-    - servant-swagger-ui
-    - servant-swagger
-    - swagger2
     - doctest
+    - doctest-discover
+    - tasty-discover
+    - servant-websockets
+    - websockets
   source-dirs:
     - src/core
     - src/extended

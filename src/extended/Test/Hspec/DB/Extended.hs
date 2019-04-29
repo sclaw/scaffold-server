@@ -1,22 +1,25 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module Test.Hspec.DB.Extended
        (  module Test.Hspec.DB
         , itDBGroundhog
         , describeDBGroundhog
+        , describeDBGroundhogWithTablePopulated
        )
        where
 
-import Test.Hspec.DB hiding (pool)
-import Database.Groundhog.Core (Action, Migration, runDbConn)
-import Test.Hspec
-import qualified Database.Postgres.Temp as Temp
-import Database.Groundhog.Postgresql (Postgresql, createPostgresqlPool, withPostgresqlConn)
-import Data.Pool (destroyAllResources, Pool)
-import Control.Exception (throwIO)
-import Database.Groundhog (runMigration)
-import Control.Monad (void)
+import           Control.Exception             (bracketOnError)
+import           Control.Monad                 (void)
+import           Data.Pool                     (Pool, destroyAllResources)
+import           Database.Groundhog.Core       (Action, Migration, runDbConn)
+import           Database.Groundhog.Generic    (runMigrationSilent)
+import           Database.Groundhog.Postgresql (Postgresql, createPostgresqlPool,
+                                                withPostgresqlConn)
+import qualified Database.Postgres.Temp        as Temp
+import           Test.Hspec
+import           Test.Hspec.DB                 hiding (pool)
 
 
 data TestDBPGSql =
@@ -28,18 +31,25 @@ data TestDBPGSql =
       }
 
 -- start a temporary postgres process and create a pool of connections to it
--- start a temporary postgres process and create a pool of connections to it
 setupDBGroundhog :: Migration (Action Postgresql) -> Action Postgresql () -> IO TestDBPGSql
 setupDBGroundhog migration populate =
-    do
-      e <- Temp.start []
-      tempDB <- either throwIO return e
-      let connStr = Temp.connectionString tempDB
-      putStrLn $ "connection to tmp psql set up: " ++ connStr
-      pool <- connStr `createPostgresqlPool` 10
-      let prepare = runMigration migration >> populate            
-      withPostgresqlConn connStr (prepare `runDbConn`)
-      return TestDBPGSql {..}
+    bracketOnError
+    (Temp.startAndLogToTmp [] >>=
+     either err return)
+    (void . Temp.stop)
+    initTemp
+    where
+        initTemp tempDB =
+         do let connStr = Temp.connectionString tempDB
+            pool <- connStr `createPostgresqlPool` 10
+            let prepare =
+                 do
+                   runMigrationSilent
+                    migration
+                   populate
+            withPostgresqlConn connStr (prepare `runDbConn`)
+            return TestDBPGSql {..}
+        err e = error $ "Error during db initialization: " <> show e
 
 -- drop all the connections and shutdown the postgres process
 teardownDBGroundhog :: TestDBPGSql -> IO ()
@@ -58,18 +68,32 @@ runDBGroundhog = flip withDBGroundhog
 itDBGroundhog :: String -> Action Postgresql a -> SpecWith TestDBPGSql
 itDBGroundhog msg action = msg `it` (void . withDBGroundhog action)
 
-describeDBGroundhog :: Migration (Action Postgresql) -> String -> SpecWith TestDBPGSql -> Spec
-describeDBGroundhog  migrate discribeTest =
-      beforeAll (setupDBGroundhog migrate (return ()))
+describeDBGroundhog
+    :: Migration (Action Postgresql)
+    -> String
+    -> SpecWith TestDBPGSql
+    -> Spec
+describeDBGroundhog migrate str =
+      beforeAll
+      (setupDBGroundhog
+       migrate
+       (return ())
+      )
     . afterAll teardownDBGroundhog
-    . describe discribeTest
+    . describe str
 
-describeDBGroundhogWithTablePopulated 
-       :: Migration (Action Postgresql) 
-       -> Action Postgresql () 
-       -> String 
-       -> SpecWith TestDBPGSql -> Spec
-describeDBGroundhogWithTablePopulated migrate populate discribeTest =
-      beforeAll (setupDBGroundhog migrate populate)
-    . afterAll teardownDBGroundhog
-    . describe discribeTest
+describeDBGroundhogWithTablePopulated
+    :: Migration (Action Postgresql)
+    -> Action Postgresql ()
+    -> String
+    -> SpecWith TestDBPGSql
+    -> Spec
+describeDBGroundhogWithTablePopulated migrate populate str =
+      beforeAll
+      (setupDBGroundhog
+       migrate
+       populate
+      )
+      . afterAll
+        teardownDBGroundhog
+      . describe str
