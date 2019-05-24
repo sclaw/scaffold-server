@@ -99,6 +99,8 @@ library:
     - tasty-discover
     - servant-websockets
     - websockets
+    - hasql
+    - hasql-pool
   source-dirs:
     - src/core
     - src/extended

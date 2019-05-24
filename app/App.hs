@@ -14,13 +14,17 @@ import           Data.Monoid.Colorful            (hGetTerm)
 import           Database.Groundhog.Postgresql   (createPostgresqlPool)
 import           Katip
 import           System.IO                       (stdout)
+import qualified Data.Pool  as                   Pool
+import qualified Hasql.Pool as                   Hasql 
+
 
 main :: IO ()
 main =
     do
       term <- hGetTerm stdout
-      cm <- createPostgresqlPool "" 50
-      let appEnv = KatipEnv term cm
+      orm <- createPostgresqlPool "" 50
+      raw <- Pool.createPool (Hasql.acquire (50, 10000, "")) Hasql.release 1 100 1  
+      let appEnv = KatipEnv term orm raw
       std <- mkHandleScribe ColorIfTerminal stdout DebugS V3
       let mkNm = Namespace [("<" ++ $(protoHash) ++ ">")^.stextiso]
       env <- initLogEnv mkNm "production"

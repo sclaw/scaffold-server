@@ -16,7 +16,8 @@ module KatipHandler
        , env
        , katipEnv
        , terminal
-       , cm
+       , ormDB
+       , rawDB
        ) where
 
 import           Control.Lens
@@ -24,7 +25,7 @@ import           Control.Lens.TH               (makeFields)
 import           Control.Monad.IO.Class
 import           Control.Monad.Reader.Class    (MonadReader)
 import           Control.Monad.Trans.Reader
-import           Data.Pool                     (Pool)
+import qualified Data.Pool                     as Pool
 import           Database.Groundhog.Postgresql (Postgresql)
 import           Katip
 import           Servant.Server                (Handler)
@@ -33,9 +34,15 @@ import           Control.Monad.Base            (MonadBase)
 import           Control.Monad.Error.Class
 import           Servant.Server.Internal.ServantErr
 import           Data.Monoid.Colorful          (Term)
+import qualified Hasql.Pool                    as Hasql 
 
 
-data KatipEnv = KatipEnv { katipEnvTerminal :: Term, katipEnvCm :: Pool Postgresql }
+data KatipEnv = 
+     KatipEnv 
+     { katipEnvTerminal :: !Term
+     , katipEnvOrmDB    :: !(Pool.Pool Postgresql)
+     , katipEnvRawDB    :: !(Pool.Pool Hasql.Pool)
+     }
 
 data Config =
      Config
