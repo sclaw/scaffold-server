@@ -29,5 +29,5 @@ main =
       let mkNm = Namespace [("<" ++ $(protoHash) ++ ">")^.stextiso]
       env <- initLogEnv mkNm "production"
       let env' = registerScribe "stdout" std defaultScribeSettings env
-      let runApp le = runKatipContextT le (mempty :: LogContexts) mempty app
+      let runApp le = runKatipContextT le (mempty :: LogContexts) mempty run
       bracket env' closeScribes ((`runReaderT` appEnv) . runApp)

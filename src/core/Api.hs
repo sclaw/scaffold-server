@@ -6,7 +6,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Api (Application (..), HomeApi (..), api) where
+module Api (ApplicationApi (..), HomeApi (..), api) where
 
 
 import           Servant.API.Generic
@@ -14,7 +14,7 @@ import           Servant.API.WebSocket
 import           Data.Proxy
 import           Servant.API
 
-newtype Application route = ApplicationApi { home :: route :- ToServant HomeApi AsApi } deriving stock Generic
+newtype ApplicationApi route = ApplicationApi { home :: route :- ToServant HomeApi AsApi } deriving stock Generic
 
 newtype HomeApi route = 
         HomeApi 
@@ -24,6 +24,6 @@ newtype HomeApi route =
           :> WebSocket 
         } deriving stock Generic
 
-api :: Proxy (ToServantApi Application)
-api = genericApi (Proxy :: Proxy Application)
+api :: Proxy (ToServantApi ApplicationApi)
+api = genericApi (Proxy :: Proxy ApplicationApi)
 

@@ -4,7 +4,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 {-# OPTIONS_GHC -fno-warn-missing-exported-signatures #-}
 
-module Controller.Controller (execQuery) where
+module Controller.Controller (controller) where
 
 import           Api
 import           Katip
@@ -23,8 +23,8 @@ import           Pretty
 import           Servant.Server.Internal.ServantErr
 import           Data.Monoid.Colorful
 
-execQuery :: Application (AsServerT KatipHandler)
-execQuery = ApplicationApi { home = toServant (HomeApi { getAllIntegers = getAllIntegersAction } :: HomeApi (AsServerT KatipHandler))  }
+controller :: ApplicationApi (AsServerT KatipHandler)
+controller = ApplicationApi { home = toServant (HomeApi { getAllIntegers = getAllIntegersAction } :: HomeApi (AsServerT KatipHandler))  }
 
 getAllIntegersAction :: Connection -> KatipHandler ()
 getAllIntegersAction conn = 

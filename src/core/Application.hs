@@ -8,7 +8,7 @@
 {-# LANGUAGE RankNTypes         #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
-module Application (App, app) where
+module Application (App, run) where
 
 import           Api
 import qualified Controller.Controller as Controller
@@ -18,14 +18,14 @@ import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Reader    (ReaderT, ask, runReaderT)
 import           Katip
-import           Network.Wai.Handler.Warp      (run)
-import           Servant hiding (Application)
+import qualified Network.Wai.Handler.Warp      as Warp
+import           Servant                       hiding (Application)
 import           Servant.API.Generic
 
 type App = ReaderT KatipEnv IO
 
-app :: KatipContextT App ()
-app =
+run :: KatipContextT App ()
+run =
     do
       $(logTM) DebugS "app run.."
       configKatipEnv <- lift ask
@@ -37,5 +37,5 @@ app =
              return $ Config {..}
       cfg <- initCfg
       let runKH = (`runReaderT` cfg) . runKatipHandler
-      let server = hoistServer api runKH (toServant (Controller.execQuery)) 
-      liftIO $ run 11000 (serve api server)
+      let server = hoistServer api runKH (toServant (Controller.controller)) 
+      liftIO $ Warp.run 11000 (serve api server)
