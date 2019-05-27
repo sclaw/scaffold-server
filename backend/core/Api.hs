@@ -19,7 +19,8 @@ newtype ApplicationApi route = ApplicationApi { home :: route :- ToServant HomeA
 newtype HomeApi route = 
         HomeApi 
         { getAllIntegers 
-          :: route
+
+        :: route
           :- "getAllIntegers" 
           :> WebSocket 
         } deriving stock Generic
