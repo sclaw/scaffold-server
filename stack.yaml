@@ -96,8 +96,15 @@ image:
     add:
      ".git": /.git
     
+# nix:
+#   enable: true
+#   pure: true
+#   shell-file: shell.nix
+
 nix:
-  enable: true
-  pure: true
-  shell-file: shell.nix
+  packages:
+    - zlib
+    - postgresql96
+    - rocksdb
+    - leveldb
 
