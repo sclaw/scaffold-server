@@ -6,7 +6,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Api (ApplicationApi (..), HomeApi (..), api) where
+module Api (ApplicationApi (..), UserApi (..), api) where
 
 
 import           Servant.API.Generic
@@ -16,15 +16,15 @@ import           Servant.API
 
 data ApplicationApi route = 
      ApplicationApi 
-     { root :: route :-  Get '[JSON] String
-     , home :: route :- ToServant HomeApi AsApi 
+     { root :: route :-  Get '[PlainText] String
+     , home :: route :- ToServant UserApi AsApi 
      } deriving stock Generic
 
-newtype HomeApi route = 
-        HomeApi 
-        { getAllIntegers 
+newtype UserApi route = 
+        UserApi 
+        { register 
           :: route
-          :- "getAllIntegers" 
+          :- "register" 
           :> WebSocket 
         } deriving stock Generic
 

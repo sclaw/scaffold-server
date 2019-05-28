@@ -11,7 +11,7 @@
 module Application (App, run) where
 
 import           Api
-import qualified Controller.Controller as Controller
+import qualified Controller.Application as App
 import           KatipHandler
 
 import           Control.Monad.IO.Class
@@ -37,5 +37,5 @@ run =
              return $ Config {..}
       cfg <- initCfg
       let runKH = (`runReaderT` cfg) . runKatipHandler
-      let server = hoistServer api runKH (toServant (Controller.controller)) 
+      let server = hoistServer api runKH (toServant (App.application)) 
       liftIO $ Warp.run 11000 (serve api server)
