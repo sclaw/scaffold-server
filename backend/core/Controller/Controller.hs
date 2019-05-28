@@ -22,9 +22,14 @@ import           Data.Text
 import           Pretty
 import           Servant.Server.Internal.ServantErr
 import           Data.Monoid.Colorful
+import           Data.Functor (($>)) 
 
 controller :: ApplicationApi (AsServerT KatipHandler)
-controller = ApplicationApi { home = toServant (HomeApi { getAllIntegers = getAllIntegersAction } :: HomeApi (AsServerT KatipHandler))  }
+controller = 
+  ApplicationApi 
+  { root = $(logTM) InfoS (logStr (mkPretty "debug info: " "root")) $> "hello" 
+  , home = toServant (HomeApi { getAllIntegers = getAllIntegersAction } :: HomeApi (AsServerT KatipHandler))  
+  }
 
 getAllIntegersAction :: Connection -> KatipHandler ()
 getAllIntegersAction conn = 

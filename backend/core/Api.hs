@@ -14,13 +14,16 @@ import           Servant.API.WebSocket
 import           Data.Proxy
 import           Servant.API
 
-newtype ApplicationApi route = ApplicationApi { home :: route :- ToServant HomeApi AsApi } deriving stock Generic
+data ApplicationApi route = 
+     ApplicationApi 
+     { root :: route :-  Get '[JSON] String
+     , home :: route :- ToServant HomeApi AsApi 
+     } deriving stock Generic
 
 newtype HomeApi route = 
         HomeApi 
         { getAllIntegers 
-
-        :: route
+          :: route
           :- "getAllIntegers" 
           :> WebSocket 
         } deriving stock Generic
