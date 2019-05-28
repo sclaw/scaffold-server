@@ -16,17 +16,29 @@ import           Servant.API
 
 data ApplicationApi route = 
      ApplicationApi 
-     { root :: route :-  Get '[PlainText] String
+     { root :: route :- Get '[PlainText] String
      , home :: route :- ToServant UserApi AsApi 
      } deriving stock Generic
 
-newtype UserApi route = 
-        UserApi 
-        { register 
-          :: route
-          :- "register" 
-          :> WebSocket 
-        } deriving stock Generic
+data UserApi route = 
+     UserApi 
+     { register 
+       :: route
+       :- "register" 
+       :> WebSocket
+     , authorize
+       :: route
+       :- "authorize" 
+       :> WebSocket      
+     , checkLoginAvailability
+       :: route
+       :- "check-login" 
+       :> WebSocket  
+     , checkEmailAvailability
+       :: route
+       :- "check-email" 
+       :> WebSocket 
+     } deriving stock Generic
 
 api :: Proxy (ToServantApi ApplicationApi)
 api = genericApi (Proxy :: Proxy ApplicationApi)
