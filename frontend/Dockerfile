@@ -1,12 +1,13 @@
-FROM node:latest as build
+# Stage 1
+FROM node:8 as react-build
 WORKDIR /app
-ENV PATH /app/node_modules/.bin:$PATH
-COPY . /app
-RUN npm install --silent
-RUN npm install react-scripts@3.0.1 -g --silent
-RUN npm run build
+COPY . ./
+RUN yarn
+RUN yarn build
 
-FROM nginx:latest
-COPY --from=build /app/build /usr/share/nginx/html
+# Stage 2 - the production environment
+FROM nginx:alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=react-build /app/build /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
