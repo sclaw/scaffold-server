@@ -1,0 +1,48 @@
+version: '3.2'
+services:
+
+  web-db:
+    image: postgres
+    container_name: "web-db"
+    restart: 'always'
+    ports:
+      - '5432:5432'
+    environment:
+      - DB_USER=${USER_VAR}
+      - DB_PASSWORD=${PWD_VAR}
+      - DB_DATABASE=${DB_VAR}
+      - DB_SCHEMA=${SCHEMA_VAR}
+      - POSTGRES_PASSWORD=${PG_PWD_VAR}
+      - POSTGRES_USER=${PG_USER_VAR}
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/
+      - pg_data_db:/var/lib/postgresql/data
+    build: './db'
+    networks:
+      - bstream-web
+
+  # server:
+  #   build: ./server
+  #   container_name: "server"
+  #   links:
+  #     - db
+  #   environment:
+  #     - LOGIN_HOST=db
+  #     - LOGIN_PORT=5432
+  #     - LOGIN_DB=${DB_VAR}
+  #     - LOGIN_USER=${USER_VAR}
+  #     - LOGIN_PASS=${PWD_VAR}
+  #   depends_on:
+  #     - db
+  #   ports:
+  #     - "11000:11000"    
+  #   networks:
+  #     - bstream-web
+    
+networks:
+  bstream-web:
+
+volumes:
+  pg_data_db: {}
+
+# vim: et:sw=2
