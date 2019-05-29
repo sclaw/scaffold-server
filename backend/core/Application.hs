@@ -21,11 +21,12 @@ import           Katip
 import qualified Network.Wai.Handler.Warp      as Warp
 import           Servant                       hiding (Application)
 import           Servant.API.Generic
+import           Control.Lens
 
 type App = ReaderT KatipEnv IO
 
-run :: KatipContextT App ()
-run =
+run :: Int -> KatipContextT App ()
+run port =
     do
       $(logTM) DebugS "app run.."
       configKatipEnv <- lift ask
@@ -37,5 +38,9 @@ run =
              return $ Config {..}
       cfg <- initCfg
       let runKH = (`runReaderT` cfg) . runKatipHandler
-      let server = hoistServer api runKH (toServant (App.application)) 
-      liftIO $ Warp.run 11000 (serve api server)
+      let server = hoistServer api runKH (toServant (App.application))
+      let settings = 
+           Warp.defaultSettings
+           & Warp.setPort port
+           & Warp.setOnException Warp.defaultOnException     
+      liftIO $ Warp.runSettings settings (serve api server)
