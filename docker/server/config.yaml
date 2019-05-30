@@ -1,0 +1,19 @@
+configDb:
+  dbHost: web-db
+  dbPort: 5432
+  dbUser: bstream
+  dbPass: this_is_bstream
+  dbDatabase: bstream
+
+configPorts: 11000
+
+configOrm: 50
+
+configRaw:
+  hasqlSettingsPoolN: 50
+  hasqlSettingsTm: 0.5
+
+configPool:
+  poolSettingsStripesN: 1
+  poolSettingsTimeToOpen: 0.5
+  poolSettingsResPerStripe: 1

@@ -6,7 +6,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving  #-}
 
 module Config 
-       (Config
+       ( Config
+       , GroundhogSettings (..)
+       , Db
        , db
        , ports
        , pass
@@ -14,6 +16,14 @@ module Config
        , database
        , host
        , user
+       , orm
+       , poolN
+       , tm
+       , raw
+       , pool
+       , stripesN
+       , timeToOpen
+       , resPerStripe
          -- * load config
        , load  
        ) 
@@ -24,6 +34,7 @@ import Data.Aeson.TH.Extended
 import Control.Lens
 import Control.Exception
 import Data.Yaml
+import Data.Time.Clock
 
 data Db = Db 
      { dbHost :: String
@@ -37,15 +48,34 @@ newtype Ports = Ports { portsPort :: Int }
   deriving Show 
   deriving newtype FromJSON
 
+newtype GroundhogSettings = GroundhogSettings { groundhogSettingsPoolN :: Int } 
+  deriving Show 
+  deriving newtype FromJSON
+
+data HasqlSettings = HasqlSettings { hasqlSettingsPoolN :: Int, hasqlSettingsTm :: NominalDiffTime }
+  deriving Show
+
+data PoolSettings = 
+     PoolSettings 
+     { poolSettingsStripesN :: Int
+     , poolSettingsTimeToOpen :: NominalDiffTime
+     , poolSettingsResPerStripe :: Int 
+     } deriving Show
+
 data Config = 
      Config 
      { configDb :: Db 
      , configPorts :: Ports
+     , configOrm :: GroundhogSettings
+     , configRaw :: HasqlSettings
+     , configPool :: PoolSettings
      } deriving Show
 
 makeFields ''Config
 makeFields ''Ports
 makeFields ''Db
+makeFields ''HasqlSettings
+makeFields ''PoolSettings
 
 -- Load program configuration from file (server.yaml), or
 -- raise YamlException and terminate program.
@@ -54,3 +84,5 @@ load path = decodeFileEither path >>= either throwIO pure
 
 deriveFromJSON defaultOptions ''Db
 deriveFromJSON defaultOptions ''Config
+deriveFromJSON defaultOptions ''HasqlSettings
+deriveFromJSON defaultOptions ''PoolSettings

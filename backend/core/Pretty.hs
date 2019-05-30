@@ -1,6 +1,6 @@
-module Pretty (mkPretty) where
+module Pretty (mkPretty, pPrint) where
       
-import Text.Pretty.Simple (pShowOpt, defaultOutputOptionsNoColor)
+import Text.Pretty.Simple
 import Data.Text.Lazy (toStrict)
 import Control.Lens ((^.), to, from)
 import Control.Lens.Iso.Extended (stextiso)
