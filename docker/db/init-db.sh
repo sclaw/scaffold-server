@@ -52,10 +52,13 @@ Aborting."
 # using the preconfigured POSTGRE_USER user.
 init_user_and_db() {
   psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
-     create user $DB_USER with password '$DB_PASSWORD';
-     create schema $DB_SCHEMA; 
+     create user $DB_USER with password '$DB_PASSWORD'; 
      create database $DB_DATABASE;
-     grant all privileges on database $DB_DATABASE to $DB_USER; 
+     \c $DB_DATABASE;
+     grant all privileges on database $DB_DATABASE to $DB_USER;
+     set role $DB_USER;
+     create schema if not exists $DB_SCHEMA;
+     set search_path to $DB_SCHEMA;
 EOSQL
 }
 

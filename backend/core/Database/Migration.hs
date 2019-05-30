@@ -38,7 +38,7 @@ checkDBMeta =
          "select exists ( \
          \select 1 \
          \from information_schema.tables \ 
-         \where table_schema = 'public' \
+         \where table_schema = 'bstream_all' \
          \and table_name = 'db_meta')" 
     stream <- queryRaw False sql []
     row <- firstRow stream
@@ -47,12 +47,12 @@ checkDBMeta =
 getVersion :: Action Postgresql (Maybe Word32)
 getVersion =
     do
-    stream <- queryRaw False "select \"migrationVersion\" from \"db_meta\"" []
+    stream <- queryRaw False "select \"migrationVersion\" from bstream_all.db_meta" []
     row <- firstRow stream
     traverse ((fst `fmap`) . fromPersistValues) row
 
 setVersion :: Action Postgresql ()
-setVersion = executeRaw False "insert into \"db_meta\" (\"migrationVersion\", \"modificationTime\") values (?, now())" [PersistInt64 1]
+setVersion = executeRaw False "insert into bstream_all.db_meta (\"migrationVersion\", \"modificationTime\") values (?, now())" [PersistInt64 1]
 
 buildTables :: Action Postgresql ()
 buildTables = runMigration $
@@ -63,6 +63,6 @@ mkDBMetaMigration :: NamedMigrations -> NamedMigrations
 mkDBMetaMigration = Map.insert "db_meta"  (Right [(False, 1, mkDBMetaTable)])
   where
     mkDBMetaTable = 
-      "create table if not exists \"db_meta\" \
+      "create table if not exists bstream_all.db_meta \
       \(\"migrationVersion\" integer not null default 0, \
       \\"modificationTime\" timestamp)"
