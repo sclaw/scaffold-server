@@ -64,5 +64,5 @@ mkDBMetaMigration = Map.insert "db_meta"  (Right [(False, 1, mkDBMetaTable)])
   where
     mkDBMetaTable = 
       "create table if not exists \"db_meta\" \
-      \(\"migrationVersion\" integer not null defualt 0, \
+      \(\"migrationVersion\" integer not null default 0, \
       \\"modificationTime\" timestamp)"

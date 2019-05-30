@@ -101,6 +101,7 @@ library:
     - websockets
     - hasql
     - hasql-pool
+    - ekg
   source-dirs:
     - backend/core
     - backend/extended

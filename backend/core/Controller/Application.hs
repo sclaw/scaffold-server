@@ -18,13 +18,14 @@ application :: ApplicationApi (AsServerT KatipHandler)
 application = 
   ApplicationApi 
   { root = Root.controller 
-  , home = toServant user  
+  , user = toServant userApi  
   }
 
-user :: UserApi (AsServerT KatipHandler)
-user = UserApi 
-       { register = Register.controller
-       , authorize = Authorize.controller
-       , checkLoginAvailability = CheckLogin.controller
-       , checkEmailAvailability = CheckEmail.controller
-       }
+userApi :: UserApi (AsServerT KatipHandler)
+userApi = 
+  UserApi 
+  { register = Register.controller
+  , authorize = Authorize.controller
+  , checkLoginAvailability = CheckLogin.controller
+  , checkEmailAvailability = CheckEmail.controller
+  }

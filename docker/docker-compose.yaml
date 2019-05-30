@@ -21,23 +21,17 @@ services:
     networks:
       - bstream-web
 
-  # server:
-  #   build: ./server
-  #   container_name: "server"
-  #   links:
-  #     - db
-  #   environment:
-  #     - LOGIN_HOST=db
-  #     - LOGIN_PORT=5432
-  #     - LOGIN_DB=${DB_VAR}
-  #     - LOGIN_USER=${USER_VAR}
-  #     - LOGIN_PASS=${PWD_VAR}
-  #   depends_on:
-  #     - db
-  #   ports:
-  #     - "11000:11000"    
-  #   networks:
-  #     - bstream-web
+  server:
+    build: ./server
+    container_name: "server"
+    links:
+      - web-db
+    depends_on:
+      - web-db
+    ports:
+      - "11000:11000"    
+    networks:
+      - bstream-web
     
 networks:
   bstream-web:

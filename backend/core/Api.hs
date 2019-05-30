@@ -17,7 +17,7 @@ import           Servant.API
 data ApplicationApi route = 
      ApplicationApi 
      { root :: route :- Get '[PlainText] String
-     , home :: route :- ToServant UserApi AsApi 
+     , user :: route :- ToServant UserApi AsApi 
      } deriving stock Generic
 
 data UserApi route = 

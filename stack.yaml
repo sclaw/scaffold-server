@@ -99,5 +99,5 @@ image:
     name: bstream-web
     base: "fpco/stack-build:lts-13.16"
     add: 
-      ".stack-work/install/x86_64-linux-dkc2bbd663491c27b917cf684fd0979f90/lts-13.16/8.6.4/share/x86_64-linux-ghc-8.6.4/ekg-0.4.0.15/": /ekg
+      # ".stack-work/install/x86_64-linux-dkc2bbd663491c27b917cf684fd0979f90/lts-13.16/8.6.4/share/x86_64-linux-ghc-8.6.4/ekg-0.4.0.15/": /ekg
       ".git": /.git
