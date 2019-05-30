@@ -7,6 +7,7 @@ import           KatipHandler
 import           BuildInfo                       (protoHash)
 import           Config
 import           Pretty
+import           Database.Migration
 
 import           Control.Exception               (bracket)
 import           Control.Lens                    
@@ -48,6 +49,7 @@ main =
             (mempty :: LogContexts) 
             mempty 
             (run (cfg^.ports.port))
+      migrate orm       
       bracket env' closeScribes ((`runReaderT` appEnv) . runApp)
 
 mkOrmConn :: Db -> String
