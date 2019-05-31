@@ -3,3 +3,4 @@ web.cabal
 *~
 test/*.html
 log/
+.vscode/

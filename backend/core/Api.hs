@@ -6,7 +6,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Api (ApplicationApi (..), UserApi (..), api) where
+module Api (ApplicationApi (..), AuthApi (..), api) where
 
 
 import           Servant.API.Generic
@@ -17,11 +17,11 @@ import           Servant.API
 data ApplicationApi route = 
      ApplicationApi 
      { root :: route :- Get '[PlainText] String
-     , user :: route :- ToServant UserApi AsApi 
+     , auth :: route :- ToServant AuthApi AsApi 
      } deriving stock Generic
 
-data UserApi route = 
-     UserApi 
+data AuthApi route = 
+     AuthApi 
      { register 
        :: route
        :- "register" 
@@ -42,4 +42,3 @@ data UserApi route =
 
 api :: Proxy (ToServantApi ApplicationApi)
 api = genericApi (Proxy :: Proxy ApplicationApi)
-

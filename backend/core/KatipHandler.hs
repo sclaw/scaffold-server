@@ -52,9 +52,7 @@ data Config =
       , configKatipEnv :: !KatipEnv
       }
 
-newtype KatipHandler a =
-        KatipHandler
-        { runKatipHandler :: ReaderT Config Handler a }
+newtype KatipHandler a = KatipHandler { runKatipHandler :: ReaderT Config Handler a }
     deriving
      ( Functor
      , Applicative

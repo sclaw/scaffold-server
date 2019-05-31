@@ -38,7 +38,7 @@ run port =
              return $ Config {..}
       cfg <- initCfg
       let runKH = (`runReaderT` cfg) . runKatipHandler
-      let server = hoistServer api runKH (toServant (App.application))
+      let server = hoistServer api runKH (toServant App.application)
       let settings = 
            Warp.defaultSettings
            & Warp.setPort port
