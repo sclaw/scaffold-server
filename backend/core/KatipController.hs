@@ -6,9 +6,9 @@
 {-# LANGUAGE UndecidableInstances       #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
-module KatipHandler
+module KatipController
        ( Config (..)
-       , KatipHandler (..)
+       , KatipController (..)
        , KatipEnv (..)
         -- * lens
        , nm
@@ -52,7 +52,7 @@ data Config =
       , configKatipEnv :: !KatipEnv
       }
 
-newtype KatipHandler a = KatipHandler { runKatipHandler :: ReaderT Config Handler a }
+newtype KatipController a = KatipController { runKatipController :: ReaderT Config Handler a }
     deriving
      ( Functor
      , Applicative
@@ -70,12 +70,12 @@ makeFields ''Config
 makeFields ''KatipEnv
 
 -- These instances get even easier with lenses!
-instance Katip KatipHandler where
-    getLogEnv = KatipHandler $ asks configEnv
-    localLogEnv f (KatipHandler m) = KatipHandler (local (over env f) m)
+instance Katip KatipController where
+    getLogEnv = KatipController $ asks configEnv
+    localLogEnv f (KatipController m) = KatipController (local (over env f) m)
 
-instance KatipContext KatipHandler where
-    getKatipContext = KatipHandler $ asks configCtx
-    localKatipContext f (KatipHandler m) = KatipHandler (local (over ctx f) m)
-    getKatipNamespace = KatipHandler $ asks configNm
-    localKatipNamespace f (KatipHandler m) = KatipHandler (local (over nm f) m)
+instance KatipContext KatipController where
+    getKatipContext = KatipController $ asks configCtx
+    localKatipContext f (KatipController m) = KatipController (local (over ctx f) m)
+    getKatipNamespace = KatipController $ asks configNm
+    localKatipNamespace f (KatipController m) = KatipController (local (over nm f) m)

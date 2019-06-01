@@ -12,7 +12,7 @@ module Application (App, run) where
 
 import           Api
 import qualified Controller.Application as App
-import           KatipHandler
+import           KatipController
 
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
@@ -37,7 +37,7 @@ run port =
              configNm <-  getKatipNamespace
              return $ Config {..}
       cfg <- initCfg
-      let runKH = (`runReaderT` cfg) . runKatipHandler
+      let runKH = (`runReaderT` cfg) . runKatipController
       let server = hoistServer api runKH (toServant App.application)
       let settings = 
            Warp.defaultSettings

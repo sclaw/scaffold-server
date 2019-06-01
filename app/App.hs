@@ -3,7 +3,7 @@
 module App (main) where
 
 import           Application
-import           KatipHandler
+import           KatipController
 import           BuildInfo                       (protoHash)
 import           Config
 import           Pretty

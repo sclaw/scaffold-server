@@ -4,7 +4,7 @@
 module Controller.User.Register (controller) where
 
 import           Katip
-import           KatipHandler
+import           KatipController
 import           Network.WebSockets.Connection
 import           Control.Monad.IO.Class
 import           Control.Monad.Reader.Class
@@ -17,7 +17,7 @@ import           Model.User.Entity
 import           Database.Action
 import           GHC.Exception.Type
 
-controller :: Connection -> KatipHandler ()
+controller :: Connection -> KatipController ()
 controller conn = 
     do
       term <- (^.katipEnv.terminal) `fmap` ask

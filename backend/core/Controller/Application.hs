@@ -5,7 +5,7 @@
 module Controller.Application (application) where
 
 import           Api
-import           KatipHandler
+import           KatipController
 import           Servant.Server.Generic
 import           Servant.API.Generic
 import qualified Controller.Root.Root as Root
@@ -14,14 +14,14 @@ import qualified Controller.User.Authorize as Authorize
 import qualified Controller.User.CheckLoginAvailability  as CheckLogin 
 import qualified Controller.User.CheckEmailAvailability  as CheckEmail 
 
-application :: ApplicationApi (AsServerT KatipHandler)
+application :: ApplicationApi (AsServerT KatipController)
 application = 
   ApplicationApi 
   { root = Root.controller 
   , auth = toServant authApi  
   }
 
-authApi :: AuthApi (AsServerT KatipHandler)
+authApi :: AuthApi (AsServerT KatipController)
 authApi = 
   AuthApi 
   { register = Register.controller

@@ -5,7 +5,7 @@ module Controller.Root.Root (controller) where
 import Data.Functor (($>)) 
 import Katip
 import Pretty
-import KatipHandler
+import KatipController
 
-controller :: KatipHandler String
+controller :: KatipController String
 controller = $(logTM) InfoS (logStr (mkPretty "debug info: " "root")) $> "welcome to main page!!"

@@ -1,7 +1,7 @@
 module Controller.User.Authorize (controller) where
 
-import           KatipHandler
+import           KatipController
 import           Network.WebSockets.Connection
 
-controller :: Connection -> KatipHandler ()
+controller :: Connection -> KatipController ()
 controller = undefined
