@@ -7,11 +7,10 @@ import           KatipHandler
 import           BuildInfo                       (protoHash)
 import           Config
 import           Pretty
-import           Database.Migration
+import qualified Database.Migration              as Migration
 
 import           Control.Exception               (bracket)
 import           Control.Lens                    
-import           Control.Lens.Iso.Extended       (stextiso)
 import           Control.Monad.Trans.Reader      (runReaderT)
 import           Data.Monoid.Colorful            (hGetTerm)
 import           Database.Groundhog.Postgresql   (createPostgresqlPool)
@@ -24,6 +23,8 @@ import           System.Environment              (getArgs)
 import           Text.Printf 
 import           Control.Lens.Iso.Extended
 import           Control.Concurrent.Async.Extended
+import           Control.Monad
+import           Control.Concurrent
 
 main :: IO ()
 main =
@@ -50,7 +51,7 @@ main =
             (mempty :: LogContexts) 
             mempty 
             (run (cfg^.ports.port))
-      migrate orm
+      Migration.run orm
       let runServer = bracket env' closeScribes ((`runReaderT` appEnv) . runApp)       
       raceNThread [ runServer, interchangeWithServer ]
 
@@ -67,4 +68,4 @@ mkRawConn x =
   (x^.database.stextiso.textbsiso)
 
 interchangeWithServer :: IO ()
-interchangeWithServer = undefined
+interchangeWithServer = forever $ do threadDelay 1000000; return ()

@@ -1,6 +1,8 @@
-module Database.Migration (migrate) where
+module Database.Migration (run) where
 
-import           Database.Groundhog.Postgresql hiding (migrate)
+import           Model.User.Entity (User)
+
+import           Database.Groundhog.Postgresql
 import           Data.Pool
 import           Control.Monad.IO.Class
 import           Database.Groundhog.Core 
@@ -15,8 +17,8 @@ import           Data.Bool (bool)
 import           Control.Monad.State.Lazy (modify')
 import qualified Data.Map.Strict as Map
 
-migrate :: Pool Postgresql -> IO ()
-migrate cm = (checkDBMeta >>= traverse_ (bool migrateInit migrateNew)) `runDbConn` cm
+run :: Pool Postgresql -> IO ()
+run cm = (checkDBMeta >>= traverse_ (bool migrateInit migrateNew)) `runDbConn` cm
 
 migrateInit :: Action Postgresql ()
 migrateInit =
@@ -55,9 +57,10 @@ setVersion :: Action Postgresql ()
 setVersion = executeRaw False "insert into main.db_meta (\"migrationVersion\", \"modificationTime\") values (?, now())" [PersistInt64 1]
 
 buildTables :: Action Postgresql ()
-buildTables = runMigration $
+buildTables = runMigration $ do
     -- db meta 
     modify' mkDBMetaMigration
+    migrate (undefined :: User)
 
 mkDBMetaMigration :: NamedMigrations -> NamedMigrations
 mkDBMetaMigration = 
