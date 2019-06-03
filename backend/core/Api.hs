@@ -26,9 +26,9 @@ data AuthApi route =
        :: route
        :- "register" 
        :> WebSocket
-     , authorize
+     , authenticate
        :: route
-       :- "authorize" 
+       :- "authenticate" 
        :> WebSocket      
      , checkLoginAvailability
        :: route

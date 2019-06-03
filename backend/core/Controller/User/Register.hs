@@ -24,9 +24,10 @@ controller conn =
       let s = showColoredS term (Fg Red (Value "before action"))
       $(logTM) InfoS (logStr (mkPretty "debug info: " (s mempty)))
       liftIO $ conn `sendTextData` ("hello" :: Text)
-
+ 
       cm <- (^.katipEnv.ormDB) `fmap` ask
       _ :: Either SomeException [User] <- flip runTryDbConn cm $ do 
         $(logTM) InfoS (logStr ("inside action" :: String))
         select CondEmpty
+        
       $(logTM) InfoS (logStr ("after action" :: String))
