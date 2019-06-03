@@ -13,28 +13,22 @@
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
-module Model.User.Entity (User, UserConstructor (..), Field (..), UserId) where
+module Model.Token.Entity (Token, TokenConstructor (..), Field (..)) where
 
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
-import Data.ByteString
-import Database.AutoKey
-import Data.Int (Int64)
-import TH.InstanceBuilder (deriveWrappedPrimitivePersistField)
-import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
+import Data.Time
+import Model.User.Entity (UserId)
 
-newtype UserId = UserId { userIdIdent :: Int64 }
-
-data User =
-     User
-     {  userLogin    :: !String
-      , userEmail    :: !String
-      , userPassword :: !ByteString
+data Token =
+     Token
+     {  tokenAccessToken  :: !String
+      , tokenRefreshToken :: !String
+      , tokenCreated      :: !UTCTime
+      , tokenUserId       :: !UserId
      }
 
 mkPersist_ [groundhog| 
- - entity: User
+ - entity: Token
    schema: main 
  |]
-deriveAutoKey ''User
-deriveWrappedPrimitivePersistField ''UserId

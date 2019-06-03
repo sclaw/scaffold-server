@@ -1,9 +1,9 @@
 configDb:
   dbHost: web-db
   dbPort: 5432
-  dbUser: bstream
-  dbPass: this_is_bstream
-  dbDatabase: bstream
+  dbUser: web
+  dbPass: this_is_web
+  dbDatabase: web
 
 configPorts: 11000
 

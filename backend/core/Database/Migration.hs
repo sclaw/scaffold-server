@@ -1,6 +1,7 @@
 module Database.Migration (run) where
 
 import           Model.User.Entity (User)
+import           Model.Token.Entity (Token)
 
 import           Database.Groundhog.Postgresql
 import           Data.Pool
@@ -61,6 +62,7 @@ buildTables = runMigration $ do
     -- db meta 
     modify' mkDBMetaMigration
     migrate (undefined :: User)
+    migrate (undefined :: Token)
 
 mkDBMetaMigration :: NamedMigrations -> NamedMigrations
 mkDBMetaMigration = 
