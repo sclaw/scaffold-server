@@ -7,4 +7,5 @@
 FROM bstream-web:latest
 
 COPY config.yaml init.sh /
+ADD katip katip
 CMD ["/init.sh"]

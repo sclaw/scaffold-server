@@ -8,6 +8,7 @@
 module Config 
        ( Config
        , GroundhogSettings (..)
+       , Katip (..)
        , Db
        , db
        , ports
@@ -24,6 +25,7 @@ module Config
        , stripesN
        , timeToOpen
        , resPerStripe
+       , katip
          -- * load config
        , load  
        ) 
@@ -35,6 +37,7 @@ import Control.Lens
 import Control.Exception
 import Data.Yaml
 import Data.Time.Clock
+
 
 data Db = Db 
      { dbHost :: String
@@ -62,6 +65,10 @@ data PoolSettings =
      , poolSettingsResPerStripe :: Int 
      } deriving Show
 
+newtype Katip = Katip { katipPath :: FilePath } 
+  deriving Show
+  deriving newtype FromJSON
+
 data Config = 
      Config 
      { configDb :: Db 
@@ -69,6 +76,7 @@ data Config =
      , configOrm :: GroundhogSettings
      , configRaw :: HasqlSettings
      , configPool :: PoolSettings
+     , configKatip :: Katip
      } deriving Show
 
 makeFields ''Config

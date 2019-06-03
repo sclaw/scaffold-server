@@ -41,7 +41,7 @@ data KatipEnv =
      KatipEnv 
      { katipEnvTerminal :: !Term
      , katipEnvOrmDB    :: !(Pool.Pool Postgresql)
-     , katipEnvRawDB    :: !(Pool.Pool Hasql.Pool)
+     , katipEnvRawDB    :: !Hasql.Pool
      }
 
 data Config =

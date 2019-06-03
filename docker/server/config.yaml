@@ -17,3 +17,5 @@ configPool:
   poolSettingsStripesN: 1
   poolSettingsTimeToOpen: 0.5
   poolSettingsResPerStripe: 1
+
+configKatip: katip

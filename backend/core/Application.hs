@@ -26,9 +26,10 @@ import           Control.Lens
 type App = ReaderT KatipEnv IO
 
 run :: Int -> KatipContextT App ()
-run port =
+run port = 
+  katipAddNamespace (Namespace ["application"]) $ 
     do
-      $(logTM) DebugS "app run.."
+      $(logTM) DebugS "application run.."
       configKatipEnv <- lift ask
       let initCfg =
            do

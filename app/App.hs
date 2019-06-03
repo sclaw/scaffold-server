@@ -16,7 +16,6 @@ import           Data.Monoid.Colorful            (hGetTerm)
 import           Database.Groundhog.Postgresql   (createPostgresqlPool)
 import           Katip
 import           System.IO                       (stdout)
-import qualified Data.Pool  as                   Pool
 import qualified Hasql.Pool as                   Hasql
 import qualified Hasql.Connection as             HasqlConn
 import           System.Environment              (getArgs)
@@ -25,6 +24,7 @@ import           Control.Lens.Iso.Extended
 import           Control.Concurrent.Async.Extended
 import           Control.Monad
 import           Control.Concurrent
+import           Data.Time.Clock (getCurrentTime)
 
 main :: IO ()
 main =
@@ -34,18 +34,16 @@ main =
       pPrint cfg 
       term <- hGetTerm stdout
       orm <- createPostgresqlPool (mkOrmConn (cfg^.db)) (cfg^.orm.coerced)
-      let hasqlInit = Hasql.acquire (cfg^.raw.poolN, cfg^.raw.tm, mkRawConn (cfg^.db))
-      raw <- Pool.createPool 
-             hasqlInit 
-             Hasql.release 
-             (cfg^.pool.stripesN) 
-             (cfg^.pool.timeToOpen) 
-             (cfg^.pool.resPerStripe)  
+      raw <- Hasql.acquire (cfg^.raw.poolN, cfg^.raw.tm, mkRawConn (cfg^.db))  
       let appEnv = KatipEnv term orm raw
-      std <- mkHandleScribe ColorIfTerminal stdout DebugS V3
+      std <- mkHandleScribeWithFormatter jsonFormat ColorIfTerminal stdout DebugS V3
+      tm <- getCurrentTime
+      let katipFilePath = cfg^.katip.coerced <> "/" <> show tm <> ".log"
+      file <- mkFileScribe katipFilePath DebugS V3  
       let mkNm = Namespace [("<" ++ $(protoHash) ++ ">")^.stextiso]
       env <- initLogEnv mkNm "production"
-      let env' = registerScribe "stdout" std defaultScribeSettings env
+      let env' = registerScribe "stdout" std defaultScribeSettings env >>= 
+                 registerScribe "file" file defaultScribeSettings
       let runApp le = 
             runKatipContextT le 
             (mempty :: LogContexts) 
