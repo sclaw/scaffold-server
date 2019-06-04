@@ -21,9 +21,7 @@ import qualified Hasql.Connection as             HasqlConn
 import           System.Environment              (getArgs)
 import           Text.Printf 
 import           Control.Lens.Iso.Extended
-import           Control.Concurrent.Async.Extended
 import           Control.Monad
-import           Control.Concurrent
 import           Data.Time.Clock (getCurrentTime)
 import           System.Remote.Monitoring
 
@@ -54,9 +52,8 @@ main =
             mempty 
             (run (cfg^.ports.port))
       Migration.run orm
-      let runServer = bracket env' closeScribes ((`runReaderT` appEnv) . runApp)       
-      raceNThread [ runServer, interchangeWithServer ]
-
+      bracket env' closeScribes ((`runReaderT` appEnv) . runApp)       
+      
 mkOrmConn :: Db -> String
 mkOrmConn x = printf "host=%s port=%d dbname=%s user=%s password=%s" (x^.host) (x^.port) (x^.database) (x^.user) (x^.pass)
 
@@ -68,6 +65,3 @@ mkRawConn x =
   (x^.user.stextiso.textbsiso)
   (x^.pass.stextiso.textbsiso)
   (x^.database.stextiso.textbsiso)
-
-interchangeWithServer :: IO ()
-interchangeWithServer = forever $ do threadDelay 1000000; return ()
