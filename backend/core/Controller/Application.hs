@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 
@@ -14,7 +13,7 @@ import qualified Controller.User.Register as Register
 import qualified Controller.User.Authenticate as Authenticate 
 import qualified Controller.User.CheckLoginAvailability  as CheckLogin 
 import qualified Controller.User.CheckEmailAvailability  as CheckEmail 
-
+import qualified Controller.User.Login as Login
 
 application :: ApplicationApi (AsServerT KatipController)
 application = 
@@ -26,9 +25,7 @@ application =
 authApi :: AuthApi (AsServerT KatipController)
 authApi = 
   AuthApi 
-  { register = 
-    katipAddNamespace (Namespace ["register"]) 
-    . Register.controller
+  { register = katipAddNamespace (Namespace ["register"]) . Register.controller
   , authenticate = 
     katipAddNamespace (Namespace ["authenticate"]) 
     . Authenticate.controller
@@ -38,4 +35,5 @@ authApi =
   , checkEmailAvailability = 
     katipAddNamespace (Namespace ["checkEmailAvailability"]) 
     . CheckEmail.controller
+  , login = katipAddNamespace (Namespace ["checkEmailAvailability"]) . Login.controller
   }

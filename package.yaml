@@ -103,6 +103,8 @@ library:
     - hasql-pool
     - ekg
     - exceptions
+    - regex-with-pcre
+    - validation
   source-dirs:
     - backend/core
     - backend/extended

@@ -37,7 +37,11 @@ data AuthApi route =
      , checkEmailAvailability
        :: route
        :- "check-email" 
-       :> WebSocket 
+       :> WebSocket
+     , login    
+       :: route
+       :- "login" 
+       :> WebSocket
      } deriving stock Generic
 
 api :: Proxy (ToServantApi ApplicationApi)
