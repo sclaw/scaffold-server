@@ -105,6 +105,8 @@ library:
     - exceptions
     - regex-with-pcre
     - validation
+    - protocol-buffers
+    - protocol-buffers-descriptor
   source-dirs:
     - backend/core
     - backend/extended

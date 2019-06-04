@@ -3,6 +3,8 @@
 
 module Controller.User.Register (controller) where
 
+import           Api.User.Register.Request ()
+
 import           Katip
 import           KatipController
 import           Network.WebSockets.Connection
