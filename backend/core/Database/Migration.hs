@@ -2,6 +2,7 @@ module Database.Migration (run) where
 
 import           Model.User.Entity (User)
 import           Model.Token.Entity (Token)
+import           Model.Rbac.Entity (Role, RoleTree)
 
 import           Database.Groundhog.Postgresql
 import           Data.Pool
@@ -41,7 +42,7 @@ checkDBMeta =
          "select exists ( \
          \select 1 \
          \from information_schema.tables \ 
-         \where table_schema = 'main' \
+         \where table_schema = 'public' \
          \and table_name = 'db_meta')" 
     stream <- queryRaw False sql []
     row <- firstRow stream
@@ -50,12 +51,12 @@ checkDBMeta =
 getVersion :: Action Postgresql (Maybe Word32)
 getVersion =
     do
-    stream <- queryRaw False "select \"migrationVersion\" from main.db_meta" []
+    stream <- queryRaw False "select \"migrationVersion\" from db_meta" []
     row <- firstRow stream
     traverse ((fst `fmap`) . fromPersistValues) row
 
 setVersion :: Action Postgresql ()
-setVersion = executeRaw False "insert into main.db_meta (\"migrationVersion\", \"modificationTime\") values (?, now())" [PersistInt64 1]
+setVersion = executeRaw False "insert into db_meta (\"migrationVersion\", \"modificationTime\") values (?, now())" [PersistInt64 1]
 
 buildTables :: Action Postgresql ()
 buildTables = runMigration $ do
@@ -63,6 +64,8 @@ buildTables = runMigration $ do
     modify' mkDBMetaMigration
     migrate (undefined :: User)
     migrate (undefined :: Token)
+    migrate (undefined :: Role)
+    migrate (undefined :: RoleTree)
 
 mkDBMetaMigration :: NamedMigrations -> NamedMigrations
 mkDBMetaMigration = 
@@ -71,6 +74,6 @@ mkDBMetaMigration =
   (Right [(False, 1, mkDBMetaTable)])
   where
     mkDBMetaTable = 
-      "create table if not exists main.db_meta \
+      "create table if not exists db_meta \
       \(\"migrationVersion\" integer not null default 0, \
       \\"modificationTime\" timestamp)"

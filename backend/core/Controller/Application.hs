@@ -35,5 +35,5 @@ authApi =
   , checkEmailAvailability = 
     katipAddNamespace (Namespace ["checkEmailAvailability"]) 
     . CheckEmail.controller
-  , login = katipAddNamespace (Namespace ["checkEmailAvailability"]) . Login.controller
+  , login = katipAddNamespace (Namespace ["login"]) . Login.controller
   }

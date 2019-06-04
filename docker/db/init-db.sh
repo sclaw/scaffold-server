@@ -56,9 +56,6 @@ init_user_and_db() {
      create database $DB_DATABASE;
      \c $DB_DATABASE;
      grant all privileges on database $DB_DATABASE to $DB_USER;
-     set role $DB_USER;
-     create schema if not exists $DB_SCHEMA;
-     set search_path to $DB_SCHEMA;
 EOSQL
 }
 

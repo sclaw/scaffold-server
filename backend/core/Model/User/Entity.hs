@@ -34,7 +34,6 @@ data User =
 
 mkPersist_ [groundhog| 
  - entity: User
-   schema: main 
  |]
 deriveAutoKey ''User
 deriveWrappedPrimitivePersistField ''UserId

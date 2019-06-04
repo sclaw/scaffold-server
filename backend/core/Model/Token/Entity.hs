@@ -29,6 +29,5 @@ data Token =
      }
 
 mkPersist_ [groundhog| 
- - entity: Token
-   schema: main 
+ - entity: Token  
  |]

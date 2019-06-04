@@ -4,7 +4,7 @@
 
 # CMD /www/my-service/bin/my-service serve
 
-FROM bstream-web:latest
+FROM web:latest
 
 COPY config.yaml init.sh /
 ADD katip katip
