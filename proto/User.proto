@@ -1,0 +1,15 @@
+syntax = 'proto2';
+package Api.User;
+
+message Request {}
+
+message ResponseErr {}
+
+message ResponseOk {}
+
+message Response {
+	oneof responseUnwrap {
+		ResponseOk  ok  = 1;
+		ResponseErr err = 2;
+	}
+}
