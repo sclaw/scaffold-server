@@ -19,3 +19,7 @@ configPool:
   poolSettingsResPerStripe: 1
 
 configKatip: katip
+
+configEkg:
+  ekgHost: server
+  ekgPort: 8000

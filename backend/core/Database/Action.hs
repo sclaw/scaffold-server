@@ -15,4 +15,4 @@ runTryDbConnOrm :: TryAction Groundhog KatipController Postgresql a -> Pool Post
 runTryDbConnOrm action = katipAddNamespace (Namespace ["orm"]) . runTryDbConn action
 
 runTryDbConnRaw :: Session a -> Hasql.Pool -> KatipController (Either Hasql.UsageError a)
-runTryDbConnRaw action = katipAddNamespace (Namespace ["raw"]) . liftIO . flip Hasql.use action
+runTryDbConnRaw action = liftIO . flip Hasql.use action

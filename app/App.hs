@@ -25,6 +25,7 @@ import           Control.Concurrent.Async.Extended
 import           Control.Monad
 import           Control.Concurrent
 import           Data.Time.Clock (getCurrentTime)
+import           System.Remote.Monitoring
 
 main :: IO ()
 main =
@@ -32,6 +33,9 @@ main =
       (path:_) <- getArgs
       cfg <- Config.load path
       pPrint cfg 
+
+      void $ forkServer (cfg^.ekg.host.stextiso.textbsiso) (cfg^.ekg.port)
+
       term <- hGetTerm stdout
       orm <- createPostgresqlPool (mkOrmConn (cfg^.db)) (cfg^.orm.coerced)
       raw <- Hasql.acquire (cfg^.raw.poolN, cfg^.raw.tm, mkRawConn (cfg^.db))  

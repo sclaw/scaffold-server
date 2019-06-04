@@ -26,6 +26,7 @@ module Config
        , timeToOpen
        , resPerStripe
        , katip
+       , ekg
          -- * load config
        , load  
        ) 
@@ -69,6 +70,8 @@ newtype Katip = Katip { katipPath :: FilePath }
   deriving Show
   deriving newtype FromJSON
 
+data Ekg = Ekg { ekgHost :: String, ekgPort :: Int } deriving Show
+
 data Config = 
      Config 
      { configDb :: Db 
@@ -77,6 +80,7 @@ data Config =
      , configRaw :: HasqlSettings
      , configPool :: PoolSettings
      , configKatip :: Katip
+     , configEkg :: Ekg
      } deriving Show
 
 makeFields ''Config
@@ -84,6 +88,7 @@ makeFields ''Ports
 makeFields ''Db
 makeFields ''HasqlSettings
 makeFields ''PoolSettings
+makeFields ''Ekg
 
 -- Load program configuration from file (server.yaml), or
 -- raise YamlException and terminate program.
@@ -94,3 +99,4 @@ deriveFromJSON defaultOptions ''Db
 deriveFromJSON defaultOptions ''Config
 deriveFromJSON defaultOptions ''HasqlSettings
 deriveFromJSON defaultOptions ''PoolSettings
+deriveFromJSON defaultOptions ''Ekg
