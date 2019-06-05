@@ -7,7 +7,7 @@ import           Api.User.Register.Request ()
 
 import           Katip
 import           KatipController
-import           Network.WebSockets.Connection
+import           Network.WebSockets
 import           Control.Monad.IO.Class
 import           Control.Monad.Reader.Class
 import           Control.Lens
@@ -24,12 +24,16 @@ import           Hasql.Encoders as HE
 import           Hasql.Decoders as HD
 import           Katip.Monadic
 
-controller :: Connection -> KatipController ()
-controller conn = 
+controller :: PendingConnection -> KatipController ()
+controller pend = 
     do
+      conn <- liftIO $ acceptRequest pend
+      let header = pendingRequest pend
+      
       term <- (^.katipEnv.terminal) `fmap` ask
-      let s = showColoredS term (Fg Red (Value "contoller start"))
-      $(logTM) InfoS (logStr (mkPretty "debug info: " (s mempty)))
+      let s = showColoredS term (Fg Red (Value (show header)))
+      katipAddNamespace (Namespace ["header"]) $ 
+       $(logTM) InfoS (logStr (mkPretty "request header: " (s mempty)))
       liftIO $ conn `sendTextData` ("hello" :: Text)
  
       orm <- (^.katipEnv.ormDB) `fmap` ask
@@ -37,7 +41,7 @@ controller conn =
         $(logTM) InfoS (logStr ("inside groundhog action" :: String))
         select CondEmpty
          
-      io <-katipAddNamespace (Namespace ["raw"])  askLoggerIO
+      io <-katipAddNamespace (Namespace ["raw"]) askLoggerIO
 
       raw <- (^.katipEnv.rawDB) `fmap` ask
       _ <- flip runTryDbConnRaw raw $ do

@@ -1,7 +1,7 @@
 module Controller.User.Authenticate (controller) where
 
 import           KatipController
-import           Network.WebSockets.Connection
+import           Network.WebSockets
 
-controller :: Connection -> KatipController ()
+controller :: PendingConnection -> KatipController ()
 controller = undefined

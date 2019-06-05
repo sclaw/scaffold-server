@@ -2,7 +2,6 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
@@ -25,23 +24,23 @@ data AuthApi route =
      { register 
        :: route
        :- "register" 
-       :> WebSocket
+       :> WebSocketPending
      , authenticate
        :: route
        :- "authenticate" 
-       :> WebSocket      
+       :> WebSocketPending      
      , checkLoginAvailability
        :: route
        :- "check-login" 
-       :> WebSocket  
+       :> WebSocketPending  
      , checkEmailAvailability
        :: route
        :- "check-email" 
-       :> WebSocket
+       :> WebSocketPending
      , login    
        :: route
        :- "login" 
-       :> WebSocket
+       :> WebSocketPending
      } deriving stock Generic
 
 api :: Proxy (ToServantApi ApplicationApi)
