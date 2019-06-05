@@ -4,4 +4,4 @@ web.cabal
 test/*.html
 log/
 .vscode/
-backend/proto/
+backend/proto/src
