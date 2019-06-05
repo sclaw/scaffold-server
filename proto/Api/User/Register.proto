@@ -1,15 +1,25 @@
 syntax = 'proto2';
 package Api.User.Register;
 
-message Request {}
+message Request { required RegisterInfo requestReq = 1; } 
 
-message ResponseErr {}
+message ResponseErr { required Error responseErrValue = 1; }
 
-message ResponseOk {}
+message ResponseOk { required string responseOkOk = 1; }
 
 message Response {
 	oneof responseUnwrap {
 		ResponseOk  ok  = 1;
 		ResponseErr err = 2;
 	}
+}
+
+message RegisterInfo {
+  required string registerInfoEmail = 1;
+  required string registerInfoPassword = 2;
+}
+
+enum Error {
+	EmailTaken = 0;
+	WrongEmail = 1;
 }
