@@ -3,7 +3,7 @@
 sources_hs () { find "${D}" -name '*.hs'; }
 sources_proto () { find proto -name '*.proto'; }
 
-D="${1:-backend/proto/src}"
+D="${1:-backend/proto}"
 mkdir -p "${D}"
 
 P='1'

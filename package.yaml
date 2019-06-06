@@ -113,7 +113,7 @@ library:
   source-dirs:
     - backend/core
     - backend/extended
-    - backend/proto/src
+    - backend/proto
     - test
     - app
 
