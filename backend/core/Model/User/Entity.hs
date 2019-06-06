@@ -15,20 +15,19 @@
 
 module Model.User.Entity (User, UserConstructor (..), Field (..), UserId) where
 
+import Api.User.UserId
+
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Data.ByteString
 import Database.AutoKey
-import Data.Int (Int64)
 import TH.InstanceBuilder (deriveWrappedPrimitivePersistField)
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 
-newtype UserId = UserId { userIdIdent :: Int64 }
 
 data User =
      User
-     {  userLogin    :: !String
-      , userEmail    :: !String
+     {  userEmail    :: !String
       , userPassword :: !ByteString
      }
 

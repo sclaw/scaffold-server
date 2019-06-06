@@ -1,4 +1,4 @@
 syntax = 'proto2';
 package Api.User;
 
-message User { required string name = 1; }
+message UserId { required sint64 userIdIdent = 1; }
