@@ -10,10 +10,9 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
-module Model.User.Entity (User, UserConstructor (..), Field (..), UserId) where
+module Model.User.Entity (User, UserConstructor (..), Field (..), UserId (..)) where
 
 import Api.User.UserId
 
@@ -21,7 +20,7 @@ import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Data.ByteString
 import Database.AutoKey
-import TH.InstanceBuilder (deriveWrappedPrimitivePersistField)
+import TH.InstanceBuilder
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 
 
@@ -33,6 +32,12 @@ data User =
 
 mkPersist_ [groundhog| 
  - entity: User
+   constructors:
+    - name: User
+      uniques: 
+       - name: user_userEmail_uk
+         type: constraint
+         fields: [userEmail]
  |]
 deriveAutoKey ''User
 deriveWrappedPrimitivePersistField ''UserId

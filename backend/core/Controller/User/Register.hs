@@ -11,7 +11,7 @@ import           Api.User.Register.ResponseErr
 import           Api.User.Register.ResponseOk
 import           Api.User.Register.ResponseServErr
 import           Api.User.Register.Response.ResponseUnwrap
-import           Api.User.UserId
+import           Model.User.Entity (UserId (..))
 import qualified Api.User.Register.Error as Register
 
 import           Katip
@@ -29,10 +29,12 @@ import           Data.Validation
 import           Hasql.Session
 import           Hasql.Statement as HS 
 import           Hasql.Encoders as HE
+import           Hasql.Decoders as HD
 import           Hasql.Pool
 import           Control.Monad.Reader.Class
 import           Database.Action
 import           Control.Lens.Iso.Extended
+import           Crypto.PasswordStore (pbkdf2, makePasswordSaltWith, makeSalt)
 
 {-
 password validation:
@@ -93,19 +95,28 @@ validateInfo info  = validateEmail *> validatePassword
      | matched ((info^.registerInfoPassword.from sutf8) ?=~ passRegex) = _Success # ()
      | otherwise = _Failure # [Register.PasswordWeek]
   
-persist :: RegisterInfo -> KatipController (Either UsageError UserId)
-persist _ =
+persist :: RegisterInfo -> KatipController (Either UsageError (Maybe UserId))
+persist info =
   do 
     io <-katipAddNamespace (Namespace ["raw"]) askLoggerIO
     raw <- (^.katipEnv.rawDB) `fmap` ask
     flip runTryDbConnRaw raw $ do
-     let sql = ""
-     let encoder = undefined 
-     let decoder = undefined 
+     let sql = 
+          "insert into \"User\" (\"userEmail\", \"userPassword\") \
+          \values ($1, $2) on conflict do nothing returning id"
+     let mkSalt = makeSalt (info^.registerInfoEmail.from tutf8.textbsiso)
+     let mkPass = makePasswordSaltWith pbkdf2 id 
+                  (info^.registerInfoPassword.from tutf8.textbsiso) mkSalt 2000 
+     let encoder = 
+          ((info^.registerInfoEmail.from tutf8) >$ 
+          (HE.param HE.text)) <>
+          (mkPass >$ HE.param HE.bytea) 
+     let decoder = HD.rowMaybe $ HD.column HD.int8 <&> (^._Unwrapped')
      liftIO $ io InfoS (logStr sql)
      statement () (HS.Statement sql encoder decoder True)
 
-mkRespBody :: Validation [Register.Error] (Either UsageError UserId) -> Response
-mkRespBody (Success (Right ident)) = defaultValue & responseUnwrap ?~ Ok (ResponseOk ident)
+mkRespBody :: Validation [Register.Error] (Either UsageError (Maybe UserId)) -> Response
+mkRespBody (Success (Right ident)) = defaultValue & responseUnwrap ?~ mkResp 
+  where mkResp = maybe (Err (ResponseErr ([Register.EmailTaken]^.listSeq) Nothing)) (Ok . ResponseOk) ident
 mkRespBody (Success (Left err)) = defaultValue & responseUnwrap ?~ Serv (ResponseServErr (show err^.sutf8))
 mkRespBody (Failure xs) = defaultValue & responseUnwrap ?~ Err (ResponseErr (xs^.listSeq) Nothing)

@@ -108,7 +108,8 @@ library:
     - protocol-buffers
     - protocol-buffers-descriptor
     - pretty-tree
-    - proto-lens 
+    - proto-lens
+    - pwstore-fast 
   source-dirs:
     - backend/core
     - backend/extended
