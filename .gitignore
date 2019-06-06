@@ -4,7 +4,5 @@ web.cabal
 test/*.html
 log/
 .vscode/
-# backend/proto/*
-# !backend/proto
-# frontend/proto
-# !frontend/proto/.gitignore
+backend/proto
+frontend/proto
