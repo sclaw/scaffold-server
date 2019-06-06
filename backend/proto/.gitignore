@@ -1,0 +1,10 @@
+.stack-work/
+web.cabal
+*~
+test/*.html
+log/
+.vscode/
+backend/proto/*
+# !backend/proto/.gitignore
+# frontend/proto
+# !frontend/proto/.gitignore
