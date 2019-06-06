@@ -3,23 +3,27 @@ package Api.User.Register;
 
 message Request { required RegisterInfo requestReq = 1; } 
 
-message ResponseErr { required Error responseErrValue = 1; }
+message ResponseErr { repeated Error responseErrValue = 1; }
 
-message ResponseOk { required string responseOkOk = 1; }
+message ResponseOk { required string responseOkValue = 1; }
+
+message ResponseServErr { required string responseServErrValue = 1; }
 
 message Response {
 	oneof responseUnwrap {
 		ResponseOk  ok  = 1;
 		ResponseErr err = 2;
+		ResponseServErr serv = 3;
 	}
 }
 
-message RegisterInfo {
-  required string registerInfoEmail = 1;
-  required string registerInfoPassword = 2;
+message RegisterInfo {	
+  required string registerInfoEmail = 2;
+  required string registerInfoPassword = 3;
 }
 
 enum Error {
-	EmailTaken = 0;
-	WrongEmail = 1;
+	EmailTaken = 1;
+	WrongEmail = 2;
+	PasswordWeek = 3;
 }

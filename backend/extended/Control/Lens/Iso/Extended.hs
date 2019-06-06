@@ -1,7 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE Rank2Types             #-}
-{-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeFamilyDependencies #-}
 
 module Control.Lens.Iso.Extended
@@ -11,6 +10,7 @@ module Control.Lens.Iso.Extended
         , integraliso
         , stextiso
         , seqliso
+        , proto
        ) where
 
 import           Control.Lens
@@ -22,6 +22,8 @@ import qualified Data.Text               as T
 import qualified Data.Text.Encoding      as T
 import qualified Data.Text.Lazy          as LT
 import qualified Data.Text.Lazy.Encoding as LT
+import           Text.ProtocolBuffers.Reflections
+import           Text.ProtocolBuffers.WireMessage
 
 
 -- WARNING: Strictly speaking, 'utf8' is not isomorphism, since exists
@@ -41,3 +43,6 @@ stextiso = iso T.pack T.unpack
 
 seqliso :: Iso' [a] (Seq.Seq a)
 seqliso = iso Seq.fromList toList
+
+proto :: (Wire a, ReflectDescriptor a) => Iso' BL.ByteString a
+proto = iso (either (error . ("proto decode error: " ++)) fst . messageGet) messagePut

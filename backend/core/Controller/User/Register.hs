@@ -3,39 +3,21 @@
 
 module Controller.User.Register (controller) where
 
-import           Api.User.Register.Request ()
+import           Api.User.Register.RegisterInfo
+import           Api.User.Register.Response
 
 import           Katip
 import           KatipController
-import           Network.WebSockets
+import           Network.WebSockets hiding (Response)
 import           Control.Monad.IO.Class
-import           Control.Monad.Reader.Class
-import           Control.Lens
-import           Data.Text
-import           Pretty
-import           Data.Monoid.Colorful
-import           Database.Groundhog.Postgresql
-import           Model.User.Entity
-import           Database.Action
-import           GHC.Exception.Type
-import           Hasql.Session
-import           Hasql.Statement as HS 
-import           Hasql.Encoders as HE
-import           Hasql.Decoders as HD
-import           Katip.Monadic
+import           Control.Lens ()
+import           WebSocket ()
+import           Text.ProtocolBuffers.Basic (defaultValue)
+import           Control.Exception hiding (handle)
+import           Control.Monad.Catch
 
-controller :: PendingConnection -> KatipController ()
-controller pend = 
-    do
-      conn <- liftIO $ acceptRequest pend
-      let header = pendingRequest pend
-      
-      term <- (^.katipEnv.terminal) `fmap` ask
-      let s = showColoredS term (Fg Red (Value (show header)))
-      katipAddNamespace (Namespace ["header"]) $ 
-       $(logTM) InfoS (logStr (mkPretty "request header: " (s mempty)))
-      liftIO $ conn `sendTextData` ("hello" :: Text)
- 
+
+{-'
       orm <- (^.katipEnv.ormDB) `fmap` ask
       _ :: Either SomeException [User] <- flip runTryDbConnOrm orm $ do 
         $(logTM) InfoS (logStr ("inside groundhog action" :: String))
@@ -47,5 +29,27 @@ controller pend =
       _ <- flip runTryDbConnRaw raw $ do
         liftIO $ io InfoS (logStr ("inside hasql  action" :: String))
         statement () (HS.Statement "" HE.unit HD.unit True)
+-}
 
-      $(logTM) InfoS (logStr ("contoller end" :: String))
+
+controller :: PendingConnection -> KatipController ()
+controller pend = 
+  do
+    conn <- liftIO $ acceptRequest pend
+    let header = pendingRequest pend
+    katipAddNamespace (Namespace ["header"]) $ 
+     $(logTM) InfoS (logStr (show header))
+    handle err (run conn)
+  where
+    run conn = 
+     do 
+       info :: RegisterInfo <- liftIO $ evaluate =<< receiveData conn
+       katipAddNamespace (Namespace ["request"]) $ 
+        $(logTM) InfoS (logStr (show info))
+       katipAddNamespace (Namespace ["response"]) $ do
+        let resp = defaultValue :: Response 
+        $(logTM) InfoS (logStr (show resp))
+        liftIO $ conn `sendBinaryData` resp
+    err :: SomeException -> KatipController ()  
+    err e = katipAddNamespace (Namespace ["response"]) $ $(logTM) CriticalS (logStr (show e))
+
