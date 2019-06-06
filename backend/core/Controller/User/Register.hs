@@ -16,21 +16,24 @@ import           Text.ProtocolBuffers.Basic (defaultValue)
 import           Control.Exception hiding (handle)
 import           Control.Monad.Catch
 
+{-
+password validation:
+ Minimum eight characters, at least one letter and one number: ^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$
 
-{-'
-      orm <- (^.katipEnv.ormDB) `fmap` ask
-      _ :: Either SomeException [User] <- flip runTryDbConnOrm orm $ do 
-        $(logTM) InfoS (logStr ("inside groundhog action" :: String))
-        select CondEmpty
-         
-      io <-katipAddNamespace (Namespace ["raw"]) askLoggerIO
+ Minimum eight characters, at least one letter,
+ one number and one special character: ^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$
 
-      raw <- (^.katipEnv.rawDB) `fmap` ask
-      _ <- flip runTryDbConnRaw raw $ do
-        liftIO $ io InfoS (logStr ("inside hasql  action" :: String))
-        statement () (HS.Statement "" HE.unit HD.unit True)
+ Minimum eight characters, at least one uppercase letter,
+ one lowercase letter and one number: ^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$
+
+ Minimum eight characters, at least one uppercase letter,
+ one lowercase letter, one number and one special character: ^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$
+ 
+ Minimum eight and maximum 10 characters, at least one uppercase letter,
+ one lowercase letter, one number and one special character: ^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$
+
+email validation: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]{2,}$
 -}
-
 
 controller :: PendingConnection -> KatipController ()
 controller pend = 

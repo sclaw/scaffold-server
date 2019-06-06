@@ -3,7 +3,11 @@ package Api.User.Register;
 
 message Request { required RegisterInfo requestReq = 1; } 
 
-message ResponseErr { repeated Error responseErrValue = 1; }
+message ResponseErr { 
+	repeated Error responseErrReason = 1;
+	// used if password is contained at errors (PasswordWeek)
+	optional string responseErrPasswordDetailedInfo = 2; 
+}
 
 message ResponseOk { required string responseOkValue = 1; }
 
