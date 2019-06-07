@@ -1,4 +1,4 @@
-module Controller.User.Authenticate (controller) where
+module Controller.Auth.Authenticate (controller) where
 
 import           KatipController
 import           Network.WebSockets

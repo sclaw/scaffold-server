@@ -9,11 +9,8 @@ import           KatipController
 import           Servant.Server.Generic
 import           Servant.API.Generic
 import qualified Controller.Root.Root as Root
-import qualified Controller.User.Register as Register 
-import qualified Controller.User.Authenticate as Authenticate 
-import qualified Controller.User.CheckLoginAvailability  as CheckLogin 
-import qualified Controller.User.CheckEmailAvailability  as CheckEmail 
-import qualified Controller.User.Login as Login
+import qualified Controller.Auth.Register as Register 
+import qualified Controller.Auth.Authenticate as Authenticate
 
 application :: ApplicationApi (AsServerT KatipController)
 application = 
@@ -25,15 +22,10 @@ application =
 authApi :: AuthApi (AsServerT KatipController)
 authApi = 
   AuthApi 
-  { register = katipAddNamespace (Namespace ["register"]) . Register.controller
+  { register = 
+    katipAddNamespace (Namespace ["register"]) 
+    . Register.controller
   , authenticate = 
     katipAddNamespace (Namespace ["authenticate"]) 
     . Authenticate.controller
-  , checkLoginAvailability = 
-    katipAddNamespace (Namespace ["checkLoginAvailability"]) 
-    . CheckLogin.controller
-  , checkEmailAvailability = 
-    katipAddNamespace (Namespace ["checkEmailAvailability"]) 
-    . CheckEmail.controller
-  , login = katipAddNamespace (Namespace ["login"]) . Login.controller
   }

@@ -28,18 +28,6 @@ data AuthApi route =
      , authenticate
        :: route
        :- "authenticate" 
-       :> WebSocketPending      
-     , checkLoginAvailability
-       :: route
-       :- "check-login" 
-       :> WebSocketPending  
-     , checkEmailAvailability
-       :: route
-       :- "check-email" 
-       :> WebSocketPending
-     , login    
-       :: route
-       :- "login" 
        :> WebSocketPending
      } deriving stock Generic
 

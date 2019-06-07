@@ -3,7 +3,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Controller.User.Register (controller) where
+module Controller.Auth.Register (controller) where
 
 import           Api.User.Register.RegisterInfo
 import           Api.User.Register.Response
