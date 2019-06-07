@@ -2,6 +2,7 @@
   "name": "web-frontend",
   "version": "0.0.1",
   "dependencies": {
+    "protoc-plugin": "0.0.6",
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
     "react-scripts": "1.1.5"
