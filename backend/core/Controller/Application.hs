@@ -15,9 +15,12 @@ import qualified Controller.Auth.Authenticate as Authenticate
 application :: ApplicationApi (AsServerT KatipController)
 application = 
   ApplicationApi 
-  { root = Root.controller 
-  , auth = toServant authApi  
+  { http = toServant httpApi 
+  , socket = toServant socketApi  
   }
+
+socketApi :: WebsocketApi (AsServerT KatipController)
+socketApi = WebsocketApi { auth = toServant authApi }
 
 authApi :: AuthApi (AsServerT KatipController)
 authApi = 
@@ -29,3 +32,7 @@ authApi =
     katipAddNamespace (Namespace ["authenticate"]) 
     . Authenticate.controller
   }
+
+httpApi :: HttpApi (AsServerT KatipController)
+httpApi = HttpApi { root = Root.controller }
+
