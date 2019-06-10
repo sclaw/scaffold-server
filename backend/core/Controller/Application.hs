@@ -34,5 +34,5 @@ authApi =
   }
 
 httpApi :: HttpApi (AsServerT KatipController)
-httpApi = HttpApi { root = Root.controller }
+httpApi = HttpApi { root = katipAddNamespace (Namespace ["root"]) Root.controller }
 

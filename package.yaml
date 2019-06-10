@@ -110,6 +110,11 @@ library:
     - pretty-tree
     - proto-lens
     - pwstore-fast 
+    - servant-swagger-ui
+    - servant-swagger-ui-core
+    - servant-swagger
+    - swagger2
+    - wai-app-static
   source-dirs:
     - backend/core
     - backend/extended

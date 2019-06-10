@@ -29,7 +29,7 @@ services:
     depends_on:
       - web-db 
     ports:
-      - "11000:11000"
+      - "12000:12000"
       - "8000:8000"    
     networks:
       - bstream-web
