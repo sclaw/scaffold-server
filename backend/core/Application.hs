@@ -13,6 +13,7 @@ module Application (App, run) where
 import           Api
 import qualified Controller.Application as App
 import           KatipController
+import           Servant.Swagger.KatipController
 
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
@@ -22,6 +23,7 @@ import qualified Network.Wai.Handler.Warp      as Warp
 import           Servant                       hiding (Application)
 import           Servant.API.Generic
 import           Control.Lens
+import           Servant.Swagger.UI
 
 type App = ReaderT KatipEnv IO
 
@@ -38,10 +40,13 @@ run port =
              configNm <-  getKatipNamespace
              return $ Config {..}
       cfg <- initCfg
-      let runKH = (`runReaderT` cfg) . runKatipController
-      let server = hoistServer api runKH (toServant App.application)
+      let withSwagger :: Proxy a -> Proxy (a :<|> SwaggerSchemaUI "swagger-ui" "swagger.json")
+          withSwagger _ = Proxy
+      let server = 
+           hoistServer (withSwagger api) ((`runReaderT` cfg) . runKatipController) 
+           (toServant App.application :<|> swaggerSchemaUIServerT swaggerHttpApi)
       let settings = 
            Warp.defaultSettings
            & Warp.setPort port
-           & Warp.setOnException Warp.defaultOnException     
-      liftIO $ Warp.runSettings settings (serve api server)
+           & Warp.setOnException Warp.defaultOnException       
+      liftIO $ Warp.runSettings settings (serve (withSwagger api) server)

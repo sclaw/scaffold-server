@@ -11,12 +11,15 @@ module Api
        , HttpApi (..)
        , WebsocketApi (..)
        , api
+       , swaggerHttpApi
        ) where
 
 import           Servant.API.Generic
 import           Servant.API.WebSocket
 import           Data.Proxy
 import           Servant.API
+import           Servant.Swagger
+import           Data.Swagger
 
 data ApplicationApi route = 
      ApplicationApi 
@@ -24,7 +27,7 @@ data ApplicationApi route =
      , socket :: route :- "auth" :> ToServant WebsocketApi AsApi 
      } deriving stock Generic
 
-newtype HttpApi route = HttpApi { root :: route :- Get '[PlainText] String } 
+newtype HttpApi route = HttpApi { root :: route :- Get '[JSON] String } 
   deriving stock Generic 
 
 newtype WebsocketApi route = WebsocketApi { auth :: route :- ToServant AuthApi AsApi } 
@@ -44,3 +47,7 @@ data AuthApi route =
 
 api :: Proxy (ToServantApi ApplicationApi)
 api = genericApi (Proxy :: Proxy ApplicationApi)
+
+swaggerHttpApi :: Swagger
+swaggerHttpApi = toSwagger $ genericApi (Proxy :: Proxy HttpApi)
+
