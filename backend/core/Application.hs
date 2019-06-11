@@ -47,7 +47,7 @@ run port =
            (withSwagger api) 
            ((`runReaderT` cfg) . runKatipController) 
            (toServant App.application :<|> 
-            swaggerSchemaUIServerT swaggerHttpApi)
+            swaggerSchemaUIServerT (swaggerHttpApi port))
       let settings = 
            Warp.defaultSettings
            & Warp.setPort port

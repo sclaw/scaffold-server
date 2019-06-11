@@ -49,6 +49,5 @@ data AuthApi route =
 api :: Proxy (ToServantApi ApplicationApi)
 api = genericApi (Proxy :: Proxy ApplicationApi)
 
-swaggerHttpApi :: Swagger
-swaggerHttpApi = toSwagger (genericApi (Proxy :: Proxy HttpApi)) & schemes ?~ [Http] & host ?~ Host "localhost" (Just 12000)
-
+swaggerHttpApi :: Int -> Swagger
+swaggerHttpApi port = toSwagger (genericApi (Proxy :: Proxy HttpApi)) & schemes ?~ [Http] & host ?~ Host "localhost" (Just (fromIntegral port))
