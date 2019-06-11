@@ -50,4 +50,7 @@ api :: Proxy (ToServantApi ApplicationApi)
 api = genericApi (Proxy :: Proxy ApplicationApi)
 
 swaggerHttpApi :: Int -> Swagger
-swaggerHttpApi port = toSwagger (genericApi (Proxy :: Proxy HttpApi)) & schemes ?~ [Http] & host ?~ Host "localhost" (Just (fromIntegral port))
+swaggerHttpApi port = 
+  toSwagger (genericApi (Proxy :: Proxy HttpApi)) 
+  & schemes ?~ [Http] & 
+  host ?~ Host "localhost" (Just (fromIntegral port))
