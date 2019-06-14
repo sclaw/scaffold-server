@@ -1,5 +1,6 @@
 #!/bin/sh -eu
 
+export ekg_datadir=/ekg
 cd /
 
 sleep 2

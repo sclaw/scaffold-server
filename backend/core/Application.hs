@@ -40,7 +40,7 @@ run port =
              configNm <-  getKatipNamespace
              return $ Config {..}
       cfg <- initCfg
-      let withSwagger :: Proxy a -> Proxy (a :<|> SwaggerSchemaUI "swagger-ui" "swagger.json")
+      let withSwagger :: Proxy a -> Proxy (a :<|> SwaggerSchemaUI "swagger" "swagger.json")
           withSwagger _ = Proxy
       let server = 
            hoistServer 

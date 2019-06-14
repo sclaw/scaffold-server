@@ -6,7 +6,7 @@ services:
     container_name: "web-db"
     restart: 'always'
     ports:
-      - '5432:5432'
+      - '5433:5432'
     environment:
       - DB_USER=${USER_VAR}
       - DB_PASSWORD=${PWD_VAR}
