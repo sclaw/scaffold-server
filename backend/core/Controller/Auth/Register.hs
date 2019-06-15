@@ -35,6 +35,7 @@ import           Control.Monad.Reader.Class
 import           Database.Action
 import           Control.Lens.Iso.Extended
 import           Crypto.PasswordStore (pbkdf2, makePasswordSaltWith, makeSalt)
+import           Data.Foldable
 
 {-
 password validation:
@@ -60,29 +61,31 @@ controller pend =
   do
     conn <- liftIO $ acceptRequest pend
     let header = pendingRequest pend
-    katipAddNamespace (Namespace ["header"]) $ 
-     $(logTM) InfoS (logStr (show header))
+    katipAddNamespace (Namespace ["header"]) $ log InfoS header
     handle err (run conn)
   where
     run conn = 
      do 
        info :: RegisterInfo <- liftIO $ evaluate =<< receiveData conn
-       katipAddNamespace (Namespace ["request"]) $ 
-        $(logTM) InfoS (logStr (show info))
+       katipAddNamespace (Namespace ["request"]) $ log InfoS info
        res <- traverse (const (persist info)) (validateInfo info)
        
        katipAddNamespace (Namespace ["res"]) $ 
-        $(logTM) InfoS (logStr (show res))
+        traverse_ (either (log ErrorS) (log InfoS)) res
 
        let resp = mkRespBody res 
        katipAddNamespace (Namespace ["response"]) $ do 
-        $(logTM) InfoS (logStr (show (resp :: Response)))
+        log InfoS (resp :: Response)
         liftIO $ conn `sendBinaryData` (resp :: Response)
     err :: SomeException -> KatipController ()  
-    err e = 
-      katipAddNamespace (Namespace ["response"]) $ 
-       $(logTM) CriticalS (logStr (show e))
+    err e = katipAddNamespace (Namespace ["response"]) $ log CriticalS e
+    log sev = $(logTM) sev . logStr . show
 
+-- | Validate RegisterInfo
+--
+-- >>> validateInfo defaultValue
+-- Failure [WrongEmail,PasswordWeek]
+-- 
 validateInfo :: RegisterInfo -> Validation [Register.Error] ()
 validateInfo info  = validateEmail *> validatePassword  
   where

@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Database.Action (runTryDbConnOrm, runTryDbConnRaw) where
 
 import           KatipController
