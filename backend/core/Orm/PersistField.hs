@@ -17,29 +17,15 @@
 module Orm.PersistField () where
 
 import           Control.Lens
-import           Data.ByteString (ByteString)
 import qualified Data.Sequence as Seq
-import           Data.String
-import           Data.Text (Text)
-import           Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import           Database.Groundhog ()
 import           Database.Groundhog.Core hiding (Utf8)
 import           Database.Groundhog.Generic
 import           Database.Groundhog.TH
 import           Text.ProtocolBuffers.Basic (Utf8(..))
 import           TH.InstanceBuilder
+import           Control.Lens.Iso.Extended
 
-
-pbutf8 :: Iso' Text Utf8
-pbutf8 = iso encode decode where
-  encode = view $ utf8.from strict.to Utf8
-  decode (Utf8 bs) = bs^.strict.from utf8
-
-utf8 :: Iso' Text ByteString
-utf8 = iso encodeUtf8 decodeUtf8
-
-instance IsString Utf8 where
-  fromString = Utf8 . fromString
 
 {- We need (PersistField (Seq a)) to make model out of protobuffer
  - datatypes. Unfortunatelly, Seq is a newtype, and Groundhog somewhy
@@ -66,6 +52,6 @@ instance (PersistField a) => PersistField (Seq.Seq a) where
     pure (Seq.fromList l, values')
   dbType p s = dbType p (XList $ s^..traverse)
 
-derivePrimitivePersistField ''Utf8 [| from pbutf8 |]
+derivePrimitivePersistField ''Utf8 [| from tutf8 |]
 
 

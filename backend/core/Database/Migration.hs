@@ -32,15 +32,14 @@ migrateNew :: Action Postgresql ()
 migrateNew = 
   do
     v <- getVersion
-    let skip = liftIO $ print "init migration already set. skip"
+    let skip = liftIO $ print "new migration not found. skip"
     traverse_ (const skip) v
 
 checkDBMeta :: Action Postgresql (Maybe Bool)
 checkDBMeta = 
   do 
     let sql = 
-         "select exists ( \
-         \select 1 \
+         "select exists (select 1 \
          \from information_schema.tables \ 
          \where table_schema = 'public' \
          \and table_name = 'db_meta')" 
@@ -56,7 +55,10 @@ getVersion =
     traverse ((fst `fmap`) . fromPersistValues) row
 
 setVersion :: Action Postgresql ()
-setVersion = executeRaw False "insert into db_meta (\"migrationVersion\", \"modificationTime\") values (?, now())" [PersistInt64 1]
+setVersion = executeRaw False sql [PersistInt64 1]
+  where 
+    sql = "insert into db_meta (\"migrationVersion\", \
+          \\"modificationTime\") values (?, now())"
 
 buildTables :: Action Postgresql ()
 buildTables = runMigration $ do
