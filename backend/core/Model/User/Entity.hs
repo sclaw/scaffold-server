@@ -32,6 +32,7 @@ data User =
 
 mkPersist_ [groundhog| 
  - entity: User
+   schema: main
    constructors:
     - name: User
       uniques: 
@@ -39,5 +40,6 @@ mkPersist_ [groundhog|
          type: constraint
          fields: [userEmail]
  |]
+ 
 deriveAutoKey ''User
 deriveWrappedPrimitivePersistField ''UserId

@@ -41,12 +41,13 @@ data RoleTree = RoleTree { roleTreeTree :: Tree RoleId }
 
 mkPersist_ [groundhog|
  - entity: Role
+   schema: main
  - entity: RoleTree
+   schema: main
    uniques:
     - name: role_tree_uk
       type: constraint
       fields: [roleHierarchyTree]
-
  |]
 
 deriveAutoKey ''Role

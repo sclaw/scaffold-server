@@ -23,10 +23,7 @@ run :: Pool Postgresql -> IO ()
 run cm = (checkDBMeta >>= traverse_ (bool migrateInit migrateNew)) `runDbConn` cm
 
 migrateInit :: Action Postgresql ()
-migrateInit =
-  do 
-    buildTables
-    setVersion
+migrateInit = populate >> setVersion
 
 migrateNew :: Action Postgresql ()
 migrateNew = 
@@ -60,8 +57,9 @@ setVersion = executeRaw False sql [PersistInt64 1]
     sql = "insert into db_meta (\"migrationVersion\", \
           \\"modificationTime\") values (?, now())"
 
-buildTables :: Action Postgresql ()
-buildTables = runMigration $ do
+populate :: Action Postgresql ()
+populate = runMigration $ do
+    modify' mkMainSchema
     -- db meta 
     modify' mkDBMetaMigration
     migrate (undefined :: User)
@@ -70,12 +68,13 @@ buildTables = runMigration $ do
     migrate (undefined :: RoleTree)
 
 mkDBMetaMigration :: NamedMigrations -> NamedMigrations
-mkDBMetaMigration = 
-  Map.insert 
-  "db_meta"  
-  (Right [(False, 1, mkDBMetaTable)])
+mkDBMetaMigration = Map.insert "db_meta" (Right [(False, 1, mkDBMetaTable)])
   where
     mkDBMetaTable = 
       "create table if not exists db_meta \
       \(\"migrationVersion\" integer not null default 0, \
       \\"modificationTime\" timestamp)"
+
+mkMainSchema :: NamedMigrations -> NamedMigrations
+mkMainSchema = Map.insert "main_schema" (Right [(False, 1, mkMainSchema)])
+  where mkMainSchema = "create schema if not exists main"
