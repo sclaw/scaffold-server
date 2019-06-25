@@ -27,6 +27,7 @@ module Model.Rbac.Entity
 
 import Api.Rbac.RoleId
 import Api.Rbac.Role (Role)
+import Model.User.Entity (UserId)
 
 import Orm.PersistField ()
 import Model.Tree
@@ -36,8 +37,14 @@ import Database.Groundhog.Core (Field (..))
 import Control.Lens.Extended
 import TH.InstanceBuilder (deriveWrappedPrimitivePersistField)
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
+import Data.Time.Clock
 
-data RoleTree = RoleTree { roleTreeTree :: Tree RoleId }
+data RoleTree = 
+     RoleTree 
+     { roleTreeTree :: !Tree RoleId
+     , roleTreeWho  :: !UserId
+     , roleTreeWhen :: !UTCTime 
+     }
 
 mkPersist_ [groundhog|
  - entity: Role
