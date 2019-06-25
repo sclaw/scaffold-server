@@ -41,7 +41,7 @@ import Data.Time.Clock
 
 data RoleTree = 
      RoleTree 
-     { roleTreeTree :: !Tree RoleId
+     { roleTreeTree :: !(Tree RoleId)
      , roleTreeWho  :: !UserId
      , roleTreeWhen :: !UTCTime 
      }

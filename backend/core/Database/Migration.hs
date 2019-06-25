@@ -1,5 +1,6 @@
 module Database.Migration (run) where
 
+import           Database.DbMeta  
 import           Model.User.Entity (User)
 import           Model.Token.Entity (Token)
 import           Model.Rbac.Entity (Role, RoleTree)
@@ -7,17 +8,12 @@ import           Model.Rbac.Entity (Role, RoleTree)
 import           Database.Groundhog.Postgresql
 import           Data.Pool
 import           Control.Monad.IO.Class
-import           Database.Groundhog.Core 
-                 (NamedMigrations
-                 , Action
-                 , PersistValue(..)
-                 , fromPersistValues)
-import           Data.Word (Word32)
+import           Database.Groundhog.Core (Action, PersistValue (..), fromPersistValues)
 import           Database.Groundhog.Generic (firstRow)
+import           Data.Word (Word32)
 import           Data.Foldable (traverse_)
 import           Data.Bool (bool)
-import           Control.Monad.State.Lazy (modify')
-import qualified Data.Map.Strict as Map
+import           Data.Time.Clock
 
 run :: Pool Postgresql -> IO ()
 run cm = (checkDBMeta >>= traverse_ (bool migrateInit migrateNew)) `runDbConn` cm
@@ -45,36 +41,17 @@ checkDBMeta =
     traverse ((fst `fmap`) . fromPersistValues) row
 
 getVersion :: Action Postgresql (Maybe Word32)
-getVersion =
-    do
-    stream <- queryRaw False "select \"migrationVersion\" from db_meta" []
-    row <- firstRow stream
-    traverse ((fst `fmap`) . fromPersistValues) row
-
+getVersion = fmap dbMetaMigrationVersion `fmap` get (DbMetaKey (PersistInt64 1)) 
+    
 setVersion :: Action Postgresql ()
-setVersion = executeRaw False sql [PersistInt64 1]
-  where 
-    sql = "insert into db_meta (\"migrationVersion\", \
-          \\"modificationTime\") values (?, now())"
+setVersion = liftIO getCurrentTime >>= (insert_ . DbMeta 1)
 
 populate :: Action Postgresql ()
-populate = runMigration $ do
-    modify' mkMainSchema
+populate = runMigration $
+  do
     -- db meta 
-    modify' mkDBMetaMigration
+    migrate (undefined :: DbMeta)
     migrate (undefined :: User)
     migrate (undefined :: Token)
     migrate (undefined :: Role)
     migrate (undefined :: RoleTree)
-
-mkDBMetaMigration :: NamedMigrations -> NamedMigrations
-mkDBMetaMigration = Map.insert "db_meta" (Right [(False, 1, mkDBMetaTable)])
-  where
-    mkDBMetaTable = 
-      "create table if not exists db_meta \
-      \(\"migrationVersion\" integer not null default 0, \
-      \\"modificationTime\" timestamp)"
-
-mkMainSchema :: NamedMigrations -> NamedMigrations
-mkMainSchema = Map.insert "main_schema" (Right [(False, 1, mkMainSchema)])
-  where mkMainSchema = "create schema if not exists main"
