@@ -20,7 +20,7 @@ import           Katip.Monadic
 import           Network.WebSockets hiding (Response)
 import           Control.Monad.IO.Class
 import           Control.Lens hiding (re)
-import           WebSocket ()
+import           WebSocket
 import           Text.ProtocolBuffers.Basic (defaultValue)
 import           Control.Exception hiding (handle)
 import           Control.Monad.Catch
@@ -36,6 +36,8 @@ import           Database.Action
 import           Control.Lens.Iso.Extended
 import           Crypto.PasswordStore (pbkdf2, makePasswordSaltWith, makeSalt)
 import           Data.Foldable
+import           Data.Traversable
+import           Data.Either.Lens
 
 {-
 password validation:
@@ -66,17 +68,22 @@ controller pend =
   where
     run conn = 
      do 
-       info :: RegisterInfo <- liftIO $ evaluate =<< receiveData conn
-       katipAddNamespace (Namespace ["request"]) $ log InfoS info
-       res <- traverse (const (persist info)) (validateInfo info)
-       
-       katipAddNamespace (Namespace ["res"]) $ 
-        traverse_ (either (log ErrorS) (log InfoS)) res
+       out :: Data RegisterInfo <- liftIO $ evaluate =<< receiveData conn
+       gotLeft <- for (unwrapData out) $ \info -> do 
+        katipAddNamespace (Namespace ["request"]) $ log InfoS info
+        res <- traverse (const (persist info)) (validateInfo info)
+        
+        katipAddNamespace (Namespace ["res"]) $ 
+          traverse_ (either (log ErrorS) (log InfoS)) res
 
-       let resp = mkRespBody res 
-       katipAddNamespace (Namespace ["response"]) $ do 
-        log InfoS (resp :: Response)
-        liftIO $ conn `sendBinaryData` (resp :: Response)
+        let resp = mkRespBody res 
+        katipAddNamespace (Namespace ["response"]) $ do 
+          log InfoS (resp :: Response)
+          liftIO $ conn `sendBinaryData` Data (Right (resp :: Response))
+       -- if got wrong msg 
+       flip traverseLeft gotLeft $ \x -> 
+        katipAddNamespace (Namespace ["response", "wrong"]) $
+         log InfoS "wrong req: " <> x^.textbsiso
     err :: SomeException -> KatipController ()  
     err e = katipAddNamespace (Namespace ["response"]) $ log CriticalS e
     log sev = $(logTM) sev . logStr . show

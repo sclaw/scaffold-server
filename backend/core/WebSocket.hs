@@ -1,17 +1,20 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module WebSocket () where
+module WebSocket (Data (..)) where
 
 import           Network.WebSockets
 import           Text.ProtocolBuffers.Reflections
 import           Text.ProtocolBuffers.WireMessage
 import           Control.Lens
 import           Control.Lens.Iso.Extended
+import qualified Data.ByteString.Lazy as B
 
-instance (Wire a, ReflectDescriptor a) => WebSocketsData a where
+newtype Data a = Data { unwrapData :: Either B.ByteString a } 
+
+instance (Wire a, ReflectDescriptor a) => WebSocketsData (Data a) where
     fromDataMessage (Binary bs) = fromLazyByteString bs
-    fromDataMessage _ = 
-     error "Textual UTF-8 encoded data got instead of ArrayBuffer"
-    fromLazyByteString  = (^.proto)
-    toLazyByteString = (^.from proto)
+    fromDataMessage (Text bs _) = Data $ Left bs
+    fromLazyByteString bs = Data $ Right (bs^.proto)
+    toLazyByteString (Data (Right x)) = x^.from proto
+    toLazyByteString (Data (Left bs)) = bs
