@@ -14,6 +14,7 @@ import           Data.Word (Word32)
 import           Data.Foldable (traverse_)
 import           Data.Bool (bool)
 import           Data.Time.Clock
+import           Data.Typeable
 
 run :: Pool Postgresql -> IO ()
 run cm = (checkDBMeta >>= traverse_ (bool migrateInit migrateNew)) `runDbConn` cm
@@ -35,7 +36,8 @@ checkDBMeta =
          "select exists (select 1 \
          \from information_schema.tables \ 
          \where table_schema = 'public' \
-         \and table_name = 'db_meta')" 
+         \and table_name = '" <> 
+         show (typeOf (undefined :: DbMeta)) <> "')" 
     stream <- queryRaw False sql []
     row <- firstRow stream
     traverse ((fst `fmap`) . fromPersistValues) row
@@ -49,6 +51,7 @@ setVersion = liftIO getCurrentTime >>= (insert_ . DbMeta 1)
 populate :: Action Postgresql ()
 populate = runMigration $
   do
+    liftIO $ print "init migration start.."
     -- db meta 
     migrate (undefined :: DbMeta)
     migrate (undefined :: User)
