@@ -37,7 +37,6 @@ import           Control.Lens.Iso.Extended
 import           Crypto.PasswordStore (pbkdf2, makePasswordSaltWith, makeSalt)
 import           Data.Foldable
 import           Data.Traversable
-import           Data.Either.Lens
 
 {-
 password validation:
@@ -81,9 +80,9 @@ controller pend =
           log InfoS (resp :: Response)
           liftIO $ conn `sendBinaryData` Data (Right (resp :: Response))
        -- if got wrong msg 
-       flip traverseLeft gotLeft $ \x -> 
-        katipAddNamespace (Namespace ["response", "wrong"]) $
-         log InfoS "wrong req: " <> x^.textbsiso
+       flip (traverseOf_ _Left) gotLeft $ \x -> 
+         katipAddNamespace (Namespace ["response", "wrong"]) $
+          log InfoS ("wrong req: " <> x^.from textbsliso)
     err :: SomeException -> KatipController ()  
     err e = katipAddNamespace (Namespace ["response"]) $ log CriticalS e
     log sev = $(logTM) sev . logStr . show
