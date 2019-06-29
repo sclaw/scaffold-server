@@ -12,8 +12,15 @@ import Servant.Swagger.UI
 import Servant
 import Data.Swagger
 
-swaggerSchemaUIServerT :: (ServerT api KatipController ~ KatipController Swagger) => Swagger -> ServerT (SwaggerSchemaUI' dir api) KatipController
-swaggerSchemaUIServerT = swaggerSchemaUIServerTImpl' swaggerUiIndexTemplate swaggerUiFiles
+swaggerSchemaUIServerT 
+  :: (ServerT api KatipController ~ 
+      KatipController Swagger) 
+  => Swagger 
+  -> ServerT (SwaggerSchemaUI' dir api) KatipController
+swaggerSchemaUIServerT = 
+  swaggerSchemaUIServerTImpl' 
+  swaggerUiIndexTemplate 
+  swaggerUiFiles
 
 swaggerSchemaUIServerTImpl' 
   :: (ServerT api KatipController ~ KatipController Swagger) 

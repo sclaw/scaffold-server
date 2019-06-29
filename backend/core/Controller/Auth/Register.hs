@@ -37,6 +37,7 @@ import           Control.Lens.Iso.Extended
 import           Crypto.PasswordStore (pbkdf2, makePasswordSaltWith, makeSalt)
 import           Data.Foldable
 import           Data.Traversable
+import           Text.InterpolatedString.QM
 
 {-
 password validation:
@@ -110,9 +111,9 @@ persist info =
     io <-katipAddNamespace (Namespace ["raw"]) askLoggerIO
     raw <- (^.katipEnv.rawDB) `fmap` ask
     flip runTryDbConnRaw raw $ do
-     let sql = 
-          "insert into \"User\" (\"userEmail\", \"userPassword\") \
-          \values ($1, $2) on conflict do nothing returning id"
+     let sql = [qns| insert into main."User" ("userEmail", "userPassword") 
+                     values ($1, $2) on conflict do nothing returning id 
+               |]
      let mkSalt = makeSalt (info^.registerInfoEmail.from tutf8.textbsiso)
      let mkPass = makePasswordSaltWith pbkdf2 id 
                   (info^.registerInfoPassword.from tutf8.textbsiso) mkSalt 2000 
