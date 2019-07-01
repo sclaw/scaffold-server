@@ -10,6 +10,7 @@ module Api
        , AuthApi (..)
        , HttpApi (..)
        , WebsocketApi (..)
+       , V1Api (..)
        , api
        , swaggerHttpApi
        ) where
@@ -24,37 +25,46 @@ import           Control.Lens
 
 data ApplicationApi route = 
      ApplicationApi 
-     { http :: route :- ToServant HttpApi AsApi
-     , socket :: route :- "auth" :> ToServant WebsocketApi AsApi 
+     { applicationApiHttp :: route :- ToServant HttpApi AsApi
+     , applicationApiSocket :: route :- "auth" :> ToServant WebsocketApi AsApi 
      } deriving stock Generic
 
-newtype HttpApi route = 
-        HttpApi 
-        { root 
-          :: route
-          :- Summary "Endpoint for .."
-          :> Description "" 
-          :> Get '[JSON] String 
-        } deriving stock Generic 
+data HttpApi route = 
+     HttpApi 
+     { httpApiRoot 
+       :: route
+       :- Summary "Endpoint for .."
+       :> Description "" 
+       :> Get '[JSON] String
+     , httpApiV1
+       :: route
+       :- Summary "Endpoint for .."
+       :> Description ""
+       :> "api"
+       :> "v1"
+       :> ToServant V1Api AsApi 
+     } deriving stock Generic 
 
-newtype WebsocketApi route = WebsocketApi { auth :: route :- ToServant AuthApi AsApi } 
+newtype WebsocketApi route = WebsocketApi { websocketApiAuth :: route :- ToServant AuthApi AsApi } 
   deriving stock Generic 
 
 data AuthApi route = 
      AuthApi 
-     { register 
+     { authApiRegister 
        :: route
        :- Summary "Endpoint for .."
        :> Description ""
        :> "register" 
        :> WebSocketPending
-     , authenticate
+     , authApiAuthenticate
        :: route
        :- Summary "Endpoint for .."
        :> Description ""       
        :> "authenticate" 
        :> WebSocketPending
      } deriving stock Generic
+
+newtype V1Api route = V1Api { v1ApiAbout :: route :- "about" :> Post '[JSON] () } deriving stock Generic
 
 api :: Proxy (ToServantApi ApplicationApi)
 api = genericApi (Proxy :: Proxy ApplicationApi)

@@ -115,6 +115,7 @@ library:
     - servant-swagger
     - swagger2
     - wai-app-static
+    - qm-interpolated-string
   source-dirs:
     - backend/core
     - backend/extended
