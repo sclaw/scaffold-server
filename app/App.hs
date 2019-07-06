@@ -32,7 +32,7 @@ main =
       cfg <- Config.load path
       pPrint cfg 
 
-      void $ forkServer (cfg^.ekg.host.stextiso.textbsiso) (cfg^.ekg.port)
+      void $ forkServer (cfg^.ekg.host.stext.textbs) (cfg^.ekg.port)
 
       term <- hGetTerm stdout
       orm <- createPostgresqlPool (mkOrmConn (cfg^.db)) (cfg^.orm.coerced)
@@ -42,7 +42,7 @@ main =
       tm <- getCurrentTime
       let katipFilePath = cfg^.katip.coerced <> "/" <> show tm <> ".log"
       file <- mkFileScribe katipFilePath DebugS V3  
-      let mkNm = Namespace [("<" ++ $(protoHash) ++ ">")^.stextiso]
+      let mkNm = Namespace [("<" ++ $(protoHash) ++ ">")^.stext]
       env <- initLogEnv mkNm "production"
       let env' = registerScribe "stdout" std defaultScribeSettings env >>= 
                  registerScribe "file" file defaultScribeSettings
@@ -60,8 +60,8 @@ mkOrmConn x = printf "host=%s port=%d dbname=%s user=%s password=%s" (x^.host) (
 mkRawConn :: Db -> HasqlConn.Settings
 mkRawConn x = 
   HasqlConn.settings
-  (x^.host.stextiso.textbsiso)
+  (x^.host.stext.textbs)
   (x^.port.to fromIntegral)
-  (x^.user.stextiso.textbsiso)
-  (x^.pass.stextiso.textbsiso)
-  (x^.database.stextiso.textbsiso)
+  (x^.user.stext.textbs)
+  (x^.pass.stext.textbs)
+  (x^.database.stext.textbs)

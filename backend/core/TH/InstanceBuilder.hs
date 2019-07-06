@@ -10,12 +10,15 @@ module TH.InstanceBuilder
        , deriveWrappedPrimitivePersistField
        , deriveNumInstanceFromWrappedNum
        , deriveWrappedForDataWithSingleField
+       , deriveToSchemaAndJSON
        )
        where
 
 import Control.Lens
 import Database.Groundhog.Core
 import Language.Haskell.TH
+import Data.Aeson.Extended          (deriveJSON')
+import Data.Swagger.Schema.Extended (deriveToSchema)
 
 
 derivePrimitivePersistField :: Name -> ExpQ -> Q [Dec]
@@ -82,3 +85,9 @@ deriveWrappedForDataWithSingleField name =
       RecC _ [(_, _, ConT inner)] -> derive inner
       NormalC _ [(_, ConT inner)] -> derive inner
       _                           -> error "data not supported"
+
+deriveToSchemaAndJSON :: Name -> Q [Dec]
+deriveToSchemaAndJSON name = do
+  xs <- deriveJSON' name
+  ys <- deriveToSchema name
+  return (xs ++ ys)

@@ -24,8 +24,6 @@ import           Servant                       hiding (Application)
 import           Servant.API.Generic
 import           Control.Lens
 import           Servant.Swagger.UI
-import           Control.Exception (try)
-import           Servant.Server.Internal.ServantErr
 
 type App = ReaderT KatipEnv IO
 
@@ -54,4 +52,4 @@ run port =
            Warp.defaultSettings
            & Warp.setPort port
            & Warp.setOnException Warp.defaultOnException       
-      liftIO $ Warp.runSettings settings (\req resp -> try(serve (withSwagger api) server req resp) >>= either (undefined . responseServantErr) pure)
+      liftIO $ Warp.runSettings settings (serve (withSwagger api) server)

@@ -22,6 +22,7 @@ import           Servant.API
 import           Servant.Swagger
 import           Data.Swagger
 import           Control.Lens
+import           ReliefJsonData
 
 data ApplicationApi route = 
      ApplicationApi 
@@ -64,7 +65,7 @@ data AuthApi route =
        :> WebSocketPending
      } deriving stock Generic
 
-newtype V1Api route = V1Api { v1ApiAbout :: route :- "about" :> Post '[JSON] () } deriving stock Generic
+newtype V1Api route = V1Api { v1ApiAbout :: route :- "about" :> Post '[JSON] (Alternative () Unit) } deriving stock Generic
 
 api :: Proxy (ToServantApi ApplicationApi)
 api = genericApi (Proxy :: Proxy ApplicationApi)

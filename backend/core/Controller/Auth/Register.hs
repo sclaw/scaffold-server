@@ -83,7 +83,7 @@ controller pend =
        -- if got wrong msg 
        flip (traverseOf_ _Left) gotLeft $ \x -> 
          katipAddNamespace (Namespace ["response", "wrong"]) $
-          log InfoS ("wrong req: " <> x^.from textbsliso)
+          log InfoS ("wrong req: " <> x^.from textbsl)
     err :: SomeException -> KatipController ()  
     err e = katipAddNamespace (Namespace ["response"]) $ log CriticalS e
     log sev = $(logTM) sev . logStr . show
@@ -114,9 +114,9 @@ persist info =
      let sql = [qns| insert into main."User" ("userEmail", "userPassword") 
                      values ($1, $2) on conflict do nothing returning id 
                |]
-     let mkSalt = makeSalt (info^.registerInfoEmail.from tutf8.textbsiso)
+     let mkSalt = makeSalt (info^.registerInfoEmail.from tutf8.textbs)
      let mkPass = makePasswordSaltWith pbkdf2 id 
-                  (info^.registerInfoPassword.from tutf8.textbsiso) mkSalt 2000 
+                  (info^.registerInfoPassword.from tutf8.textbs) mkSalt 2000 
      let encoder = 
           ((info^.registerInfoEmail.from tutf8) >$ 
           (HE.param HE.text)) <>

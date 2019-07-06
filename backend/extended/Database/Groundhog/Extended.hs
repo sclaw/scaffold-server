@@ -5,12 +5,12 @@ module Database.Groundhog.Extended
   , contains
   ) where
 import Control.Lens (from, view)
-import Control.Lens.Iso.Extended (stextiso)
+import Control.Lens.Iso.Extended (stext)
 import Data.Char
 import Data.Semigroup ((<>))
 import Database.Groundhog
 import Database.Groundhog.Generic.Sql.Functions (like, lower)
 
 contains x needle
-  = let string u = map toLower $ view (from stextiso) u
+  = let string u = map toLower $ view (from stext) u
     in  lower x `like` ("%" <> string needle <> "%")

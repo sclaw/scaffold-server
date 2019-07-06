@@ -5,15 +5,16 @@
 
 module Control.Lens.Iso.Extended
        (
-          textbsiso
-        , textbsliso
-        , integraliso
-        , stextiso
-        , seqliso
+          textbs
+        , textbsl
+        , integral
+        , stext
+        , seql
         , proto
         , tutf8
         , sutf8
         , listSeq
+        , stringify
        ) where
 
 import           Control.Lens
@@ -33,28 +34,28 @@ import           Data.String
 
 -- WARNING: Strictly speaking, 'utf8' is not isomorphism, since exists
 -- ByteString, that is not decodable as Text. But it is very convenient.
-textbsiso :: Iso' T.Text B.ByteString
-textbsiso = iso T.encodeUtf8 T.decodeUtf8
+textbs :: Iso' T.Text B.ByteString
+textbs = iso T.encodeUtf8 T.decodeUtf8
 
-textbsliso :: Iso' T.Text BL.ByteString
-textbsliso = iso (LT.encodeUtf8 . LT.fromStrict)
+textbsl :: Iso' T.Text BL.ByteString
+textbsl = iso (LT.encodeUtf8 . LT.fromStrict)
                  (LT.toStrict . LT.decodeUtf8)
 
-integraliso :: (Integral a, Integral b) => Iso' a b
-integraliso = iso fromIntegral fromIntegral
+integral :: (Integral a, Integral b) => Iso' a b
+integral = iso fromIntegral fromIntegral
 
-stextiso :: Iso' String T.Text
-stextiso = iso T.pack T.unpack
+stext :: Iso' String T.Text
+stext = iso T.pack T.unpack
 
-seqliso :: Iso' [a] (Seq.Seq a)
-seqliso = iso Seq.fromList toList
+seql :: Iso' [a] (Seq.Seq a)
+seql = iso Seq.fromList toList
 
 proto :: (Wire a, ReflectDescriptor a) => Iso' BL.ByteString a
 proto = iso (either (error . ("proto decode error: " ++)) fst . messageGet) messagePut
 
 tutf8 :: Iso' T.Text Utf8
-tutf8 = iso (view $ textbsiso.from strict.to Utf8) decode 
-  where decode (Utf8 bs) = bs^.strict.from textbsiso
+tutf8 = iso (view $ textbs.from strict.to Utf8) decode 
+  where decode (Utf8 bs) = bs^.strict.from textbs
 
 sutf8 :: Iso' String Utf8
 sutf8 = iso (Utf8 . fromString) decode
@@ -62,3 +63,6 @@ sutf8 = iso (Utf8 . fromString) decode
 
 listSeq :: Iso' [a] (Seq.Seq a)
 listSeq = iso Seq.fromList toList
+
+stringify :: (Show a, Read a) => Iso' a String
+stringify = iso show read 

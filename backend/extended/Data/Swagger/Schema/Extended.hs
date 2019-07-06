@@ -1,15 +1,21 @@
 {-# LANGUAGE TemplateHaskell #-}
+module Data.Swagger.Schema.Extended (schemaOptions, deriveToSchema) where
 
-module Data.Swagger.Schema.Extended (deriveToSchema) where
-
+import           Data.Aeson.Extended (aesonOptions)
 import           Data.Swagger.Schema
 import           Language.Haskell.TH
 
+schemaOptions :: String -> SchemaOptions
+schemaOptions = fromAesonOptions . aesonOptions
+
 deriveToSchema :: Name -> Q [Dec]
 deriveToSchema name =
-  do 
-    let ty = return (ConT name)
-    [d|
-       instance ToSchema $ty where
-         declareNamedSchema = undefined
-     |]
+  [d|
+    instance ToSchema $ty where
+      declareNamedSchema = genericDeclareNamedSchema (schemaOptions $sname)
+  |]
+  where
+    ty = return (ConT name)
+    strName = nameBase name
+    sname = return (LitE (StringL strName))
+
