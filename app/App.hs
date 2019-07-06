@@ -28,8 +28,8 @@ import           System.Remote.Monitoring
 main :: IO ()
 main =
     do
-      (path:_) <- getArgs
-      cfg <- Config.load path
+      (cfgPath:_) <- getArgs
+      cfg <- Config.load cfgPath
       pPrint cfg 
 
       void $ forkServer (cfg^.ekg.host.stext.textbs) (cfg^.ekg.port)
@@ -38,12 +38,20 @@ main =
       orm <- createPostgresqlPool (mkOrmConn (cfg^.db)) (cfg^.orm.coerced)
       raw <- Hasql.acquire (cfg^.raw.poolN, cfg^.raw.tm, mkRawConn (cfg^.db))  
       let appEnv = KatipEnv term orm raw
-      std <- mkHandleScribeWithFormatter jsonFormat ColorIfTerminal stdout DebugS V3
+      std <- mkHandleScribeWithFormatter 
+             jsonFormat 
+             ColorIfTerminal 
+             stdout
+             (cfg^.katip.severity.from stringify) 
+             (cfg^.katip.verbosity.from stringify)
       tm <- getCurrentTime
-      let katipFilePath = cfg^.katip.coerced <> "/" <> show tm <> ".log"
-      file <- mkFileScribe katipFilePath DebugS V3  
+      let katipFilePath = cfg^.katip.path <> "/" <> show tm <> ".log"
+      file <- mkFileScribe 
+              katipFilePath 
+              (cfg^.katip.severity.from stringify) 
+              (cfg^.katip.verbosity.from stringify)  
       let mkNm = Namespace [("<" ++ $(protoHash) ++ ">")^.stext]
-      env <- initLogEnv mkNm "production"
+      env <- initLogEnv mkNm (cfg^.katip.Config.env.stext.coerced)
       let env' = registerScribe "stdout" std defaultScribeSettings env >>= 
                  registerScribe "file" file defaultScribeSettings
       let runApp le = 

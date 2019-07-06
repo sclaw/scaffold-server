@@ -18,7 +18,11 @@ configPool:
   poolSettingsTimeToOpen: 0.5
   poolSettingsResPerStripe: 1
 
-configKatip: katip
+configKatip: 
+  katipPath: katip
+  katipSeverity: DebugS
+  katipVerbosity: V3 
+  katipEnv: production
 
 configEkg:
   ekgHost: server
