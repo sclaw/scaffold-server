@@ -2,9 +2,9 @@
 
 module App (main) where
 
-import           Application
+import qualified Application                     as App
 import           KatipController
-import           BuildInfo                       (protoHash)
+import           BuildInfo                       (gitLatestCommitHash)
 import           Config
 import           Pretty
 import qualified Database.Migration              as Migration
@@ -50,7 +50,7 @@ main =
               katipFilePath 
               (cfg^.katip.severity.from stringify) 
               (cfg^.katip.verbosity.from stringify)  
-      let mkNm = Namespace [("<" ++ $(protoHash) ++ ">")^.stext]
+      let mkNm = Namespace [("<" ++ $(gitLatestCommitHash) ++ ">")^.stext]
       env <- initLogEnv mkNm (cfg^.katip.Config.env.stext.coerced)
       let env' = registerScribe "stdout" std defaultScribeSettings env >>= 
                  registerScribe "file" file defaultScribeSettings
@@ -58,7 +58,7 @@ main =
             runKatipContextT le 
             (mempty :: LogContexts) 
             mempty 
-            (run (cfg^.ports.port))
+            (App.run (cfg^.ports.port))
       Migration.run orm
       bracket env' closeScribes ((`runReaderT` appEnv) . runApp)       
       

@@ -7,8 +7,9 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE RankNTypes         #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+{-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
 
-module Application (App, run) where
+module Application (run) where
 
 import           Api
 import qualified Controller.Application as App
@@ -20,14 +21,12 @@ import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Reader    (ReaderT, ask, runReaderT)
 import           Katip
 import qualified Network.Wai.Handler.Warp      as Warp
-import           Servant                       hiding (Application)
+import           Servant                    
 import           Servant.API.Generic
 import           Control.Lens
 import           Servant.Swagger.UI
 
-type App = ReaderT KatipEnv IO
-
-run :: Int -> KatipContextT App ()
+run :: Int -> KatipContextT (ReaderT KatipEnv IO) ()
 run port = 
   katipAddNamespace (Namespace ["application"]) $ 
     do
@@ -51,5 +50,5 @@ run port =
       let settings = 
            Warp.defaultSettings
            & Warp.setPort port
-           & Warp.setOnException Warp.defaultOnException       
-      liftIO $ Warp.runSettings settings (serve (withSwagger api) server)
+           & Warp.setOnException Warp.defaultOnException
+      liftIO (Warp.runSettings settings (serve (withSwagger api) server)) `logExceptionM` ErrorS

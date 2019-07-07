@@ -9,7 +9,7 @@
 # to be used for project dependencies. For example:
 #
 # resolver: lts-3.5
-resolver: lts-13.24
+resolver: lts-13.27
 
 allow-newer: true
 
@@ -97,12 +97,12 @@ extra-deps:
 docker:
   enable: true
   auto-pull: true
-  repo: "fpco/stack-build:lts-13.16"
+  repo: "fpco/stack-build:latest"
 
 image:
   container:
     name: web
-    base: "fpco/stack-build:lts-13.16"
+    base: "fpco/stack-build:latest"
     add: 
       "docker/server/ekg-0.4.0.15": /ekg
       ".git": /.git
