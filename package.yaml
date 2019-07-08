@@ -117,6 +117,7 @@ library:
     - swagger2
     - wai-app-static
     - qm-interpolated-string
+    - aeson-injector
   source-dirs:
     - backend/core
     - backend/extended

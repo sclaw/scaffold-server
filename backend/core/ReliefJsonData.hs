@@ -7,11 +7,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 -- | A wrapper for the either that is only applicative and has serialization that
 -- is useful for us.
-module ReliefJsonData (Alternative(..), Unit (..)) where
+module ReliefJsonData (Alternative(..)) where
 
 import Data.Aeson hiding (Error, Success)
 import Data.Proxy
@@ -61,7 +60,3 @@ instance (Typeable a, ToSchema a, Typeable b, ToSchema b) => ToSchema (Alternati
          & type_ .~ SwaggerObject
          & properties .~ [("error", left), ("success", right)]
     return schema     
-
-newtype Unit = Unit () deriving (Generic, ToJSON)
-
-instance ToSchema Unit
