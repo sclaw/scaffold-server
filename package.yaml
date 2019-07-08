@@ -69,6 +69,7 @@ library:
     - template-haskell
     - hslogger
     - hspec-pg-transact
+    - ginger
     - groundhog
     - groundhog-th
     - groundhog-postgresql
