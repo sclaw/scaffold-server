@@ -5,7 +5,7 @@
 {-# LANGUAGE DerivingStrategies     #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving  #-}
 
-module Config 
+module EdgeNode.Config 
        ( Config
        , GroundhogSettings (..)
        , Katip (..)

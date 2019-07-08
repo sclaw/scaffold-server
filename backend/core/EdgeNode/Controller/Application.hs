@@ -1,17 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 
-module Controller.Application (application) where
+module EdgeNode.Controller.Application (application) where
 
-import           Api
+import           EdgeNode.Api
+
 import           Katip
 import           KatipController
 import           Servant.Server.Generic
 import           Servant.API.Generic
-import qualified Controller.Root.Root as Root
-import qualified Controller.Auth.Register as Register 
-import qualified Controller.Auth.Authenticate as Authenticate
-import qualified Controller.V1.About as V1.About
+import qualified EdgeNode.Controller.Root.Root as Root
+import qualified EdgeNode.Controller.Auth.Register as Register 
+import qualified EdgeNode.Controller.Auth.Authenticate as Authenticate
+import qualified EdgeNode.Controller.V1.About as V1.About
 
 application :: ApplicationApi (AsServerT KatipController)
 application = 

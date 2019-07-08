@@ -1,5 +1,5 @@
 syntax = 'proto2';
-package Api.User.Register;
+package EdgeNode.Api.User.Register;
 
 import "User.proto";
 
@@ -11,7 +11,7 @@ message ResponseErr {
 	optional string responseErrPasswordDetailedInfo = 2; 
 }
 
-message ResponseOk { required Api.User.UserId responseOkIdent = 1; }
+message ResponseOk { required EdgeNode.Api.User.UserId responseOkIdent = 1; }
 
 message ResponseServErr { required string responseServErrValue = 1; }
 

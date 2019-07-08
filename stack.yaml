@@ -9,7 +9,7 @@
 # to be used for project dependencies. For example:
 #
 # resolver: lts-3.5
-resolver: lts-13.27
+resolver: lts-13.17
 
 allow-newer: true
 
@@ -53,8 +53,8 @@ extra-deps:
  - megaparsec-7.0.4@sha256:a7397151601cbe6b8f831f8bdad1a10118dcd6d9a7ee50d6bbdcfbd1181b4ba2,6202
  - rotating-log-0.4.3@sha256:ae14ce4b89df481746ffa4edb269b25b0479f7fb4cd08e457541ccef3f8052d4
  - groundhog-th-0.10.2@sha256:6e2715a263266be00c989e164f831dd739554de82d8f4f0c58ce6c1b0e46b4a0,1340
- - git: git@github.com:sclaw/doctest-discover.git
-   commit: 62ecf0786d0cf28644c5cc106004e259d1388b4a
+ # - git: git@github.com:sclaw/doctest-discover.git
+ #  commit: 62ecf0786d0cf28644c5cc106004e259d1388b4a
  - servant-websockets-1.1.0
  - pretty-tree-0.1.0.0@sha256:49b0e17008f9d30328db2bcc2958f3a7b78d154d2335c2dbaa2073e237b524ae   
  - pwstore-fast-2.4.4@sha256:9b6a37510d8b9f37f409a8ab3babac9181afcaaa3fce8ba1c131a7ed3de30698
@@ -91,10 +91,10 @@ extra-deps:
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
     
-# nix:
-#   enable: true
-#   pure: true
-#   shell-file: shell.nix
+nix:
+  enable: true
+  pure: true
+  shell-file: shell.nix
 
 docker:
   enable: true
@@ -103,7 +103,7 @@ docker:
 
 image:
   container:
-    name: web
+    name: edge-node-server
     base: "fpco/stack-build:latest"
     add: 
       "docker/server/ekg-0.4.0.15": /ekg

@@ -13,12 +13,12 @@
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
-module Model.Token.Entity (Token, TokenConstructor (..), Field (..)) where
+module EdgeNode.Model.Token.Entity (Token, TokenConstructor (..), Field (..)) where
 
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Data.Time
-import Model.User.Entity (UserId)
+import EdgeNode.Model.User.Entity (UserId)
 
 data Token =
      Token

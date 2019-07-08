@@ -3,16 +3,16 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Controller.Auth.Register (controller) where
+module EdgeNode.Controller.Auth.Register (controller) where
 
-import           Api.User.Register.RegisterInfo
-import           Api.User.Register.Response
-import           Api.User.Register.ResponseErr
-import           Api.User.Register.ResponseOk
-import           Api.User.Register.ResponseServErr
-import           Api.User.Register.Response.ResponseUnwrap
-import           Model.User.Entity (UserId (..))
-import qualified Api.User.Register.Error as Register
+import           EdgeNode.Api.User.Register.RegisterInfo
+import           EdgeNode.Api.User.Register.Response
+import           EdgeNode.Api.User.Register.ResponseErr
+import           EdgeNode.Api.User.Register.ResponseOk
+import           EdgeNode.Api.User.Register.ResponseServErr
+import           EdgeNode.Api.User.Register.Response.ResponseUnwrap
+import           EdgeNode.Model.User.Entity (UserId (..))
+import qualified EdgeNode.Api.User.Register.Error as Register
 
 import           Katip
 import           KatipController

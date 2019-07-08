@@ -5,7 +5,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Api 
+module EdgeNode.Api 
        ( ApplicationApi (..)
        , AuthApi (..)
        , HttpApi (..)

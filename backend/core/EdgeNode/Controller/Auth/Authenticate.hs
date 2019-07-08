@@ -1,4 +1,4 @@
-module Controller.Auth.Authenticate (controller) where
+module EdgeNode.Controller.Auth.Authenticate (controller) where
 
 import           KatipController
 import           Network.WebSockets

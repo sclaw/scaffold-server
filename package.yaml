@@ -1,4 +1,4 @@
-name:                web
+name:                edgeNode-server
 version:             0.1.0.0
 github:              "githubuser/web"
 license:             BSD3
@@ -95,7 +95,7 @@ library:
     - servant-server
     - warp
     - rotating-log
-    - doctest
+    - doctest ==  0.16.1
     - doctest-discover
     - tasty-discover
     - servant-websockets
@@ -130,17 +130,17 @@ executables:
     main:                app.hs
     source-dirs:         prog
     dependencies:
-    - web
+    - edgeNode-server
 
 tests:
   tasty:
     main:                test.hs
     source-dirs:         prog
     dependencies:
-    - web
+    - edgeNode-server
   doctest:
     main:             doctest.hs
     source-dirs:      prog
     dependencies:
-    - web
+    - edgeNode-server
     - doctest-discover

@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Controller.V1.About (controller) where
+module EdgeNode.Controller.V1.About (controller) where
 
 import Katip
 import KatipController

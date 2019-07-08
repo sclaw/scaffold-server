@@ -9,10 +9,10 @@
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
 
-module Application (run) where
+module EdgeNode.Application (run) where
 
-import           Api
-import qualified Controller.Application as App
+import           EdgeNode.Api
+import qualified EdgeNode.Controller.Application as App
 import           KatipController
 import           Servant.Swagger.KatipController
 

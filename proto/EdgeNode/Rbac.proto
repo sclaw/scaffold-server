@@ -1,5 +1,5 @@
 syntax = "proto2";
-package Api.Rbac;
+package EdgeNode.Api.Rbac;
 
 message RoleId {
    required sint64 roleIdValue = 1;

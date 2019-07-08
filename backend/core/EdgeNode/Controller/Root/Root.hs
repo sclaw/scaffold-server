@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Controller.Root.Root (controller) where
+module EdgeNode.Controller.Root.Root (controller) where
 
 import Data.Functor (($>)) 
 import Katip

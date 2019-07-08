@@ -1,9 +1,9 @@
 module Database.Migration (run) where
 
 import           Database.DbMeta  
-import           Model.User.Entity (User)
-import           Model.Token.Entity (Token)
-import           Model.Rbac.Entity (Role, RoleTree)
+import           EdgeNode.Model.User.Entity (User)
+import           EdgeNode.Model.Token.Entity (Token)
+import           EdgeNode.Model.Rbac.Entity (Role, RoleTree)
 
 import           Database.Groundhog.Postgresql
 import           Data.Pool

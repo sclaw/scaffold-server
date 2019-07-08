@@ -17,7 +17,7 @@
 {-# OPTIONS_GHC -fno-warn-missing-exported-signatures #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 
-module Model.Rbac.Entity
+module EdgeNode.Model.Rbac.Entity
        ( Role
        , RoleTree
        , Field (..)
@@ -25,12 +25,12 @@ module Model.Rbac.Entity
        )
        where
 
-import Api.Rbac.RoleId
-import Api.Rbac.Role (Role)
-import Model.User.Entity (UserId)
+import EdgeNode.Api.Rbac.RoleId
+import EdgeNode.Api.Rbac.Role (Role)
+import EdgeNode.Model.User.Entity (UserId)
+import EdgeNode.Model.Tree
 
 import Orm.PersistField ()
-import Model.Tree
 import Database.AutoKey
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))

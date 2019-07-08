@@ -15,7 +15,7 @@
 -- The "Model.Tree" rose-tree model
 -----------------------------------------------------------------------------
 
-module Model.Tree (Tree (..)) where
+module EdgeNode.Model.Tree (Tree (..)) where
 
 import Database.Groundhog.Postgresql ()
 import Database.Groundhog.TH.Extended

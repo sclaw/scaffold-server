@@ -1,9 +1,9 @@
 version: '3.2'
 services:
 
-  web-db:
+  server-db:
     image: postgres
-    container_name: "web-db"
+    container_name: "edge-node-server-db"
     restart: 'always'
     ports:
       - '5433:5432'
@@ -19,20 +19,20 @@ services:
       - pg_data_db:/var/lib/postgresql/data
     build: './db'
     networks:
-      - bstream-web
+      - edgeNode
 
   server:
     build: ./server
-    container_name: "server"
+    container_name: "edge-node-server"
     links:
-      - web-db
+      - server-db
     depends_on:
-      - web-db 
+      - server-db 
     ports:
       - "12000:12000"
       - "8000:8000"    
     networks:
-      - bstream-web
+      - edgeNode
     
   # elasticsearch:
   #   image: docker.elastic.co/elasticsearch/elasticsearch:7.1.1
@@ -58,7 +58,7 @@ services:
   #     - "5601:5601"
 
 networks:
-  bstream-web:
+  edgeNode:
 
 volumes:
   pg_data_db: {}

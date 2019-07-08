@@ -2,13 +2,13 @@
 
 module App (main) where
 
-import qualified Application                     as App
+import qualified EdgeNode.Application            as App
+import           EdgeNode.Config
+
 import           KatipController
 import           BuildInfo                       (gitLatestCommitHash)
-import           Config
 import           Pretty
 import qualified Database.Migration              as Migration
-
 import           Control.Exception               (bracket)
 import           Control.Lens                    
 import           Control.Monad.Trans.Reader      (runReaderT)
@@ -29,7 +29,7 @@ main :: IO ()
 main =
     do
       (cfgPath:_) <- getArgs
-      cfg <- Config.load cfgPath
+      cfg <- EdgeNode.Config.load cfgPath
       pPrint cfg 
 
       void $ forkServer (cfg^.ekg.host.stext.textbs) (cfg^.ekg.port)
@@ -51,7 +51,7 @@ main =
               (cfg^.katip.severity.from stringify) 
               (cfg^.katip.verbosity.from stringify)  
       let mkNm = Namespace [("<" ++ $(gitLatestCommitHash) ++ ">")^.stext]
-      env <- initLogEnv mkNm (cfg^.katip.Config.env.stext.coerced)
+      env <- initLogEnv mkNm (cfg^.katip.EdgeNode.Config.env.stext.coerced)
       let env' = registerScribe "stdout" std defaultScribeSettings env >>= 
                  registerScribe "file" file defaultScribeSettings
       let runApp le = 

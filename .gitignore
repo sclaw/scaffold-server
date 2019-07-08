@@ -1,5 +1,5 @@
 .stack-work/
-web.cabal
+edgeNode-server.cabal
 *~
 test/*.html
 log/

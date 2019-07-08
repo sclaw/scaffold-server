@@ -12,9 +12,9 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
-module Model.User.Entity (User, UserConstructor (..), Field (..), UserId (..)) where
+module EdgeNode.Model.User.Entity (User, UserConstructor (..), Field (..), UserId (..)) where
 
-import Api.User.UserId
+import EdgeNode.Api.User.UserId
 
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
