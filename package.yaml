@@ -95,7 +95,7 @@ library:
     - servant-server
     - warp
     - rotating-log
-    - doctest ==  0.16.1
+    - doctest
     - doctest-discover
     - tasty-discover
     - servant-websockets
