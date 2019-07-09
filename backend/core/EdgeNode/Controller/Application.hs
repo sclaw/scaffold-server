@@ -9,10 +9,9 @@ import           Katip
 import           KatipController
 import           Servant.Server.Generic
 import           Servant.API.Generic
-import qualified EdgeNode.Controller.Root.Root as Root
-import qualified EdgeNode.Controller.Auth.Register as Register 
-import qualified EdgeNode.Controller.Auth.Authenticate as Authenticate
-import qualified EdgeNode.Controller.V1.About as V1.About
+import qualified EdgeNode.Controller.Socket.Register as Socket.Register 
+import qualified EdgeNode.Controller.Socket.Authenticate as Socket.Authenticate
+import qualified EdgeNode.Controller.Http.About as Http.About
 
 application :: ApplicationApi (AsServerT KatipController)
 application = 
@@ -28,19 +27,12 @@ authApi :: AuthApi (AsServerT KatipController)
 authApi = 
   AuthApi 
   { authApiRegister = 
-    katipAddNamespace (Namespace ["register"]) 
-    . Register.controller
+    katipAddNamespace (Namespace ["socket", "register"]) 
+    . Socket.Register.controller
   , authApiAuthenticate = 
-    katipAddNamespace (Namespace ["authenticate"]) 
-    . Authenticate.controller
+    katipAddNamespace (Namespace ["socket", "authenticate"]) 
+    . Socket.Authenticate.controller
   }
 
 httpApi :: HttpApi (AsServerT KatipController)
-httpApi = 
-  HttpApi 
-  { httpApiRoot = katipAddNamespace (Namespace ["root"]) Root.controller
-  , httpApiV1 = katipAddNamespace (Namespace ["api", "v1"]) (toServant v1Api)
-  }
-
-v1Api :: V1Api (AsServerT KatipController)
-v1Api = V1Api { v1ApiAbout = katipAddNamespace (Namespace ["about"]) V1.About.controller }
+httpApi = HttpApi { httpApiAbout = katipAddNamespace (Namespace ["http", "about"]) Http.About.controller }

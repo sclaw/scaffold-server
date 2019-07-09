@@ -4,7 +4,7 @@
 
 # CMD /www/my-service/bin/my-service serve
 
-FROM web:latest
+FROM edge-node-server:latest
 
 COPY config.yaml init.sh /
 ADD katip katip

@@ -3,7 +3,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module EdgeNode.Controller.Auth.Register (controller) where
+module EdgeNode.Controller.Socket.Register (controller) where
 
 import           EdgeNode.Api.User.Register.RegisterInfo
 import           EdgeNode.Api.User.Register.Response

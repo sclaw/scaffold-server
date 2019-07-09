@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module EdgeNode.Controller.V1.About (controller) where
+module EdgeNode.Controller.Http.About (controller) where
 
 import Katip
 import KatipController
@@ -9,4 +9,4 @@ import ReliefJsonData
 import Data.Aeson.Unit
 
 controller :: KatipController (Alternative Unit Unit)
-controller = (const (Fortune Unit)) `fmap` $(logTM) InfoS (logStr (mkPretty "debug info: " "about"))
+controller = const (Fortune Unit) `fmap` $(logTM) InfoS (logStr (mkPretty "debug info: " "about"))
