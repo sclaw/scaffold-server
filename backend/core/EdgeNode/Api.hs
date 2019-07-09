@@ -26,16 +26,31 @@ import           Data.Aeson.Unit
 
 data ApplicationApi route = 
      ApplicationApi 
-     { applicationApiHttp :: route :- ToServant HttpApi AsApi
-     , applicationApiSocket :: route :- "socket" :> ToServant WebsocketApi AsApi 
+     { applicationApiHttp :: route :- ToServant HttpWrapperApi AsApi
+     , applicationApiSocket :: route :- ToServant WebsocketWrapperApi AsApi 
      } deriving stock Generic
+
+newtype HttpWrapperApi route = 
+        HttpWrapperApi 
+        { httpWrapperApiApi 
+          :: route 
+          :- "http" 
+          :> ToServant HttpApi AsApi 
+        } deriving stock Generic
+
+newtype WebsocketWrapperApi route = 
+        WebsocketWrapperApi 
+        { websocketWrapperApiApi 
+          :: route 
+          :- "socket" 
+          :> ToServant WebsocketApi AsApi 
+        } deriving stock Generic
 
 newtype HttpApi route = 
         HttpApi 
         { httpApiAbout 
           :: route 
-          :- "http"
-          :> "about" 
+          :- "about" 
           :> Get '[JSON] (Alternative Unit Unit) 
         } deriving stock Generic
 
@@ -63,6 +78,6 @@ api = genericApi (Proxy :: Proxy ApplicationApi)
 
 swaggerHttpApi :: Int -> Swagger
 swaggerHttpApi port = 
-  toSwagger (genericApi (Proxy :: Proxy HttpApi)) 
+  toSwagger (genericApi (Proxy :: Proxy HttpWrapperApi)) 
   & schemes ?~ [Http] & 
   host ?~ Host "localhost" (Just (fromIntegral port))
