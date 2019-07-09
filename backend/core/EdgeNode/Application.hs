@@ -13,9 +13,9 @@ module EdgeNode.Application (run) where
 
 import           EdgeNode.Api
 import qualified EdgeNode.Controller.Application as App
+
 import           KatipController
 import           Servant.Swagger.KatipController
-
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Reader    (ReaderT, ask, runReaderT)

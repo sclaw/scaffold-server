@@ -10,7 +10,6 @@ module EdgeNode.Api
        , AuthApi (..)
        , HttpApi (..)
        , WebsocketApi (..)
-       , V1Api (..)
        , api
        , swaggerHttpApi
        ) where
@@ -27,27 +26,24 @@ import           Data.Aeson.Unit
 
 data ApplicationApi route = 
      ApplicationApi 
-     { applicationApiHttp :: route :- ToServant HttpApi AsApi
-     , applicationApiSocket :: route :- "auth" :> ToServant WebsocketApi AsApi 
-     } deriving stock Generic
-
-data HttpApi route = 
-     HttpApi 
-     { httpApiRoot 
+     { applicationApiRoot 
        :: route
        :- Summary "Endpoint for .."
        :> Description "" 
        :> Get '[JSON] String
-     , httpApiV1
-       :: route
-       :- Summary "Endpoint for .."
-       :> Description ""
-       :> "api"
-       :> "v1"
-       :> ToServant V1Api AsApi 
-     } deriving stock Generic 
+     , applicationApiHttp :: route :- "http" :> ToServant HttpApi AsApi
+     , applicationApiSocket :: route :- "socket" :> ToServant WebsocketApi AsApi 
+     } deriving stock Generic
 
-newtype WebsocketApi route = WebsocketApi { websocketApiAuth :: route :- ToServant AuthApi AsApi } 
+newtype HttpApi route = 
+        HttpApi 
+        { httpApiAbout 
+          :: route 
+          :- "about" 
+          :> Post '[JSON] (Alternative Unit Unit) 
+        } deriving stock Generic
+
+newtype WebsocketApi route = WebsocketApi { websocketApiAuth :: route :- "auth" :> ToServant AuthApi AsApi } 
   deriving stock Generic 
 
 data AuthApi route = 
@@ -65,8 +61,6 @@ data AuthApi route =
        :> "authenticate" 
        :> WebSocketPending
      } deriving stock Generic
-
-newtype V1Api route = V1Api { v1ApiAbout :: route :- "about" :> Post '[JSON] (Alternative Unit Unit) } deriving stock Generic
 
 api :: Proxy (ToServantApi ApplicationApi)
 api = genericApi (Proxy :: Proxy ApplicationApi)
