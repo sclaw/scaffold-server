@@ -27,3 +27,5 @@ configKatip:
 configEkg:
   ekgHost: server
   ekgPort: 8000
+
+configAuth: symmetric.jwk

@@ -9,7 +9,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
 
-module EdgeNode.Application (run) where
+module EdgeNode.Application (Cfg (..), run) where
 
 import           EdgeNode.Api
 import qualified EdgeNode.Controller.Application as App
@@ -25,9 +25,20 @@ import           Servant
 import           Servant.API.Generic
 import           Control.Lens
 import           Servant.Swagger.UI
+import           Servant.Auth.Server
+import           Crypto.JOSE.JWK
 
-run :: Int -> KatipContextT (ReaderT KatipEnv IO) ()
-run port = 
+
+data Cfg = 
+     Cfg 
+     { cfgPort :: !Int
+       -- JSON Web Key (JWK) is a JavaScript Object Notation (JSON) 
+       -- data structure that represents a cryptographic key 
+     , cfgJwk :: JWK 
+     }
+
+run :: Cfg -> KatipContextT (ReaderT KatipEnv IO) ()
+run Cfg {..} = 
   katipAddNamespace (Namespace ["application"]) $ 
     do
       $(logTM) DebugS "application run.."
@@ -41,14 +52,23 @@ run port =
       cfg <- initCfg
       let withSwagger :: Proxy a -> Proxy (a :<|> SwaggerSchemaUI "swagger" "swagger.json")
           withSwagger _ = Proxy
+      let jwtCfg = defaultJWTSettings cfgJwk 
+      let context :: Proxy '[CookieSettings, JWTSettings]
+          context = Proxy     
       let server = 
-           hoistServer 
-           (withSwagger api) 
+           hoistServerWithContext 
+           (withSwagger api)
+           context
            ((`runReaderT` cfg) . runKatipController) 
            (toServant App.application :<|> 
-            swaggerSchemaUIServerT (swaggerHttpApi port))
+            swaggerSchemaUIServerT (swaggerHttpApi cfgPort))
       let settings = 
            Warp.defaultSettings
-           & Warp.setPort port
+           & Warp.setPort cfgPort
            & Warp.setOnException Warp.defaultOnException
-      liftIO (Warp.runSettings settings (serve (withSwagger api) server)) `logExceptionM` ErrorS
+      let runServer = 
+           serveWithContext 
+           (withSwagger api) 
+           (defaultCookieSettings :. jwtCfg :. EmptyContext) 
+           server     
+      liftIO (Warp.runSettings settings runServer) `logExceptionM` ErrorS

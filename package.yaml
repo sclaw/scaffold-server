@@ -119,6 +119,11 @@ library:
     - qm-interpolated-string
     - aeson-injector
     - exception-hierarchy
+    - servant-auth
+    - servant-auth-swagger
+    - servant-auth-server
+    - jose
+    - either
   source-dirs:
     - backend/core
     - backend/extended

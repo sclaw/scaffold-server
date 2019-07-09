@@ -35,4 +35,4 @@ authApi =
   }
 
 httpApi :: HttpApi (AsServerT KatipController)
-httpApi = HttpApi { httpApiAbout = katipAddNamespace (Namespace ["http", "about"]) Http.About.controller }
+httpApi = HttpApi { httpApiAbout = \_ -> katipAddNamespace (Namespace ["http", "about"]) Http.About.controller }

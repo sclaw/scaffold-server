@@ -6,6 +6,6 @@
 
 FROM edge-node-server:latest
 
-COPY config.yaml init.sh /
+COPY config.yaml init.sh symmetric.jwk /
 ADD katip katip
 CMD ["/init.sh"]

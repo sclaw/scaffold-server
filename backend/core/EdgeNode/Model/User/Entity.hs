@@ -43,3 +43,4 @@ mkPersist_ [groundhog|
  
 deriveAutoKey ''User
 deriveWrappedPrimitivePersistField ''UserId
+deriveToSchemaAndJSON ''UserId

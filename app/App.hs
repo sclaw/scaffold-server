@@ -24,6 +24,9 @@ import           Control.Lens.Iso.Extended
 import           Control.Monad
 import           Data.Time.Clock (getCurrentTime)
 import           System.Remote.Monitoring
+import           Data.Aeson                      (eitherDecode)
+import           Data.Either.Combinators
+import qualified Data.ByteString.Lazy            as B
 
 main :: IO ()
 main =
@@ -54,11 +57,17 @@ main =
       env <- initLogEnv mkNm (cfg^.katip.EdgeNode.Config.env.stext.coerced)
       let env' = registerScribe "stdout" std defaultScribeSettings env >>= 
                  registerScribe "file" file defaultScribeSettings
+
+      jwke <- eitherDecode `fmap` B.readFile (cfg^.auth.coerced)
+      jwke `whenLeft` (error . (<>) "jwk decode error: ")
+
+      let appCfg = App.Cfg (cfg^.ports.port) (fromRight' jwke)                    
+
       let runApp le = 
             runKatipContextT le 
             (mempty :: LogContexts) 
             mempty 
-            (App.run (cfg^.ports.port))
+            (App.run appCfg)
       Migration.run orm
       bracket env' closeScribes ((`runReaderT` appEnv) . runApp)       
       

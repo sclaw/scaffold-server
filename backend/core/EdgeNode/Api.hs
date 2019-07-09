@@ -14,6 +14,8 @@ module EdgeNode.Api
        , swaggerHttpApi
        ) where
 
+import qualified EdgeNode.Auth.User as Auth
+
 import           Servant.API.Generic
 import           Servant.API.WebSocket
 import           Data.Proxy
@@ -23,6 +25,8 @@ import           Data.Swagger
 import           Control.Lens
 import           ReliefJsonData
 import           Data.Aeson.Unit
+import           Servant.Auth
+import           Servant.Auth.Swagger ()
 
 data ApplicationApi route = 
      ApplicationApi 
@@ -49,8 +53,9 @@ newtype WebsocketWrapperApi route =
 newtype HttpApi route = 
         HttpApi 
         { httpApiAbout 
-          :: route 
-          :- "about" 
+          :: route
+          :- Auth '[JWT] Auth.User 
+          :> "about" 
           :> Get '[JSON] (Alternative Unit Unit) 
         } deriving stock Generic
 

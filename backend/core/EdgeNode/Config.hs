@@ -10,6 +10,7 @@ module EdgeNode.Config
        , GroundhogSettings (..)
        , Katip (..)
        , Db
+       , Auth (..)
        , db
        , ports
        , pass
@@ -33,6 +34,7 @@ module EdgeNode.Config
        , verbosity
        , severity  
        , env
+       , auth
        ) 
        where
 
@@ -80,6 +82,10 @@ data Katip =
 
 data Ekg = Ekg { ekgHost :: !String, ekgPort :: !Int } deriving Show
 
+newtype Auth = Auth { authJwk :: FilePath }
+  deriving Show 
+  deriving newtype FromJSON
+
 data Config = 
      Config 
      { configDb :: !Db 
@@ -89,6 +95,7 @@ data Config =
      , configPool :: !PoolSettings
      , configKatip :: !Katip
      , configEkg :: !Ekg
+     , configAuth :: !Auth
      } deriving Show
 
 makeFields ''Config
