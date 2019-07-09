@@ -118,6 +118,7 @@ library:
     - wai-app-static
     - qm-interpolated-string
     - aeson-injector
+    - exception-hierarchy
   source-dirs:
     - backend/core
     - backend/extended

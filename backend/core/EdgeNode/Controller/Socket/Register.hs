@@ -110,7 +110,7 @@ persist info =
   do 
     io <-katipAddNamespace (Namespace ["raw"]) askLoggerIO
     raw <- (^.katipEnv.rawDB) `fmap` ask
-    flip runTryDbConnRaw raw $ do
+    flip runTryDbConnHasql raw $ do
      let sql = [qns| insert into main."User" ("userEmail", "userPassword") 
                      values ($1, $2) on conflict do nothing returning id 
                |]

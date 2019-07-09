@@ -61,6 +61,7 @@ extra-deps:
  - servant-ekg-0.3@sha256:1a578afd662b2f9133455daff50a3822c568e2e106108cf64daa4481a6d585a6
  - ginger-0.9.0.0@sha256:c3e67555f47fbd83d92ff56f66bc7897619a1a92dc8fd2203ddbbaffca726265
  - aeson-injector-1.1.1.0@sha256:499122221731ffa2ef0be90c7eff9e641ccbafd5e1f9e90dc16565af8e7dbcc1
+ - exception-hierarchy-0.1.0.2@sha256:a38e5d85e9aae6b2e6e996e48b5aee6d03bad7df6a1b001d9af12767a51b8d7d
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a

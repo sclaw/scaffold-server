@@ -64,9 +64,9 @@ data HasqlSettings = HasqlSettings { hasqlSettingsPoolN :: !Int, hasqlSettingsTm
 
 data PoolSettings = 
      PoolSettings 
-     { poolSettingsStripesN :: Int
-     , poolSettingsTimeToOpen :: NominalDiffTime
-     , poolSettingsResPerStripe :: Int 
+     { poolSettingsStripesN :: !Int
+     , poolSettingsTimeToOpen :: !NominalDiffTime
+     , poolSettingsResPerStripe :: !Int 
      } deriving Show
 
 data Katip = 
