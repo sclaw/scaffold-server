@@ -27,6 +27,7 @@ import           Control.Lens
 import           Servant.Swagger.UI
 import           Servant.Auth.Server
 import           Crypto.JOSE.JWK
+import           Control.Concurrent.Async.Extended
 
 
 data Cfg = 
@@ -72,4 +73,4 @@ run Cfg {..} =
            (withSwagger api) 
            (defaultCookieSettings :. jwtCfg :. EmptyContext) 
            server     
-      liftIO (Warp.runSettings settings runServer) `logExceptionM` ErrorS
+      liftIO (raceXs_ [Warp.runSettings settings runServer]) `logExceptionM` ErrorS

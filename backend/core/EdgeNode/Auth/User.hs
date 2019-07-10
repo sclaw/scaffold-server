@@ -15,6 +15,7 @@ import EdgeNode.Model.Rbac.Entity ()
 
 import Servant.Auth.Server
 import TH.InstanceBuilder
+import Swagger.Proto ()
 
 instance FromJWT JWTUser where
   decodeJWT = undefined

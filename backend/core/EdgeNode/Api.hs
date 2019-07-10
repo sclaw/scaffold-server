@@ -27,6 +27,7 @@ import           ReliefJsonData
 import           Data.Aeson.Unit
 import           Servant.Auth
 import           Servant.Auth.Swagger ()
+import           Text.ProtocolBuffers.Basic
 
 data ApplicationApi route = 
      ApplicationApi 
@@ -56,7 +57,8 @@ newtype HttpApi route =
           :: route
           :- Auth '[JWT] Auth.JWTUser 
           :> "about" 
-          :> Get '[JSON] (Alternative Unit Unit) 
+          :> ReqBody '[JSON] (Seq Int)
+          :> Post '[JSON] (Alternative Unit Unit) 
         } deriving stock Generic
 
 newtype WebsocketApi route = WebsocketApi { websocketApiAuth :: route :- "auth" :> ToServant AuthApi AsApi } 
