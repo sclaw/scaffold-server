@@ -1,5 +1,5 @@
 module Control.Concurrent.Async.Extended
-       ( raceXs_
+       (  raceXs_
         , concurrentlyXs_
         , module Control.Concurrent.Async
        ) where

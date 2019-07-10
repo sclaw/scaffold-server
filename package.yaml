@@ -124,6 +124,7 @@ library:
     - servant-auth-server
     - jose
     - either
+    - generic-lens
   source-dirs:
     - backend/core
     - backend/extended
