@@ -35,6 +35,8 @@ module EdgeNode.Config
        , severity  
        , env
        , auth
+       , jwk
+       , isAuthEnabled
        ) 
        where
 
@@ -82,10 +84,9 @@ data Katip =
 
 data Ekg = Ekg { ekgHost :: !String, ekgPort :: !Int } deriving Show
 
-newtype Auth = Auth { authJwk :: FilePath }
+data Auth = Auth { authJwk :: !FilePath, authIsAuthEnabled :: !Bool }
   deriving Show 
-  deriving newtype FromJSON
-
+  
 data Config = 
      Config 
      { configDb :: !Db 
@@ -105,6 +106,7 @@ makeFields ''HasqlSettings
 makeFields ''PoolSettings
 makeFields ''Ekg
 makeFields ''Katip
+makeFields ''Auth
 
 -- Load program configuration from file (server.yaml), or
 -- raise YamlException and terminate program.
@@ -117,3 +119,4 @@ deriveFromJSON defaultOptions ''HasqlSettings
 deriveFromJSON defaultOptions ''PoolSettings
 deriveFromJSON defaultOptions ''Ekg
 deriveFromJSON defaultOptions ''Katip
+deriveFromJSON defaultOptions ''Auth

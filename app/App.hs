@@ -58,10 +58,10 @@ main =
       let env' = registerScribe "stdout" std defaultScribeSettings env >>= 
                  registerScribe "file" file defaultScribeSettings
 
-      jwke <- eitherDecode `fmap` B.readFile (cfg^.auth.coerced)
+      jwke <- eitherDecode `fmap` B.readFile (cfg^.auth.jwk)
       jwke `whenLeft` (error . (<>) "jwk decode error: ")
 
-      let appCfg = App.Cfg (cfg^.ports.port) (fromRight' jwke)                    
+      let appCfg = App.Cfg (cfg^.ports.port) (fromRight' jwke) (cfg^.auth.isAuthEnabled)                    
 
       let runApp le = 
             runKatipContextT le 

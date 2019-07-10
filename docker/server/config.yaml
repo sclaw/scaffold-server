@@ -28,4 +28,6 @@ configEkg:
   ekgHost: server
   ekgPort: 8000
 
-configAuth: symmetric.jwk
+configAuth: 
+  authJwk: symmetric.jwk
+  authIsAuthEnabled: false

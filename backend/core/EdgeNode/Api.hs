@@ -54,7 +54,7 @@ newtype HttpApi route =
         HttpApi 
         { httpApiAbout 
           :: route
-          :- Auth '[JWT] Auth.User 
+          :- Auth '[JWT] Auth.JWTUser 
           :> "about" 
           :> Get '[JSON] (Alternative Unit Unit) 
         } deriving stock Generic

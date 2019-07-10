@@ -34,7 +34,8 @@ data Cfg =
      { cfgPort :: !Int
        -- JSON Web Key (JWK) is a JavaScript Object Notation (JSON) 
        -- data structure that represents a cryptographic key 
-     , cfgJwk :: JWK 
+     , cfgJwk :: !JWK
+     , cfgIsAuthEnabled :: !Bool 
      }
 
 run :: Cfg -> KatipContextT (ReaderT KatipEnv IO) ()

@@ -21,6 +21,7 @@ module EdgeNode.Model.Rbac.Entity
        ( Role
        , RoleTree
        , Field (..)
+       , RoleId (..)
        , tree
        )
        where
@@ -35,7 +36,7 @@ import Database.AutoKey
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Control.Lens.Extended
-import TH.InstanceBuilder (deriveWrappedPrimitivePersistField)
+import TH.InstanceBuilder (deriveWrappedPrimitivePersistField, deriveToSchemaAndJSON)
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import Data.Time.Clock
 
@@ -59,5 +60,6 @@ mkPersist_ [groundhog|
 
 deriveAutoKey ''Role
 deriveWrappedPrimitivePersistField ''RoleId
+deriveToSchemaAndJSON ''RoleId
 
 makeFields ''RoleTree
