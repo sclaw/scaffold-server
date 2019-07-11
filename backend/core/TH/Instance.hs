@@ -4,13 +4,13 @@
 {-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
-module TH.InstanceBuilder
-       (
-         derivePrimitivePersistField
+module TH.Instance
+       ( derivePrimitivePersistField
        , deriveWrappedPrimitivePersistField
        , deriveNumInstanceFromWrappedNum
        , deriveWrappedForDataWithSingleField
        , deriveToSchemaAndJSON
+       , deriveToSchemaAndJSONProtoIdent
        )
        where
 
@@ -19,7 +19,8 @@ import Database.Groundhog.Core
 import Language.Haskell.TH
 import Data.Aeson.Extended          (deriveJSON')
 import Data.Swagger.Schema.Extended (deriveToSchema)
-
+import Data.Aeson
+import Data.Swagger
 
 derivePrimitivePersistField :: Name -> ExpQ -> Q [Dec]
 derivePrimitivePersistField name iso = [d|
@@ -33,8 +34,7 @@ derivePrimitivePersistField name iso = [d|
     toPrimitivePersistValue value = toPrimitivePersistValue (view $iso value)
     fromPrimitivePersistValue prim = view (from $iso) (fromPrimitivePersistValue prim)
   |]
-  where
-    nameT = conT name
+  where nameT = conT name
 
 deriveWrappedPrimitivePersistField :: Name -> Q [Dec]
 deriveWrappedPrimitivePersistField name = do
@@ -66,28 +66,57 @@ deriveNumInstanceFromWrappedNum name iso =
              $(conE cons) $(infixE (Just (varE x)) (varE minus) (Just (varE y)))
      |]
 
+getConstructorType (RecC _ [(_, _, ConT c)]) = c
+getConstructorType (NormalC _ [(_, ConT c)]) = c
+getConstructorType _ = error "data not supported"
+  
+getConstructorPat (RecC c _) = c
+getConstructorPat (NormalC c _) = c
+getConstructorPat _ = error "data not supported"
+
 deriveWrappedForDataWithSingleField :: Name -> Q [Dec]
 deriveWrappedForDataWithSingleField name =
   do
     TyConI (DataD _ _ _ _ [c] _) <- reify name
-    let derive inner =
-          do
-            let x = mkName "x"
-            let t = mkName $ nameBase name
-            let from = lamE [conP t [varP x]] (varE x)
-            let to = lamE [varP x] (appE (conE t) (varE x))
-            [d|
-               instance Wrapped $(conT t) where
-                 type Unwrapped $(conT t) = $(conT inner)
-                 _Wrapped' = iso $from $to
-             |]
-    case c of
-      RecC _ [(_, _, ConT inner)] -> derive inner
-      NormalC _ [(_, ConT inner)] -> derive inner
-      _                           -> error "data not supported"
+    let constructor = getConstructorType c
+    let x = mkName "x"
+    let t = mkName $ nameBase name
+    let from = lamE [conP t [varP x]] (varE x)
+    let to = lamE [varP x] (appE (conE t) (varE x))
+    [d|
+      instance Wrapped $(conT t) where
+        type Unwrapped $(conT t) = $(conT constructor)
+        _Wrapped' = iso $from $to
+     |]        
 
 deriveToSchemaAndJSON :: Name -> Q [Dec]
 deriveToSchemaAndJSON name = do
   xs <- deriveJSON' name
   ys <- deriveToSchema name
   return (xs ++ ys)
+
+deriveToSchemaAndJSONProtoIdent :: Name -> Q [Dec]
+deriveToSchemaAndJSONProtoIdent name =
+  do let nameT = conT name
+     let i = mkName "i"
+     TyConI (DataD _ _ _ _ [c] _) <- reify name
+     let contructor = getConstructorPat c
+     [d| 
+        instance ToJSON $nameT where
+          -- example: Number (Scientific.scientific (fromIntegral i) 0)
+          toJSON $(conP contructor [varP i]) = undefined   
+        
+        instance FromJSON $nameT where
+          -- withScientific "UserId" $ 
+          -- fmap (fromMaybe err) 
+          -- . traverse (return . UserId) 
+          -- . Scientific.toBoundedInteger
+          -- where err = error "json parser: userId"
+          parseJSON = undefined
+          
+          
+        instance ToSchema $nameT where
+          -- schema <- declareSchema (Proxy :: Proxy Int)
+          -- return $ NamedSchema (Just "UserId") schema
+          declareNamedSchema _ = undefined
+      |]

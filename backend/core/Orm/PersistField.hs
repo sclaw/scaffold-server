@@ -23,7 +23,7 @@ import           Database.Groundhog.Core hiding (Utf8)
 import           Database.Groundhog.Generic
 import           Database.Groundhog.TH
 import           Text.ProtocolBuffers.Basic (Utf8(..))
-import           TH.InstanceBuilder
+import           TH.Instance
 import           Control.Lens.Iso.Extended
 
 

@@ -21,7 +21,7 @@ import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Data.ByteString
 import Database.AutoKey
-import TH.InstanceBuilder
+import TH.Instance
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import Data.Aeson
 import Data.Swagger

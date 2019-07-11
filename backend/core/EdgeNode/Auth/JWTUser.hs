@@ -66,4 +66,4 @@ instance FromJSON JWTUser where
        return val
 
 instance ToSchema JWTUser where
-  declareNamedSchema _ = udefined
+  declareNamedSchema _ = undefined

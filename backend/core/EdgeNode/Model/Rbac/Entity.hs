@@ -36,7 +36,7 @@ import Database.AutoKey
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Control.Lens.Extended
-import TH.InstanceBuilder (deriveWrappedPrimitivePersistField, deriveToSchemaAndJSON)
+import TH.Instance
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import Data.Time.Clock
 
@@ -60,6 +60,6 @@ mkPersist_ [groundhog|
 
 deriveAutoKey ''Role
 deriveWrappedPrimitivePersistField ''RoleId
-deriveToSchemaAndJSON ''RoleId
+deriveToSchemaAndJSONProtoIdent ''RoleId
 
 makeFields ''RoleTree
