@@ -10,7 +10,7 @@
 {-# LANGUAGE TypeApplications          #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
-module EdgeNode.Auth.User 
+module EdgeNode.Auth.JWTUser 
        ( JWTUser
        , jWTUserIdent
        , jWTUserRoles
@@ -31,13 +31,10 @@ import Text.ProtocolBuffers.Basic (defaultValue)
 import Data.Function ((&))
 import Control.Lens.Iso.Extended
 
-import Debug.Trace
-
 instance FromJWT JWTUser where
   decodeJWT = undefined
 
 instance ToJWT JWTUser where
-
 
 -- |  ToJSON JWTUser
 --
@@ -69,4 +66,4 @@ instance FromJSON JWTUser where
        return val
 
 instance ToSchema JWTUser where
-  declareNamedSchema _ = undefined 
+  declareNamedSchema _ = udefined

@@ -14,7 +14,7 @@ module EdgeNode.Api
        , swaggerHttpApi
        ) where
 
-import qualified EdgeNode.Auth.User as Auth
+import qualified EdgeNode.Auth.JWTUser as Auth
 
 import           Servant.API.Generic
 import           Servant.API.WebSocket

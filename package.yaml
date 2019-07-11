@@ -125,6 +125,7 @@ library:
     - jose
     - either
     - generic-lens
+    - scientific
   source-dirs:
     - backend/core
     - backend/extended
