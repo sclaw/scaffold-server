@@ -23,11 +23,6 @@ import Data.ByteString
 import Database.AutoKey
 import TH.Instance
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
-import Data.Aeson
-import Data.Swagger
-import Data.Scientific as Scientific
-import Data.Maybe
-import Data.Proxy
 
 data User =
      User
@@ -46,21 +41,6 @@ mkPersist_ [groundhog|
          fields: [userEmail]
  |]
  
-instance ToJSON UserId where
-  toJSON (UserId i) = Number (Scientific.scientific (fromIntegral i) 0)
-
-instance FromJSON UserId where
-    parseJSON  = 
-     withScientific "UserId" $ 
-       fmap (fromMaybe err) 
-     . traverse (return . UserId) 
-     . Scientific.toBoundedInteger
-     where err = error "json parser: userId" 
-
-instance ToSchema UserId where
-  declareNamedSchema _ = do
-    schema <- declareSchema (Proxy :: Proxy Int)
-    return $ NamedSchema (Just "UserId") schema
-
 deriveAutoKey ''User
 deriveWrappedPrimitivePersistField ''UserId
+deriveToSchemaAndJSONProtoIdent ''UserId

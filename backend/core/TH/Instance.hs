@@ -21,6 +21,9 @@ import Data.Aeson.Extended          (deriveJSON')
 import Data.Swagger.Schema.Extended (deriveToSchema)
 import Data.Aeson
 import Data.Swagger
+import Data.Scientific as Scientific
+import Data.Maybe (fromMaybe)
+import Data.Proxy
 
 derivePrimitivePersistField :: Name -> ExpQ -> Q [Dec]
 derivePrimitivePersistField name iso = [d|
@@ -101,22 +104,30 @@ deriveToSchemaAndJSONProtoIdent name =
      let i = mkName "i"
      TyConI (DataD _ _ _ _ [c] _) <- reify name
      let contructor = getConstructorPat c
+     let s = nameBase name
      [d| 
         instance ToJSON $nameT where
-          -- example: Number (Scientific.scientific (fromIntegral i) 0)
-          toJSON $(conP contructor [varP i]) = undefined   
-        
+          -- example: Number (Scientific.sc ientific (fromIntegral i) 0)
+          toJSON $(conP contructor [varP i]) = 
+            Number (Scientific.scientific (fromIntegral $(varE i)) 0)    
+                            
         instance FromJSON $nameT where
           -- withScientific "UserId" $ 
           -- fmap (fromMaybe err) 
           -- . traverse (return . UserId) 
           -- . Scientific.toBoundedInteger
           -- where err = error "json parser: userId"
-          parseJSON = undefined
-          
+          parseJSON = 
+            withScientific s $
+            fmap (fromMaybe err) 
+            . traverse (return . $(conE contructor)) 
+            . Scientific.toBoundedInteger
+            where err = error $ "json parser: " <> s
           
         instance ToSchema $nameT where
           -- schema <- declareSchema (Proxy :: Proxy Int)
           -- return $ NamedSchema (Just "UserId") schema
-          declareNamedSchema _ = undefined
+          declareNamedSchema _ = do
+            schema <- declareSchema (Proxy :: Proxy Int)
+            return $ NamedSchema (Just s) schema
       |]
