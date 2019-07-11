@@ -101,11 +101,13 @@ docker:
   enable: true
   auto-pull: true
   repo: "fpco/stack-build:latest"
+  container-name: "edge-node-server"
+  stack-exe: host
 
-image:
-  container:
-    name: edge-node-server
-    base: "fpco/stack-build:latest"
-    add: 
-      "docker/server/ekg-0.4.0.15": /ekg
-      ".git": /.git
+# image:
+#   container:
+#     name: edge-node-server
+#     base: "fpco/stack-build:latest"
+#     add: 
+#       "docker/server/ekg-0.4.0.15": /ekg
+#       ".git": /.git

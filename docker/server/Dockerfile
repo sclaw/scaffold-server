@@ -4,8 +4,8 @@
 
 # CMD /www/my-service/bin/my-service serve
 
-FROM edge-node-server:latest
+FROM fpco/stack-build:latest
 
-COPY config.yaml init.sh symmetric.jwk /
+COPY app config.yaml init.sh symmetric.jwk /
 ADD katip katip
 CMD ["/init.sh"]
