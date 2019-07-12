@@ -26,8 +26,7 @@ module EdgeNode.Model.Rbac.Entity
        )
        where
 
-import EdgeNode.Api.Rbac.RoleId
-import EdgeNode.Api.Rbac.Role (Role)
+import EdgeNode.Rbac
 import EdgeNode.Model.User.Entity (UserId)
 import EdgeNode.Model.Tree
 
@@ -60,6 +59,6 @@ mkPersist_ [groundhog|
 
 deriveAutoKey ''Role
 deriveWrappedPrimitivePersistField ''RoleId
-deriveToSchemaAndJSONProtoIdent ''RoleId
+-- deriveToSchemaAndJSONProtoIdent ''RoleId
 
 makeFields ''RoleTree

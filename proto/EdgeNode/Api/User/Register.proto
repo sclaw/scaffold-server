@@ -1,19 +1,19 @@
-syntax = 'proto2';
+syntax = 'proto3';
 package EdgeNode.Api.User.Register;
 
-import "User.proto";
+import "EdgeNode/User.proto";
 
-message Request { required RegisterInfo requestReq = 1; } 
+message Request { RegisterInfo requestReq = 1; } 
 
 message ResponseErr { 
 	repeated Error responseErrReason = 1;
 	// used if password is contained at errors (PasswordWeek)
-	optional string responseErrPasswordDetailedInfo = 2; 
+	string responseErrPasswordDetailedInfo = 2; 
 }
 
-message ResponseOk { required EdgeNode.Api.User.UserId responseOkIdent = 1; }
+message ResponseOk {  UserId responseOkIdent = 1; }
 
-message ResponseServErr { required string responseServErrValue = 1; }
+message ResponseServErr { string responseServErrValue = 1; }
 
 message Response {
 	oneof responseUnwrap {
@@ -24,8 +24,8 @@ message Response {
 }
 
 message RegisterInfo {	
-  required string registerInfoEmail = 2;
-  required string registerInfoPassword = 3;
+  string registerInfoEmail = 2;
+  string registerInfoPassword = 3;
 }
 
 enum Error {

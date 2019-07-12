@@ -10,9 +10,6 @@ module Control.Lens.Iso.Extended
         , integral
         , stext
         , seql
-        , proto
-        , tutf8
-        , sutf8
         , listSeq
         , stringify
        ) where
@@ -26,11 +23,6 @@ import qualified Data.Text               as T
 import qualified Data.Text.Encoding      as T
 import qualified Data.Text.Lazy          as LT
 import qualified Data.Text.Lazy.Encoding as LT
-import           Text.ProtocolBuffers.Reflections
-import           Text.ProtocolBuffers.WireMessage
-import           Text.ProtocolBuffers.Basic
-import qualified Data.ByteString.Lazy.Char8 as C8
-import           Data.String
 
 -- WARNING: Strictly speaking, 'utf8' is not isomorphism, since exists
 -- ByteString, that is not decodable as Text. But it is very convenient.
@@ -49,17 +41,6 @@ stext = iso T.pack T.unpack
 
 seql :: Iso' [a] (Seq.Seq a)
 seql = iso Seq.fromList toList
-
-proto :: (Wire a, ReflectDescriptor a) => Iso' BL.ByteString a
-proto = iso (either (error . ("proto decode error: " ++)) fst . messageGet) messagePut
-
-tutf8 :: Iso' T.Text Utf8
-tutf8 = iso (view $ textbs.from strict.to Utf8) decode 
-  where decode (Utf8 bs) = bs^.strict.from textbs
-
-sutf8 :: Iso' String Utf8
-sutf8 = iso (Utf8 . fromString) decode
-  where decode (Utf8 bs) = C8.unpack bs
 
 listSeq :: Iso' [a] (Seq.Seq a)
 listSeq = iso Seq.fromList toList

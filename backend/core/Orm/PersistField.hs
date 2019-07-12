@@ -19,12 +19,8 @@ module Orm.PersistField () where
 import           Control.Lens
 import qualified Data.Sequence as Seq
 import           Database.Groundhog ()
-import           Database.Groundhog.Core hiding (Utf8)
-import           Database.Groundhog.Generic
+import           Database.Groundhog.Core
 import           Database.Groundhog.TH
-import           Text.ProtocolBuffers.Basic (Utf8(..))
-import           TH.Instance
-import           Control.Lens.Iso.Extended
 
 
 {- We need (PersistField (Seq a)) to make model out of protobuffer
@@ -51,7 +47,3 @@ instance (PersistField a) => PersistField (Seq.Seq a) where
     (XList l, values') <- fromPersistValues values
     pure (Seq.fromList l, values')
   dbType p s = dbType p (XList $ s^..traverse)
-
-derivePrimitivePersistField ''Utf8 [| from tutf8 |]
-
-

@@ -1,16 +1,31 @@
-#!/bin/sh -eu
+#!/usr/bin/env stack
 
-sources_hs () { find "${D}" -name '*.hs'; }
-sources_proto () { find proto -name '*.proto'; }
+import System.Directory 
+import Data.Bool
+import System.Process
 
-D="${1:-backend/proto}"
-mkdir -p "${D}"
+main :: IO ()
+main = 
+  do 
+   xs <- search "proto" 
+   flip mapM_ xs $ \f -> do 
+     let f' = tail $ dropWhile (/= '/') f
+     callProcess "stack" 
+      ["exec"
+      , "compile-proto-file"
+      , "--"
+      , "--out"
+      , "backend/proto/"
+      ,  "--includeDir"
+      , "proto/"
+      , "--proto"
+      , f']
 
-P='1'
-
-# cities_proto | xargs python aux/cities "aux/cities.xlsx"
-sources_hs | xargs truncate -c -s0 /tmp/placeholder
-sources_proto | xargs stack exec hprotoc -- -I proto/EdgeNode -d "${D}" --lenses
-find "${D}" -empty -delete
-sources_hs | xargs sed -i -r -e '/OPTIONS_GHC/c\{-# OPTIONS_GHC -w #-}'
-#sources_hs | xargs touch -r .git/modules/proto/HEAD
+search path =
+  do
+    entries <- listDirectory path
+    r <- flip mapM entries $ \p -> do
+      ok <- doesDirectoryExist $ path <> "/" <> p
+      bool (return [path <> "/" <> p]) 
+           (search (path <> "/" <> p)) ok
+    return $ concat r

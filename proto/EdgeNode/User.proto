@@ -1,12 +1,12 @@
-syntax = 'proto2';
+syntax = 'proto3';
 package EdgeNode.Api.User;
 
-import "Rbac.proto";
+import "EdgeNode/Rbac.proto";
 
-message UserId { required sint64 userIdIdent = 1; }
+message UserId { sint64 userIdIdent = 1; }
 
 message JWTUser {
-    required UserId jWTUserIdent = 1; 
-    repeated EdgeNode.Api.Rbac.RoleId jWTUserRoles = 2;
-    required string jWTUserEmail = 3;
+    UserId jWTUserIdent = 1; 
+    repeated RoleId jWTUserRoles = 2;
+    string jWTUserEmail = 3;
 }

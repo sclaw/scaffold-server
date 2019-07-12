@@ -1,17 +1,17 @@
-syntax = "proto2";
+syntax = "proto3";
 package EdgeNode.Api.Rbac;
 
 message RoleId {
-   required sint64 roleIdValue = 1;
+   sint64 roleIdValue = 1;
 }
 
 message Role {
-   required string roleTitle = 1;
-   optional string roleDescription = 2;
-   optional RoleId roleParent = 3;
+   string roleTitle = 1;
+   string roleDescription = 2;
+   RoleId roleParent = 3;
 }
 
 message XRole {
-   required RoleId xRoleIdent = 1;
-   required Role xRoleValue = 2;
+   RoleId xRoleIdent = 1;
+   Role xRoleValue = 2;
 }

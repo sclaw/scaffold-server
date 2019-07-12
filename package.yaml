@@ -106,10 +106,7 @@ library:
     - exceptions
     - regex-with-pcre
     - validation
-    - protocol-buffers
-    - protocol-buffers-descriptor
     - pretty-tree
-    - proto-lens
     - pwstore-fast 
     - servant-swagger-ui
     - servant-swagger-ui-core
@@ -126,6 +123,11 @@ library:
     - either
     - generic-lens
     - scientific
+    - proto3-suite
+    - proto3-wire
+    - vector
+    - deepseq
+    - QuickCheck
   source-dirs:
     - backend/core
     - backend/extended

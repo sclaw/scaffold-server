@@ -7,17 +7,16 @@
 
 module EdgeNode.Api 
        ( ApplicationApi (..)
-       , AuthApi (..)
        , HttpApi (..)
-       , WebsocketApi (..)
+     --  , WebsocketApi (..)
        , api
        , swaggerHttpApi
        ) where
 
-import qualified EdgeNode.Auth.JWTUser as Auth
+import qualified EdgeNode.Model.User.Entity as User
 
 import           Servant.API.Generic
-import           Servant.API.WebSocket
+import           Servant.API.WebSocket ()
 import           Data.Proxy
 import           Servant.API
 import           Servant.Swagger
@@ -27,12 +26,12 @@ import           ReliefJsonData
 import           Data.Aeson.Unit
 import           Servant.Auth
 import           Servant.Auth.Swagger ()
-import           Text.ProtocolBuffers.Basic
+import           Swagger.Proto ()
 
 data ApplicationApi route = 
      ApplicationApi 
      { applicationApiHttp :: route :- ToServant HttpWrapperApi AsApi
-     , applicationApiSocket :: route :- ToServant WebsocketWrapperApi AsApi 
+   --  , applicationApiSocket :: route :- ToServant WebsocketWrapperApi AsApi 
      } deriving stock Generic
 
 newtype HttpWrapperApi route = 
@@ -43,42 +42,22 @@ newtype HttpWrapperApi route =
           :> ToServant HttpApi AsApi 
         } deriving stock Generic
 
-newtype WebsocketWrapperApi route = 
-        WebsocketWrapperApi 
-        { websocketWrapperApiApi 
-          :: route 
-          :- "socket" 
-          :> ToServant WebsocketApi AsApi 
-        } deriving stock Generic
+-- newtype WebsocketWrapperApi route = 
+--         WebsocketWrapperApi 
+--         { websocketWrapperApiApi 
+--           :: route 
+--           :- "socket" 
+--           :> ToServant WebsocketApi AsApi 
+--         } deriving stock Generic
 
 newtype HttpApi route = 
         HttpApi 
         { httpApiAbout 
           :: route
-          :- Auth '[JWT] Auth.JWTUser 
+          :- Auth '[JWT] User.JWTUser 
           :> "about" 
-          :> ReqBody '[JSON] (Seq Int)
-          :> Post '[JSON] (Alternative Unit Unit) 
+          :> Get '[JSON] (Alternative Unit Unit) 
         } deriving stock Generic
-
-newtype WebsocketApi route = WebsocketApi { websocketApiAuth :: route :- "auth" :> ToServant AuthApi AsApi } 
-  deriving stock Generic 
-
-data AuthApi route = 
-     AuthApi 
-     { authApiRegister 
-       :: route
-       :- Summary "Endpoint for .."
-       :> Description ""
-       :> "register" 
-       :> WebSocketPending
-     , authApiAuthenticate
-       :: route
-       :- Summary "Endpoint for .."
-       :> Description ""       
-       :> "authenticate" 
-       :> WebSocketPending
-     } deriving stock Generic
 
 api :: Proxy (ToServantApi ApplicationApi)
 api = genericApi (Proxy :: Proxy ApplicationApi)
