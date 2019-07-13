@@ -18,14 +18,14 @@ module EdgeNode.Model.Token.Entity (Token, TokenConstructor (..), Field (..)) wh
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Data.Time
-import EdgeNode.Model.User.Entity (UserId)
+import EdgeNode.Model.User.Entity (UserIdWrapper)
 
 data Token =
      Token
      {  tokenAccessToken  :: !String
       , tokenRefreshToken :: !String
       , tokenCreated      :: !UTCTime
-      , tokenUserId       :: !UserId
+      , tokenUserId       :: !UserIdWrapper
      }
 
 mkPersist_ [groundhog| 

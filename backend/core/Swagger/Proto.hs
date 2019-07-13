@@ -4,6 +4,8 @@
 
 module Swagger.Proto () where
 
+import qualified EdgeNode.Api.Http.Auth.Register as Auth
+
 import Data.Sequence
 import Data.Proxy
 import Control.Lens
@@ -17,3 +19,5 @@ instance (ToSchema a, Typeable a) => ToSchema (Seq a) where
     let unique = typeRep (Proxy :: Proxy a)^.to show.stext
     let name = "Seq." <> unique
     return $ NamedSchema (Just name) schema
+
+instance ToSchema Auth.Error

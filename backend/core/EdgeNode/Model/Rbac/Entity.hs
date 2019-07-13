@@ -21,13 +21,13 @@ module EdgeNode.Model.Rbac.Entity
        ( Role
        , RoleTree
        , Field (..)
-       , RoleId (..)
+       , RoleIdWrapper (..)
        , tree
        )
        where
 
 import EdgeNode.Rbac
-import EdgeNode.Model.User.Entity (UserId)
+import EdgeNode.Model.User.Entity (UserIdWrapper)
 import EdgeNode.Model.Tree
 
 import Orm.PersistField ()
@@ -42,7 +42,7 @@ import Data.Time.Clock
 data RoleTree = 
      RoleTree 
      { roleTreeTree :: !(Tree RoleId)
-     , roleTreeWho  :: !UserId
+     , roleTreeWho  :: !UserIdWrapper
      , roleTreeWhen :: !UTCTime 
      }
 
@@ -59,6 +59,6 @@ mkPersist_ [groundhog|
 
 deriveAutoKey ''Role
 deriveWrappedPrimitivePersistField ''RoleId
--- deriveToSchemaAndJSONProtoIdent ''RoleId
+deriveToSchemaAndJSONProtoIdent ''RoleId
 
 makeFields ''RoleTree

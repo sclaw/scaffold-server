@@ -3,6 +3,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
 module TH.Instance
        ( derivePrimitivePersistField
@@ -98,6 +99,15 @@ deriveToSchemaAndJSON name = do
   ys <- deriveToSchema name
   return (xs ++ ys)
 
+{- 
+   insofar as proto3-suite generates instances for both Aeson and Swagger
+   and its appearences are bizarre.
+   for instance let's take a look at this association: UserId { userIdIdent :: Int } -> { userIdIdent: 0} 
+   we no need to hold unnecessary field used as accessor within type. 
+   this deriviation solves this issue, at one this alleviates its using on client side
+   drawback: original type is slighty changed, we should add postfix Wrapper for 
+   2 tantamount instances of same type: from proto3-suite and our
+ -}  
 deriveToSchemaAndJSONProtoIdent :: Name -> Q [Dec]
 deriveToSchemaAndJSONProtoIdent name =
   do let nameT = conT name
@@ -105,13 +115,23 @@ deriveToSchemaAndJSONProtoIdent name =
      TyConI (DataD _ _ _ _ [c] _) <- reify name
      let contructor = getConstructorPat c
      let s = nameBase name
-     [d| 
-        instance ToJSON $nameT where
+     let wrapper = mkName $ s <> "Wrapper"
+     let unwrap = mkName "unwrap"
+     let entiityWrapper = 
+          NewtypeD [] wrapper [] Nothing 
+          (RecC wrapper 
+           [(unwrap
+           , Bang NoSourceUnpackedness 
+                  NoSourceStrictness
+           , ConT name)]) 
+          []
+     xs <- [d| 
+        instance ToJSON $(conT wrapper) where
           -- example: Number (Scientific.sc ientific (fromIntegral i) 0)
-          toJSON $(conP contructor [varP i]) = 
+          toJSON $(conP wrapper [conP contructor [varP i]]) =  
             Number (Scientific.scientific (fromIntegral $(varE i)) 0)    
                             
-        instance FromJSON $nameT where
+        instance FromJSON $(conT wrapper) where
           -- withScientific "UserId" $ 
           -- fmap (fromMaybe err) 
           -- . traverse (return . UserId) 
@@ -120,14 +140,18 @@ deriveToSchemaAndJSONProtoIdent name =
           parseJSON = 
             withScientific s $
             fmap (fromMaybe err) 
-            . traverse (return . $(conE contructor)) 
+            . traverse 
+              ( return 
+              . $(conE wrapper) 
+              . $(conE contructor)) 
             . Scientific.toBoundedInteger
             where err = error $ "json parser: " <> s
           
-        instance ToSchema $nameT where
+        instance ToSchema $(conT wrapper) where
           -- schema <- declareSchema (Proxy :: Proxy Int)
           -- return $ NamedSchema (Just "UserId") schema
           declareNamedSchema _ = do
             schema <- declareSchema (Proxy :: Proxy Int)
             return $ NamedSchema (Just s) schema
       |]
+     return $ entiityWrapper : xs 

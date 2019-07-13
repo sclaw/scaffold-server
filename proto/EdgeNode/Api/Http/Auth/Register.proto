@@ -1,5 +1,5 @@
 syntax = 'proto3';
-package EdgeNode.Api.User.Register;
+package EdgeNode.Api.Http.Auth.Register;
 
 import "EdgeNode/User.proto";
 

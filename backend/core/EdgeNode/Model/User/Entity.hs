@@ -13,7 +13,13 @@
 {-# LANGUAGE OverloadedStrings      #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
-module EdgeNode.Model.User.Entity (User, UserConstructor (..), Field (..), UserId (..), JWTUser (..)) where
+module EdgeNode.Model.User.Entity  
+       ( User
+       , UserConstructor (..)
+       , Field (..)
+       , UserIdWrapper (..)
+       , JWTUser (..)
+       ) where
 
 import EdgeNode.User
 
@@ -49,4 +55,6 @@ mkPersist_ [groundhog|
  |]
  
 deriveAutoKey ''User
+deriveToSchemaAndJSONProtoIdent ''UserId
 deriveWrappedPrimitivePersistField ''UserId
+deriveWrappedPrimitivePersistField ''UserIdWrapper
