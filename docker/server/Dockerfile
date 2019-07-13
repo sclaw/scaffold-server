@@ -6,6 +6,6 @@
 
 FROM fpco/stack-build:latest
 
-COPY app config.yaml init.sh symmetric.jwk /
+COPY edge-node-server config.yaml init.sh symmetric.jwk /
 ADD katip katip
 CMD ["/init.sh"]

@@ -5,4 +5,4 @@ cd /
 
 sleep 2
 echo 'launch server..'
-/app config.yaml +RTS -N -T -s -A64m
+./edge-node-server config.yaml +RTS -N -T -s -A64m

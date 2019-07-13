@@ -12,6 +12,7 @@ main =
      let f' = tail $ dropWhile (/= '/') f
      callProcess "stack" 
       ["exec"
+      , "--no-docker"
       , "compile-proto-file"
       , "--"
       , "--out"

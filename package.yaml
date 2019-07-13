@@ -136,7 +136,7 @@ library:
     - app
 
 executables:
-  app:
+  edge-node-server:
     main:                app.hs
     source-dirs:         prog
     dependencies:

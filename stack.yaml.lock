@@ -80,13 +80,13 @@ packages:
       sha256: f82e2ffee2a9bf397d483c3ee6cd797f6960472e426e263ab0a383318ebd6a83
     name: doctest-discover
     version: 0.2.0.0
-    git: git@github.com:sclaw/doctest-discover.git
+    git: https://github.com/sclaw/doctest-discover.git
     pantry-tree:
       size: 991
       sha256: eda403047eb62fdb026297742ca22106689a684ae586362519df8a3faf03af6e
     commit: 62ecf0786d0cf28644c5cc106004e259d1388b4a
   original:
-    git: git@github.com:sclaw/doctest-discover.git
+    git: https://github.com/sclaw/doctest-discover.git
     commit: 62ecf0786d0cf28644c5cc106004e259d1388b4a
 - completed:
     hackage: servant-websockets-1.1.0@sha256:3e384b0565a081f83da8935cccc0817fda120af9119befe55a0515efc4a44bfc,2188
