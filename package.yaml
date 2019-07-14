@@ -128,6 +128,7 @@ library:
     - vector
     - deepseq
     - QuickCheck
+    - safe-exceptions
   source-dirs:
     - backend/core
     - backend/extended

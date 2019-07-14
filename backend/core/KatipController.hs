@@ -36,6 +36,7 @@ import           Servant.Server.Internal.ServantErr
 import           Data.Monoid.Colorful          (Term)
 import qualified Hasql.Pool                    as Hasql
 import           Control.Monad.Catch           hiding (Handler) 
+import           Control.Exception.Safe       (MonadMask)
 
 data KatipEnv = 
      KatipEnv 
@@ -63,7 +64,8 @@ newtype KatipController a = KatipController { runKatipController :: ReaderT Conf
      , MonadBaseControl IO
      , MonadError ServantErr
      , MonadCatch
-     , MonadThrow 
+     , MonadThrow
+     , MonadMask 
      )
 
 makeFields ''Config
