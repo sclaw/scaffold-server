@@ -9,9 +9,11 @@ module Control.Lens.Iso.Extended
         , textbsl
         , integral
         , stext
+        , stextl
         , seql
         , listSeq
         , stringify
+        , lazytext
        ) where
 
 import           Control.Lens
@@ -38,6 +40,12 @@ integral = iso fromIntegral fromIntegral
 
 stext :: Iso' String T.Text
 stext = iso T.pack T.unpack
+
+stextl :: Iso' String LT.Text
+stextl = iso LT.pack LT.unpack
+
+lazytext :: Iso' LT.Text T.Text
+lazytext = iso LT.toStrict LT.fromStrict
 
 seql :: Iso' [a] (Seq.Seq a)
 seql = iso Seq.fromList toList

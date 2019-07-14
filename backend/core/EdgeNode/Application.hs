@@ -28,7 +28,6 @@ import           Servant.Swagger.UI
 import           Servant.Auth.Server
 import           Crypto.JOSE.JWK
 import           Control.Concurrent.Async.Extended
-import           Control.Monad
 
 
 data Cfg = 
@@ -68,17 +67,10 @@ run Cfg {..} =
       let settings = 
            Warp.defaultSettings
            & Warp.setPort cfgPort
-           & Warp.setOnException exceptionHdl
+           & Warp.setOnException Warp.defaultOnException
       let runServer = 
            serveWithContext 
            (withSwagger api) 
            (defaultCookieSettings :. jwtCfg :. EmptyContext) 
            server     
       liftIO (raceXs_ [Warp.runSettings settings runServer]) `logExceptionM` ErrorS
-
-exceptionHdl mr e = when (Warp.defaultShouldDisplayException e) $
-          case mr of
-            Nothing ->
-              print $ show e
-            Just r -> undefined
-              

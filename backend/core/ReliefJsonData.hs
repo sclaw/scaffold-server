@@ -7,10 +7,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE TypeApplications #-}
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
 -- | A wrapper for the either that is only applicative and has serialization that
 -- is useful for us.
-module ReliefJsonData (Alternative(..)) where
+module ReliefJsonData (Alternative(..), eitherToAlt) where
 
 import Data.Aeson hiding (Error, Success)
 import Data.Proxy
@@ -60,3 +61,9 @@ instance (Typeable a, ToSchema a, Typeable b, ToSchema b) => ToSchema (Alternati
          & type_ .~ SwaggerObject
          & properties .~ [("error", left), ("success", right)]
     return schema     
+
+eitherToAlt :: Iso' (Either e a) (Alternative e a)
+eitherToAlt = iso from to 
+  where from = either Error Fortune
+        to (Error e) = Left e
+        to (Fortune a) = Right a 

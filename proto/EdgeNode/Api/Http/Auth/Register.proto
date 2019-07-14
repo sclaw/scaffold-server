@@ -3,33 +3,14 @@ package EdgeNode.Api.Http.Auth.Register;
 
 import "EdgeNode/User.proto";
 
-message Request { RegisterInfo requestReq = 1; } 
-
-message ResponseErr { 
-	repeated Error responseErrReason = 1;
-	// used if password is contained at errors (PasswordWeek)
-	string responseErrPasswordDetailedInfo = 2; 
-}
-
-message ResponseOk {  UserId responseOkIdent = 1; }
-
-message ResponseServErr { string responseServErrValue = 1; }
-
-message Response {
-	oneof responseUnwrap {
-		ResponseOk  ok  = 1;
-		ResponseErr err = 2;
-		ResponseServErr serv = 3;
-	}
-}
-
 message RegisterInfo {	
-  string registerInfoEmail = 2;
-  string registerInfoPassword = 3;
+  string email = 2;
+  string password = 3;
 }
 
 enum Error {
 	EmailTaken = 1;
 	WrongEmail = 2;
 	PasswordWeek = 3;
+	InternalServerError = 4;
 }

@@ -27,6 +27,8 @@ import           Control.Lens
 import           ReliefJsonData
 import           Servant.Auth.Swagger ()
 import           Swagger.Proto ()
+import           RetrofitProto
+
 
 data ApplicationApi route = 
      ApplicationApi 
@@ -64,7 +66,7 @@ newtype AuthApi route =
         :: route 
         :- "registration"
         :> ReqBody '[JSON] Auth.RegisterInfo 
-        :> Post '[JSON] (Alternative Auth.Error User.UserIdWrapper) 
+        :> Post '[JSON] (Alternative [Error'] User.UserIdWrapper) 
       } deriving stock Generic       
 
 api :: Proxy (ToServantApi ApplicationApi)

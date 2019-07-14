@@ -8,12 +8,13 @@
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE StandaloneDeriving    #-}
-{-# LANGUAGE TransformListComp     #-}
+{-# LANGUAGE TransformListComp      #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE DerivingStrategies     #-}
 {-# OPTIONS_GHC -fno-warn-missing-exported-signatures #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 

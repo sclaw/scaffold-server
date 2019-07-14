@@ -12,6 +12,7 @@ module TH.Instance
        , deriveWrappedForDataWithSingleField
        , deriveToSchemaAndJSON
        , deriveToSchemaAndJSONProtoIdent
+       , deriveToSchemaAndJSONProtoEnum
        )
        where
 
@@ -25,6 +26,9 @@ import Data.Swagger
 import Data.Scientific as Scientific
 import Data.Maybe (fromMaybe)
 import Data.Proxy
+import Control.Lens.Iso.Extended
+import Data.Text (stripPrefix)
+import Data.Char (toUpper)
 
 derivePrimitivePersistField :: Name -> ExpQ -> Q [Dec]
 derivePrimitivePersistField name iso = [d|
@@ -117,6 +121,7 @@ deriveToSchemaAndJSONProtoIdent name =
      let s = nameBase name
      let wrapper = mkName $ s <> "Wrapper"
      let unwrap = mkName "unwrap"
+     let show = mkName "Show"
      let entiityWrapper = 
           NewtypeD [] wrapper [] Nothing 
           (RecC wrapper 
@@ -124,7 +129,7 @@ deriveToSchemaAndJSONProtoIdent name =
            , Bang NoSourceUnpackedness 
                   NoSourceStrictness
            , ConT name)]) 
-          []
+          [DerivClause (Just StockStrategy) [ConT show]]
      xs <- [d| 
         instance ToJSON $(conT wrapper) where
           -- example: Number (Scientific.sc ientific (fromIntegral i) 0)
@@ -155,3 +160,19 @@ deriveToSchemaAndJSONProtoIdent name =
             return $ NamedSchema (Just s) schema
       |]
      return $ entiityWrapper : xs 
+
+deriveToSchemaAndJSONProtoEnum :: Name -> String -> Q [Dec]
+deriveToSchemaAndJSONProtoEnum name postfix = 
+  do TyConI (DataD ctx n xs kind ys cl) <- reify name
+     let new = mkName $ nameBase name <> postfix
+     let geni = DerivClause Nothing [ConT (mkName "Generic")]
+     let showi = DerivClause (Just StockStrategy) [ConT (mkName "Show")]
+     let capitalizeHead x = x & _head %~ toUpper 
+     let purgeNamePrefix (NormalC n xs) = 
+          ((`NormalC` xs) . mkName . capitalizeHead . (^.from stext)) `fmap`
+          stripPrefix 
+          (nameBase name^.stext) 
+          (nameBase n^.stext)
+     let err = error $ "error: " <> show name     
+     let ys' = map (fromMaybe err . purgeNamePrefix) ys
+     return [DataD ctx new xs kind ys' ([geni, showi] ++ cl)]

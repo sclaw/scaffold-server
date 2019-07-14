@@ -11,6 +11,7 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE DerivingStrategies     #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module EdgeNode.Model.User.Entity  
@@ -19,6 +20,7 @@ module EdgeNode.Model.User.Entity
        , Field (..)
        , UserIdWrapper (..)
        , JWTUser (..)
+       , wrapId
        ) where
 
 import EdgeNode.User
@@ -30,6 +32,7 @@ import Database.AutoKey
 import TH.Instance
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import Servant.Auth.Server
+import Data.Int (Int64)
 
 data User =
      User
@@ -58,3 +61,6 @@ deriveAutoKey ''User
 deriveToSchemaAndJSONProtoIdent ''UserId
 deriveWrappedPrimitivePersistField ''UserId
 deriveWrappedPrimitivePersistField ''UserIdWrapper
+
+wrapId :: Int64 -> UserIdWrapper
+wrapId = UserIdWrapper . UserId
