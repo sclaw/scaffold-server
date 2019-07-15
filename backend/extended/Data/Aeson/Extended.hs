@@ -7,6 +7,7 @@ module Data.Aeson.Extended
          , aesonOptions
          , parseJSONBoundedEnum
          , deriveJSON'
+         , deriveJSON
          , toLowerCamelCase
        )
        where

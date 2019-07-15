@@ -13,14 +13,15 @@ module TH.Instance
        , deriveToSchemaAndJSON
        , deriveToSchemaAndJSONProtoIdent
        , deriveToSchemaAndJSONProtoEnum
+       , deriveToSchemaAndDefJSON
        )
        where
 
 import Control.Lens
 import Database.Groundhog.Core
 import Language.Haskell.TH
-import Data.Aeson.Extended          (deriveJSON')
-import Data.Swagger.Schema.Extended (deriveToSchema)
+import Data.Aeson.Extended          (deriveJSON', deriveJSON)
+import Data.Swagger.Schema.Extended
 import Data.Aeson
 import Data.Swagger
 import Data.Scientific as Scientific
@@ -99,9 +100,15 @@ deriveWrappedForDataWithSingleField name =
 
 deriveToSchemaAndJSON :: Name -> Q [Dec]
 deriveToSchemaAndJSON name = do
-  xs <- deriveJSON' name
-  ys <- deriveToSchema name
-  return (xs ++ ys)
+  x <- deriveJSON' name
+  y <- deriveToSchema name
+  return $ x ++ y
+
+deriveToSchemaAndDefJSON :: Name -> Q [Dec]
+deriveToSchemaAndDefJSON name = do
+  x <- deriveJSON defaultOptions name
+  y <- deriveToSchemaDef name
+  return $ x ++ y
 
 {- 
    insofar as proto3-suite generates instances for both Aeson and Swagger
