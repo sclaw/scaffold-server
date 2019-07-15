@@ -27,6 +27,7 @@ import           System.Remote.Monitoring
 import           Data.Aeson                      (eitherDecode)
 import           Data.Either.Combinators
 import qualified Data.ByteString.Lazy            as B
+import           GHC.IO.Handle                   (BufferMode (NoBuffering), hSetBuffering)
 
 main :: IO ()
 main =
@@ -38,6 +39,8 @@ main =
       void $ forkServer (cfg^.ekg.host.stext.textbs) (cfg^.ekg.port)
 
       term <- hGetTerm stdout
+      hSetBuffering stdout NoBuffering 
+
       orm <- createPostgresqlPool (mkOrmConn (cfg^.db)) (cfg^.orm.coerced)
       raw <- Hasql.acquire (cfg^.raw.poolN, cfg^.raw.tm, mkRawConn (cfg^.db))  
       let appEnv = KatipEnv term orm raw

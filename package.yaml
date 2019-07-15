@@ -129,6 +129,7 @@ library:
     - deepseq
     - QuickCheck
     - safe-exceptions
+    - wai
   source-dirs:
     - backend/core
     - backend/extended

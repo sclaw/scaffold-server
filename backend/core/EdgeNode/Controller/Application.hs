@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module EdgeNode.Controller.Application (application) where
 
@@ -19,10 +18,11 @@ application = ApplicationApi { applicationApiHttp = toServant httpApi }
 httpApi :: HttpApi (AsServerT KatipController)
 httpApi = HttpApi { httpApiAuth = toServant auth }
 
+
 auth :: AuthApi (AsServerT KatipController)
 auth = AuthApi 
       { authApiRegistration = 
-        flip logExceptionM ErrorS
+        flip logExceptionM ErrorS 
         . katipAddNamespace 
           (Namespace ["auth", "registration"])  
         . Auth.Registration.controller 

@@ -14,6 +14,7 @@ module EdgeNode.Application (Cfg (..), run) where
 import           EdgeNode.Api
 import qualified EdgeNode.Controller.Application as App
 
+import           Katip.Monadic                 (askLoggerIO)
 import           KatipController
 import           Servant.Swagger.KatipController
 import           Control.Monad.IO.Class
@@ -28,6 +29,10 @@ import           Servant.Swagger.UI
 import           Servant.Auth.Server
 import           Crypto.JOSE.JWK
 import           Control.Concurrent.Async.Extended
+import           Control.Monad (when)
+import           Network.Wai (Request, rawPathInfo)
+import           Control.Lens.Iso.Extended
+import           GHC.Exception.Type (SomeException) 
 
 
 data Cfg = 
@@ -64,13 +69,21 @@ run Cfg {..} =
            ((`runReaderT` cfg) . runKatipController) 
            (toServant App.application :<|> 
             swaggerSchemaUIServerT (swaggerHttpApi cfgPort))
+     
+      logger <-katipAddNamespace (Namespace ["exception"]) askLoggerIO
+
       let settings = 
            Warp.defaultSettings
            & Warp.setPort cfgPort
-           & Warp.setOnException Warp.defaultOnException
+           & Warp.setOnException (logUncaughtException logger)
       let runServer = 
            serveWithContext 
            (withSwagger api) 
            (defaultCookieSettings :. jwtCfg :. EmptyContext) 
            server     
       liftIO (raceXs_ [Warp.runSettings settings runServer]) `logExceptionM` ErrorS
+
+logUncaughtException :: (Severity -> LogStr -> IO ()) -> Maybe Request -> SomeException -> IO ()     
+logUncaughtException log req e = when (Warp.defaultShouldDisplayException e) $ maybe without within req
+  where without = log ErrorS (logStr ("Uncaught exception " <> show e))
+        within r = log ErrorS (logStr ("\"GET " <> rawPathInfo r^.from textbs.from stext <> " HTTP/1.1\" 500 - " <> show e))
