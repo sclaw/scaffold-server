@@ -89,7 +89,7 @@ validateInfo info  = validateEmail *> validatePassword
 persist :: Auth.RegisterInfo -> KatipController (Either UsageError (Maybe User.UserIdWrapper))
 persist info =
   do 
-    io <-katipAddNamespace (Namespace ["raw"]) askLoggerIO
+    io <- askLoggerIO
     raw <- (^.katipEnv.rawDB) `fmap` ask
     flip runTryDbConnHasql raw $ do
      let sql = [qns| insert into main."User" ("userEmail", "userPassword") 
@@ -117,13 +117,12 @@ persist info =
 -- >>> mkResp (Success (Right Nothing))
 -- Right (Error [EmailTaken])
 mkResp 
-  :: Validation [Error'] (Either UsageError (Maybe User.UserIdWrapper)) 
-  -> Either UsageError (Alternative [Error'] User.UserIdWrapper)
-mkResp = go
-  where
-    go (Failure e) = Right $ Error e
-    go (Success (Right (Just ident))) = 
-     Right $ Fortune ident
-    go (Success (Right _)) = 
-     Right $ Error [EmailTaken]
-    go (Success (Left e)) = Left e
+  :: Validation 
+     [Error'] 
+     (Either UsageError 
+      (Maybe User.UserIdWrapper))
+  -> Either 
+     UsageError 
+     (Alternative 
+      [Error'] User.UserIdWrapper)
+mkResp = validation (Right . Error) (fmap (maybe (Error [EmailTaken]) Fortune))      

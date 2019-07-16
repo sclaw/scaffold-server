@@ -33,6 +33,7 @@ import           Control.Monad (when)
 import           Network.Wai (Request, rawPathInfo)
 import           Control.Lens.Iso.Extended
 import           GHC.Exception.Type (SomeException) 
+import qualified Middleware as Middleware  
 
 
 data Cfg = 
@@ -70,7 +71,7 @@ run Cfg {..} =
            (toServant App.application :<|> 
             swaggerSchemaUIServerT (swaggerHttpApi cfgPort))
      
-      logger <-katipAddNamespace (Namespace ["exception"]) askLoggerIO
+      logger <-katipAddNamespace (Namespace ["middleware"]) askLoggerIO
 
       let settings = 
            Warp.defaultSettings
@@ -81,9 +82,12 @@ run Cfg {..} =
            (withSwagger api) 
            (defaultCookieSettings :. jwtCfg :. EmptyContext) 
            server     
-      liftIO (raceXs_ [Warp.runSettings settings runServer]) `logExceptionM` ErrorS
+      liftIO (raceXs_ [Warp.runSettings settings (middleware logger runServer)]) `logExceptionM` ErrorS
+    
+middleware :: KatipLoggerIO -> Application -> Application
+middleware = Middleware.logger
 
-logUncaughtException :: (Severity -> LogStr -> IO ()) -> Maybe Request -> SomeException -> IO ()     
+logUncaughtException :: KatipLoggerIO -> Maybe Request -> SomeException -> IO ()     
 logUncaughtException log req e = when (Warp.defaultShouldDisplayException e) $ maybe without within req
   where without = log ErrorS (logStr ("Uncaught exception " <> show e))
         within r = log ErrorS (logStr ("\"GET " <> rawPathInfo r^.from textbs.from stext <> " HTTP/1.1\" 500 - " <> show e))

@@ -20,4 +20,4 @@ runTryDbConnGH
 runTryDbConnGH action = katipAddNamespace (Namespace ["orm"]) . runTryDbConn action
 
 runTryDbConnHasql :: Session a -> Hasql.Pool -> KatipController (Either Hasql.UsageError a)
-runTryDbConnHasql action = liftIO . flip Hasql.use action
+runTryDbConnHasql action = katipAddNamespace (Namespace ["raw"]) . liftIO . flip Hasql.use action

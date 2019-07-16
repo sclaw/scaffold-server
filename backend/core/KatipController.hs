@@ -10,6 +10,7 @@ module KatipController
        ( Config (..)
        , KatipController (..)
        , KatipEnv (..)
+       , KatipLoggerIO
         -- * lens
        , nm
        , ctx
@@ -37,6 +38,9 @@ import           Data.Monoid.Colorful          (Term)
 import qualified Hasql.Pool                    as Hasql
 import           Control.Monad.Catch           hiding (Handler) 
 import           Control.Exception.Safe       (MonadMask)
+
+
+type KatipLoggerIO = Severity -> LogStr -> IO ()
 
 data KatipEnv = 
      KatipEnv 
