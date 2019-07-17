@@ -14,6 +14,7 @@ module TH.Instance
        , deriveToSchemaAndJSONProtoIdent
        , deriveToSchemaAndJSONProtoEnum
        , deriveToSchemaAndDefJSON
+       , enumConvertor
        )
        where
 
@@ -30,6 +31,7 @@ import Data.Proxy
 import Control.Lens.Iso.Extended
 import Data.Text (stripPrefix)
 import Data.Char (toUpper)
+import Text.Casing (quietSnake)
 
 derivePrimitivePersistField :: Name -> ExpQ -> Q [Dec]
 derivePrimitivePersistField name iso = [d|
@@ -183,3 +185,35 @@ deriveToSchemaAndJSONProtoEnum name postfix =
      let err = error $ "error: " <> show name     
      let ys' = map (fromMaybe err . purgeNamePrefix) ys
      return [DataD ctx new xs kind ys' ([geni, showi] ++ cl)]
+
+enumConvertor :: Name -> Q [Dec]
+enumConvertor name = 
+  do TyConI (DataD _ _ _ _ xs _) <- reify name
+     let str = mkName "String"
+     let isoNFrom = mkName ("from" <> nameBase name)
+     let mkClauseFrom (NormalC n _) = 
+          let n' = (quietSnake . nameBase) n  
+          in Clause 
+              [ConP n []] 
+              (NormalB (LitE (StringL n'))) []
+     let fromSig = 
+          SigD 
+           isoNFrom 
+           (AppT (AppT ArrowT (ConT name)) (ConT str))                
+     let from = FunD isoNFrom (map mkClauseFrom xs)
+     let isoNTo = mkName ("to" <> nameBase name)
+     let mkClauseTo (NormalC n _) =
+          let n' = (quietSnake . nameBase) n
+          in Clause 
+              [LitP (StringL n')]
+              (NormalB (ConE n)) []
+     let toSig = 
+          SigD 
+           isoNTo 
+           (AppT (AppT ArrowT (ConT str)) (ConT name))         
+     let to = FunD isoNTo (map mkClauseTo xs)
+     let isoN = mkName ("iso" <> nameBase name)
+     let iso = mkName "Iso'"
+     let isoSig = SigD isoN (AppT (AppT (ConT iso) (ConT name)) (ConT str))  
+     iosDec <- [d| $(varP isoN) = $(appE (appE (varE (mkName "iso")) (varE isoNFrom)) (varE isoNTo)) |]
+     return $ [fromSig, from, toSig, to, isoSig] ++ iosDec

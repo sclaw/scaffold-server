@@ -130,6 +130,7 @@ library:
     - QuickCheck
     - safe-exceptions
     - wai
+    - casing
   source-dirs:
     - backend/core
     - backend/extended
