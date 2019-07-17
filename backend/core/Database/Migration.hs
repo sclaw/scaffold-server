@@ -3,7 +3,7 @@ module Database.Migration (run) where
 import           Database.DbMeta  
 import           EdgeNode.Model.User.Entity (User)
 import           EdgeNode.Model.Token.Entity (Token)
-import           EdgeNode.Model.Rbac.Entity (Role, RoleTree)
+import           EdgeNode.Model.Rbac.Entity (RoleTree)
 
 import           Database.Groundhog.Postgresql
 import           Data.Pool
@@ -56,5 +56,4 @@ populate = runMigration $
     migrate (undefined :: DbMeta)
     migrate (undefined :: User)
     migrate (undefined :: Token)
-    migrate (undefined :: Role)
     migrate (undefined :: RoleTree)

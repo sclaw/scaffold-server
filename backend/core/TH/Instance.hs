@@ -15,6 +15,7 @@ module TH.Instance
        , deriveToSchemaAndJSONProtoEnum
        , deriveToSchemaAndDefJSON
        , enumConvertor
+       , derivePrimitivePersistFieldParam
        )
        where
 
@@ -33,6 +34,8 @@ import Data.Text (stripPrefix)
 import Data.Char (toUpper)
 import Text.Casing (quietSnake)
 
+import Control.Monad.IO.Class
+
 derivePrimitivePersistField :: Name -> ExpQ -> Q [Dec]
 derivePrimitivePersistField name iso = [d|
   instance PersistField $nameT where
@@ -42,10 +45,37 @@ derivePrimitivePersistField name iso = [d|
     dbType proxy value = dbType proxy (view $iso value)
   instance NeverNull $nameT
   instance PrimitivePersistField $nameT where
-    toPrimitivePersistValue value = toPrimitivePersistValue (view $iso value)
-    fromPrimitivePersistValue prim = view (from $iso) (fromPrimitivePersistValue prim)
+    toPrimitivePersistValue value = 
+      toPrimitivePersistValue (view $iso value)
+    fromPrimitivePersistValue prim = 
+      view (from $iso) (fromPrimitivePersistValue prim)
   |]
   where nameT = conT name
+
+derivePrimitivePersistFieldParam :: Name -> ExpQ -> Q [Dec]
+derivePrimitivePersistFieldParam name iso = 
+  [d|
+     instance (PrimitivePersistField $(varT a)
+             , PersistField $(varT a)
+             , ToJSON $(varT a)
+             , FromJSON $(varT a)) 
+             => PersistField $(appT nameT (varT a)) where
+       persistName _ = $(litE.stringL $ nameBase name)
+       toPersistValues = primToPersistValue
+       fromPersistValues = primFromPersistValue
+       dbType proxy value = dbType proxy (view $iso value)
+     instance NeverNull $(appT nameT (varT a))
+     instance (PrimitivePersistField $(varT a)
+             , ToJSON $(varT a)
+             , FromJSON $(varT a)) 
+             => PrimitivePersistField $(appT nameT (varT a)) where
+       toPrimitivePersistValue value = 
+         toPrimitivePersistValue (view $iso value)
+       fromPrimitivePersistValue prim = 
+         view (from $iso) (fromPrimitivePersistValue prim)
+  |]
+  where nameT = conT name
+        a = mkName "a"  
 
 deriveWrappedPrimitivePersistField :: Name -> Q [Dec]
 deriveWrappedPrimitivePersistField name = do

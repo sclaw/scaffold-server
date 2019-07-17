@@ -19,11 +19,9 @@
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 
 module EdgeNode.Model.Rbac.Entity
-       ( Role
-       , RoleTree
+       ( RoleTree
        , Field (..)
        , RoleIdWrapper (..)
-       , tree
        )
        where
 
@@ -32,34 +30,32 @@ import EdgeNode.Model.User.Entity (UserIdWrapper)
 import EdgeNode.Model.Tree
 
 import Orm.PersistField ()
-import Database.AutoKey
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Control.Lens.Extended
 import TH.Instance
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import Data.Time.Clock
+import Data.Aeson
+import qualified Data.ByteString.Lazy as B
 
 data RoleTree = 
      RoleTree 
-     { roleTreeTree :: !(Tree RoleId)
+     { roleTreeTree :: !(Tree Role)
      , roleTreeWho  :: !UserIdWrapper
      , roleTreeWhen :: !UTCTime 
      }
 
+isoRoleTree :: Iso' Role B.ByteString
+isoRoleTree = iso encode (either err id `fmap` eitherDecode) 
+  where err = error . (<>) "tree decode error: "
+
+derivePrimitivePersistField ''Role [| isoRoleTree |]
+  
 mkPersist_ [groundhog|
- - entity: Role
-   schema: main
  - entity: RoleTree
    schema: main
-   uniques:
-    - name: role_tree_uk
-      type: constraint
-      fields: [roleHierarchyTree]
  |]
 
-deriveAutoKey ''Role
 deriveWrappedPrimitivePersistField ''RoleId
 deriveToSchemaAndJSONProtoIdent ''RoleId
-
-makeFields ''RoleTree

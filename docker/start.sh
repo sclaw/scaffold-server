@@ -2,7 +2,7 @@
 
 cd ..
 
-./aux/generate-proto-haskell.sh
+./scripts/generate-proto-haskell.sh
 
 stack build --test -j8 && stack install
 
