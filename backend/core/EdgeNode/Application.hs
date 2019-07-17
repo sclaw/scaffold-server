@@ -19,7 +19,7 @@ import           KatipController
 import           Servant.Swagger.KatipController
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
-import           Control.Monad.Trans.Reader    (ReaderT, ask, runReaderT)
+import           Control.Monad.Trans.Reader    (ReaderT, ask)
 import           Katip
 import qualified Network.Wai.Handler.Warp      as Warp
 import           Servant                    
@@ -67,7 +67,7 @@ run Cfg {..} =
            hoistServerWithContext 
            (withSwagger api)
            context
-           ((`runReaderT` cfg) . runKatipController) 
+           (runKatipController cfg) 
            (toServant App.application :<|> 
             swaggerSchemaUIServerT (swaggerHttpApi cfgPort))
      

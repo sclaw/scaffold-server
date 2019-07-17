@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE DerivingStrategies         #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module KatipController
@@ -11,7 +12,7 @@ module KatipController
        , KatipController (..)
        , KatipEnv (..)
        , KatipLoggerIO
-        -- * lens
+         -- * lens
        , nm
        , ctx
        , env
@@ -19,27 +20,31 @@ module KatipController
        , terminal
        , ormDB
        , rawDB
+         -- * run
+       , runKatipController  
        ) where
 
-import           Control.Lens
-import           Control.Lens.TH               (makeFields)
-import           Control.Monad.IO.Class
-import           Control.Monad.Reader.Class    (MonadReader)
-import           Control.Monad.Trans.Reader
-import qualified Data.Pool                     as Pool
-import           Database.Groundhog.Postgresql (Postgresql)
-import           Katip
-import           Servant.Server                (Handler)
-import           Control.Monad.Trans.Control   (MonadBaseControl)
-import           Control.Monad.Base            (MonadBase)
-import           Control.Monad.Error.Class
-import           Servant.Server.Internal.ServantErr
-import           Data.Monoid.Colorful          (Term)
-import qualified Hasql.Pool                    as Hasql
-import           Control.Monad.Catch           hiding (Handler) 
-import           Control.Exception.Safe       (MonadMask)
+import EdgeNode.Rbac
+import EdgeNode.Model.Tree
 
-
+import Control.Lens
+import Control.Lens.TH (makeFields)
+import Control.Monad.IO.Class
+import Control.Monad.RWS.Class (MonadRWS)
+import Control.Monad.RWS.Strict
+import qualified Data.Pool as Pool
+import Database.Groundhog.Postgresql (Postgresql)
+import Katip
+import Servant.Server (Handler)
+import Control.Monad.Trans.Control (MonadBaseControl)
+import Control.Monad.Base (MonadBase)
+import Control.Monad.Error.Class
+import Servant.Server.Internal.ServantErr
+import Data.Monoid.Colorful (Term)
+import qualified Hasql.Pool as Hasql
+import Control.Monad.Catch hiding (Handler) 
+import Control.Exception.Safe (MonadMask)
+         
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 
 data KatipEnv = 
@@ -57,21 +62,24 @@ data Config =
       , configKatipEnv :: !KatipEnv
       }
 
-newtype KatipController a = KatipController { runKatipController :: ReaderT Config Handler a }
-    deriving
-     ( Functor
-     , Applicative
-     , Monad
-     , MonadIO
-     , (MonadReader Config)
-     , MonadBase IO
-     , MonadBaseControl IO
-     , MonadError ServantErr
-     , MonadCatch
-     , MonadThrow
-     , MonadMask 
-     )
+newtype State = State { stateRoles :: Maybe (Tree Role) }
 
+newtype KatipController a = KatipController { unwrap :: RWST Config [String] State Handler a }
+  deriving newtype Functor
+  deriving newtype Applicative
+  deriving newtype Monad
+  deriving newtype MonadIO
+  deriving newtype (MonadReader Config)
+  deriving newtype (MonadState State)
+  deriving newtype (MonadWriter [String])
+  deriving newtype (MonadRWS Config [String] State)
+  deriving newtype (MonadBase IO)
+  deriving newtype (MonadBaseControl IO)
+  deriving newtype (MonadError ServantErr)
+  deriving newtype MonadCatch
+  deriving newtype MonadThrow
+  deriving newtype MonadMask 
+  
 makeFields ''Config
 makeFields ''KatipEnv
 
@@ -85,3 +93,9 @@ instance KatipContext KatipController where
     localKatipContext f (KatipController m) = KatipController (local (over ctx f) m)
     getKatipNamespace = KatipController $ asks configNm
     localKatipNamespace f (KatipController m) = KatipController (local (over nm f) m)
+
+defState :: State
+defState = State Nothing
+
+runKatipController :: Config -> KatipController a -> Handler a
+runKatipController config app = fst `fmap` evalRWST (unwrap app) config (State Nothing)
