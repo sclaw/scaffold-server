@@ -2,16 +2,16 @@
 
 module Database.Action (runTryDbConnGH, runTryDbConnHasql) where
 
-import           KatipController
-import           Database.Groundhog.Core
-import           GHC.Exception.Type
+import KatipController
+import Database.Groundhog.Core
+import GHC.Exception.Type
 import qualified Database.Exception as Exception
-import           Data.Pool
-import           Database.Groundhog.Postgresql
-import           Katip
+import Data.Pool
+import Database.Groundhog.Postgresql
+import Katip
 import qualified Hasql.Pool as Hasql 
-import           Hasql.Session (Session) 
-import           Control.Monad.IO.Class
+import Hasql.Session (Session) 
+import Control.Monad.IO.Class
 
 runTryDbConnGH 
   :: TryAction Exception.Db KatipController Postgresql a 

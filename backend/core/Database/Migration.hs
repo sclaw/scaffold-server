@@ -1,20 +1,20 @@
 module Database.Migration (run) where
 
-import           Database.DbMeta  
-import           EdgeNode.Model.User.Entity (User)
-import           EdgeNode.Model.Token.Entity (Token)
-import           EdgeNode.Model.Rbac.Entity (RoleTree)
+import Database.DbMeta  
+import EdgeNode.Model.User.Entity (User)
+import EdgeNode.Model.Token.Entity (Token)
+import EdgeNode.Model.Rbac.Entity (RoleTree)
 
-import           Database.Groundhog.Postgresql
-import           Data.Pool
-import           Control.Monad.IO.Class
-import           Database.Groundhog.Core (Action, PersistValue (..), fromPersistValues)
-import           Database.Groundhog.Generic (firstRow)
-import           Data.Word (Word32)
-import           Data.Foldable (traverse_)
-import           Data.Bool (bool)
-import           Data.Time.Clock
-import           Data.Typeable
+import Database.Groundhog.Postgresql
+import Data.Pool
+import Control.Monad.IO.Class
+import Database.Groundhog.Core (Action, PersistValue (..), fromPersistValues)
+import Database.Groundhog.Generic (firstRow)
+import Data.Word (Word32)
+import Data.Foldable (traverse_)
+import Data.Bool (bool)
+import Data.Time.Clock
+import Data.Typeable
 
 run :: Pool Postgresql -> IO ()
 run cm = (checkDBMeta >>= traverse_ (bool migrateInit migrateNew)) `runDbConn` cm

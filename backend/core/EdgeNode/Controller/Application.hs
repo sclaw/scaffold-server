@@ -3,14 +3,14 @@
 
 module EdgeNode.Controller.Application (application) where
 
-import           EdgeNode.Api
+import EdgeNode.Api
 -- controllers
 import qualified EdgeNode.Controller.Http.Registration as Auth.Registration
 
-import           Katip
-import           KatipController
-import           Servant.Server.Generic
-import           Servant.API.Generic
+import Katip
+import KatipController
+import Servant.Server.Generic
+import Servant.API.Generic
 
 application :: ApplicationApi (AsServerT KatipController)
 application = ApplicationApi { applicationApiHttp = toServant httpApi }

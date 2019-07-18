@@ -5,36 +5,41 @@
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE RankNTypes         #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
 
-module EdgeNode.Application (Cfg (..), run) where
+module EdgeNode.Application (Cfg (..), AppMonad (..), run) where
 
-import           EdgeNode.Api
+import EdgeNode.Api
 import qualified EdgeNode.Controller.Application as App
 
-import           Katip.Monadic                 (askLoggerIO)
-import           KatipController
-import           Servant.Swagger.KatipController
-import           Control.Monad.IO.Class
-import           Control.Monad.Trans.Class
-import           Control.Monad.Trans.Reader    (ReaderT, ask)
-import           Katip
+import Katip.Monadic                 (askLoggerIO)
+import KatipController
+import Servant.Swagger.KatipController
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Class
+import Katip
 import qualified Network.Wai.Handler.Warp      as Warp
-import           Servant                    
-import           Servant.API.Generic
-import           Control.Lens
-import           Servant.Swagger.UI
-import           Servant.Auth.Server
-import           Crypto.JOSE.JWK
-import           Control.Concurrent.Async
-import           Control.Monad (when, void)
-import           Network.Wai (Request, rawPathInfo)
-import           Control.Lens.Iso.Extended
-import           GHC.Exception.Type (SomeException) 
-import qualified Middleware as Middleware
-
+import Servant                    
+import Servant.API.Generic
+import Control.Lens
+import Servant.Swagger.UI
+import Servant.Auth.Server
+import Crypto.JOSE.JWK
+import Control.Concurrent.Async
+import Control.Monad (when, void)
+import Network.Wai (Request, rawPathInfo)
+import Control.Lens.Iso.Extended
+import GHC.Exception.Type (SomeException) 
+import qualified Middleware
+import Control.Monad.RWS.Strict as RWS
+import Control.Monad.Base (MonadBase)
+import Control.Monad.Catch
 
 data Cfg = 
      Cfg 
@@ -45,7 +50,20 @@ data Cfg =
      , cfgIsAuthEnabled :: !Bool 
      }
 
-run :: Cfg -> KatipContextT (ReaderT KatipEnv IO) ()
+newtype AppMonad a = AppMonad { runAppMonad :: RWS.RWST KatipEnv KatipLogger KatipState IO a }
+  deriving newtype Functor
+  deriving newtype Applicative
+  deriving newtype Monad
+  deriving newtype MonadIO
+  deriving newtype (MonadReader KatipEnv)
+  deriving newtype (MonadState KatipState)
+  deriving newtype (MonadWriter KatipLogger)
+  deriving newtype (MonadRWS KatipEnv KatipLogger KatipState)
+  deriving newtype (MonadBase IO)
+  deriving newtype MonadCatch
+  deriving newtype MonadThrow
+
+run :: Cfg -> KatipContextT AppMonad ()
 run Cfg {..} = 
   katipAddNamespace (Namespace ["application"]) $ 
     do

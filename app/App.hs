@@ -2,32 +2,33 @@
 
 module App (main) where
 
-import qualified EdgeNode.Application            as App
-import           EdgeNode.Config
+import qualified EdgeNode.Application as App
+import EdgeNode.Config
 
-import           KatipController
-import           BuildInfo                       (gitLatestCommitHash)
-import           Pretty
-import qualified Database.Migration              as Migration
-import           Control.Exception               (bracket)
-import           Control.Lens                    
-import           Control.Monad.Trans.Reader      (runReaderT)
-import           Data.Monoid.Colorful            (hGetTerm)
-import           Database.Groundhog.Postgresql   (createPostgresqlPool)
-import           Katip
-import           System.IO                       (stdout)
-import qualified Hasql.Pool as                   Hasql
-import qualified Hasql.Connection as             HasqlConn
-import           System.Environment              (getArgs)
-import           Text.Printf 
-import           Control.Lens.Iso.Extended
-import           Control.Monad
-import           Data.Time.Clock (getCurrentTime)
-import           System.Remote.Monitoring
-import           Data.Aeson                      (eitherDecode)
-import           Data.Either.Combinators
-import qualified Data.ByteString.Lazy            as B
-import           GHC.IO.Handle                   (BufferMode (NoBuffering), hSetBuffering)
+import KatipController
+import BuildInfo (gitLatestCommitHash)
+import Pretty
+import qualified Database.Migration as Migration
+import Control.Exception (bracket)
+import Control.Lens
+import Data.Monoid.Colorful (hGetTerm)
+import Database.Groundhog.Postgresql (createPostgresqlPool)
+import Katip
+import System.IO (stdout)
+import qualified Hasql.Pool as Hasql
+import qualified Hasql.Connection as HasqlConn
+import System.Environment (getArgs)
+import Text.Printf 
+import Control.Lens.Iso.Extended
+import Control.Monad
+import Data.Time.Clock (getCurrentTime)
+import System.Remote.Monitoring
+import Data.Aeson (eitherDecode)
+import Data.Either.Combinators
+import qualified Data.ByteString.Lazy  as B
+import GHC.IO.Handle (BufferMode (NoBuffering), hSetBuffering)
+import Data.Default.Class
+import Control.Monad.RWS.Strict (evalRWST)
 
 main :: IO ()
 main =
@@ -42,8 +43,7 @@ main =
       hSetBuffering stdout NoBuffering 
 
       orm <- createPostgresqlPool (mkOrmConn (cfg^.db)) (cfg^.orm.coerced)
-      raw <- Hasql.acquire (cfg^.raw.poolN, cfg^.raw.tm, mkRawConn (cfg^.db))  
-      let appEnv = KatipEnv term orm raw
+      raw <- Hasql.acquire (cfg^.raw.poolN, cfg^.raw.tm, mkRawConn (cfg^.db))
       std <- mkHandleScribeWithFormatter 
              jsonFormat 
              ColorIfTerminal 
@@ -72,7 +72,9 @@ main =
             mempty 
             (App.run appCfg)
       Migration.run orm
-      bracket env' closeScribes ((`runReaderT` appEnv) . runApp)       
+      let katipEnv = KatipEnv term orm raw
+      let katipSt = def
+      bracket env' closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv katipSt) . runApp)       
       
 mkOrmConn :: Db -> String
 mkOrmConn x = printf "host=%s port=%d dbname=%s user=%s password=%s" (x^.host) (x^.port) (x^.database) (x^.user) (x^.pass)

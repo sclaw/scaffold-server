@@ -13,6 +13,8 @@ module KatipController
        ( Config (..)
        , KatipController (..)
        , KatipEnv (..)
+       , KatipLogger (..)
+       , KatipState (..)
        , KatipLoggerIO
          -- * lens
        , nm
@@ -45,6 +47,8 @@ import Data.Monoid.Colorful (Term)
 import qualified Hasql.Pool as Hasql
 import Control.Monad.Catch hiding (Handler) 
 import Control.Exception.Safe (MonadMask)
+import Data.Default.Class
+import Control.DeepSeq
 
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 
@@ -54,6 +58,15 @@ data KatipEnv =
      , katipEnvOrmDB    :: !(Pool.Pool Postgresql)
      , katipEnvRawDB    :: !Hasql.Pool
      }
+
+newtype KatipLogger = AppLogger [String] 
+  deriving newtype Monoid
+  deriving newtype Semigroup  
+  deriving newtype NFData   
+
+newtype KatipState = AppState Int
+  deriving newtype Default
+  deriving newtype NFData
 
 data Config =
      Config

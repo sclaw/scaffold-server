@@ -16,11 +16,11 @@
 
 module Orm.PersistField () where
 
-import           Control.Lens
+import Control.Lens
 import qualified Data.Sequence as Seq
-import           Database.Groundhog ()
-import           Database.Groundhog.Core
-import           Database.Groundhog.TH
+import Database.Groundhog ()
+import Database.Groundhog.Core
+import Database.Groundhog.TH
 
 
 {- We need (PersistField (Seq a)) to make model out of protobuffer

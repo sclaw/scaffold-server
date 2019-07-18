@@ -80,4 +80,4 @@ swaggerHttpApi port =
   & host ?~ Host "localhost" (Just (fromIntegral port))
   & info.description ?~ "EdgeNode server api"
   & info.version .~ "0.0.1"
-  & info.contact._Just.email ?~ "fclaw007@gmail.com"
+  & info.contact ?~ (Contact Nothing Nothing (Just "fclaw007@gmail.com"))

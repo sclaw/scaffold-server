@@ -18,33 +18,33 @@ module EdgeNode.Controller.Http.Registration (controller) where
 import qualified EdgeNode.Api.Http.Auth.Register as Auth
 import qualified EdgeNode.Model.User.Entity as User
 
-import           Katip
-import           KatipController
-import           Pretty
-import           ReliefJsonData
-import           Control.Lens.Iso.Extended
-import           Control.Monad.IO.Class
-import           Text.RE.PCRE.Text (matched, (?=~), re)
-import           Katip.Monadic
-import           Control.Lens ((>$), (<&>), from, _Left)
-import           Data.Validation
-import           Hasql.Session
+import Katip
+import KatipController
+import Pretty
+import ReliefJsonData
+import Control.Lens.Iso.Extended
+import Control.Monad.IO.Class
+import Text.RE.PCRE.Text (matched, (?=~), re)
+import Katip.Monadic
+import Control.Lens ((>$), (<&>), from, _Left)
+import Data.Validation
+import Hasql.Session
 import qualified Hasql.Statement as HS 
 import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
-import           Hasql.Pool
-import           Control.Monad.Reader.Class
-import           Database.Action
-import           Crypto.PasswordStore (pbkdf2, makePasswordSaltWith, makeSalt)
-import           Text.InterpolatedString.QM
-import           Data.Generics.Internal.VL.Lens
-import           Data.Generics.Product
-import           Data.Generics.Internal.VL.Prism
+import Hasql.Pool
+import Control.Monad.Reader.Class
+import Database.Action
+import Crypto.PasswordStore (pbkdf2, makePasswordSaltWith, makeSalt)
+import Text.InterpolatedString.QM
+import Data.Generics.Internal.VL.Lens
+import Data.Generics.Product
+import Data.Generics.Internal.VL.Prism
 import qualified Data.ByteString as B
 import qualified Data.Text.Lazy as LT
-import           Data.Bifunctor
-import           RetrofitProto
-import           Data.Functor (($>))
+import Data.Bifunctor
+import RetrofitProto
+import Data.Functor (($>))
 
 {-
 password validation:

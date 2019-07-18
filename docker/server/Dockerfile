@@ -7,5 +7,6 @@
 FROM fpco/stack-build:latest
 
 COPY edge-node-server config.yaml init.sh symmetric.jwk /
-ADD katip katip
+ADD katip katip 
+ADD ekg-0.4.0.15 ekg
 CMD ["/init.sh"]

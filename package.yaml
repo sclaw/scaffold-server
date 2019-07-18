@@ -132,6 +132,7 @@ library:
     - wai
     - casing
     - lifted-base
+    - data-default-class
   source-dirs:
     - backend/core
     - backend/extended

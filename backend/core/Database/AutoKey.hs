@@ -7,10 +7,6 @@ module Database.AutoKey (AutoKey'(..), deriveAutoKey) where
     
 import Control.Lens
 import Database.Groundhog.Core
-  ( BackendSpecific
-  , Key
-  , PersistValue(PersistInt64)
-  )
 import Language.Haskell.TH
 
 -- AutoKey is defined in Database.Groundhog.Core
