@@ -28,12 +28,12 @@ import           Control.Lens
 import           Servant.Swagger.UI
 import           Servant.Auth.Server
 import           Crypto.JOSE.JWK
-import           Control.Concurrent.Async.Extended
-import           Control.Monad (when)
+import           Control.Concurrent.Async
+import           Control.Monad (when, void)
 import           Network.Wai (Request, rawPathInfo)
 import           Control.Lens.Iso.Extended
 import           GHC.Exception.Type (SomeException) 
-import qualified Middleware as Middleware  
+import qualified Middleware as Middleware
 
 
 data Cfg = 
@@ -81,8 +81,10 @@ run Cfg {..} =
            serveWithContext 
            (withSwagger api) 
            (defaultCookieSettings :. jwtCfg :. EmptyContext) 
-           server     
-      liftIO (raceXs_ [Warp.runSettings settings (middleware logger runServer)]) `logExceptionM` ErrorS
+           server
+
+      servAsync <- liftIO $ async $ Warp.runSettings settings (middleware logger runServer)     
+      liftIO (void (waitAnyCancel [servAsync])) `logExceptionM` ErrorS
     
 middleware :: KatipLoggerIO -> Application -> Application
 middleware = Middleware.logger

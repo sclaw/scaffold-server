@@ -5,6 +5,8 @@
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE DeriveAnyClass             #-}
+{-# LANGUAGE DeriveGeneric              #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module KatipController
@@ -24,14 +26,13 @@ module KatipController
        , runKatipController  
        ) where
 
-import EdgeNode.Rbac
-import EdgeNode.Model.Tree
+-- import EdgeNode.Rbac
+-- import EdgeNode.Model.Tree
 
 import Control.Lens
 import Control.Lens.TH (makeFields)
 import Control.Monad.IO.Class
-import Control.Monad.RWS.Class (MonadRWS)
-import Control.Monad.RWS.Strict
+import Control.Monad.Reader
 import qualified Data.Pool as Pool
 import Database.Groundhog.Postgresql (Postgresql)
 import Katip
@@ -44,7 +45,7 @@ import Data.Monoid.Colorful (Term)
 import qualified Hasql.Pool as Hasql
 import Control.Monad.Catch hiding (Handler) 
 import Control.Exception.Safe (MonadMask)
-         
+
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 
 data KatipEnv = 
@@ -62,17 +63,12 @@ data Config =
       , configKatipEnv :: !KatipEnv
       }
 
-newtype State = State { stateRoles :: Maybe (Tree Role) }
-
-newtype KatipController a = KatipController { unwrap :: RWST Config [String] State Handler a }
+newtype KatipController a = KatipController { unwrap :: ReaderT Config Handler a }
   deriving newtype Functor
   deriving newtype Applicative
   deriving newtype Monad
   deriving newtype MonadIO
   deriving newtype (MonadReader Config)
-  deriving newtype (MonadState State)
-  deriving newtype (MonadWriter [String])
-  deriving newtype (MonadRWS Config [String] State)
   deriving newtype (MonadBase IO)
   deriving newtype (MonadBaseControl IO)
   deriving newtype (MonadError ServantErr)
@@ -94,8 +90,5 @@ instance KatipContext KatipController where
     getKatipNamespace = KatipController $ asks configNm
     localKatipNamespace f (KatipController m) = KatipController (local (over nm f) m)
 
-defState :: State
-defState = State Nothing
-
 runKatipController :: Config -> KatipController a -> Handler a
-runKatipController config app = fst `fmap` evalRWST (unwrap app) config (State Nothing)
+runKatipController cfg app = runReaderT (unwrap app) cfg   

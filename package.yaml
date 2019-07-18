@@ -131,6 +131,7 @@ library:
     - safe-exceptions
     - wai
     - casing
+    - lifted-base
   source-dirs:
     - backend/core
     - backend/extended

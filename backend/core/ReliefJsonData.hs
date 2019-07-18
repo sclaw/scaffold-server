@@ -62,8 +62,11 @@ instance (Typeable a, ToSchema a, Typeable b, ToSchema b) => ToSchema (Alternati
          & properties .~ [("error", left), ("success", right)]
     return schema     
 
+instance Bifunctor Alternative where 
+  bimap f g = (^.eitherToAlt) . bimap f g . (^._Either)
+    
 eitherToAlt :: Iso' (Either e a) (Alternative e a)
 eitherToAlt = iso from to 
   where from = either Error Fortune
         to (Error e) = Left e
-        to (Fortune a) = Right a 
+        to (Fortune a) = Right a

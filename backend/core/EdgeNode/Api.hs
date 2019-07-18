@@ -17,17 +17,17 @@ module EdgeNode.Api
 import qualified EdgeNode.Model.User.Entity as User
 import qualified EdgeNode.Api.Http.Auth.Register as Auth
 
-import           Servant.API.Generic
-import           Servant.API.WebSocket ()
-import           Data.Proxy
-import           Servant.API
-import           Servant.Swagger
-import           Data.Swagger
-import           Control.Lens
-import           ReliefJsonData
-import           Servant.Auth.Swagger ()
-import           Swagger.Proto ()
-import           RetrofitProto
+import Servant.API.Generic
+import Servant.API.WebSocket ()
+import Data.Proxy
+import Servant.API
+import Servant.Swagger
+import Data.Swagger
+import Control.Lens
+import ReliefJsonData
+import Servant.Auth.Swagger ()
+import Swagger.Proto ()
+import RetrofitProto
 
 
 data ApplicationApi route = 
@@ -63,8 +63,9 @@ newtype HttpApi route =
 newtype AuthApi route = 
         AuthApi
         { authApiRegistration
-        :: route 
-        :- "registration"
+        :: route
+        :- Description "simple registration" 
+        :> "registration"
         :> ReqBody '[JSON] Auth.RegisterInfo 
         :> Post '[JSON] (Alternative [Error'] User.UserIdWrapper) 
       } deriving stock Generic       
@@ -75,5 +76,8 @@ api = genericApi (Proxy :: Proxy ApplicationApi)
 swaggerHttpApi :: Int -> Swagger
 swaggerHttpApi port = 
   toSwagger (genericApi (Proxy :: Proxy HttpWrapperApi)) 
-  & schemes ?~ [Http] & 
-  host ?~ Host "localhost" (Just (fromIntegral port))
+  & schemes ?~ [Http] 
+  & host ?~ Host "localhost" (Just (fromIntegral port))
+  & info.description ?~ "EdgeNode server api"
+  & info.version .~ "0.0.1"
+  & info.contact._Just.email ?~ "fclaw007@gmail.com"
