@@ -1,10 +1,6 @@
 module Database.Migration (run) where
 
 import Database.DbMeta  
-import EdgeNode.Model.User.Entity (User)
-import EdgeNode.Model.Token.Entity (Token)
-import EdgeNode.Model.Rbac.Entity (RoleTree)
-
 import Database.Groundhog.Postgresql
 import Data.Pool
 import Control.Monad.IO.Class
@@ -15,12 +11,13 @@ import Data.Foldable (traverse_)
 import Data.Bool (bool)
 import Data.Time.Clock
 import Data.Typeable
+import Database.Table
 
 run :: Pool Postgresql -> IO ()
 run cm = (checkDBMeta >>= traverse_ (bool migrateInit migrateNew)) `runDbConn` cm
 
 migrateInit :: Action Postgresql ()
-migrateInit = populate >> setVersion
+migrateInit = mkTables >> setVersion
 
 migrateNew :: Action Postgresql ()
 migrateNew = 
@@ -47,13 +44,3 @@ getVersion = fmap dbMetaMigrationVersion `fmap` get (DbMetaKey (PersistInt64 1))
     
 setVersion :: Action Postgresql ()
 setVersion = liftIO getCurrentTime >>= (insert_ . DbMeta 1)
-
-populate :: Action Postgresql ()
-populate = runMigration $
-  do
-    liftIO $ print "init migration start.."
-    -- db meta 
-    migrate (undefined :: DbMeta)
-    migrate (undefined :: User)
-    migrate (undefined :: Token)
-    migrate (undefined :: RoleTree)

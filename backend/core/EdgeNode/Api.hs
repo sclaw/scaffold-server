@@ -28,7 +28,7 @@ import ReliefJsonData
 import Servant.Auth.Swagger ()
 import Swagger.Proto ()
 import RetrofitProto
-
+import Control.Lens.Iso.Extended
 
 data ApplicationApi route = 
      ApplicationApi 
@@ -78,6 +78,6 @@ swaggerHttpApi port =
   toSwagger (genericApi (Proxy :: Proxy HttpWrapperApi)) 
   & schemes ?~ [Http] 
   & host ?~ Host "localhost" (Just (fromIntegral port))
-  & info.description ?~ "EdgeNode server api"
-  & info.version .~ "0.0.1"
-  & info.contact ?~ (Contact Nothing Nothing (Just "fclaw007@gmail.com"))
+  & info.description ?~ "EdgeNode server api"^.stext
+  & info.version .~ "0.0.1"^.stext
+  & info.contact ?~ (Contact Nothing Nothing (Just ("fclaw007@gmail.com"^.stext)))

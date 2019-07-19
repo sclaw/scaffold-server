@@ -117,11 +117,8 @@ persist info =
 -- >>> mkResp (Failure [PasswordWeek])
 -- Right (Error [PasswordWeek])
 --    
--- >>> mkResp (Success (Right (Just (User.wrapId 1))))
+-- >>> mkResp (Success (Right (User.wrapId 1)))
 -- Right (Fortune (UserIdWrapper {unwrap = UserId {userIdUserIdIdent = 1}}))
---
--- >>> mkResp (Success (Right Nothing))
--- Right (Error [EmailTaken])
 mkResp 
   :: Validation 
      [Error'] 
