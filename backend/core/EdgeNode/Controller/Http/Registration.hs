@@ -19,6 +19,7 @@ import qualified EdgeNode.Api.Http.Auth.Register as Auth
 import qualified EdgeNode.Model.User.Entity as User
 
 import Katip
+import Katip.Core (getLoc)
 import KatipController
 import Pretty
 import ReliefJsonData
@@ -45,6 +46,7 @@ import qualified Data.Text.Lazy as LT
 import Data.Bifunctor
 import RetrofitProto
 import Data.Functor (($>))
+import qualified Database.Exception as Exception
 
 {-
 password validation:
@@ -86,25 +88,29 @@ validateInfo info  = validateEmail *> validatePassword
      | matched ((info^.field @"registerInfoPassword".lazytext) ?=~ passRegex) = _Success # ()
      | otherwise = _Failure # [PasswordWeek]
 
-persist :: Auth.RegisterInfo -> KatipController (Either UsageError (Maybe User.UserIdWrapper))
+persist :: Auth.RegisterInfo -> KatipController (Either Exception.Hasql User.UserIdWrapper)
 persist info =
   do 
-    io <- askLoggerIO
     raw <- (^.katipEnv.rawDB) `fmap` ask
-    flip runTryDbConnHasql raw $ do
-     let sql = [qns| insert into main."User" ("userEmail", "userPassword") 
-                     values ($1, $2) on conflict do nothing returning id 
-                |]
-     let mkSalt = makeSalt (info^.field @"registerInfoEmail".lazytext.textbs)
-     let mkPass = makePasswordSaltWith pbkdf2 id 
-                 (info^.field @"registerInfoPassword".lazytext.textbs) mkSalt 2000 
-     let encoder = 
-          (info^.field @"registerInfoEmail".lazytext) >$ 
-          HE.param HE.text <>
-          (mkPass >$ HE.param HE.bytea) 
-     let decoder = HD.rowMaybe $ HD.column HD.int8 <&> User.wrapId
-     liftIO $ io InfoS (logStr (sql :: B.ByteString))
-     statement () (HS.Statement sql encoder decoder True)
+    runTryDbConnHasql action raw
+  where 
+   action logger = 
+    do
+      let sql = 
+           [qns| insert into main."User" ("userEmail", "userPassword") 
+                 values ($1, $2) returning id 
+           |]
+      let mkSalt = makeSalt (info^.field @"registerInfoEmail".lazytext.textbs)
+      let pass = info^.field @"registerInfoPassword".lazytext.textbs
+      let mkPass = makePasswordSaltWith pbkdf2 id pass mkSalt 2000 
+      let encoder = 
+           (info^.field @"registerInfoEmail".lazytext) >$ 
+           HE.param HE.text <>
+           (mkPass >$ HE.param HE.bytea) 
+      let decoder = HD.singleRow $ HD.column HD.int8 <&> User.wrapId
+      let log = (sql^.from textbs.from stext) <> ", loc: " <> show getLoc
+      liftIO $ logger InfoS (logStr log)
+      statement () (HS.Statement sql encoder decoder True)
 
 -- | EdgeNode.Controller.Http.Registration:mkRespBody
 --
@@ -119,10 +125,14 @@ persist info =
 mkResp 
   :: Validation 
      [Error'] 
-     (Either UsageError 
-      (Maybe User.UserIdWrapper))
+     (Either Exception.Hasql 
+      User.UserIdWrapper)
   -> Either 
-     UsageError 
+     Exception.Hasql 
      (Alternative 
       [Error'] User.UserIdWrapper)
-mkResp = validation (Right . Error) (fmap (maybe (Error [EmailTaken]) Fortune))      
+mkResp = validation (Right . Error) ok
+  where ok (Left (Exception.UniqueViolation _)) 
+            = Right $ Error [EmailTaken]
+        ok (Left e) = Left e
+        ok (Right ident) = Right $ Fortune ident

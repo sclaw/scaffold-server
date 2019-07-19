@@ -133,6 +133,7 @@ library:
     - casing
     - lifted-base
     - data-default-class
+    - postgresql-error-codes
   source-dirs:
     - backend/core
     - backend/extended
