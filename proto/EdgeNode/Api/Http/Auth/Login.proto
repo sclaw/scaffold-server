@@ -1,0 +1,15 @@
+syntax = 'proto3';
+package EdgeNode.Api.Http.Auth.Login;
+
+message Request {	
+  string login = 1;
+  string password = 2;
+}
+
+message Response {
+  bytes token = 1;
+}
+
+enum Error {
+  LoginOrPaswwordWrong = 0;
+}
