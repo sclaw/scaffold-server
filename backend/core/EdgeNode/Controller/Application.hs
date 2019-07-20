@@ -25,5 +25,6 @@ auth = AuthApi
         flip logExceptionM ErrorS 
         . katipAddNamespace 
           (Namespace ["auth", "registration"])  
-        . Auth.Registration.controller 
+        . Auth.Registration.controller
+      , authApiLogin = undefined   
       }

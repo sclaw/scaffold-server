@@ -4,7 +4,8 @@
 
 module Swagger.Proto () where
 
-import qualified EdgeNode.Api.Http.Auth.Register as Auth
+import qualified EdgeNode.Api.Http.Auth.Register as Reg
+import qualified EdgeNode.Api.Http.Auth.Login as Login
 
 import Data.Sequence
 import Data.Proxy
@@ -20,4 +21,5 @@ instance (ToSchema a, Typeable a) => ToSchema (Seq a) where
     let name = "Seq." <> unique
     return $ NamedSchema (Just name) schema
 
-instance ToSchema Auth.Error
+instance ToSchema Reg.Error
+instance ToSchema Login.Error

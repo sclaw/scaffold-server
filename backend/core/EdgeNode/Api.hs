@@ -15,7 +15,8 @@ module EdgeNode.Api
        ) where
 
 import qualified EdgeNode.Model.User.Entity as User
-import qualified EdgeNode.Api.Http.Auth.Register as Auth
+import qualified EdgeNode.Api.Http.Auth.Register as Reg
+import qualified EdgeNode.Api.Http.Auth.Login as Login
 
 import Servant.API.Generic
 import Servant.API.WebSocket ()
@@ -32,25 +33,17 @@ import Control.Lens.Iso.Extended
 
 data ApplicationApi route = 
      ApplicationApi 
-     { applicationApiHttp :: route :- ToServant HttpWrapperApi AsApi
-   --  , applicationApiSocket :: route :- ToServant WebsocketWrapperApi AsApi 
+     { applicationApiHttp 
+       :: route 
+       :- ToServant HttpWrapperApi AsApi 
      } deriving stock Generic
 
 newtype HttpWrapperApi route = 
         HttpWrapperApi 
         { httpWrapperApiApi 
           :: route 
-          :- "http" 
-          :> ToServant HttpApi AsApi 
+          :- ToServant HttpApi AsApi 
         } deriving stock Generic
-
--- newtype WebsocketWrapperApi route = 
---         WebsocketWrapperApi 
---         { websocketWrapperApiApi 
---           :: route 
---           :- "socket" 
---           :> ToServant WebsocketApi AsApi 
---         } deriving stock Generic
 
 newtype HttpApi route = 
         HttpApi 
@@ -60,15 +53,21 @@ newtype HttpApi route =
           :> ToServant AuthApi AsApi 
         } deriving stock Generic
 
-newtype AuthApi route = 
-        AuthApi
-        { authApiRegistration
-        :: route
-        :- Description "simple registration" 
-        :> "registration"
-        :> ReqBody '[JSON] Auth.RegisterInfo 
-        :> Post '[JSON] (Alternative [Error'] User.UserIdWrapper) 
-      } deriving stock Generic       
+data AuthApi route = 
+     AuthApi
+     { authApiRegistration
+       :: route
+       :- Description "simple registration" 
+       :> "registration"
+       :> ReqBody '[JSON] Reg.RegisterInfo 
+       :> Post '[JSON] (Alternative [ErrorReg] User.UserIdWrapper)
+     , authApiLogin 
+       :: route 
+       :- Description "login"
+       :> "login"
+       :> ReqBody '[JSON] Login.Request
+       :> Post '[JSON] (Alternative ErrorLogin Login.Response)
+     } deriving stock Generic       
 
 api :: Proxy (ToServantApi ApplicationApi)
 api = genericApi (Proxy :: Proxy ApplicationApi)

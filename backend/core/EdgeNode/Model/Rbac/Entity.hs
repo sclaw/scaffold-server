@@ -20,13 +20,14 @@
 
 module EdgeNode.Model.Rbac.Entity
        ( RoleTree
+       , RoleId
        , Field (..)
        , RoleIdWrapper (..)
        )
        where
 
 import EdgeNode.Rbac
-import EdgeNode.Model.User.Entity (UserIdWrapper)
+import EdgeNode.Model.User.Entity  
 import EdgeNode.Model.Tree
 
 import Orm.PersistField ()

@@ -19,11 +19,10 @@ module EdgeNode.Model.User.Entity
        , UserConstructor (..)
        , Field (..)
        , UserIdWrapper (..)
-       , JWTUser (..)
        , wrapId
        ) where
 
-import EdgeNode.User
+import EdgeNode.UserId
 
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
@@ -31,7 +30,6 @@ import Data.ByteString
 import Database.AutoKey
 import TH.Instance
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
-import Servant.Auth.Server
 import Data.Int (Int64)
 
 data User =
@@ -39,12 +37,6 @@ data User =
      {  userEmail    :: !String
       , userPassword :: !ByteString
      }
-
-
-instance FromJWT JWTUser where
-  decodeJWT = undefined
-    
-instance ToJWT JWTUser where
 
 mkPersist_ [groundhog| 
  - entity: User

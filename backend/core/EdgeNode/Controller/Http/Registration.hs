@@ -63,7 +63,7 @@ password validation:
 email validation: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]{2,}$
 -}
 
-controller :: Auth.RegisterInfo -> KatipController (Alternative [Error'] User.UserIdWrapper)
+controller :: Auth.RegisterInfo -> KatipController (Alternative [ErrorReg] User.UserIdWrapper)
 controller info = 
   do
     $(logTM) InfoS (logStr (mkPretty "registration info: " (show info)))
@@ -76,7 +76,7 @@ controller info =
 -- >>> validateInfo (Auth.RegisterInfo (""^.stextl) (""^.stextl))
 -- Failure [WrongEmail,PasswordWeek]
 -- 
-validateInfo :: Auth.RegisterInfo -> Validation [Error'] ()
+validateInfo :: Auth.RegisterInfo -> Validation [ErrorReg] ()
 validateInfo info  = validateEmail *> validatePassword  
   where
     emailRegex = [re|^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]{2,}$|]
@@ -121,13 +121,13 @@ persist info =
 -- Right (Fortune (UserIdWrapper {unwrap = UserId {userIdUserIdIdent = 1}}))
 mkResp 
   :: Validation 
-     [Error'] 
+     [ErrorReg] 
      (Either Exception.Hasql 
       User.UserIdWrapper)
   -> Either 
      Exception.Hasql 
      (Alternative 
-      [Error'] User.UserIdWrapper)
+      [ErrorReg] User.UserIdWrapper)
 mkResp = validation (Right . Error) ok
   where ok (Left (Exception.UniqueViolation _)) 
             = Right $ Error [EmailTaken]
