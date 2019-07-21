@@ -6,3 +6,6 @@ log/
 .vscode/
 backend/proto
 frontend/proto
+dist/
+stack.yaml.lock 
+

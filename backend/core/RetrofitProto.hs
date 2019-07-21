@@ -4,11 +4,11 @@
 
 module RetrofitProto 
       ( ErrorReg (..)
-      , ErrorLogin (..)
+      , ErrorSignIn (..)
       ) where
 
 import qualified EdgeNode.Api.Http.Auth.Register as Auth
-import qualified EdgeNode.Api.Http.Auth.Login as Login
+import qualified EdgeNode.Api.Http.Auth.SignIn as SignIn
 
 import TH.Instance 
   ( deriveToSchemaAndJSONProtoEnum 
@@ -17,5 +17,5 @@ import GHC.Generics
 
 deriveToSchemaAndJSONProtoEnum ''Auth.Error "Reg"
 deriveToSchemaAndDefJSON ''ErrorReg
-deriveToSchemaAndJSONProtoEnum ''Login.Error "Login"
-deriveToSchemaAndDefJSON ''ErrorLogin
+deriveToSchemaAndJSONProtoEnum ''SignIn.Error "SignIn"
+deriveToSchemaAndDefJSON ''ErrorSignIn

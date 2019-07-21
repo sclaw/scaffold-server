@@ -88,20 +88,18 @@ run Cfg {..} =
            (runKatipController cfg) 
            (toServant App.application :<|> 
             swaggerSchemaUIServerT (swaggerHttpApi cfgPort))
-     
-      logger <-katipAddNamespace (Namespace ["middleware"]) askLoggerIO
-
+      excep <-katipAddNamespace (Namespace ["exception"]) askLoggerIO
       let settings = 
            Warp.defaultSettings
            & Warp.setPort cfgPort
-           & Warp.setOnException (logUncaughtException logger)
+           & Warp.setOnException (logUncaughtException excep)
       let runServer = 
            serveWithContext 
            (withSwagger api) 
            (defaultCookieSettings :. jwtCfg :. EmptyContext) 
            server
-
-      servAsync <- liftIO $ async $ Warp.runSettings settings (middleware logger runServer)     
+      mware <-katipAddNamespace (Namespace ["middleware"]) askLoggerIO
+      servAsync <- liftIO $ async $ Warp.runSettings settings (middleware mware runServer)     
       liftIO (void (waitAnyCancel [servAsync])) `logExceptionM` ErrorS
     
 middleware :: KatipLoggerIO -> Application -> Application

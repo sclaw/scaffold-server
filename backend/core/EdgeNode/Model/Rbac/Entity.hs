@@ -1,3 +1,6 @@
+{-# OPTIONS_GHC -fno-warn-missing-exported-signatures #-}
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}
+
 {-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveGeneric         #-}
@@ -15,8 +18,6 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 {-# LANGUAGE DerivingStrategies     #-}
-{-# OPTIONS_GHC -fno-warn-missing-exported-signatures #-}
-{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 
 module EdgeNode.Model.Rbac.Entity
        ( RoleTree

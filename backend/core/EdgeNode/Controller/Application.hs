@@ -18,7 +18,6 @@ application = ApplicationApi { applicationApiHttp = toServant httpApi }
 httpApi :: HttpApi (AsServerT KatipController)
 httpApi = HttpApi { httpApiAuth = toServant auth }
 
-
 auth :: AuthApi (AsServerT KatipController)
 auth = AuthApi 
       { authApiRegistration = 
@@ -26,5 +25,5 @@ auth = AuthApi
         . katipAddNamespace 
           (Namespace ["auth", "registration"])  
         . Auth.Registration.controller
-      , authApiLogin = undefined   
+      , authApiSignIn = undefined   
       }

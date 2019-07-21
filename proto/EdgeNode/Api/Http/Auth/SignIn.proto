@@ -1,5 +1,5 @@
 syntax = 'proto3';
-package EdgeNode.Api.Http.Auth.Login;
+package EdgeNode.Api.Http.Auth.SignIn;
 
 message Request {	
   string login = 1;

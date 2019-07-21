@@ -16,7 +16,7 @@ module EdgeNode.Api
 
 import qualified EdgeNode.Model.User.Entity as User
 import qualified EdgeNode.Api.Http.Auth.Register as Reg
-import qualified EdgeNode.Api.Http.Auth.Login as Login
+import qualified EdgeNode.Api.Http.Auth.SignIn as SignIn
 
 import Servant.API.Generic
 import Servant.API.WebSocket ()
@@ -61,12 +61,12 @@ data AuthApi route =
        :> "registration"
        :> ReqBody '[JSON] Reg.RegisterInfo 
        :> Post '[JSON] (Alternative [ErrorReg] User.UserIdWrapper)
-     , authApiLogin 
+     , authApiSignIn
        :: route 
-       :- Description "login"
-       :> "login"
-       :> ReqBody '[JSON] Login.Request
-       :> Post '[JSON] (Alternative ErrorLogin Login.Response)
+       :- Description "signin"
+       :> "signin"
+       :> ReqBody '[JSON] SignIn.Request
+       :> Post '[JSON] (Alternative ErrorSignIn SignIn.Response)
      } deriving stock Generic       
 
 api :: Proxy (ToServantApi ApplicationApi)
