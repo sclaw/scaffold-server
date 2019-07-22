@@ -1,10 +1,17 @@
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
+
 module Database.Migration (run) where
 
+import qualified EdgeNode.Application as App
+
+import Database.Action (runTryDbConnGH)  
 import Database.DbMeta  
 import Database.Groundhog.Postgresql
 import Data.Pool
 import Control.Monad.IO.Class
-import Database.Groundhog.Core (Action, PersistValue (..), fromPersistValues)
+import Database.Groundhog.Core
 import Database.Groundhog.Generic (firstRow)
 import Data.Word (Word32)
 import Data.Foldable (traverse_)
@@ -12,35 +19,59 @@ import Data.Bool (bool)
 import Data.Time.Clock
 import Data.Typeable
 import Database.Table
+import qualified Database.Exception as Exception
+import Control.Exception.Base
+import Katip
+import Control.Lens
+import Control.Lens.Iso.Extended
+import Data.String.Interpolate
 
-run :: Pool Postgresql -> IO ()
-run cm = (checkDBMeta >>= traverse_ (bool migrateInit migrateNew)) `runDbConn` cm
+type MigrationAction a = TryAction Exception.Groundhog (KatipContextT App.AppMonad) Postgresql a
 
-migrateInit :: Action Postgresql ()
-migrateInit = mkTables >> setVersion
+run :: Pool Postgresql -> KatipContextT App.AppMonad (Either SomeException ())
+run cm = (checkDBMeta >>= traverse_ (bool migrateInit migrateNew)) `runTryDbConnGH` cm
 
-migrateNew :: Action Postgresql ()
+migrateInit :: MigrationAction ()
+migrateInit = 
+  do 
+    Database.Table.print 
+    mkTables
+    setVersion
+
+migrateNew :: MigrationAction ()
 migrateNew = 
   do
     v <- getVersion
-    let skip = liftIO $ print "new migration not found. skip"
-    traverse_ (const skip) v
+    $(logTM) InfoS (logStr ("migration last version " <> v^.stringify))
+    let start _ = $(logTM) InfoS "new migration not found"
+    traverse_ start v
 
-checkDBMeta :: Action Postgresql (Maybe Bool)
+checkDBMeta :: MigrationAction (Maybe Bool)
 checkDBMeta = 
   do 
+    let tbl = show (typeOf (undefined :: DbMeta)) 
     let sql = 
-         "select exists (select 1 \
-         \from information_schema.tables \ 
-         \where table_schema = 'public' \
-         \and table_name = '" <> 
-         show (typeOf (undefined :: DbMeta)) <> "')" 
+         [i| select exists (select 1
+           from information_schema.tables 
+           where table_schema = 'public'
+           and table_name = '#{tbl}')
+         |]   
     stream <- queryRaw False sql []
     row <- firstRow stream
     traverse ((fst `fmap`) . fromPersistValues) row
 
-getVersion :: Action Postgresql (Maybe Word32)
-getVersion = fmap dbMetaMigrationVersion `fmap` get (DbMetaKey (PersistInt64 1)) 
-    
-setVersion :: Action Postgresql ()
+getVersion :: MigrationAction (Maybe Word32)
+getVersion = fmap dbMetaMigrationVersion `fmap` getLast  
+  where 
+    getLast = 
+      do 
+        let sql =
+             [i| select "dbMetaMigrationVersion" from "DbMeta" 
+              order by "dbMetaMigrationVersion" desc limit 1  
+             |]
+        stream <- queryRaw False sql []
+        row <- firstRow stream
+        traverse ((fst `fmap`) . fromPersistValues) row
+         
+setVersion :: MigrationAction ()
 setVersion = liftIO getCurrentTime >>= (insert_ . DbMeta 1)

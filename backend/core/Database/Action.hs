@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Database.Action (runTryDbConnGH, runTryDbConnHasql) where
 
@@ -17,11 +18,16 @@ import Data.Bifunctor
 import Katip.Monadic (askLoggerIO)
 import PostgreSQL.ErrorCodes
 import Data.Foldable 
+import Control.Monad.Trans.Control
+import Control.Monad.Catch
 
 runTryDbConnGH 
-  :: TryAction Exception.Groundhog KatipController Postgresql a 
+  :: (KatipContext m, 
+      MonadBaseControl IO m, 
+      MonadCatch m) 
+  => TryAction Exception.Groundhog m Postgresql a 
   -> Pool Postgresql 
-  -> KatipController (Either SomeException a)
+  -> m (Either SomeException a)
 runTryDbConnGH action = katipAddNamespace (Namespace ["orm"]) . runTryDbConn action
 
 runTryDbConnHasql :: Show a => (KatipLoggerIO -> Session a) -> Hasql.Pool -> KatipController (Either Exception.Hasql a)

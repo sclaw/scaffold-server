@@ -9,6 +9,7 @@
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
@@ -40,6 +41,7 @@ import qualified Middleware
 import Control.Monad.RWS.Strict as RWS
 import Control.Monad.Base (MonadBase)
 import Control.Monad.Catch
+import Control.Monad.Trans.Control
 
 data Cfg = 
      Cfg 
@@ -60,6 +62,7 @@ newtype AppMonad a = AppMonad { runAppMonad :: RWS.RWST KatipEnv KatipLogger Kat
   deriving newtype (MonadWriter KatipLogger)
   deriving newtype (MonadRWS KatipEnv KatipLogger KatipState)
   deriving newtype (MonadBase IO)
+  deriving newtype (MonadBaseControl IO)
   deriving newtype MonadCatch
   deriving newtype MonadThrow
 

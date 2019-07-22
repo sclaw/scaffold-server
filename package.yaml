@@ -134,6 +134,7 @@ library:
     - lifted-base
     - data-default-class
     - postgresql-error-codes
+    - string-interpolate
   source-dirs:
     - backend/core
     - backend/extended

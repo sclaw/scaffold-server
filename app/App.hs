@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module App (main) where
 
@@ -18,7 +19,6 @@ import System.IO (stdout)
 import qualified Hasql.Pool as Hasql
 import qualified Hasql.Connection as HasqlConn
 import System.Environment (getArgs)
-import Text.Printf 
 import Control.Lens.Iso.Extended
 import Control.Monad
 import Data.Time.Clock (getCurrentTime)
@@ -29,6 +29,7 @@ import qualified Data.ByteString.Lazy  as B
 import GHC.IO.Handle (BufferMode (NoBuffering), hSetBuffering)
 import Data.Default.Class
 import Control.Monad.RWS.Strict (evalRWST)
+import Data.String.Interpolate
 
 main :: IO ()
 main =
@@ -67,17 +68,19 @@ main =
       let appCfg = App.Cfg (cfg^.ports.port) (fromRight' jwke) (cfg^.auth.isAuthEnabled)                    
 
       let runApp le = 
-            runKatipContextT le 
-            (mempty :: LogContexts) 
-            mempty 
-            (App.run appCfg)
-      Migration.run orm
+           runKatipContextT le (mempty :: LogContexts) mempty $  
+            do e <- Migration.run orm 
+               let err e = error $ "migration failure, error: " <> show e
+               either err (const (App.run appCfg)) e
       let katipEnv = KatipEnv term orm raw
-      let katipSt = def
-      bracket env' closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv katipSt) . runApp)       
+      bracket env' closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)       
       
 mkOrmConn :: Db -> String
-mkOrmConn x = printf "host=%s port=%d dbname=%s user=%s password=%s" (x^.host) (x^.port) (x^.database) (x^.user) (x^.pass)
+mkOrmConn x = 
+  [i| host=#{x^.host} port=#{x^.port} 
+      dbname=#{x^.database} user=#{x^.user} 
+      password=#{x^.pass}
+  |]
 
 mkRawConn :: Db -> HasqlConn.Settings
 mkRawConn x = 

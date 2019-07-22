@@ -66,6 +66,7 @@ extra-deps:
  - proto3-suite-0.3.0.0@sha256:a89fd56f04bff5a9365a1e8f19b73a021c8153ac7763cc7436546d2b154fae39,5507
  - proto3-wire-1.0.0@sha256:8f59b61300cde2f1836d139145b65fe19c2a471f5f1b80ed585817800decc5c0,1887
  - postgresql-error-codes-1.0.1@sha256:34ce40401dc21762996dadd38336436f40a09da95ad3309ba6dc506d707cff11,1413
+ - string-interpolate-0.1.0.1@sha256:6efbc888a2986ee80ddd014fded600de113554684fe5eaca87cf02ab59cfa95c,1999
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
