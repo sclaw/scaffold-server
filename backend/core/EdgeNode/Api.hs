@@ -27,7 +27,7 @@ import Data.Swagger
 import Control.Lens
 import ReliefJsonData
 import Servant.Auth.Swagger ()
-import Swagger.Proto ()
+import Swagger.ToSchema ()
 import RetrofitProto
 import Control.Lens.Iso.Extended
 
