@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-missing-exported-signatures #-}
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 {-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveGeneric         #-}
@@ -14,8 +16,6 @@
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
-{-# OPTIONS_GHC -fno-warn-missing-exported-signatures #-}
-{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 
 module Database.DbMeta (DbMeta (..), Key (..)) where
 

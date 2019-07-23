@@ -1,6 +1,5 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
 
 module Database.Migration (run) where
 
@@ -14,7 +13,6 @@ import Control.Monad.IO.Class
 import Database.Groundhog.Core
 import Database.Groundhog.Generic (firstRow)
 import Data.Word (Word32)
-import Data.Foldable (traverse_)
 import Data.Bool (bool)
 import Data.Time.Clock
 import Data.Typeable
@@ -25,6 +23,7 @@ import Katip
 import Control.Lens
 import Control.Lens.Iso.Extended
 import Data.String.Interpolate
+import Data.Foldable
 
 type MigrationAction a = TryAction Exception.Groundhog (KatipContextT App.AppMonad) Postgresql a
 
@@ -43,8 +42,12 @@ migrateNew =
   do
     v <- getVersion
     $(logTM) InfoS (logStr ("migration last version " <> v^.stringify))
-    let start _ = $(logTM) InfoS "new migration not found"
-    traverse_ start v
+    for_ v $ \i -> do
+      $(logTM) InfoS (logStr ("migration will be start from version " <> show (i + 1)))
+      applyMigration i
+
+applyMigration :: Word32 -> MigrationAction ()
+applyMigration _ = return ()
 
 checkDBMeta :: MigrationAction (Maybe Bool)
 checkDBMeta = 

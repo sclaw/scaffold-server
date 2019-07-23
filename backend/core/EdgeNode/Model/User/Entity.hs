@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE DeriveGeneric          #-}
@@ -12,7 +13,6 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE DerivingStrategies     #-}
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module EdgeNode.Model.User.Entity  
        ( User

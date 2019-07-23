@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE DeriveGeneric          #-}
@@ -11,7 +12,6 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module EdgeNode.Model.Token.Entity (Token, TokenConstructor (..), Field (..)) where
 

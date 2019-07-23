@@ -1,6 +1,6 @@
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module Test.Hspec.DB.Groundhog
        (  itDBGroundhog

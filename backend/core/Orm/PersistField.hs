@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE ExistentialQuantification  #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -11,8 +13,6 @@
 {-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
-{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
-{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 
 module Orm.PersistField () where
 
