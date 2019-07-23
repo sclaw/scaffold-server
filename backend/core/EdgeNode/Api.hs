@@ -14,21 +14,16 @@ module EdgeNode.Api
        , swaggerHttpApi
        ) where
 
-import qualified EdgeNode.Model.User.Entity as User
-import qualified EdgeNode.Api.Http.Auth.Register as Reg
-import qualified EdgeNode.Api.Http.Auth.SignIn as SignIn
+import EdgeNode.Api.Http.Api
 
 import Servant.API.Generic
 import Servant.API.WebSocket ()
 import Data.Proxy
-import Servant.API
 import Servant.Swagger
 import Data.Swagger
 import Control.Lens
-import ReliefJsonData
 import Servant.Auth.Swagger ()
 import Swagger.ToSchema ()
-import RetrofitProto
 import Control.Lens.Iso.Extended
 
 data ApplicationApi route = 
@@ -44,31 +39,7 @@ newtype HttpWrapperApi route =
           :: route 
           :- ToServant HttpApi AsApi 
         } deriving stock Generic
-
-newtype HttpApi route = 
-        HttpApi 
-        { httpApiAuth
-          :: route 
-          :- "auth" 
-          :> ToServant AuthApi AsApi 
-        } deriving stock Generic
-
-data AuthApi route = 
-     AuthApi
-     { authApiRegistration
-       :: route
-       :- Description "simple registration" 
-       :> "registration"
-       :> ReqBody '[JSON] Reg.RegisterInfo 
-       :> Post '[JSON] (Alternative [ErrorReg] User.UserIdWrapper)
-     , authApiSignIn
-       :: route 
-       :- Description "signin"
-       :> "signin"
-       :> ReqBody '[JSON] SignIn.Request
-       :> Post '[JSON] (Alternative ErrorSignIn SignIn.Response)
-     } deriving stock Generic       
-
+    
 api :: Proxy (ToServantApi ApplicationApi)
 api = genericApi (Proxy :: Proxy ApplicationApi)
 
