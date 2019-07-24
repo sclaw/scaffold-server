@@ -9,8 +9,6 @@ module EdgeNode.Api.Http.Auth (AuthApi (..)) where
 
 import qualified EdgeNode.Model.User.Entity as User
 import qualified EdgeNode.Api.Http.Auth.Register as Reg
-import qualified EdgeNode.Api.Http.Auth.SignIn as SignIn
-import qualified EdgeNode.Api.Http.Auth.RefreshToken as RefreshToken
 
 import Servant.API.Generic
 import Servant.API.WebSocket ()
@@ -24,7 +22,7 @@ data AuthApi route =
      AuthApi
      { authApiRegistration
        :: route
-       :- Description "simple registration" 
+       :- Description "simple registration"
        :> "registration"
        :> ReqBody '[JSON] Reg.RegisterInfo 
        :> Post '[JSON] (Alternative [ErrorReg] User.UserIdWrapper)
@@ -32,12 +30,12 @@ data AuthApi route =
        :: route 
        :- Description "signin"
        :> "signin"
-       :> ReqBody '[JSON] SignIn.Request
-       :> Post '[JSON] (Alternative ErrorSignIn SignIn.Response)
+       :> ReqBody '[JSON] SignInRequest
+       :> Post '[JSON] (Alternative ErrorSignIn SignInResponse)
      , authApiRefreshToken
        :: route 
        :- Description "refresh token"
        :> "refresh-token"
-       :> ReqBody '[JSON] RefreshToken.Request
-       :> Post '[JSON] (Alternative ErrorRefreshToken RefreshToken.Response)
+       :> ReqBody '[JSON] RefreshTokenRequest
+       :> Post '[JSON] (Alternative ErrorRefreshToken RefreshTokenResponse)
      } deriving stock Generic

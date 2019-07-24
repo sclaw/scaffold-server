@@ -7,7 +7,9 @@ message Request {
 }
 
 message Response {
-  bytes token = 1;
+  bytes accessToken = 1;
+  bytes refreshToken = 2;
+  bytes accessTokenLifetime = 3;
 }
 
 enum Error {

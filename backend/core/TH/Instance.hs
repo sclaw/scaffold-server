@@ -16,6 +16,8 @@ module TH.Instance
        , deriveToSchemaAndDefJSON
        , enumConvertor
        , derivePrimitivePersistFieldParam
+       , requestWrapper
+       , responseWrapper
        )
        where
 
@@ -30,7 +32,7 @@ import Data.Scientific as Scientific
 import Data.Maybe (fromMaybe)
 import Data.Proxy
 import Control.Lens.Iso.Extended
-import Data.Text (stripPrefix)
+import Data.Text (stripPrefix, split)
 import Data.Char (toUpper)
 import Text.Casing (quietSnake)
 
@@ -247,3 +249,43 @@ enumConvertor name =
      let isoSig = SigD isoN (AppT (AppT (ConT iso) (ConT name)) (ConT str))  
      iosDec <- [d| $(varP isoN) = $(appE (appE (varE (mkName "iso")) (varE isoNFrom)) (varE isoNTo)) |]
      return $ [fromSig, from, toSig, to, isoSig] ++ iosDec
+
+requestWrapper :: Name -> Q [Dec]
+requestWrapper name = do
+  TyConI (DataD _ n _ _ _ _) <- reify name
+  let Just prefix = fmap (last . (^.stext.to (split (== '.')))) $ nameModule n
+  let wrapper = mkName $ (prefix^.from stext) <> nameBase name
+  let fromJson = mkName "FromJSON"
+  let toSchema = mkName "ToSchema"
+  let gen = mkName "Generic"
+  let entiityWrapper = 
+        NewtypeD [] wrapper [] Nothing 
+        (NormalC wrapper 
+        [(Bang NoSourceUnpackedness 
+                NoSourceStrictness
+        , ConT name)]) 
+        [ DerivClause (Just NewtypeStrategy) [ConT fromJson]
+        , DerivClause (Just AnyclassStrategy) [ConT toSchema]
+        , DerivClause (Just StockStrategy) [ConT gen]
+        ]
+  return [entiityWrapper] 
+
+responseWrapper :: Name -> Q [Dec]
+responseWrapper name =  do
+  TyConI (DataD _ n _ _ _ _) <- reify name
+  let Just prefix = fmap (last . (^.stext.to (split (== '.')))) $ nameModule n
+  let wrapper = mkName $ (prefix^.from stext) <> nameBase name
+  let toJson = mkName "ToJSON"
+  let toSchema = mkName "ToSchema"
+  let gen = mkName "Generic"
+  let entiityWrapper = 
+        NewtypeD [] wrapper [] Nothing 
+        (NormalC wrapper 
+        [(Bang NoSourceUnpackedness 
+                NoSourceStrictness
+        , ConT name)]) 
+        [ DerivClause (Just NewtypeStrategy) [ConT toJson]
+        , DerivClause (Just AnyclassStrategy) [ConT toSchema]
+        , DerivClause (Just StockStrategy) [ConT gen]
+        ]
+  return [entiityWrapper]

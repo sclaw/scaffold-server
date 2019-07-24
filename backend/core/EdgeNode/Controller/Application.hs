@@ -6,6 +6,7 @@ module EdgeNode.Controller.Application (application) where
 import EdgeNode.Api
 -- controllers
 import qualified EdgeNode.Controller.Http.Registration as Auth.Registration
+import qualified EdgeNode.Controller.Http.SignIn as Auth.SignIn
 
 import Katip
 import KatipController
@@ -25,6 +26,10 @@ auth = AuthApi
         . katipAddNamespace 
           (Namespace ["auth", "registration"])  
         . Auth.Registration.controller
-      , authApiSignIn = undefined
+      , authApiSignIn = 
+        flip logExceptionM ErrorS 
+        . katipAddNamespace 
+          (Namespace ["auth", "signIn"])  
+        . Auth.SignIn.controller
       , authApiRefreshToken = undefined   
       }
