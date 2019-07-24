@@ -1,0 +1,18 @@
+syntax = 'proto3';
+package EdgeNode.Api.Http.Auth.RefreshProto;
+
+import "Time.proto";
+
+message Request {	
+  bytes refreshToken = 1;
+}
+
+message Response {
+  bytes refreshToken = 1;
+  bytes accessToken = 2;
+  Time.Time accessTokenLifetime = 3;
+}
+
+enum Error {
+  RefreshTokenInvalid = 0;
+}

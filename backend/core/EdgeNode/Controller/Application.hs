@@ -25,5 +25,6 @@ auth = AuthApi
         . katipAddNamespace 
           (Namespace ["auth", "registration"])  
         . Auth.Registration.controller
-      , authApiSignIn = undefined   
+      , authApiSignIn = undefined
+      , authApiRefreshToken = undefined   
       }
