@@ -1,6 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-unused-local-binds #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
@@ -35,8 +34,6 @@ import Control.Lens.Iso.Extended
 import Data.Text (stripPrefix, split)
 import Data.Char (toUpper)
 import Text.Casing (quietSnake)
-
-import Control.Monad.IO.Class
 
 derivePrimitivePersistField :: Name -> ExpQ -> Q [Dec]
 derivePrimitivePersistField name iso = [d|
@@ -268,7 +265,15 @@ requestWrapper name = do
         , DerivClause (Just AnyclassStrategy) [ConT toSchema]
         , DerivClause (Just StockStrategy) [ConT gen]
         ]
-  return [entiityWrapper] 
+  let x = mkName "x"      
+  inst <- 
+   [d| instance Wrapped $(conT wrapper) where
+         type Unwrapped $(conT wrapper) = $(conT name) 
+         _Wrapped' = iso fromWrapper toWrapper
+          where fromWrapper $(conP wrapper [varP x]) = $(varE x)
+                toWrapper $(varP x) = $(appE (conE wrapper) (varE x)) 
+    |]                  
+  return $ entiityWrapper : inst 
 
 responseWrapper :: Name -> Q [Dec]
 responseWrapper name =  do
@@ -288,4 +293,12 @@ responseWrapper name =  do
         , DerivClause (Just AnyclassStrategy) [ConT toSchema]
         , DerivClause (Just StockStrategy) [ConT gen]
         ]
-  return [entiityWrapper]
+  let x = mkName "x"      
+  inst <- 
+    [d| instance Wrapped $(conT wrapper) where
+          type Unwrapped $(conT wrapper) = $(conT name) 
+          _Wrapped' = iso fromWrapper toWrapper
+           where fromWrapper $(conP wrapper [varP x]) = $(varE x)
+                 toWrapper $(varP x) = $(appE (conE wrapper) (varE x)) 
+    |]                          
+  return $ entiityWrapper : inst

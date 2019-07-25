@@ -3,6 +3,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module RetrofitProto where
 
