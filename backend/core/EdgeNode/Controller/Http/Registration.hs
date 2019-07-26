@@ -63,7 +63,7 @@ password validation:
 email validation: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]{2,}$
 -}
 
-controller :: RegisterRequest -> KatipController (Alternative RegisterError RegisterResponse)
+controller :: RegisterRequest -> KatipController (Alternative (Error RegisterError) RegisterResponse)
 controller _ = undefined 
 
   -- do

@@ -22,17 +22,17 @@ data AuthApi route =
        :- Description "simple registration"
        :> "registration"
        :> ReqBody '[JSON] RegisterRequest 
-       :> Post '[JSON] (Alternative RegisterError RegisterResponse)
+       :> Post '[JSON] (Alternative (Error RegisterError) RegisterResponse)
      , authApiSignIn
        :: route 
        :- Description "signin"
        :> "signin"
        :> ReqBody '[JSON] SignInRequest
-       :> Post '[JSON] (Alternative SignInError SignInResponse)
+       :> Post '[JSON] (Alternative (Error SignInError) SignInResponse)
      , authApiRefreshToken
        :: route 
        :- Description "refresh token"
        :> "refresh-token"
        :> ReqBody '[JSON] RefreshTokenRequest
-       :> Post '[JSON] (Alternative RefreshTokenError RefreshTokenResponse)
+       :> Post '[JSON] (Alternative (Error RefreshTokenError) RefreshTokenResponse)
      } deriving stock Generic

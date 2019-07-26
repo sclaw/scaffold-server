@@ -1,0 +1,12 @@
+syntax = 'proto3';
+package EdgeNode.Api.User;
+
+import "Protobuf/Scalar.proto";
+
+message UserId { sint64 ident = 1; }
+
+message User {
+    Protobuf.String name = 1;
+    Protobuf.String middlename = 2;
+    Protobuf.String surname = 3; 
+}

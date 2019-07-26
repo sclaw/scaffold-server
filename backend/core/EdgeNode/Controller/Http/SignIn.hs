@@ -15,7 +15,7 @@ import Katip
 import Data.Generics.Internal.VL.Lens
 import Data.Generics.Product
 
-controller :: SignInRequest -> KatipController (Alternative SignInError SignInResponse)
+controller :: SignInRequest -> KatipController (Alternative (Error SignInError) SignInResponse)
 controller req = 
   do
     let email = req^._Wrapped'.field @"requestEmail"

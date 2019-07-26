@@ -1,4 +1,0 @@
-syntax = 'proto3';
-package EdgeNode.Api.UserId;
-
-message UserId { sint64 ident = 1; }

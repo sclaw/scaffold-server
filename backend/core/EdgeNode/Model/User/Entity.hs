@@ -15,38 +15,56 @@
 {-# LANGUAGE DerivingStrategies     #-}
 
 module EdgeNode.Model.User.Entity  
-       ( User
-       , UserConstructor (..)
+       ( AuthenticatedUser (..)
+       , AuthenticatedUserConstructor (..)
        , Field (..)
        , UserIdWrapper (..)
+       , User (..)
+       , UserConstructor (..)
+       , UserKeyRel
        , wrapId
        ) where
 
-import EdgeNode.UserId
+import EdgeNode.User
 
+import Database.AutoKey
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Data.ByteString
-import Database.AutoKey
 import TH.Instance
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import Data.Int (Int64)
+import qualified Data.Text as T
+import Orm.PersistField ()
 
-data User =
-     User
-     {  userEmail    :: !String
-      , userPassword :: !ByteString
+data AuthenticatedUser =
+     AuthenticatedUser
+     { authenticatedUserEmail    :: !T.Text
+     , authenticatedUserPassword :: !ByteString
+     }
+
+data UserKeyRel =
+     UserKeyRel 
+     { userKeyRelAuth     :: 
+       DefaultKey 
+       AuthenticatedUser
+     , userKeyRelEdgeNode :: 
+       DefaultKey User
      }
 
 mkPersist_ [groundhog| 
- - entity: User
-   schema: main
+ - entity: AuthenticatedUser
+   schema: auth
    constructors:
-    - name: User
+    - name: AuthenticatedUser
       uniques: 
-       - name: user_userEmail_uk
+       - name: authenticatedUser_email_uk
          type: constraint
-         fields: [userEmail]
+         fields: [authenticatedUserEmail]
+ - entity: User
+   schema: edgeNode
+ - entity: UserKeyRel
+   schema: edgeNode          
  |]
  
 deriveAutoKey ''User

@@ -56,7 +56,7 @@ derivePrimitivePersistField ''Role [| isoRoleTree |]
   
 mkPersist_ [groundhog|
  - entity: RoleTree
-   schema: main
+   schema: edgeNode
  |]
 
 deriveWrappedPrimitivePersistField ''RoleId

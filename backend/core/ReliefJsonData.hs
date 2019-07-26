@@ -49,7 +49,8 @@ instance (ToJSON a, ToJSON b) => ToJSON (Alternative a b) where
     toJSON (Fortune x) = object [ "success" .= toJSON x ]
 
 instance forall a b . (FromJSON a, FromJSON b) => FromJSON (Alternative a b) where
-  parseJSON = withObject "a" $ \v -> asum @[] [ Error <$> v .: "error", Fortune <$> v.: "success"]
+  parseJSON = withObject "Alternative" $ \v -> 
+    asum @[] [ Error <$> v .: "error", Fortune <$> v.: "success"]
 
 instance (Typeable a, ToSchema a, Typeable b, ToSchema b) => ToSchema (Alternative a b) where
   declareNamedSchema _ = do
@@ -75,3 +76,22 @@ eitherToAlt = iso from to
 
 data Error a = ServerError InternalServerError | ResponseError a
 
+instance ToJSON a => ToJSON (Error a) where
+  toJSON (ServerError e) = object [ "server" .= toJSON e ]
+  toJSON (ResponseError e) = object [ "client" .= toJSON e ]
+
+instance forall a . FromJSON a => FromJSON (Error a) where
+  parseJSON = withObject "Error" $ \v -> 
+    asum @[] [ ServerError <$> v .: "server", ResponseError <$> v.: "client"]
+
+instance (Typeable a, ToSchema a) => ToSchema (Error a) where
+  declareNamedSchema _ = do
+    a <- declareSchemaRef (Proxy :: Proxy a)
+    server <- declareSchemaRef (Proxy :: Proxy InternalServerError)
+    let unique = typeOf (undefined :: a)^.to show.stext
+    let name = "Error." <> unique
+    let schema = 
+          NamedSchema (Just name) $ mempty
+          & type_ .~ SwaggerObject
+          & properties .~ [("server", server), ("client", a)]
+    return schema

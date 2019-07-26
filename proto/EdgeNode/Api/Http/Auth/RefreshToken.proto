@@ -1,7 +1,7 @@
 syntax = 'proto3';
 package EdgeNode.Api.Http.Auth.RefreshToken;
 
-import "Time.proto";
+import "Time/Time.proto";
 
 message Request {	
   bytes refreshToken = 1;

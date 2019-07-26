@@ -21,7 +21,10 @@ import qualified Data.Sequence as Seq
 import Database.Groundhog ()
 import Database.Groundhog.Core
 import Database.Groundhog.TH
-
+import qualified Protobuf.Scalar
+import TH.Instance (deriveWrappedPrimitivePersistField, derivePrimitivePersistField)
+import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
+import GHC.Float
 
 {- We need (PersistField (Seq a)) to make model out of protobuffer
  - datatypes. Unfortunatelly, Seq is a newtype, and Groundhog somewhy
@@ -47,3 +50,18 @@ instance (PersistField a) => PersistField (Seq.Seq a) where
     (XList l, values') <- fromPersistValues values
     pure (Seq.fromList l, values')
   dbType p s = dbType p (XList $ s^..traverse)
+
+derivePrimitivePersistField ''Float [| iso float2Double double2Float |]
+
+deriveWrappedPrimitivePersistField ''Protobuf.Scalar.String
+deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Bytes
+deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Double
+deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Float
+deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Int32
+deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Int64
+deriveWrappedPrimitivePersistField ''Protobuf.Scalar.UInt64
+deriveWrappedPrimitivePersistField ''Protobuf.Scalar.UInt32
+deriveWrappedPrimitivePersistField ''Protobuf.Scalar.SInt64
+deriveWrappedPrimitivePersistField ''Protobuf.Scalar.SInt32
+deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Fixed64
+deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Fixed32

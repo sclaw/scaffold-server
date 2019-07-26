@@ -3,7 +3,7 @@
 module Database.Table (mkTables, Database.Table.print) where
 
 import qualified EdgeNode.Application as App
-import EdgeNode.Model.User.Entity (User)
+import EdgeNode.Model.User.Entity (AuthenticatedUser, User, UserKeyRel)
 import EdgeNode.Model.Token.Entity (Token)
 import EdgeNode.Model.Rbac.Entity (RoleTree)
 
@@ -34,6 +34,8 @@ migration :: Migration (TryAction Exception.Groundhog (KatipContextT App.AppMona
 migration = 
   do 
     migrate (undefined :: DbMeta)
+    migrate (undefined :: AuthenticatedUser)
     migrate (undefined :: User)
+    migrate (undefined :: UserKeyRel)
     migrate (undefined :: Token)
     migrate (undefined :: RoleTree)
