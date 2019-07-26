@@ -11,7 +11,9 @@
 
 -- | A wrapper for the either that is only applicative and has serialization that
 -- is useful for us.
-module ReliefJsonData (Alternative(..), eitherToAlt) where
+module ReliefJsonData (Alternative(..), eitherToAlt, Error (..)) where
+
+import EdgeNode.Error
 
 import Data.Aeson hiding (Error, Success)
 import Data.Proxy
@@ -70,3 +72,6 @@ eitherToAlt = iso from to
   where from = either Error Fortune
         to (Error e) = Left e
         to (Fortune a) = Right a
+
+data Error a = ServerError InternalServerError | ResponseError a
+

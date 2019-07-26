@@ -1,0 +1,5 @@
+syntax = "proto3";
+
+package EdgeNode.Error;
+
+message InternalServerError { string loc = 1; }

@@ -15,10 +15,10 @@ import Katip
 import Data.Generics.Internal.VL.Lens
 import Data.Generics.Product
 
-controller :: SignInRequest -> KatipController (Alternative ErrorSignIn SignInResponse)
+controller :: SignInRequest -> KatipController (Alternative SignInError SignInResponse)
 controller req = 
   do
-    let login = req^._Wrapped'.field @"requestLogin"
+    let email = req^._Wrapped'.field @"requestEmail"
     let pass = req^._Wrapped'.field @"requestPassword"
-    $(logTM) InfoS (logStr (login <> ", " <> pass))
+    $(logTM) InfoS (logStr (email <> ", " <> pass))
     undefined

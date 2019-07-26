@@ -200,9 +200,9 @@ deriveToSchemaAndJSONProtoIdent name =
      return $ entiityWrapper : xs 
 
 deriveToSchemaAndJSONProtoEnum :: Name -> String -> Q [Dec]
-deriveToSchemaAndJSONProtoEnum name postfix = 
+deriveToSchemaAndJSONProtoEnum name prefix = 
   do TyConI (DataD ctx n xs kind ys cl) <- reify name
-     let new = mkName $ nameBase name <> postfix
+     let new = mkName $ prefix <> nameBase name
      let geni = DerivClause Nothing [ConT (mkName "Generic")]
      let showi = DerivClause (Just StockStrategy) [ConT (mkName "Show")]
      let capitalizeHead x = x & _head %~ toUpper 

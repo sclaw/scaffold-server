@@ -6,5 +6,5 @@ import RetrofitProto
 import ReliefJsonData
 import KatipController
 
-controller :: RefreshTokenRequest -> KatipController (Alternative ErrorRefreshToken RefreshTokenResponse)
+controller :: RefreshTokenRequest -> KatipController (Alternative RefreshTokenError RefreshTokenResponse)
 controller = undefined

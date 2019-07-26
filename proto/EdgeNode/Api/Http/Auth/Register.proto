@@ -1,14 +1,16 @@
 syntax = 'proto3';
 package EdgeNode.Api.Http.Auth.Register;
 
-message RegisterInfo {	
+message Request {	
   string email = 1;
   string password = 2;
 }
 
+message Response {}
+
 enum Error {
-	EmailTaken = 1;
-	WrongEmail = 2;
-	PasswordWeek = 3;
-	InternalServerError = 4;
+	EmailTaken = 0;
+	WrongEmail = 1;
+	PasswordWeek = 2;
+	InternalServerError = 3;	  
 }

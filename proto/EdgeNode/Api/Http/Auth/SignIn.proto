@@ -2,7 +2,7 @@ syntax = 'proto3';
 package EdgeNode.Api.Http.Auth.SignIn;
 
 message Request {	
-  string login = 1;
+  string email = 1;
   string password = 2;
 }
 
@@ -12,6 +12,4 @@ message Response {
   bytes accessTokenLifetime = 3;
 }
 
-enum Error {
-  LoginOrPaswwordWrong = 0;
-}
+enum Error { LoginOrPaswwordWrong = 0; }

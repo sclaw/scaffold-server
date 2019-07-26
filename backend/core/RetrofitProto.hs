@@ -7,7 +7,7 @@
 
 module RetrofitProto where
 
-import qualified EdgeNode.Api.Http.Auth.Register as Auth
+import qualified EdgeNode.Api.Http.Auth.Register as Reg
 import qualified EdgeNode.Api.Http.Auth.SignIn as SignIn
 import qualified EdgeNode.Api.Http.Auth.RefreshToken as RefreshToken
 
@@ -16,14 +16,16 @@ import GHC.Generics
 import Data.Aeson
 import Data.Swagger
 
-deriveToSchemaAndJSONProtoEnum ''Auth.Error "Reg"
-deriveToSchemaAndDefJSON ''ErrorReg
+deriveToSchemaAndJSONProtoEnum ''Reg.Error "Register"
+deriveToSchemaAndDefJSON ''RegisterError
 deriveToSchemaAndJSONProtoEnum ''SignIn.Error "SignIn"
-deriveToSchemaAndDefJSON ''ErrorSignIn
+deriveToSchemaAndDefJSON ''SignInError
 deriveToSchemaAndJSONProtoEnum ''RefreshToken.Error "RefreshToken"
-deriveToSchemaAndDefJSON ''ErrorRefreshToken
+deriveToSchemaAndDefJSON ''RefreshTokenError
 
 requestWrapper ''RefreshToken.Request
 responseWrapper ''RefreshToken.Response
 requestWrapper ''SignIn.Request
 responseWrapper ''SignIn.Response
+requestWrapper ''Reg.Request
+responseWrapper ''Reg.Response

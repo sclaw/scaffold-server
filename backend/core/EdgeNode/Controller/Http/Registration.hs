@@ -63,54 +63,55 @@ password validation:
 email validation: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]{2,}$
 -}
 
-controller :: Auth.RegisterInfo -> KatipController (Alternative [ErrorReg] User.UserIdWrapper)
-controller info = 
-  do
-    $(logTM) InfoS (logStr (mkPretty "registration info: " (show info)))
-    x <- traverse (const (persist info)) (validateInfo info)
-    let mkErr e = $(logTM) ErrorS (logStr (show e)) $> Error [InternalServerError]
-    either mkErr return (mkResp x)
+controller :: RegisterRequest -> KatipController (Alternative RegisterError RegisterResponse)
+controller _ = undefined 
+
+  -- do
+  --   $(logTM) InfoS (logStr (mkPretty "registration info: " (show info)))
+  --   x <- traverse (const (persist info)) (validateInfo info)
+  --   let mkErr e = $(logTM) ErrorS (logStr (show e)) $> Error [InternalServerError]
+  --   either mkErr return (mkResp x)
      
 -- | EdgeNode.Controller.Http.Registration:validateInfo
 --
 -- >>> validateInfo (Auth.RegisterInfo (""^.stextl) (""^.stextl))
 -- Failure [WrongEmail,PasswordWeek]
 -- 
-validateInfo :: Auth.RegisterInfo -> Validation [ErrorReg] ()
-validateInfo info  = validateEmail *> validatePassword  
-  where
-    emailRegex = [re|^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]{2,}$|]
-    passRegex = [re|^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$|]
-    validateEmail 
-     | matched ((info^.field @"registerInfoEmail".lazytext) ?=~ emailRegex) = _Success # ()
-     | otherwise = _Failure # [WrongEmail]
-    validatePassword 
-     | matched ((info^.field @"registerInfoPassword".lazytext) ?=~ passRegex) = _Success # ()
-     | otherwise = _Failure # [PasswordWeek]
+-- validateInfo :: Auth.RegisterInfo -> Validation [ErrorReg] ()
+-- validateInfo info  = validateEmail *> validatePassword  
+--   where
+--     emailRegex = [re|^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]{2,}$|]
+--     passRegex = [re|^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$|]
+--     validateEmail 
+--      | matched ((info^.field @"registerInfoEmail".lazytext) ?=~ emailRegex) = _Success # ()
+--      | otherwise = _Failure # [WrongEmail]
+--     validatePassword 
+--      | matched ((info^.field @"registerInfoPassword".lazytext) ?=~ passRegex) = _Success # ()
+--      | otherwise = _Failure # [PasswordWeek]
 
-persist :: Auth.RegisterInfo -> KatipController (Either Exception.Hasql User.UserIdWrapper)
-persist info =
-  do 
-    raw <- (^.katipEnv.rawDB) `fmap` ask
-    runTryDbConnHasql action raw
-  where 
-   action logger = 
-    do
-      let sql = 
-           [qns| insert into main."User" ("userEmail", "userPassword") 
-                 values ($1, $2) returning id 
-           |]
-      let mkSalt = makeSalt (info^.field @"registerInfoEmail".lazytext.textbs)
-      let pass = info^.field @"registerInfoPassword".lazytext.textbs
-      let mkPass = makePasswordSaltWith pbkdf2 id pass mkSalt 2000 
-      let encoder = 
-           (info^.field @"registerInfoEmail".lazytext) >$ 
-           HE.param HE.text <>
-           (mkPass >$ HE.param HE.bytea) 
-      let decoder = HD.singleRow $ HD.column HD.int8 <&> User.wrapId
-      let log = (sql^.from textbs.from stext) <> ", loc: " <> show getLoc
-      liftIO $ logger InfoS (logStr log)
-      statement () (HS.Statement sql encoder decoder True)
+-- persist :: Auth.RegisterInfo -> KatipController (Either Exception.Hasql User.UserIdWrapper)
+-- persist info =
+--   do 
+--     raw <- (^.katipEnv.rawDB) `fmap` ask
+--     runTryDbConnHasql action raw
+--   where 
+--    action logger = 
+--     do
+--       let sql = 
+--            [qns| insert into main."User" ("userEmail", "userPassword") 
+--                  values ($1, $2) returning id 
+--            |]
+--       let mkSalt = makeSalt (info^.field @"registerInfoEmail".lazytext.textbs)
+--       let pass = info^.field @"registerInfoPassword".lazytext.textbs
+--       let mkPass = makePasswordSaltWith pbkdf2 id pass mkSalt 2000 
+--       let encoder = 
+--            (info^.field @"registerInfoEmail".lazytext) >$ 
+--            HE.param HE.text <>
+--            (mkPass >$ HE.param HE.bytea) 
+--       let decoder = HD.singleRow $ HD.column HD.int8 <&> User.wrapId
+--       let log = (sql^.from textbs.from stext) <> ", loc: " <> show getLoc
+--       liftIO $ logger InfoS (logStr log)
+--       statement () (HS.Statement sql encoder decoder True)
 
 -- | EdgeNode.Controller.Http.Registration:mkRespBody
 --
@@ -119,17 +120,17 @@ persist info =
 --    
 -- >>> mkResp (Success (Right (User.wrapId 1)))
 -- Right (Fortune (UserIdWrapper {unwrap = UserId {userIdUserIdIdent = 1}}))
-mkResp 
-  :: Validation 
-     [ErrorReg] 
-     (Either Exception.Hasql 
-      User.UserIdWrapper)
-  -> Either 
-     Exception.Hasql 
-     (Alternative 
-      [ErrorReg] User.UserIdWrapper)
-mkResp = validation (Right . Error) ok
-  where ok (Left (Exception.UniqueViolation _)) 
-            = Right $ Error [EmailTaken]
-        ok (Left e) = Left e
-        ok (Right ident) = Right $ Fortune ident
+-- mkResp 
+--   :: Validation 
+--      [ErrorReg] 
+--      (Either Exception.Hasql 
+--       User.UserIdWrapper)
+--   -> Either 
+--      Exception.Hasql 
+--      (Alternative 
+--       [ErrorReg] User.UserIdWrapper)
+-- mkResp = validation (Right . Error) ok
+--   where ok (Left (Exception.UniqueViolation _)) 
+--             = Right $ Error [EmailTaken]
+--         ok (Left e) = Left e
+--         ok (Right ident) = Right $ Fortune ident
