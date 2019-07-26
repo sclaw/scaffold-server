@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -15,8 +13,9 @@
 
 module EdgeNode.Controller.Http.Registration (controller) where
 
-import qualified EdgeNode.Api.Http.Auth.Register as Auth
+import qualified EdgeNode.Api.Http.Auth.Register as Reg
 import qualified EdgeNode.Model.User.Entity as User
+import EdgeNode.Error
 
 import Katip
 import Katip.Core (getLoc)
@@ -26,14 +25,12 @@ import ReliefJsonData
 import Control.Lens.Iso.Extended
 import Control.Monad.IO.Class
 import Text.RE.PCRE.Text (matched, (?=~), re)
-import Katip.Monadic
-import Control.Lens ((>$), (<&>), from, _Left)
+import Control.Lens ((>$), (<&>), from, _Wrapped', _Unwrapped')
 import Data.Validation
-import Hasql.Session
+import Hasql.Session hiding (ServerError)
 import qualified Hasql.Statement as HS 
 import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
-import Hasql.Pool
 import Control.Monad.Reader.Class
 import Database.Action
 import Crypto.PasswordStore (pbkdf2, makePasswordSaltWith, makeSalt)
@@ -41,9 +38,6 @@ import Text.InterpolatedString.QM
 import Data.Generics.Internal.VL.Lens
 import Data.Generics.Product
 import Data.Generics.Internal.VL.Prism
-import qualified Data.ByteString as B
-import qualified Data.Text.Lazy as LT
-import Data.Bifunctor
 import RetrofitProto
 import Data.Functor (($>))
 import qualified Database.Exception as Exception
@@ -63,74 +57,86 @@ password validation:
 email validation: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]{2,}$
 -}
 
-controller :: RegisterRequest -> KatipController (Alternative (Error RegisterError) RegisterResponse)
-controller _ = undefined 
-
-  -- do
-  --   $(logTM) InfoS (logStr (mkPretty "registration info: " (show info)))
-  --   x <- traverse (const (persist info)) (validateInfo info)
-  --   let mkErr e = $(logTM) ErrorS (logStr (show e)) $> Error [InternalServerError]
-  --   either mkErr return (mkResp x)
+controller :: RegisterRequest -> KatipController (Alternative (Error [RegisterError]) RegisterResponse)
+controller req =
+  do
+    $(logTM) InfoS (logStr (mkPretty "req: " (show req)))
+    x <- traverse (const (persist req)) (validateInfo req)
+    let mkErr e = 
+         $(logTM) ErrorS (logStr (show e)) $> 
+         Error (ServerError (InternalServerError "Registration"))
+    either mkErr return (mkResp x)
      
 -- | EdgeNode.Controller.Http.Registration:validateInfo
 --
--- >>> validateInfo (Auth.RegisterInfo (""^.stextl) (""^.stextl))
+-- >>> validateInfo (RegisterRequest (Reg.Request (""^.stextl) (""^.stextl)))
 -- Failure [WrongEmail,PasswordWeek]
 -- 
--- validateInfo :: Auth.RegisterInfo -> Validation [ErrorReg] ()
--- validateInfo info  = validateEmail *> validatePassword  
---   where
---     emailRegex = [re|^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]{2,}$|]
---     passRegex = [re|^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$|]
---     validateEmail 
---      | matched ((info^.field @"registerInfoEmail".lazytext) ?=~ emailRegex) = _Success # ()
---      | otherwise = _Failure # [WrongEmail]
---     validatePassword 
---      | matched ((info^.field @"registerInfoPassword".lazytext) ?=~ passRegex) = _Success # ()
---      | otherwise = _Failure # [PasswordWeek]
+validateInfo :: RegisterRequest -> Validation [RegisterError] ()
+validateInfo info  = validateEmail *> validatePassword  
+  where
+    emailRegex = [re|^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]{2,}$|]
+    passRegex = [re|^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$|]
+    validateEmail 
+     | matched ((info^._Wrapped'.field @"requestEmail".lazytext) ?=~ emailRegex) = _Success # ()
+     | otherwise = _Failure # [WrongEmail]
+    validatePassword 
+     | matched ((info^._Wrapped'.field @"requestPassword".lazytext) ?=~ passRegex) = _Success # ()
+     | otherwise = _Failure # [PasswordWeek]
 
--- persist :: Auth.RegisterInfo -> KatipController (Either Exception.Hasql User.UserIdWrapper)
--- persist info =
---   do 
---     raw <- (^.katipEnv.rawDB) `fmap` ask
---     runTryDbConnHasql action raw
---   where 
---    action logger = 
---     do
---       let sql = 
---            [qns| insert into main."User" ("userEmail", "userPassword") 
---                  values ($1, $2) returning id 
---            |]
---       let mkSalt = makeSalt (info^.field @"registerInfoEmail".lazytext.textbs)
---       let pass = info^.field @"registerInfoPassword".lazytext.textbs
---       let mkPass = makePasswordSaltWith pbkdf2 id pass mkSalt 2000 
---       let encoder = 
---            (info^.field @"registerInfoEmail".lazytext) >$ 
---            HE.param HE.text <>
---            (mkPass >$ HE.param HE.bytea) 
---       let decoder = HD.singleRow $ HD.column HD.int8 <&> User.wrapId
---       let log = (sql^.from textbs.from stext) <> ", loc: " <> show getLoc
---       liftIO $ logger InfoS (logStr log)
---       statement () (HS.Statement sql encoder decoder True)
+persist :: RegisterRequest -> KatipController (Either Exception.Hasql RegisterResponse)
+persist req =
+  do 
+    raw <- (^.katipEnv.rawDB) `fmap` ask
+    runTryDbConnHasql action raw
+  where 
+   action logger = 
+    do
+      let sql = 
+           [qns| 
+             with 
+              cred as (insert into auth."AuthenticatedUser" 
+               ("authenticatedUserEmail", "authenticatedUserPassword") 
+               values ('asfsa', 'sacsd') returning id),
+              newUser as (insert into "edgeNode"."User"
+               ("userName", "userMiddlename", "userSurname") values
+               (default, default, default) returning id)
+             insert into "edgeNode"."UserKeyRel" 
+             ("userKeyRelAuth", "userKeyRelEdgeNode") 
+             values ((select id from cred), (select id from newUser))
+             returning (select id from newUser)     
+           |]
+      let mkSalt = makeSalt (req^._Wrapped'.field @"requestEmail".lazytext.textbs)
+      let pass = req^._Wrapped'.field @"requestPassword".lazytext.textbs
+      let mkPass = makePasswordSaltWith pbkdf2 id pass mkSalt 2000 
+      let encoder = 
+           (req^._Wrapped'.field @"requestEmail".lazytext) >$ 
+           HE.param HE.text <>
+           (mkPass >$ HE.param HE.bytea) 
+      let decoder = 
+           HD.singleRow $ 
+           HD.column HD.int8 <&> 
+           ((^._Unwrapped') . Reg.Response . Just . User.UserId)
+      let log = (sql^.from textbs.from stext) <> ", loc: " <> show getLoc
+      liftIO $ logger InfoS (logStr log)
+      statement () (HS.Statement sql encoder decoder True)
 
 -- | EdgeNode.Controller.Http.Registration:mkRespBody
 --
 -- >>> mkResp (Failure [PasswordWeek])
--- Right (Error [PasswordWeek])
---    
--- >>> mkResp (Success (Right (User.wrapId 1)))
--- Right (Fortune (UserIdWrapper {unwrap = UserId {userIdUserIdIdent = 1}}))
--- mkResp 
---   :: Validation 
---      [ErrorReg] 
---      (Either Exception.Hasql 
---       User.UserIdWrapper)
---   -> Either 
---      Exception.Hasql 
---      (Alternative 
---       [ErrorReg] User.UserIdWrapper)
--- mkResp = validation (Right . Error) ok
---   where ok (Left (Exception.UniqueViolation _)) 
---             = Right $ Error [EmailTaken]
---         ok (Left e) = Left e
---         ok (Right ident) = Right $ Fortune ident
+-- Right (Error (ResponseError [PasswordWeek]))
+mkResp 
+  :: Validation 
+     [RegisterError] 
+     (Either Exception.Hasql 
+      RegisterResponse)
+  -> Either 
+     Exception.Hasql 
+     (Alternative 
+      (Error [RegisterError]) 
+      RegisterResponse)
+mkResp = validation (Right . Error . ResponseError) ok
+  where ok (Left (Exception.UniqueViolation _)) 
+            = Right $ Error (ResponseError [EmailTaken])
+        ok (Left e) = Left e
+        ok (Right ident) = Right $ Fortune ident

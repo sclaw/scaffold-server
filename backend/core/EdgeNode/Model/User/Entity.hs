@@ -18,11 +18,10 @@ module EdgeNode.Model.User.Entity
        ( AuthenticatedUser (..)
        , AuthenticatedUserConstructor (..)
        , Field (..)
-       , UserIdWrapper (..)
        , User (..)
+       , UserId (..)
        , UserConstructor (..)
        , UserKeyRel
-       , wrapId
        ) where
 
 import EdgeNode.User
@@ -33,7 +32,6 @@ import Database.Groundhog.Core (Field (..))
 import Data.ByteString
 import TH.Instance
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
-import Data.Int (Int64)
 import qualified Data.Text as T
 import Orm.PersistField ()
 
@@ -63,6 +61,15 @@ mkPersist_ [groundhog|
          fields: [authenticatedUserEmail]
  - entity: User
    schema: edgeNode
+   constructors:
+    - name: User 
+      fields: 
+       - name: userName
+         default: 'null'
+       - name: userMiddlename
+         default: 'null'
+       - name: userSurname
+         default: 'null'   
  - entity: UserKeyRel
    schema: edgeNode          
  |]
@@ -70,7 +77,4 @@ mkPersist_ [groundhog|
 deriveAutoKey ''User
 deriveToSchemaAndJSONProtoIdent ''UserId
 deriveWrappedPrimitivePersistField ''UserId
-deriveWrappedPrimitivePersistField ''UserIdWrapper
 
-wrapId :: Int64 -> UserIdWrapper
-wrapId = UserIdWrapper . UserId

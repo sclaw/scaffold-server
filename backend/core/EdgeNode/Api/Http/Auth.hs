@@ -22,7 +22,7 @@ data AuthApi route =
        :- Description "simple registration"
        :> "registration"
        :> ReqBody '[JSON] RegisterRequest 
-       :> Post '[JSON] (Alternative (Error RegisterError) RegisterResponse)
+       :> Post '[JSON] (Alternative (Error [RegisterError]) RegisterResponse)
      , authApiSignIn
        :: route 
        :- Description "signin"

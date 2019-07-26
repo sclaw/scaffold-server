@@ -8,6 +8,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE DerivingStrategies #-}
 
 -- | A wrapper for the either that is only applicative and has serialization that
 -- is useful for us.
@@ -75,6 +76,8 @@ eitherToAlt = iso from to
         to (Fortune a) = Right a
 
 data Error a = ServerError InternalServerError | ResponseError a
+  deriving stock Generic
+  deriving stock Show
 
 instance ToJSON a => ToJSON (Error a) where
   toJSON (ServerError e) = object [ "server" .= toJSON e ]

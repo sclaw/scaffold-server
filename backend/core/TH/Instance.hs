@@ -255,6 +255,7 @@ requestWrapper name = do
   let fromJson = mkName "FromJSON"
   let toSchema = mkName "ToSchema"
   let gen = mkName "Generic"
+  let show = mkName "Show"
   let entiityWrapper = 
         NewtypeD [] wrapper [] Nothing 
         (NormalC wrapper 
@@ -264,6 +265,7 @@ requestWrapper name = do
         [ DerivClause (Just NewtypeStrategy) [ConT fromJson]
         , DerivClause (Just AnyclassStrategy) [ConT toSchema]
         , DerivClause (Just StockStrategy) [ConT gen]
+        , DerivClause (Just NewtypeStrategy) [ConT show]
         ]
   let x = mkName "x"      
   inst <- 
@@ -283,6 +285,7 @@ responseWrapper name =  do
   let toJson = mkName "ToJSON"
   let toSchema = mkName "ToSchema"
   let gen = mkName "Generic"
+  let show = mkName "Show"
   let entiityWrapper = 
         NewtypeD [] wrapper [] Nothing 
         (NormalC wrapper 
@@ -292,6 +295,7 @@ responseWrapper name =  do
         [ DerivClause (Just NewtypeStrategy) [ConT toJson]
         , DerivClause (Just AnyclassStrategy) [ConT toSchema]
         , DerivClause (Just StockStrategy) [ConT gen]
+        , DerivClause (Just NewtypeStrategy) [ConT show]
         ]
   let x = mkName "x"      
   inst <- 

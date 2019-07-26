@@ -1,16 +1,17 @@
 syntax = 'proto3';
 package EdgeNode.Api.Http.Auth.Register;
 
+import "EdgeNode/User.proto";
+
 message Request {	
   string email = 1;
   string password = 2;
 }
 
-message Response {}
+message Response { EdgeNode.User.UserId ident = 1; }
 
 enum Error {
 	EmailTaken = 0;
 	WrongEmail = 1;
-	PasswordWeek = 2;
-	InternalServerError = 3;	  
+	PasswordWeek = 2;	  
 }

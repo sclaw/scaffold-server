@@ -44,7 +44,7 @@ import qualified Data.ByteString.Lazy as B
 data RoleTree = 
      RoleTree 
      { roleTreeTree :: !(Tree Role)
-     , roleTreeWho  :: !UserIdWrapper
+     , roleTreeWho  :: !UserId
      , roleTreeWhen :: !UTCTime 
      }
 
