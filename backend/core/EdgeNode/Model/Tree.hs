@@ -25,7 +25,7 @@ import Control.Lens
 import qualified Data.ByteString.Lazy as B
 import Data.Aeson
 import Data.Tree
-import TH.Instance
+import TH.Generator
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 
 isoTree ::  (ToJSON a, FromJSON a) => Iso' (Tree a) B.ByteString 

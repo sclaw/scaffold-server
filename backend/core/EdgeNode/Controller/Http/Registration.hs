@@ -25,7 +25,7 @@ import ReliefJsonData
 import Control.Lens.Iso.Extended
 import Control.Monad.IO.Class
 import Text.RE.PCRE.Text (matched, (?=~), re)
-import Control.Lens ((>$), (<&>), from, _Wrapped', _Unwrapped')
+import Control.Lens ((>$), (<&>), from, _Wrapped', _Unwrapped', _Just)
 import Data.Validation
 import Hasql.Session hiding (ServerError)
 import qualified Hasql.Statement as HS 
@@ -34,7 +34,7 @@ import qualified Hasql.Decoders as HD
 import Control.Monad.Reader.Class
 import Database.Action
 import Crypto.PasswordStore (pbkdf2, makePasswordSaltWith, makeSalt)
-import Text.InterpolatedString.QM
+import Data.String.Interpolate
 import Data.Generics.Internal.VL.Lens
 import Data.Generics.Product
 import Data.Generics.Internal.VL.Prism
@@ -93,26 +93,33 @@ persist req =
    action logger = 
     do
       let sql = 
-           [qns| 
+           [i| 
              with 
               cred as (insert into auth."AuthenticatedUser" 
                ("authenticatedUserEmail", "authenticatedUserPassword") 
-               values ('asfsa', 'sacsd') returning id),
+               values ($1, $2) returning id),
               newUser as (insert into "edgeNode"."User"
                ("userName", "userMiddlename", "userSurname") values
-               (default, default, default) returning id)
-             insert into "edgeNode"."UserKeyRel" 
-             ("userKeyRelAuth", "userKeyRelEdgeNode") 
+               ($3, $4, $5) returning id)
+             insert into "edgeNode"."UserTablesBonds" 
+             ("userTablesBondsAuth", "userTablesBondsEdgeNode") 
              values ((select id from cred), (select id from newUser))
              returning (select id from newUser)     
            |]
+      let def = User.defUser :: User.User      
       let mkSalt = makeSalt (req^._Wrapped'.field @"requestEmail".lazytext.textbs)
       let pass = req^._Wrapped'.field @"requestPassword".lazytext.textbs
       let mkPass = makePasswordSaltWith pbkdf2 id pass mkSalt 2000 
       let encoder = 
            (req^._Wrapped'.field @"requestEmail".lazytext) >$ 
            HE.param HE.text <>
-           (mkPass >$ HE.param HE.bytea) 
+           (mkPass >$ HE.param HE.bytea) <>
+           ((def^?field @"userName"._Just._Wrapped'.lazytext) >$ 
+            HE.nullableParam HE.text) <>
+           ((def^?field @"userMiddlename"._Just._Wrapped'.lazytext) >$ 
+            HE.nullableParam HE.text) <>
+           ((def^?field @"userSurname"._Just._Wrapped'.lazytext) >$ 
+            HE.nullableParam HE.text)
       let decoder = 
            HD.singleRow $ 
            HD.column HD.int8 <&> 

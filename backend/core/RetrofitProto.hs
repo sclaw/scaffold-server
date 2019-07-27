@@ -11,7 +11,7 @@ import qualified EdgeNode.Api.Http.Auth.Register as Reg
 import qualified EdgeNode.Api.Http.Auth.SignIn as SignIn
 import qualified EdgeNode.Api.Http.Auth.RefreshToken as RefreshToken
 
-import TH.Instance
+import TH.Generator
 import GHC.Generics
 import Data.Aeson
 import Data.Swagger

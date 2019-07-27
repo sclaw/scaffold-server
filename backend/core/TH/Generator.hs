@@ -4,7 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 
-module TH.Instance
+module TH.Generator
        ( derivePrimitivePersistField
        , deriveWrappedPrimitivePersistField
        , deriveNumInstanceFromWrappedNum

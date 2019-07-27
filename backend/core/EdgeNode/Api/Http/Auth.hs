@@ -34,5 +34,5 @@ data AuthApi route =
        :- Description "refresh token"
        :> "refresh-token"
        :> ReqBody '[JSON] RefreshTokenRequest
-       :> Post '[JSON] (Alternative (Error RefreshTokenError) RefreshTokenResponse)
+       :> Post '[JSON] (Alternative (Error RefreshTokenError) RefreshTokenResponse)       
      } deriving stock Generic

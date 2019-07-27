@@ -13,6 +13,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE DerivingStrategies     #-}
+{-# LANGUAGE DefaultSignatures #-}
 
 module EdgeNode.Model.User.Entity  
        ( AuthenticatedUser (..)
@@ -21,7 +22,8 @@ module EdgeNode.Model.User.Entity
        , User (..)
        , UserId (..)
        , UserConstructor (..)
-       , UserKeyRel
+       , UserTablesBonds
+       , defUser
        ) where
 
 import EdgeNode.User
@@ -30,10 +32,11 @@ import Database.AutoKey
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Data.ByteString
-import TH.Instance
+import TH.Generator
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import qualified Data.Text as T
 import Orm.PersistField ()
+import Data.Default.Class
 
 data AuthenticatedUser =
      AuthenticatedUser
@@ -41,14 +44,16 @@ data AuthenticatedUser =
      , authenticatedUserPassword :: !ByteString
      }
 
-data UserKeyRel =
-     UserKeyRel 
-     { userKeyRelAuth     :: 
+data UserTablesBonds =
+     UserTablesBonds 
+     { userTablesBondsAuth     :: 
        DefaultKey 
        AuthenticatedUser
-     , userKeyRelEdgeNode :: 
+     , userTablesBondsEdgeNode :: 
        DefaultKey User
      }
+
+instance Default User
 
 mkPersist_ [groundhog| 
  - entity: AuthenticatedUser
@@ -60,17 +65,8 @@ mkPersist_ [groundhog|
          type: constraint
          fields: [authenticatedUserEmail]
  - entity: User
-   schema: edgeNode
-   constructors:
-    - name: User 
-      fields: 
-       - name: userName
-         default: 'null'
-       - name: userMiddlename
-         default: 'null'
-       - name: userSurname
-         default: 'null'   
- - entity: UserKeyRel
+   schema: edgeNode   
+ - entity: UserTablesBonds
    schema: edgeNode          
  |]
  
@@ -78,3 +74,5 @@ deriveAutoKey ''User
 deriveToSchemaAndJSONProtoIdent ''UserId
 deriveWrappedPrimitivePersistField ''UserId
 
+defUser :: User
+defUser = def

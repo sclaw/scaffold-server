@@ -35,7 +35,7 @@ import Orm.PersistField ()
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Control.Lens.Extended
-import TH.Instance
+import TH.Generator
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import Data.Time.Clock
 import Data.Aeson

@@ -3,7 +3,7 @@
 module Database.Table (mkTables, Database.Table.print) where
 
 import qualified EdgeNode.Application as App
-import EdgeNode.Model.User.Entity (AuthenticatedUser, User, UserKeyRel)
+import EdgeNode.Model.User.Entity (AuthenticatedUser, User, UserTablesBonds)
 import EdgeNode.Model.Token.Entity (Token)
 import EdgeNode.Model.Rbac.Entity (RoleTree)
 
@@ -36,6 +36,6 @@ migration =
     migrate (undefined :: DbMeta)
     migrate (undefined :: AuthenticatedUser)
     migrate (undefined :: User)
-    migrate (undefined :: UserKeyRel)
+    migrate (undefined :: UserTablesBonds)
     migrate (undefined :: Token)
     migrate (undefined :: RoleTree)

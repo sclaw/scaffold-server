@@ -113,7 +113,6 @@ library:
     - servant-swagger
     - swagger2
     - wai-app-static
-    - qm-interpolated-string
     - aeson-injector
     - exception-hierarchy
     - servant-auth

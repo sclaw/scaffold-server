@@ -22,7 +22,7 @@ import Database.Groundhog ()
 import Database.Groundhog.Core
 import Database.Groundhog.TH
 import qualified Protobuf.Scalar
-import TH.Instance (deriveWrappedPrimitivePersistField, derivePrimitivePersistField)
+import TH.Generator (deriveWrappedPrimitivePersistField, derivePrimitivePersistField)
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import GHC.Float
 
