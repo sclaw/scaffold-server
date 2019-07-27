@@ -14,6 +14,7 @@ module Control.Lens.Iso.Extended
         , listSeq
         , stringify
         , lazytext
+        , bytesLazy
        ) where
 
 import           Control.Lens
@@ -35,6 +36,9 @@ textbsl :: Iso' T.Text BL.ByteString
 textbsl = iso (LT.encodeUtf8 . LT.fromStrict)
                  (LT.toStrict . LT.decodeUtf8)
 
+bytesLazy :: Iso' BL.ByteString B.ByteString
+bytesLazy = iso BL.toStrict BL.fromStrict
+
 integral :: (Integral a, Integral b) => Iso' a b
 integral = iso fromIntegral fromIntegral
 
@@ -54,4 +58,4 @@ listSeq :: Iso' [a] (Seq.Seq a)
 listSeq = iso Seq.fromList toList
 
 stringify :: (Show a, Read a) => Iso' a String
-stringify = iso show read 
+stringify = iso show read

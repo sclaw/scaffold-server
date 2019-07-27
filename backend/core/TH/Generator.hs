@@ -17,6 +17,7 @@ module TH.Generator
        , derivePrimitivePersistFieldParam
        , requestWrapper
        , responseWrapper
+       , mkFromHttpApiDataIdent
        )
        where
 
@@ -34,6 +35,8 @@ import Control.Lens.Iso.Extended
 import Data.Text (stripPrefix, split)
 import Data.Char (toUpper)
 import Text.Casing (quietSnake)
+import Servant.API
+import Data.Char
 
 derivePrimitivePersistField :: Name -> ExpQ -> Q [Dec]
 derivePrimitivePersistField name iso = [d|
@@ -306,3 +309,18 @@ responseWrapper name =  do
                  toWrapper $(varP x) = $(appE (conE wrapper) (varE x)) 
     |]                          
   return $ entiityWrapper : inst
+
+mkFromHttpApiDataIdent :: Name -> Q [Dec]
+mkFromHttpApiDataIdent name = do
+  let base = nameBase name
+  let con = mkName base
+  let read = mkName "read"
+  [d| instance FromHttpApiData $(conT name) where
+        parseUrlPiece x = 
+          if all isNumber sx then
+            Right $(appE (conE con) 
+                    (appE (varE read) 
+                     (varE (mkName "sx"))))  
+          else Left $ "cannot convert " <> base 
+          where sx = x^.from stext
+   |]

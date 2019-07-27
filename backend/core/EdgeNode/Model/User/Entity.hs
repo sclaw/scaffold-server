@@ -36,7 +36,8 @@ import TH.Generator
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import qualified Data.Text as T
 import Orm.PersistField ()
-import Data.Default.Class
+import Data.Default.Class.Extended
+import Data.Swagger
 
 data AuthenticatedUser =
      AuthenticatedUser
@@ -54,6 +55,7 @@ data UserTablesBonds =
      }
 
 instance Default User
+instance ToParamSchema UserId 
 
 mkPersist_ [groundhog| 
  - entity: AuthenticatedUser
@@ -73,6 +75,7 @@ mkPersist_ [groundhog|
 deriveAutoKey ''User
 deriveToSchemaAndJSONProtoIdent ''UserId
 deriveWrappedPrimitivePersistField ''UserId
+mkFromHttpApiDataIdent ''UserId
 
 defUser :: User
 defUser = def

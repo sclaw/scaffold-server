@@ -25,7 +25,7 @@ import ReliefJsonData
 import Control.Lens.Iso.Extended
 import Control.Monad.IO.Class
 import Text.RE.PCRE.Text (matched, (?=~), re)
-import Control.Lens ((>$), (<&>), from, _Wrapped', _Unwrapped', _Just)
+import Control.Lens ((>$), (<&>), from, _Wrapped', _Just, _Unwrapped', to)
 import Data.Validation
 import Hasql.Session hiding (ServerError)
 import qualified Hasql.Statement as HS 
@@ -41,6 +41,7 @@ import Data.Generics.Internal.VL.Prism
 import RetrofitProto
 import Data.Functor (($>))
 import qualified Database.Exception as Exception
+import Data.Aeson (encode)
 
 {-
 password validation:
@@ -64,7 +65,7 @@ controller req =
     x <- traverse (const (persist req)) (validateInfo req)
     let mkErr e = 
          $(logTM) ErrorS (logStr (show e)) $> 
-         Error (ServerError (InternalServerError "Registration"))
+         Error (ServerError (InternalServerError (show e^.stextl)))
     either mkErr return (mkResp x)
      
 -- | EdgeNode.Controller.Http.Registration:validateInfo
@@ -99,8 +100,10 @@ persist req =
                ("authenticatedUserEmail", "authenticatedUserPassword") 
                values ($1, $2) returning id),
               newUser as (insert into "edgeNode"."User"
-               ("userName", "userMiddlename", "userSurname") values
-               ($3, $4, $5) returning id)
+               ("userName", "userMiddlename", "userSurname", 
+               "userDayOfBirth", "userAllegiance", "userAvatar"
+               ) values
+               ($3, $4, $5, $6, $7, $8) returning id)
              insert into "edgeNode"."UserTablesBonds" 
              ("userTablesBondsAuth", "userTablesBondsEdgeNode") 
              values ((select id from cred), (select id from newUser))
@@ -114,12 +117,16 @@ persist req =
            (req^._Wrapped'.field @"requestEmail".lazytext) >$ 
            HE.param HE.text <>
            (mkPass >$ HE.param HE.bytea) <>
-           ((def^?field @"userName"._Just._Wrapped'.lazytext) >$ 
-            HE.nullableParam HE.text) <>
-           ((def^?field @"userMiddlename"._Just._Wrapped'.lazytext) >$ 
-            HE.nullableParam HE.text) <>
-           ((def^?field @"userSurname"._Just._Wrapped'.lazytext) >$ 
-            HE.nullableParam HE.text)
+           ((def^.field @"userName".lazytext) >$ 
+            HE.param HE.text) <>
+           ((def^.field @"userMiddlename".lazytext) >$ 
+            HE.param HE.text) <>
+           ((def^.field @"userSurname".lazytext) >$ 
+            HE.param HE.text) <> 
+           ((def^?field @"userDayOfBirth"._Just.to encode.bytesLazy) >$ 
+            HE.nullableParam HE.bytea) <>
+           ((def^.field @"userAllegiance".lazytext) >$ HE.param HE.text) <>
+           ((def^.field @"userAvatar") >$ HE.param HE.bytea)
       let decoder = 
            HD.singleRow $ 
            HD.column HD.int8 <&> 

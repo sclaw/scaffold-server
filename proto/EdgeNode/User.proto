@@ -1,12 +1,19 @@
 syntax = 'proto3';
 package EdgeNode.User;
 
-import "Protobuf/Scalar.proto";
+import "Time/Time.proto";
 
 message UserId { sint64 ident = 1; }
 
 message User {
-    Protobuf.String name = 1;
-    Protobuf.String middlename = 2;
-    Protobuf.String surname = 3; 
+    enum Gender {
+        Male = 0;
+        Female = 1;
+    }
+    string name = 1;
+    string middlename = 2;
+    string surname = 3;
+    Time.FullDay dayOfBirth = 4;
+    string allegiance = 5;
+    bytes avatar = 6;
 }

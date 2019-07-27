@@ -10,3 +10,9 @@ message Time {
 	// converted by ISO8601 (from, to string)
 	uint64 timeZone = 2;
 }
+
+message FullDay {
+	uint32 day = 1;
+	uint32 month = 2;
+	uint32 year = 3;
+} 

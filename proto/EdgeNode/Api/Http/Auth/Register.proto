@@ -6,6 +6,7 @@ import "EdgeNode/User.proto";
 message Request {	
   string email = 1;
   string password = 2;
+  string login = 3;
 }
 
 message Response { EdgeNode.User.UserId ident = 1; }

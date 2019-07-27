@@ -16,6 +16,7 @@
 
 module Orm.PersistField () where
 
+import Time.Time  
 import Control.Lens
 import qualified Data.Sequence as Seq
 import Database.Groundhog ()
@@ -25,6 +26,7 @@ import qualified Protobuf.Scalar
 import TH.Generator (deriveWrappedPrimitivePersistField, derivePrimitivePersistField)
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import GHC.Float
+import Data.Aeson
 
 {- We need (PersistField (Seq a)) to make model out of protobuffer
  - datatypes. Unfortunatelly, Seq is a newtype, and Groundhog somewhy
@@ -65,3 +67,9 @@ deriveWrappedPrimitivePersistField ''Protobuf.Scalar.SInt64
 deriveWrappedPrimitivePersistField ''Protobuf.Scalar.SInt32
 deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Fixed64
 deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Fixed32
+
+derivePrimitivePersistField ''FullDay [| iso toJSON (getVal . fromJSON) |]
+
+getVal :: Result FullDay -> FullDay
+getVal (Success x) = x
+getVal e = error (show e)
