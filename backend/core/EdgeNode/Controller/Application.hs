@@ -8,6 +8,7 @@ import EdgeNode.Api
 import qualified EdgeNode.Controller.Http.Registration as Auth.Registration
 import qualified EdgeNode.Controller.Http.SignIn as Auth.SignIn
 import qualified EdgeNode.Controller.Http.LoadProfile as User.LoadProfile 
+import qualified EdgeNode.Controller.Http.PatchProfile as User.PatchProfile
 
 import Katip
 import KatipController
@@ -46,6 +47,11 @@ user =
   { userApiLoadProfile =
     flip logExceptionM ErrorS 
     . katipAddNamespace 
-      (Namespace ["auth", "signIn"])
-    . User.LoadProfile.controller   
+      (Namespace ["user", "loadProfile"])
+    . User.LoadProfile.controller
+  , userPatchProfile = \uid patch ->
+    flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["user", "patchProfile"])
+     (User.PatchProfile.controller uid patch)      
   }
