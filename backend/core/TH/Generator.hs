@@ -18,6 +18,7 @@ module TH.Generator
        , requestWrapper
        , responseWrapper
        , mkFromHttpApiDataIdent
+       , mkFromHttpApiDataEnum
        )
        where
 
@@ -33,10 +34,12 @@ import Data.Maybe (fromMaybe)
 import Data.Proxy
 import Control.Lens.Iso.Extended
 import Data.Text (stripPrefix, split)
-import Data.Char (toUpper)
 import Text.Casing (quietSnake)
 import Servant.API
 import Data.Char
+import qualified Data.Text as T
+
+import Debug.Trace
 
 derivePrimitivePersistField :: Name -> ExpQ -> Q [Dec]
 derivePrimitivePersistField name iso = [d|
@@ -208,6 +211,7 @@ deriveToSchemaAndJSONProtoEnum name prefix =
      let new = mkName $ prefix <> nameBase name
      let geni = DerivClause Nothing [ConT (mkName "Generic")]
      let showi = DerivClause (Just StockStrategy) [ConT (mkName "Show")]
+     let read = DerivClause (Just StockStrategy) [ConT (mkName "Read")]
      let capitalizeHead x = x & _head %~ toUpper 
      let purgeNamePrefix (NormalC n xs) = 
           ((`NormalC` xs) . mkName . capitalizeHead . (^.from stext)) `fmap`
@@ -216,7 +220,7 @@ deriveToSchemaAndJSONProtoEnum name prefix =
           (nameBase n^.stext)
      let err = error $ "error: " <> show name     
      let ys' = map (fromMaybe err . purgeNamePrefix) ys
-     return [DataD ctx new xs kind ys' ([geni, showi] ++ cl)]
+     return [DataD ctx new xs kind ys' ([geni, showi, read] ++ cl)]
 
 enumConvertor :: Name -> Q [Dec]
 enumConvertor name = 
@@ -323,4 +327,14 @@ mkFromHttpApiDataIdent name = do
                      (varE (mkName "sx"))))  
           else Left $ "cannot convert " <> base 
           where sx = x^.from stext
+   |]
+
+mkFromHttpApiDataEnum :: Name -> Q [Dec]
+mkFromHttpApiDataEnum name = do
+  reified <- reify name
+  traceM (show reified)
+  let base = nameBase name
+  [d| instance FromHttpApiData $(conT name) where
+        parseUrlPiece :: T.Text -> Either T.Text $(conT name)
+        parseUrlPiece x = Right $ x^.from stext.to read
    |]

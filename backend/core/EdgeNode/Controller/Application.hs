@@ -9,6 +9,7 @@ import qualified EdgeNode.Controller.Http.Registration as Auth.Registration
 import qualified EdgeNode.Controller.Http.SignIn as Auth.SignIn
 import qualified EdgeNode.Controller.Http.LoadProfile as User.LoadProfile 
 import qualified EdgeNode.Controller.Http.PatchProfile as User.PatchProfile
+import qualified EdgeNode.Controller.Http.LoadCountries as Service.LoadCountries
 
 import Katip
 import KatipController
@@ -21,8 +22,9 @@ application = ApplicationApi { applicationApiHttp = toServant httpApi }
 httpApi :: HttpApi (AsServerT KatipController)
 httpApi = 
   HttpApi 
-  { httpApiAuth = toServant auth
-  , httpApiUser = toServant user
+  { httpApiAuth    = toServant auth
+  , httpApiUser    = toServant user
+  , httpApiService = toServant service
   }
 
 auth :: AuthApi (AsServerT KatipController)
@@ -54,4 +56,14 @@ user =
      katipAddNamespace 
      (Namespace ["user", "patchProfile"])
      (User.PatchProfile.controller uid patch)      
+  }
+
+service :: ServiceApi (AsServerT KatipController)
+service =
+  ServiceApi
+  { serviceApiLoadCountries = \lang ->
+    flip logExceptionM ErrorS $ 
+     katipAddNamespace 
+     (Namespace ["service", "loadContries"])
+     (Service.LoadCountries.controller lang)
   }

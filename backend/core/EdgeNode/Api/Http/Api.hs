@@ -9,17 +9,15 @@ module EdgeNode.Api.Http.Api
        ( HttpApi (..)
        , module EdgeNode.Api.Http.Auth
        , module EdgeNode.Api.Http.User
+       , module EdgeNode.Api.Http.Service
        ) where
 
 import EdgeNode.Api.Http.Auth
 import EdgeNode.Api.Http.User
+import EdgeNode.Api.Http.Service
 
 import Servant.API.Generic
-import Servant.API.WebSocket ()
 import Servant.API
-import Servant.Auth.Swagger ()
-import Swagger.ToSchema ()
-
 
 data HttpApi route = 
      HttpApi 
@@ -30,5 +28,9 @@ data HttpApi route =
      , httpApiUser
        :: route
        :- "user"
-       :> ToServant UserApi AsApi            
+       :> ToServant UserApi AsApi
+     , httpApiService
+       :: route
+       :- "service"
+       :> ToServant ServiceApi AsApi                   
      } deriving stock Generic 

@@ -1,0 +1,12 @@
+syntax = 'proto3';
+package EdgeNode.Service.Countries;
+
+import "EdgeNode/Service/Service.proto";
+
+message Request {
+    EdgeNode.Service.Language lang = 1;
+}
+
+message Response {
+    repeated string list = 1;
+}
