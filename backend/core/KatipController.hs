@@ -25,6 +25,7 @@ module KatipController
        , ormDB
        , rawDB
        , httpReqManager
+       , apiKeys
          -- * run
        , runKatipController  
        ) where
@@ -63,7 +64,9 @@ data KatipEnv =
      , katipEnvRawDB    
        :: !Hasql.Pool
      , katipEnvHttpReqManager 
-       :: !Manager 
+       :: !Manager
+     , katipEnvApiKeys
+       :: ![(String, String)]   
      }
 
 newtype KatipLogger = AppLogger [String] 

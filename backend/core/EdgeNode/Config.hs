@@ -12,6 +12,7 @@ module EdgeNode.Config
        , Db
        , Auth (..)
        , Service (..)
+       , ApiKeys (..)
        , db
        , ports
        , pass
@@ -89,7 +90,7 @@ data Ekg = Ekg { ekgHost :: !String, ekgPort :: !Int } deriving Show
 data Auth = Auth { authJwk :: !FilePath, authIsAuthEnabled :: !Bool }
   deriving Show 
 
-data ApiKeys = ApiKeys [(String, String)]
+newtype ApiKeys = ApiKeys [(String, String)]
   deriving Show
 
 newtype Service = Service { serviceApiKeys :: ApiKeys }

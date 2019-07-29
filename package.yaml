@@ -135,6 +135,7 @@ library:
     - postgresql-error-codes
     - string-interpolate
     - http-client
+    - http-client-tls
   source-dirs:
     - backend/core
     - backend/extended

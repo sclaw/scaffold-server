@@ -30,7 +30,8 @@ import GHC.IO.Handle (BufferMode (NoBuffering), hSetBuffering)
 import Data.Default.Class
 import Control.Monad.RWS.Strict (evalRWST)
 import Data.String.Interpolate
-import qualified Network.HTTP.Client as Http
+import qualified Network.HTTP.Client.TLS as Http
+import Network.HTTP.Client (ManagerSettings (managerConnCount))
 
 main :: IO ()
 main =
@@ -72,9 +73,8 @@ main =
             do e <- Migration.run orm 
                let err e = error $ "migration failure, error: " <> show e
                either err (const (App.run appCfg)) e
-
-      manager <- Http.newManager Http.defaultManagerSettings
-      let katipEnv = KatipEnv term orm raw manager
+      manager <- Http.newTlsManagerWith Http.tlsManagerSettings { managerConnCount = 1 }
+      let katipEnv = KatipEnv term orm raw manager (cfg^.service.coerced)
       bracket env' closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)       
       
 mkOrmConn :: Db -> String
