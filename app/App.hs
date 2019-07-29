@@ -30,6 +30,7 @@ import GHC.IO.Handle (BufferMode (NoBuffering), hSetBuffering)
 import Data.Default.Class
 import Control.Monad.RWS.Strict (evalRWST)
 import Data.String.Interpolate
+import qualified Network.HTTP.Client as Http
 
 main :: IO ()
 main =
@@ -64,7 +65,6 @@ main =
 
       jwke <- eitherDecode `fmap` B.readFile (cfg^.auth.jwk)
       jwke `whenLeft` (error . (<>) "jwk decode error: ")
-
       let appCfg = App.Cfg (cfg^.ports.port) (fromRight' jwke) (cfg^.auth.isAuthEnabled)                    
 
       let runApp le = 
@@ -72,7 +72,9 @@ main =
             do e <- Migration.run orm 
                let err e = error $ "migration failure, error: " <> show e
                either err (const (App.run appCfg)) e
-      let katipEnv = KatipEnv term orm raw
+
+      manager <- Http.newManager Http.defaultManagerSettings
+      let katipEnv = KatipEnv term orm raw manager
       bracket env' closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)       
       
 mkOrmConn :: Db -> String

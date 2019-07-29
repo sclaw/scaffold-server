@@ -134,6 +134,7 @@ library:
     - data-default-class
     - postgresql-error-codes
     - string-interpolate
+    - http-client
   source-dirs:
     - backend/core
     - backend/extended

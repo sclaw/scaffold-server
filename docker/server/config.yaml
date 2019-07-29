@@ -31,3 +31,7 @@ configEkg:
 configAuth: 
   authJwk: symmetric.jwk
   authIsAuthEnabled: false
+
+configService:
+  serviceApiKeys: 
+   - [google, AIzaSyCBwZWJtSwz4dN8suya3YLZMJJjodr3zVM]

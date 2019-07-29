@@ -24,6 +24,7 @@ module KatipController
        , terminal
        , ormDB
        , rawDB
+       , httpReqManager
          -- * run
        , runKatipController  
        ) where
@@ -49,14 +50,20 @@ import Control.Monad.Catch hiding (Handler)
 import Control.Exception.Safe (MonadMask)
 import Data.Default.Class
 import Control.DeepSeq
+import Network.HTTP.Client
 
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 
 data KatipEnv = 
      KatipEnv 
-     { katipEnvTerminal :: !Term
-     , katipEnvOrmDB    :: !(Pool.Pool Postgresql)
-     , katipEnvRawDB    :: !Hasql.Pool
+     { katipEnvTerminal 
+       :: !Term
+     , katipEnvOrmDB    
+       :: !(Pool.Pool Postgresql)
+     , katipEnvRawDB    
+       :: !Hasql.Pool
+     , katipEnvHttpReqManager 
+       :: !Manager 
      }
 
 newtype KatipLogger = AppLogger [String] 

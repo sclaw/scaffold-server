@@ -11,6 +11,7 @@ module EdgeNode.Config
        , Katip (..)
        , Db
        , Auth (..)
+       , Service (..)
        , db
        , ports
        , pass
@@ -37,6 +38,7 @@ module EdgeNode.Config
        , auth
        , jwk
        , isAuthEnabled
+       , service
        ) 
        where
 
@@ -86,7 +88,13 @@ data Ekg = Ekg { ekgHost :: !String, ekgPort :: !Int } deriving Show
 
 data Auth = Auth { authJwk :: !FilePath, authIsAuthEnabled :: !Bool }
   deriving Show 
-  
+
+data ApiKeys = ApiKeys [(String, String)]
+  deriving Show
+
+newtype Service = Service { serviceApiKeys :: ApiKeys }
+  deriving Show
+
 data Config = 
      Config 
      { configDb :: !Db 
@@ -97,6 +105,7 @@ data Config =
      , configKatip :: !Katip
      , configEkg :: !Ekg
      , configAuth :: !Auth
+     , configService :: !Service
      } deriving Show
 
 makeFields ''Config
@@ -120,3 +129,5 @@ deriveFromJSON defaultOptions ''PoolSettings
 deriveFromJSON defaultOptions ''Ekg
 deriveFromJSON defaultOptions ''Katip
 deriveFromJSON defaultOptions ''Auth
+deriveFromJSON defaultOptions ''ApiKeys
+deriveFromJSON defaultOptions ''Service
