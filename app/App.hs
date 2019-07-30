@@ -66,7 +66,12 @@ main =
 
       jwke <- eitherDecode `fmap` B.readFile (cfg^.auth.jwk)
       jwke `whenLeft` (error . (<>) "jwk decode error: ")
-      let appCfg = App.Cfg (cfg^.ports.port) (fromRight' jwke) (cfg^.auth.isAuthEnabled)                    
+      let appCfg = 
+           App.Cfg 
+           (cfg^.hosts.coerced) 
+           (cfg^.ports.port) 
+           (fromRight' jwke) 
+           (cfg^.auth.isAuthEnabled)                    
 
       let runApp le = 
            runKatipContextT le (mempty :: LogContexts) mempty $  

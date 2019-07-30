@@ -13,6 +13,7 @@ module EdgeNode.Config
        , Auth (..)
        , Service (..)
        , ApiKeys (..)
+       , Hosts (..)
        , db
        , ports
        , pass
@@ -40,6 +41,7 @@ module EdgeNode.Config
        , jwk
        , isAuthEnabled
        , service
+       , hosts
        ) 
        where
 
@@ -59,6 +61,10 @@ data Db = Db
      } deriving Show
 
 newtype Ports = Ports { portsPort :: Int } 
+  deriving Show 
+  deriving newtype FromJSON
+
+newtype Hosts = Hosts { hostsSwagger :: String }
   deriving Show 
   deriving newtype FromJSON
 
@@ -107,6 +113,7 @@ data Config =
      , configEkg :: !Ekg
      , configAuth :: !Auth
      , configService :: !Service
+     , configHosts :: !Hosts 
      } deriving Show
 
 makeFields ''Config

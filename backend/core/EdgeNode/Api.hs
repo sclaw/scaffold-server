@@ -45,11 +45,11 @@ newtype HttpWrapperApi route =
 api :: Proxy (ToServantApi ApplicationApi)
 api = genericApi (Proxy :: Proxy ApplicationApi)
 
-swaggerHttpApi :: Int -> Swagger
-swaggerHttpApi port = 
+swaggerHttpApi :: String -> Int -> Swagger
+swaggerHttpApi hs port = 
   toSwagger (genericApi (Proxy :: Proxy HttpWrapperApi)) 
   & schemes ?~ [Http] 
-  & host ?~ Host "localhost" (Just (fromIntegral port))
+  & host ?~ Host hs (Just (fromIntegral port))
   & info.description ?~ "EdgeNode server api"^.stext
   & info.version .~ "0.0.1"^.stext
   & info.contact ?~ (Contact Nothing Nothing (Just ("fclaw007@gmail.com"^.stext)))

@@ -45,7 +45,8 @@ import Control.Monad.Trans.Control
 
 data Cfg = 
      Cfg 
-     { cfgPort :: !Int
+     { cfgHost :: !String 
+     , cfgPort :: !Int
        -- JSON Web Key (JWK) is a JavaScript Object Notation (JSON) 
        -- data structure that represents a cryptographic key 
      , cfgJwk :: !JWK
@@ -90,7 +91,7 @@ run Cfg {..} =
            context
            (runKatipController cfg) 
            (toServant App.application :<|> 
-            swaggerSchemaUIServerT (swaggerHttpApi cfgPort))
+            swaggerSchemaUIServerT (swaggerHttpApi cfgHost cfgPort))
       excep <-katipAddNamespace (Namespace ["exception"]) askLoggerIO
       let settings = 
            Warp.defaultSettings

@@ -7,6 +7,8 @@ configDb:
 
 configPorts: 12000
 
+configHosts: localhost
+
 configOrm: 50
 
 configRaw:
