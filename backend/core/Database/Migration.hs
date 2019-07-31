@@ -25,7 +25,6 @@ import Control.Lens.Iso.Extended
 import Data.String.Interpolate
 import Data.Foldable
 import qualified Database.Migration.Batch as Batch 
-import Data.Maybe
 
 type MigrationAction a = TryAction Exception.Groundhog (KatipContextT App.AppMonad) Postgresql a
 
@@ -45,9 +44,9 @@ migrateNew =
     v <- getVersion
     $(logTM) InfoS (logStr ("migration last version " <> v^.stringify))
     for_ v $ \i -> do
-      $(logTM) InfoS (logStr ("migration will be start from version " <> show (i + 1)))      
+      $(logTM) InfoS (logStr ("migration will be start from version " <> show (i + 1)))     
       next <- Batch.exec (Batch.Version (i + 1))
-      setVersion (Just (next^.coerced))
+      for_ next $ \ident -> setVersion (Just (ident^.coerced))
 
 checkDBMeta :: MigrationAction (Maybe Bool)
 checkDBMeta = 
@@ -64,17 +63,15 @@ checkDBMeta =
     traverse ((fst `fmap`) . fromPersistValues) row
 
 getVersion :: MigrationAction (Maybe Word32)
-getVersion = fmap dbMetaMigrationVersion `fmap` getLast  
-  where 
-    getLast = 
-      do 
-        let sql =
-             [i| select "dbMetaMigrationVersion" from "DbMeta" 
-              order by "dbMetaMigrationVersion" desc limit 1  
-             |]
-        stream <- queryRaw False sql []
-        row <- firstRow stream
-        traverse ((fst `fmap`) . fromPersistValues) row
+getVersion =
+  do 
+    let sql =
+          [i|select "dbMetaMigrationVersion"  from "DbMeta" 
+            order by "dbMetaMigrationVersion" desc limit 1  
+          |]
+    stream <- queryRaw False sql []
+    row <- firstRow stream
+    traverse (return . fromPrimitivePersistValue . head) row
          
 setVersion :: Maybe Word32 -> MigrationAction ()
-setVersion v = liftIO getCurrentTime >>= (insert_ . DbMeta (fromMaybe 1 v))
+setVersion v = liftIO getCurrentTime >>= \tm -> maybe (insert_ (DbMeta 1 tm)) (replace (DbMetaKey (PersistInt64 1)) . flip DbMeta tm) v
