@@ -12,7 +12,8 @@ import Hasql.Pool
 import Data.Word (Word32)
 
 data Groundhog =  
-     MigrationNotFound Word32 
+       MigrationNotFound Word32 
+     | MigrationSqlEmpty Word32
      deriving Show
 
 data Hasql = 

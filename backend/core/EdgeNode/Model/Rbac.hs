@@ -19,7 +19,7 @@
 {-# LANGUAGE UndecidableInstances   #-}
 {-# LANGUAGE DerivingStrategies     #-}
 
-module EdgeNode.Model.Rbac.Entity
+module EdgeNode.Model.Rbac
        ( RoleTree
        , RoleId
        , Field (..)
@@ -28,7 +28,7 @@ module EdgeNode.Model.Rbac.Entity
        where
 
 import EdgeNode.Rbac
-import EdgeNode.Model.User.Entity  
+import EdgeNode.Model.User  
 import EdgeNode.Model.Tree
 
 import Orm.PersistField ()

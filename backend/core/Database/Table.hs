@@ -3,9 +3,10 @@
 module Database.Table (mkTables, Database.Table.print) where
 
 import qualified EdgeNode.Application as App
-import EdgeNode.Model.User.Entity (AuthenticatedUser, User, UserTablesBonds)
-import EdgeNode.Model.Token.Entity (Token)
-import EdgeNode.Model.Rbac.Entity (RoleTree)
+import EdgeNode.Model.User (AuthenticatedUser, User, UserTablesBonds)
+import EdgeNode.Model.Token (Token)
+import EdgeNode.Model.Rbac (RoleTree)
+import EdgeNode.Model.User.Qualification (Qualification)
 
 import Database.DbMeta  
 import Database.Groundhog.Core
@@ -39,3 +40,4 @@ migration =
     migrate (undefined :: UserTablesBonds)
     migrate (undefined :: Token)
     migrate (undefined :: RoleTree)
+    migrate (undefined :: Qualification)

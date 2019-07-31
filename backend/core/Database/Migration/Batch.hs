@@ -7,6 +7,7 @@
 module Database.Migration.Batch (Version (..), exec) where 
 
 import EdgeNode.Application
+import qualified Database.Migration.V2 as V2
 
 import Data.Word (Word32)
 import Database.Exception
@@ -30,13 +31,14 @@ exec ver | list^?_last._1.to (+ 1) == Just ver = return Nothing
 exec _ | null list = return Nothing   
 exec ver = maybe err ok (map Map.!? ver) 
   where
+    ok (_, []) = throwError (MigrationSqlEmpty (coerce ver)) 
     ok (next, sql) = 
       do $(logTM) InfoS (logStr ([i|new migration from #{ver} to #{ver + 1}|] :: String))
          $(logTM) InfoS (logStr ([i|query #{sql}|] :: String))
          void $ queryRaw False sql []
          maybe (return (Just ver)) exec next
     err = throwError (MigrationNotFound (coerce ver))     
-    map = Map.fromList list      
+    map = Map.fromList list
 
 list :: [(Version, (Maybe Version, String))]
-list = []
+list = [(Version 2, (Nothing, V2.sql))]

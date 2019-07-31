@@ -15,7 +15,7 @@
 {-# LANGUAGE DerivingStrategies     #-}
 {-# LANGUAGE DefaultSignatures #-}
 
-module EdgeNode.Model.User.Entity  
+module EdgeNode.Model.User  
        ( AuthenticatedUser (..)
        , AuthenticatedUserConstructor (..)
        , Field (..)

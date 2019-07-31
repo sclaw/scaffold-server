@@ -2,7 +2,7 @@
 
 module EdgeNode.Controller.Http.PatchProfile (controller) where
 
-import EdgeNode.Model.User.Entity
+import EdgeNode.Model.User
 
 import ReliefJsonData
 import Katip

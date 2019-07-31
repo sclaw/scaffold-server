@@ -7,7 +7,7 @@
 
 module EdgeNode.Api.Http.User (UserApi (..)) where
 
-import EdgeNode.Model.User.Entity
+import EdgeNode.Model.User
 
 import Servant.API.Generic
 import Servant.API.WebSocket ()

@@ -13,12 +13,12 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 
-module EdgeNode.Model.Token.Entity (Token, TokenConstructor (..), Field (..)) where
+module EdgeNode.Model.Token (Token, TokenConstructor (..), Field (..)) where
 
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Data.Time
-import EdgeNode.Model.User.Entity (UserId)
+import EdgeNode.Model.User (UserId)
 
 data Token =
      Token

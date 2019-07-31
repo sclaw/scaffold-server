@@ -14,7 +14,7 @@
 module EdgeNode.Controller.Http.Registration (controller) where
 
 import qualified EdgeNode.Api.Http.Auth.Register as Reg
-import qualified EdgeNode.Model.User.Entity as User
+import qualified EdgeNode.Model.User as User
 import EdgeNode.Error
 
 import Katip
