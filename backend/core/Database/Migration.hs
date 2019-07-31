@@ -25,6 +25,8 @@ import Control.Lens.Iso.Extended
 import Data.String.Interpolate
 import Data.Foldable
 import qualified Database.Migration.Batch as Batch 
+import Data.Maybe
+import Control.Monad
 
 type MigrationAction a = TryAction Exception.Groundhog (KatipContextT App.AppMonad) Postgresql a
 
@@ -36,17 +38,21 @@ migrateInit =
   do 
     Database.Table.print 
     mkTables
-    setVersion Nothing
+    tm <- liftIO getCurrentTime
+    setVersion tm Nothing
 
 migrateNew :: MigrationAction ()
 migrateNew = 
   do
     v <- getVersion
-    $(logTM) InfoS (logStr ("migration last version " <> v^.stringify))
     for_ v $ \i -> do
-      $(logTM) InfoS (logStr ("migration will be start from version " <> show (i + 1)))     
+      $(logTM) InfoS (logStr ("migration will be start from version " <> (i + 1)^.stringify))     
       next <- Batch.exec (Batch.Version (i + 1))
-      for_ next $ \ident -> setVersion (Just (ident^.coerced))
+      for_ next $ \ident -> do
+        tm <- liftIO getCurrentTime 
+        setVersion tm (Just (ident^.coerced))
+        $(logTM) InfoS (logStr ("migration finished at version " <> show ident))
+      when (isNothing next) $ $(logTM) InfoS (logStr ("no migration found" :: String))  
 
 checkDBMeta :: MigrationAction (Maybe Bool)
 checkDBMeta = 
@@ -73,5 +79,5 @@ getVersion =
     row <- firstRow stream
     traverse (return . fromPrimitivePersistValue . head) row
          
-setVersion :: Maybe Word32 -> MigrationAction ()
-setVersion v = liftIO getCurrentTime >>= \tm -> maybe (insert_ (DbMeta 1 tm)) (replace (DbMetaKey (PersistInt64 1)) . flip DbMeta tm) v
+setVersion :: UTCTime -> Maybe Word32 -> MigrationAction ()
+setVersion tm = maybe (insert_ (DbMeta 1 tm)) (replace (DbMetaKey (PersistInt64 1)) . flip DbMeta tm)
