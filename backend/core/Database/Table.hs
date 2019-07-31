@@ -16,7 +16,7 @@ import qualified Data.Map as Map
 import Control.Monad
 
 mkTables :: TryAction Exception.Groundhog (KatipContextT App.AppMonad) Postgresql ()
-mkTables = runMigration  migration
+mkTables = runMigration migration
    
 print :: TryAction Exception.Groundhog (KatipContextT App.AppMonad) Postgresql ()
 print = createMigration migration >>= print

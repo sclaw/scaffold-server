@@ -24,6 +24,8 @@ import Control.Lens
 import Control.Lens.Iso.Extended
 import Data.String.Interpolate
 import Data.Foldable
+import qualified Database.Migration.Batch as Batch 
+import Data.Maybe
 
 type MigrationAction a = TryAction Exception.Groundhog (KatipContextT App.AppMonad) Postgresql a
 
@@ -35,7 +37,7 @@ migrateInit =
   do 
     Database.Table.print 
     mkTables
-    setVersion
+    setVersion Nothing
 
 migrateNew :: MigrationAction ()
 migrateNew = 
@@ -43,11 +45,9 @@ migrateNew =
     v <- getVersion
     $(logTM) InfoS (logStr ("migration last version " <> v^.stringify))
     for_ v $ \i -> do
-      $(logTM) InfoS (logStr ("migration will be start from version " <> show (i + 1)))
-      applyMigration i
-
-applyMigration :: Word32 -> MigrationAction ()
-applyMigration _ = return ()
+      $(logTM) InfoS (logStr ("migration will be start from version " <> show (i + 1)))      
+      next <- Batch.exec (Batch.Version (i + 1))
+      setVersion (Just (next^.coerced))
 
 checkDBMeta :: MigrationAction (Maybe Bool)
 checkDBMeta = 
@@ -76,5 +76,5 @@ getVersion = fmap dbMetaMigrationVersion `fmap` getLast
         row <- firstRow stream
         traverse ((fst `fmap`) . fromPersistValues) row
          
-setVersion :: MigrationAction ()
-setVersion = liftIO getCurrentTime >>= (insert_ . DbMeta 1)
+setVersion :: Maybe Word32 -> MigrationAction ()
+setVersion v = liftIO getCurrentTime >>= (insert_ . DbMeta (fromMaybe 1 v))

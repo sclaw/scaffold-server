@@ -9,9 +9,11 @@ import Control.Exception.Hierarchy
 import qualified Data.ByteString as B
 import Data.Typeable
 import Hasql.Pool
-import Data.Word (Word16)
+import Data.Word (Word32)
 
-data Groundhog = MigrationNotFound Word16 deriving Show
+data Groundhog =  
+     MigrationNotFound Word32 
+     deriving Show
 
 data Hasql = 
       ForeignKeyViolation 
