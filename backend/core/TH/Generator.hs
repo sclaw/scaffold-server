@@ -19,6 +19,7 @@ module TH.Generator
        , responseWrapper
        , mkFromHttpApiDataIdent
        , mkFromHttpApiDataEnum
+       , mkParamSchemaEnum
        )
        where
 
@@ -38,8 +39,6 @@ import Text.Casing (quietSnake)
 import Servant.API
 import Data.Char
 import qualified Data.Text as T
-
-import Debug.Trace
 
 derivePrimitivePersistField :: Name -> ExpQ -> Q [Dec]
 derivePrimitivePersistField name iso = [d|
@@ -332,9 +331,17 @@ mkFromHttpApiDataIdent name = do
 mkFromHttpApiDataEnum :: Name -> Q [Dec]
 mkFromHttpApiDataEnum name = do
   reified <- reify name
-  traceM (show reified)
   let base = nameBase name
   [d| instance FromHttpApiData $(conT name) where
         parseUrlPiece :: T.Text -> Either T.Text $(conT name)
-        parseUrlPiece x = Right $ x^.from stext.to read
+        parseUrlPiece x = Right $ x^.from stext.to (read . (& _head %~ toUpper))
+   |]
+
+mkParamSchemaEnum :: Name -> Q [Dec]
+mkParamSchemaEnum name = do 
+  TyConI (DataD _ _ _ _ xs _) <- reify name
+  let mkTitle (NormalC n _) = nameBase n & _head %~ toLower
+  let xs' = map mkTitle xs
+  [d| instance ToParamSchema $(conT name) where
+       toParamSchema _ = mempty & type_ .~ SwaggerString & enum_ ?~ xs'
    |]

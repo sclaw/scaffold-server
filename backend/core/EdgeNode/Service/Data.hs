@@ -9,9 +9,7 @@ import EdgeNode.Service.Service
 
 import TH.Generator
 import GHC.Generics
-import Data.Swagger
 
 deriveToSchemaAndJSONProtoEnum ''Language "Service"
 mkFromHttpApiDataEnum ''ServiceLanguage
-
-instance ToParamSchema ServiceLanguage
+mkParamSchemaEnum ''ServiceLanguage

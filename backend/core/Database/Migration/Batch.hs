@@ -30,7 +30,7 @@ newtype Version = Version Word32
 exec :: Version -> TryAction Groundhog (KatipContextT AppMonad) Postgresql (Maybe Version)
 exec ver | list^?_last._1.to (+ 1) == Just ver = return Nothing 
 exec _ | null list = return Nothing   
-exec ver = maybe err ok ((Map.fromList list map) Map.!? ver) 
+exec ver = maybe err ok (Map.fromList list Map.!? ver) 
   where
     ok (_, []) = throwError (MigrationSqlEmpty (coerce ver)) 
     ok (next, sql) = 
