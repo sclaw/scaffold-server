@@ -3,6 +3,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Database.Migration.Batch (Version (..), exec) where 
 
@@ -29,16 +30,15 @@ newtype Version = Version Word32
 exec :: Version -> TryAction Groundhog (KatipContextT AppMonad) Postgresql (Maybe Version)
 exec ver | list^?_last._1.to (+ 1) == Just ver = return Nothing 
 exec _ | null list = return Nothing   
-exec ver = maybe err ok (map Map.!? ver) 
+exec ver = maybe err ok ((Map.fromList list map) Map.!? ver) 
   where
     ok (_, []) = throwError (MigrationSqlEmpty (coerce ver)) 
     ok (next, sql) = 
       do $(logTM) InfoS (logStr ([i|new migration from #{ver} to #{ver + 1}|] :: String))
-         $(logTM) InfoS (logStr ([i|query #{sql}|] :: String))
-         void $ queryRaw False sql []
+         $(logTM) InfoS (logStr ([i|query: #{sql}|] :: String))
+         executeRaw False sql []
          maybe (return (Just ver)) exec next
     err = throwError (MigrationNotFound (coerce ver))     
-    map = Map.fromList list
-
+   
 list :: [(Version, (Maybe Version, String))]
 list = [(Version 2, (Nothing, V2.sql))]
