@@ -15,17 +15,19 @@ module Control.Lens.Iso.Extended
         , stringify
         , lazytext
         , bytesLazy
+        , jsonb
        ) where
 
-import           Control.Lens
+import Control.Lens
 import qualified Data.ByteString         as B
 import qualified Data.ByteString.Lazy    as BL
-import           Data.Foldable           (toList)
+import Data.Foldable           (toList)
 import qualified Data.Sequence           as Seq
 import qualified Data.Text               as T
 import qualified Data.Text.Encoding      as T
 import qualified Data.Text.Lazy          as LT
 import qualified Data.Text.Lazy.Encoding as LT
+import Data.Aeson
 
 -- WARNING: Strictly speaking, 'utf8' is not isomorphism, since exists
 -- ByteString, that is not decodable as Text. But it is very convenient.
@@ -59,3 +61,7 @@ listSeq = iso Seq.fromList toList
 
 stringify :: (Show a, Read a) => Iso' a String
 stringify = iso show read
+
+jsonb :: (FromJSON a, ToJSON a) => Iso' a BL.ByteString
+jsonb = iso encode (either err id `fmap` eitherDecode) 
+  where err = error . (<>) "decode error: "

@@ -2,6 +2,6 @@ syntax = 'proto3';
 package EdgeNode.Service;
 
 enum Language {
-    Ru = 0;
-    En = 1;
+    ru = 0;
+    en = 1;
 }

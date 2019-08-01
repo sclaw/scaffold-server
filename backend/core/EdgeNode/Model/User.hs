@@ -38,6 +38,8 @@ import qualified Data.Text as T
 import Orm.PersistField ()
 import Data.Default.Class.Extended
 import Data.Swagger
+import Orphan ()
+import Control.Lens.Iso.Extended
 
 data AuthenticatedUser =
      AuthenticatedUser
@@ -54,6 +56,9 @@ data UserTablesBonds =
        DefaultKey User
      }
 
+instance Default User_Gender where
+  def = toEnum 0   
+  
 instance Default User
 instance ToParamSchema UserId 
 
@@ -76,6 +81,7 @@ deriveAutoKey ''User
 deriveToSchemaAndJSONProtoIdent ''UserId
 deriveWrappedPrimitivePersistField ''UserId
 mkFromHttpApiDataIdent ''UserId
+derivePrimitivePersistField ''User_Gender [| jsonb |]
 
 defUser :: User
 defUser = def

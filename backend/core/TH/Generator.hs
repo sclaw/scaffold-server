@@ -60,7 +60,6 @@ derivePrimitivePersistFieldParam :: Name -> ExpQ -> Q [Dec]
 derivePrimitivePersistFieldParam name iso = 
   [d|
      instance (PrimitivePersistField $(varT a)
-             , PersistField $(varT a)
              , ToJSON $(varT a)
              , FromJSON $(varT a)) 
              => PersistField $(appT nameT (varT a)) where

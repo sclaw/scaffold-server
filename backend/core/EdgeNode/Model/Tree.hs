@@ -27,10 +27,7 @@ import Data.Aeson
 import Data.Tree
 import TH.Generator
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
+import Control.Lens.Iso.Extended
 
-isoTree ::  (ToJSON a, FromJSON a) => Iso' (Tree a) B.ByteString 
-isoTree = iso encode (either err id . eitherDecode)
-  where err = error . (<>) "tree decode error: "
-
-derivePrimitivePersistFieldParam ''Tree [| isoTree |]
+derivePrimitivePersistFieldParam ''Tree [| jsonb |]
   
