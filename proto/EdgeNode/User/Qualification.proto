@@ -2,3 +2,17 @@ syntax = 'proto3';
 package EdgeNode.User.Qualififcation;
 
 message Qualification {}
+
+message StateExamination {
+    message Country {
+        message Russia {
+            string russiaUnitedStateExam = 1;
+        }
+        message England {}
+        oneof countryValue {
+            Russia ruValue = 1;
+            England enValue = 2;
+        }          
+    }
+    Country stateExaminationCountry = 1; 
+}
