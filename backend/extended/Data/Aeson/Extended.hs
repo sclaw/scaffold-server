@@ -5,7 +5,7 @@ module Data.Aeson.Extended
        (
            module Data.Aeson
          , aesonOptions
-         , parseJSONBoundedEnum
+         , parsejsonoundedEnum
          , deriveJSON'
          , deriveJSON
          , toLowerCamelCase
@@ -112,13 +112,13 @@ splitCamelWords = reverse . splitWordsReversed . reverse
         isBorder c = isUpper c || isDigit c
 
 -- | Helper for the parsing of the bounded values.
-parseJSONBoundedEnum
+parsejsonoundedEnum
   :: forall a
    . (Bounded a, Enum a)
   => String  -- ^ Value description to be printed in error messages.
   -> Value
   -> Parser a
-parseJSONBoundedEnum err js = do
+parsejsonoundedEnum err js = do
   n <- parseJSON js
   if minN <= n && n <= maxN
     then return (toEnum n)

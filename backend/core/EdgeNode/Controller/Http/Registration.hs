@@ -101,15 +101,16 @@ persist req =
                values ($1, $2) returning id),
               newUser as (insert into "edgeNode"."User"
                ("userName", "userMiddlename", "userSurname", 
-               "userDayOfBirth", "userAllegiance", "userAvatar"
+               "userDayOfBirth", "userAllegiance", "userAvatar", "userGender"
                ) values
-               ($3, $4, $5, $6, $7, $8) returning id)
+               ($3, $4, $5, $6, $7, $8, $9) 
+               returning id)
              insert into "edgeNode"."UserTablesBonds" 
              ("userTablesBondsAuth", "userTablesBondsEdgeNode") 
              values ((select id from cred), (select id from newUser))
              returning (select id from newUser)     
            |]
-      let def = User.defUser :: User.User      
+      let defu = User.defUser :: User.User      
       let mkSalt = makeSalt (req^._Wrapped'.field @"requestEmail".lazytext.textbs)
       let pass = req^._Wrapped'.field @"requestPassword".lazytext.textbs
       let mkPass = makePasswordSaltWith pbkdf2 id pass mkSalt 2000 
@@ -117,16 +118,18 @@ persist req =
            (req^._Wrapped'.field @"requestEmail".lazytext) >$ 
            HE.param HE.text <>
            (mkPass >$ HE.param HE.bytea) <>
-           ((def^.field @"userName".lazytext) >$ 
+           ((defu^.field @"userName".lazytext) >$ 
             HE.param HE.text) <>
-           ((def^.field @"userMiddlename".lazytext) >$ 
+           ((defu^.field @"userMiddlename".lazytext) >$ 
             HE.param HE.text) <>
-           ((def^.field @"userSurname".lazytext) >$ 
+           ((defu^.field @"userSurname".lazytext) >$ 
             HE.param HE.text) <> 
-           ((def^?field @"userDayOfBirth"._Just.to encode.bytesLazy) >$ 
+           ((defu^?field @"userDayOfBirth"._Just.to encode.bytesLazy) >$ 
             HE.nullableParam HE.bytea) <>
-           ((def^.field @"userAllegiance".lazytext) >$ HE.param HE.text) <>
-           ((def^.field @"userAvatar") >$ HE.param HE.bytea)
+           ((defu^.field @"userAllegiance".lazytext) >$ HE.param HE.text) <>
+           ((defu^.field @"userAvatar") >$ HE.param HE.bytea) <>
+           ((defu^.field @"userGender".to User.coercedUserGender) >$ 
+            HE.param (HE.enum ((^.stext) . User.fromUserGender)))
       let decoder = 
            HD.singleRow $ 
            HD.column HD.int8 <&> 

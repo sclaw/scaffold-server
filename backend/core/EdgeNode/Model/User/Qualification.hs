@@ -22,14 +22,17 @@ import Orphan ()
 import TH.Generator
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import Database.Groundhog.Instances ()
-import Control.Lens.Iso.Extended
+import Control.Lens
 
 mkPersist_ [groundhog| 
  - entity: StateExamination
    schema: edgeNode
  |]
 
-derivePrimitivePersistField ''Country [| jsonb |]
-derivePrimitivePersistField ''Name [| jsonb |]
-derivePrimitivePersistField ''Provider [| jsonb |]
+enumConvertor ''Country
+enumConvertor ''Name
+enumConvertor ''Provider
 deriveWrappedPrimitivePersistField ''StateExamination_ProviderWrapper
+derivePrimitivePersistField ''Country [| iso fromCountry toCountry |]
+derivePrimitivePersistField ''Name [| iso fromName toName |]
+derivePrimitivePersistField ''Provider [| iso fromProvider toProvider |]

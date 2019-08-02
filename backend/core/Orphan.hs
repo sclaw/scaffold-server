@@ -5,7 +5,7 @@ module Orphan () where
     
 import Proto3.Suite.Types
 import Data.Default.Class.Extended
-import Data.Aeson
+import Data.Aeson hiding (json)
 import TH.Generator
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import Database.Groundhog.Instances ()
@@ -21,4 +21,4 @@ instance FromJSON a => FromJSON (Enumerated a) where
 instance Default a => Default (Enumerated a) where
   def = Enumerated $ Right def 
       
-derivePrimitivePersistFieldParam ''Enumerated [| jsonb |]
+derivePrimitivePersistFieldParam ''Enumerated [| enumtext |]

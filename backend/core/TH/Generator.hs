@@ -223,10 +223,12 @@ deriveToSchemaAndJSONProtoEnum name prefix =
 enumConvertor :: Name -> Q [Dec]
 enumConvertor name = 
   do TyConI (DataD _ _ _ _ xs _) <- reify name
+     let stripUnderScore = filter (not . (`elem` ("_" :: String))) . nameBase
+     let stripPrefix s = s^.stext.to (T.stripPrefix (nameBase name^.stext))._Just.from stext
      let str = mkName "String"
-     let isoNFrom = mkName ("from" <> nameBase name)
+     let isoNFrom = mkName ("from" <> stripUnderScore name)
      let mkClauseFrom (NormalC n _) = 
-          let n' = (quietSnake . nameBase) n  
+          let n' = (quietSnake . stripPrefix . nameBase) n  
           in Clause 
               [ConP n []] 
               (NormalB (LitE (StringL n'))) []
@@ -234,10 +236,10 @@ enumConvertor name =
           SigD 
            isoNFrom 
            (AppT (AppT ArrowT (ConT name)) (ConT str))                
-     let from = FunD isoNFrom (map mkClauseFrom xs)
-     let isoNTo = mkName ("to" <> nameBase name)
+     let fromN = FunD isoNFrom (map mkClauseFrom xs)
+     let isoNTo = mkName ("to" <> stripUnderScore name)
      let mkClauseTo (NormalC n _) =
-          let n' = (quietSnake . nameBase) n
+          let n' = (quietSnake . stripPrefix . nameBase) n
           in Clause 
               [LitP (StringL n')]
               (NormalB (ConE n)) []
@@ -245,12 +247,12 @@ enumConvertor name =
           SigD 
            isoNTo 
            (AppT (AppT ArrowT (ConT str)) (ConT name))         
-     let to = FunD isoNTo (map mkClauseTo xs)
-     let isoN = mkName ("iso" <> nameBase name)
+     let toN = FunD isoNTo (map mkClauseTo xs)
+     let isoN = mkName $ "iso" <> stripUnderScore name
      let iso = mkName "Iso'"
      let isoSig = SigD isoN (AppT (AppT (ConT iso) (ConT name)) (ConT str))  
      iosDec <- [d| $(varP isoN) = $(appE (appE (varE (mkName "iso")) (varE isoNFrom)) (varE isoNTo)) |]
-     return $ [fromSig, from, toSig, to, isoSig] ++ iosDec
+     return $ [fromSig, fromN, toSig, toN, isoSig] ++ iosDec
 
 requestWrapper :: Name -> Q [Dec]
 requestWrapper name = do

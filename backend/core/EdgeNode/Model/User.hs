@@ -14,6 +14,7 @@
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE DerivingStrategies     #-}
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module EdgeNode.Model.User  
        ( AuthenticatedUser (..)
@@ -24,6 +25,10 @@ module EdgeNode.Model.User
        , UserConstructor (..)
        , UserTablesBonds
        , defUser
+       , isoUserGender
+       , fromUserGender
+       , toUserGender
+       , coercedUserGender
        ) where
 
 import EdgeNode.User
@@ -39,7 +44,9 @@ import Orm.PersistField ()
 import Data.Default.Class.Extended
 import Data.Swagger
 import Orphan ()
-import Control.Lens.Iso.Extended
+import Control.Lens
+import Proto3.Suite.Types
+import Data.Either
 
 data AuthenticatedUser =
      AuthenticatedUser
@@ -74,14 +81,18 @@ mkPersist_ [groundhog|
  - entity: User
    schema: edgeNode   
  - entity: UserTablesBonds
-   schema: edgeNode          
+   schema: edgeNode         
  |]
  
 deriveAutoKey ''User
 deriveToSchemaAndJSONProtoIdent ''UserId
 deriveWrappedPrimitivePersistField ''UserId
 mkFromHttpApiDataIdent ''UserId
-derivePrimitivePersistField ''User_Gender [| jsonb |]
+enumConvertor ''User_Gender
+derivePrimitivePersistField ''User_Gender [| iso fromUserGender toUserGender |] 
 
 defUser :: User
 defUser = def
+
+coercedUserGender :: Enumerated User_Gender -> User_Gender
+coercedUserGender x = x^.(coerced :: Iso' (Enumerated User_Gender) (Either Int User_Gender)).to (fromRight undefined)

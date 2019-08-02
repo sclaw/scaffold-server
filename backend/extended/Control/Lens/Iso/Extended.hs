@@ -15,6 +15,7 @@ module Control.Lens.Iso.Extended
         , stringify
         , lazytext
         , bytesLazy
+        , enumtext
         , jsonb
        ) where
 
@@ -62,6 +63,17 @@ listSeq = iso Seq.fromList toList
 stringify :: (Show a, Read a) => Iso' a String
 stringify = iso show read
 
+enumtext :: (FromJSON a, ToJSON a) => Iso' a T.Text
+enumtext = 
+  iso ((^.from textbsl.to strip._Just) . encode) 
+      (either err id `fmap` 
+       (eitherDecode . (^.to mkJson.textbsl))) 
+  where err = error . (<>) "decode error: "
+        mkJson x = "\"" <> x <> "\""
+        strip x = do 
+         x' <- T.stripPrefix "\"" x
+         T.stripSuffix "\"" x'
+
 jsonb :: (FromJSON a, ToJSON a) => Iso' a BL.ByteString
 jsonb = iso encode (either err id `fmap` eitherDecode) 
-  where err = error . (<>) "decode error: "
+    where err = error . (<>) "decode error: "
