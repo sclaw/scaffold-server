@@ -31,18 +31,19 @@ import Control.Monad
 type MigrationAction a = TryAction Exception.Groundhog (KatipContextT App.AppMonad) Postgresql a
 
 run :: Pool Postgresql -> KatipContextT App.AppMonad (Either SomeException ())
-run cm = (checkDBMeta >>= traverse_ (bool migrateInit migrateNew)) `runTryDbConnGH` cm
+run cm = (checkDBMeta >>= traverse_ (bool Database.Migration.init Database.Migration.migrate)) `runTryDbConnGH` cm
 
-migrateInit :: MigrationAction ()
-migrateInit = 
+init :: MigrationAction ()
+init = 
   do 
     Database.Table.print 
     mkTables
+    Database.Migration.migrate
     tm <- liftIO getCurrentTime
     setVersion tm Nothing
 
-migrateNew :: MigrationAction ()
-migrateNew = 
+migrate :: MigrationAction ()
+migrate = 
   do
     v <- getVersion
     for_ v $ \i -> do
