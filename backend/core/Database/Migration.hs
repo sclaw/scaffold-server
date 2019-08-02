@@ -27,31 +27,32 @@ import Data.Foldable
 import qualified Database.Migration.Batch as Batch 
 import Data.Maybe
 import Control.Monad
+import Control.Applicative
 
 type MigrationAction a = TryAction Exception.Groundhog (KatipContextT App.AppMonad) Postgresql a
 
 run :: Pool Postgresql -> KatipContextT App.AppMonad (Either SomeException ())
-run cm = (checkDBMeta >>= traverse_ (bool Database.Migration.init Database.Migration.migrate)) `runTryDbConnGH` cm
+run cm = (checkDBMeta >>= traverse_ (bool Database.Migration.init (Database.Migration.migrate Nothing))) `runTryDbConnGH` cm
 
 init :: MigrationAction ()
 init = 
   do 
     Database.Table.print 
     mkTables
-    Database.Migration.migrate
-    tm <- liftIO getCurrentTime
-    setVersion tm Nothing
+    Database.Migration.migrate (Just 1)
 
-migrate :: MigrationAction ()
-migrate = 
+migrate :: Maybe Word32 -> MigrationAction ()
+migrate init = 
   do
-    v <- getVersion
-    for_ v $ \i -> do
+    v <- (<|> init) `fmap` getVersion
+    let batch = Batch.Version `fmap`init
+    for_ (v <|> init) $ \i -> do
       $(logTM) InfoS (logStr ("migration will be start from version " <> (i + 1)^.stringify))     
       next <- Batch.exec (Batch.Version (i + 1))
-      for_ next $ \ident -> do
-        tm <- liftIO getCurrentTime 
-        setVersion tm (Just (ident^.coerced))
+      for_ (next <|> batch) $ \ident -> do
+        tm <- liftIO getCurrentTime
+        let v = ident^.coerced 
+        setVersion tm (maybe (New v) (const (Init v)) init)
         $(logTM) InfoS (logStr ("migration finished at version " <> show ident))
       when (isNothing next) $ $(logTM) InfoS (logStr ("no migration found" :: String))  
 
@@ -79,6 +80,9 @@ getVersion =
     stream <- queryRaw False sql []
     row <- firstRow stream
     traverse (return . fromPrimitivePersistValue . head) row
-         
-setVersion :: UTCTime -> Maybe Word32 -> MigrationAction ()
-setVersion tm = maybe (insert_ (DbMeta 1 tm)) (replace (DbMetaKey (PersistInt64 1)) . flip DbMeta tm)
+
+data SetVrsion = Init Word32 | New Word32   
+
+setVersion :: UTCTime -> SetVrsion -> MigrationAction ()
+setVersion tm (Init v) = insert_ (DbMeta v tm)
+setVersion tm (New v) = replace (DbMetaKey (PersistInt64 1)) (DbMeta v tm)

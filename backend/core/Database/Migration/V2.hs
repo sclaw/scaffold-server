@@ -18,5 +18,5 @@ sql = [i|create table "edgeNode"."#{show (typeOf (undefined :: StateExamination)
           "stateExamination_id" int8 not null constraint 
           "userQualification_stateExamination_id_fk" 
           references "edgeNode"."StateExamination"(id));
-         alter table "edgeNode"."#{show (typeOf (undefined :: User))}" add column "userGender" bytea null 
+         alter table "edgeNode"."#{show (typeOf (undefined :: User))}" add column if not exists "userGender" bytea null 
       |]
