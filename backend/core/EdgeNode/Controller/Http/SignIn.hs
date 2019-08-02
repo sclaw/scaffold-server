@@ -8,7 +8,7 @@ module EdgeNode.Controller.Http.SignIn (controller) where
 
 import EdgeNode.Api.Http.Auth.SignIn ()
 
-import RetrofitProto
+import RetrofitReqRespProto
 import ReliefJsonData
 import KatipController
 import Control.Lens (_Wrapped')

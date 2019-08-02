@@ -6,7 +6,7 @@ import qualified EdgeNode.Application as App
 import EdgeNode.Model.User (AuthenticatedUser, User, UserTablesBonds)
 import EdgeNode.Model.Token (Token)
 import EdgeNode.Model.Rbac (RoleTree)
-import EdgeNode.Model.User.Qualification (Qualification)
+import EdgeNode.Model.User.Qualification (StateExamination)
 
 import Database.DbMeta  
 import Database.Groundhog.Core
@@ -40,4 +40,4 @@ migration =
     migrate (undefined :: UserTablesBonds)
     migrate (undefined :: Token)
     migrate (undefined :: RoleTree)
-    migrate (undefined :: Qualification)
+    migrate (undefined :: StateExamination)

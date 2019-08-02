@@ -12,12 +12,12 @@ import EdgeNode.Service.Data
 import Servant.API.Generic
 import Servant.API
 import ReliefJsonData
-import RetrofitProto
+import RetrofitReqRespProto
 import qualified Data.Text as T
 
 newtype ServiceApi route = 
         ServiceApi
-       { serviceApiLoadCountries
+       { _serviceApiLoadCountries
        :: route
        :- Description "load all countries"
        :> "countries" 

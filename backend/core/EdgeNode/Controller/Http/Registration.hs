@@ -38,7 +38,7 @@ import Data.String.Interpolate
 import Data.Generics.Internal.VL.Lens
 import Data.Generics.Product
 import Data.Generics.Internal.VL.Prism
-import RetrofitProto
+import RetrofitReqRespProto
 import Data.Functor (($>))
 import qualified Database.Exception as Exception
 import Data.Aeson (encode)

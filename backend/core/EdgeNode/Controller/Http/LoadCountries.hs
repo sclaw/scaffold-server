@@ -10,7 +10,7 @@ import EdgeNode.Service.Data.Google
 
 import ReliefJsonData
 import KatipController
-import RetrofitProto
+import RetrofitReqRespProto
 import qualified Data.Text as T
 import Control.Monad.Reader.Class
 import Network.HTTP.Client

@@ -13,14 +13,23 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 
-module EdgeNode.Model.User.Qualification (Qualification) where
+module EdgeNode.Model.User.Qualification (StateExamination) where
 
 import EdgeNode.User.Qualification
 
 import Database.Groundhog.TH.Extended
-
+import Orphan ()
+import TH.Generator
+import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
+import Database.Groundhog.Instances ()
+import Control.Lens.Iso.Extended
 
 mkPersist_ [groundhog| 
- - entity: Qualification
+ - entity: StateExamination
    schema: edgeNode
  |]
+
+derivePrimitivePersistField ''Country [| jsonb |]
+derivePrimitivePersistField ''Name [| jsonb |]
+derivePrimitivePersistField ''Provider [| jsonb |]
+deriveWrappedPrimitivePersistField ''StateExamination_ProviderWrapper

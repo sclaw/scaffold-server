@@ -5,12 +5,13 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module RetrofitProto where
+module RetrofitReqRespProto where
 
 import qualified EdgeNode.Api.Http.Auth.Register as Reg
 import qualified EdgeNode.Api.Http.Auth.SignIn as SignIn
 import qualified EdgeNode.Api.Http.Auth.RefreshToken as RefreshToken
 import qualified EdgeNode.Service.Countries as Countries 
+import qualified EdgeNode.Api.Http.User.SaveQualification as SaveQualification 
 
 import TH.Generator
 import GHC.Generics
@@ -32,3 +33,5 @@ requestWrapper ''Reg.Request
 responseWrapper ''Reg.Response
 requestWrapper ''Countries.Request
 responseWrapper ''Countries.Response
+requestWrapper ''SaveQualification.Request
+responseWrapper ''SaveQualification.Response

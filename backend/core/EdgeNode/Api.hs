@@ -30,14 +30,14 @@ import Control.Lens.Iso.Extended
 
 data ApplicationApi route = 
      ApplicationApi 
-     { applicationApiHttp 
+     { _applicationApiHttp 
        :: route 
        :- ToServant HttpWrapperApi AsApi 
      } deriving stock Generic
 
 newtype HttpWrapperApi route = 
         HttpWrapperApi 
-        { httpWrapperApiApi 
+        { _httpWrapperApiApi 
           :: route 
           :- ToServant HttpApi AsApi 
         } deriving stock Generic

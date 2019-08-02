@@ -1,18 +1,56 @@
 syntax = 'proto3';
 package EdgeNode.User.Qualififcation;
 
-message Qualification {}
+message Qualification {
+    repeated StateExamination stateExamination = 1;
+    repeated HigherDegree higherDegree = 2;
+    repeated InternationalDiploma internationalDiploma = 3;
+    repeated LanguageStandard languageStandard = 4;
+}
+
+message QualificationId {
+    repeated StateExaminationId stateExaminationIds = 1;
+    repeated HigherDegreeId higherDegreeIds = 2;
+    repeated InternationalDiplomaId internationalDiplomaIds = 3;
+    repeated LanguageStandardId languageStandardIds = 4;
+}
+
+message StateExaminationId { sint64 ident = 1; }
 
 message StateExamination {
-    message Country {
-        message Russia {
-            string russiaUnitedStateExam = 1;
-        }
-        message England {}
-        oneof countryValue {
-            Russia ruValue = 1;
-            England enValue = 2;
-        }          
+    message ProviderWrapper {
+        Provider value  = 1;    
     }
-    Country stateExaminationCountry = 1; 
+    Country country = 1;
+    Name name = 2;
+    ProviderWrapper provider = 3;
+}
+
+message HigherDegreeId { sint64 ident = 1; }
+
+message HigherDegree {}
+
+message InternationalDiplomaId { sint64 ident = 1; }
+
+message InternationalDiploma {}
+
+message LanguageStandardId { sint64 ident = 1; }
+
+message LanguageStandard {}
+
+enum Country {
+    russia = 0;
+    uk = 1;
+}
+
+enum Name {
+    unifiedStateExam = 0;
+}
+
+enum Provider {
+    edexcel = 0;
+}
+
+enum DegreeType {
+    bachelorDegree = 0;
 }

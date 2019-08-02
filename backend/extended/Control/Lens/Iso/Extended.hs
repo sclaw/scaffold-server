@@ -63,5 +63,5 @@ stringify :: (Show a, Read a) => Iso' a String
 stringify = iso show read
 
 jsonb :: (FromJSON a, ToJSON a) => Iso' a BL.ByteString
-jsonb = iso toJSON undefined --   (either err id `fmap` eitherDecode) 
-  -- where err = error . (<>) "decode error: "
+jsonb = iso encode (either err id `fmap` eitherDecode) 
+  where err = error . (<>) "decode error: "

@@ -13,23 +13,23 @@ import Servant.API
 import ReliefJsonData
 import Servant.Auth.Swagger ()
 import Swagger.ToSchema ()
-import RetrofitProto
+import RetrofitReqRespProto
     
 data AuthApi route = 
      AuthApi
-     { authApiRegistration
+     { _authApiRegistration
        :: route
        :- Description "simple registration"
        :> "registration"
        :> ReqBody '[JSON] RegisterRequest 
        :> Post '[JSON] (Alternative (Error [RegisterError]) RegisterResponse)
-     , authApiSignIn
+     , _authApiSignIn
        :: route 
        :- Description "signin"
        :> "signin"
        :> ReqBody '[JSON] SignInRequest
        :> Post '[JSON] (Alternative (Error SignInError) SignInResponse)
-     , authApiRefreshToken
+     , _authApiRefreshToken
        :: route 
        :- Description "refresh token"
        :> "refresh-token"

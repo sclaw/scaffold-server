@@ -21,15 +21,15 @@ import Servant.API
 
 data HttpApi route = 
      HttpApi 
-     { httpApiAuth
+     { _httpApiAuth
        :: route 
        :- "auth" 
        :> ToServant AuthApi AsApi
-     , httpApiUser
+     , _httpApiUser
        :: route
        :- "user"
        :> ToServant UserApi AsApi
-     , httpApiService
+     , _httpApiService
        :: route
        :- "service"
        :> ToServant ServiceApi AsApi                   

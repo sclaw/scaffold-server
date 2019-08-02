@@ -17,51 +17,52 @@ import Servant.Server.Generic
 import Servant.API.Generic
 
 application :: ApplicationApi (AsServerT KatipController)
-application = ApplicationApi { applicationApiHttp = toServant httpApi }
+application = ApplicationApi { _applicationApiHttp = toServant httpApi }
 
 httpApi :: HttpApi (AsServerT KatipController)
 httpApi = 
   HttpApi 
-  { httpApiAuth    = toServant auth
-  , httpApiUser    = toServant user
-  , httpApiService = toServant service
+  { _httpApiAuth    = toServant auth
+  , _httpApiUser    = toServant user
+  , _httpApiService = toServant service
   }
 
 auth :: AuthApi (AsServerT KatipController)
 auth = 
   AuthApi 
-  { authApiRegistration = 
+  { _authApiRegistration = 
     flip logExceptionM ErrorS 
     . katipAddNamespace 
       (Namespace ["auth", "registration"])  
     . Auth.Registration.controller
-  , authApiSignIn = 
+  , _authApiSignIn = 
     flip logExceptionM ErrorS 
     . katipAddNamespace 
       (Namespace ["auth", "signIn"])  
     . Auth.SignIn.controller
-  , authApiRefreshToken = undefined   
+  , _authApiRefreshToken = undefined   
   }
 
 user :: UserApi (AsServerT KatipController)
 user = 
   UserApi 
-  { userApiLoadProfile =
+  { _userApiLoadProfile =
     flip logExceptionM ErrorS 
     . katipAddNamespace 
       (Namespace ["user", "loadProfile"])
     . User.LoadProfile.controller
-  , userPatchProfile = \uid patch ->
+  , _userPatchProfile = \uid patch ->
     flip logExceptionM ErrorS $
      katipAddNamespace 
      (Namespace ["user", "patchProfile"])
-     (User.PatchProfile.controller uid patch)      
+     (User.PatchProfile.controller uid patch)
+  , _userSaveQualification = \_ -> undefined         
   }
 
 service :: ServiceApi (AsServerT KatipController)
 service =
   ServiceApi
-  { serviceApiLoadCountries = \lang ->
+  { _serviceApiLoadCountries = \lang ->
     flip logExceptionM ErrorS $ 
      katipAddNamespace 
      (Namespace ["service", "loadContries"])
