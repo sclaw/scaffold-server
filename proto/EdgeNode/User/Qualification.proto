@@ -28,7 +28,11 @@ message StateExamination {
 
 message HigherDegreeId { sint64 ident = 1; }
 
-message HigherDegree {}
+message HigherDegree {
+    Country country = 1;
+    Provider provider = 2;
+    DegreeType degreeType = 3;
+}
 
 message InternationalDiplomaId { sint64 ident = 1; }
 

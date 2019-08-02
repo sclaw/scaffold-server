@@ -20,44 +20,16 @@
 {-# LANGUAGE DerivingStrategies     #-}
 
 module EdgeNode.Model.Rbac
-       ( RoleTree
-       , RoleId
-       , Field (..)
+       ( RoleId
        , RoleIdWrapper (..)
        )
        where
 
-import EdgeNode.Rbac
-import EdgeNode.Model.User  
-import EdgeNode.Model.Tree
+import EdgeNode.Rbac 
 
 import Orm.PersistField ()
-import Database.Groundhog.TH.Extended
-import Database.Groundhog.Core (Field (..))
-import Control.Lens.Extended
 import TH.Generator
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
-import Data.Time.Clock
-import Data.Aeson
-import qualified Data.ByteString.Lazy as B
-
-data RoleTree = 
-     RoleTree 
-     { roleTreeTree :: !(Tree Role)
-     , roleTreeWho  :: !UserId
-     , roleTreeWhen :: !UTCTime 
-     }
-
-isoRoleTree :: Iso' Role B.ByteString
-isoRoleTree = iso encode (either err id `fmap` eitherDecode) 
-  where err = error . (<>) "tree decode error: "
-
-derivePrimitivePersistField ''Role [| isoRoleTree |]
-  
-mkPersist_ [groundhog|
- - entity: RoleTree
-   schema: edgeNode
- |]
-
+ 
 deriveWrappedPrimitivePersistField ''RoleId
 deriveToSchemaAndJSONProtoIdent ''RoleId

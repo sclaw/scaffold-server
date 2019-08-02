@@ -10,6 +10,8 @@ import qualified EdgeNode.Controller.Http.SignIn as Auth.SignIn
 import qualified EdgeNode.Controller.Http.LoadProfile as User.LoadProfile 
 import qualified EdgeNode.Controller.Http.PatchProfile as User.PatchProfile
 import qualified EdgeNode.Controller.Http.LoadCountries as Service.LoadCountries
+import qualified EdgeNode.Controller.Http.SaveQualification as User.SaveQualification
+import qualified EdgeNode.Controller.Http.GetQualification as User.GetQualification
 
 import Katip
 import KatipController
@@ -56,7 +58,16 @@ user =
      katipAddNamespace 
      (Namespace ["user", "patchProfile"])
      (User.PatchProfile.controller uid patch)
-  , _userSaveQualification = \_ -> undefined         
+  , _userSaveQualification = \_ -> 
+    flip logExceptionM ErrorS $
+    katipAddNamespace 
+    (Namespace ["user", "SaveQualification"])
+    User.SaveQualification.controller
+  , _userGetQualififcation = \_ -> 
+    flip logExceptionM ErrorS $
+    katipAddNamespace 
+    (Namespace ["user", "GetQualififcation"])
+    User.GetQualification.controller
   }
 
 service :: ServiceApi (AsServerT KatipController)

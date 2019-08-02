@@ -42,5 +42,12 @@ data UserApi route =
       :> "qualification"
       :> "save"
       :> ReqBody '[JSON] SaveQualificationRequest
-      :> Post '[JSON] (Alternative T.Text SaveQualificationResponse)               
+      :> Post '[JSON] (Alternative T.Text SaveQualificationResponse)
+     , _userGetQualififcation
+       :: route 
+       :- Description "get qualification by given ids, if no ids passed all qualififcations got back"
+       :> "qualification"
+       :> "save"
+       :> ReqBody '[JSON] GetQualificationRequest
+       :> Post '[JSON] (Alternative T.Text GetQualificationResponse)                     
      } deriving stock Generic

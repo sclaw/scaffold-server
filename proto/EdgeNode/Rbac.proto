@@ -1,17 +1,16 @@
 syntax = "proto3";
 package EdgeNode.Rbac;
 
-message RoleId {
-   sint64 value = 1;
+import "Protobuf/Scalar.proto";
+
+message RoleId { sint64 value = 1; }
+
+message Node {
+   string title = 1;
+   Protobuf.String description = 2;
 }
 
 message Role {
-   string title = 1;
-   string description = 2;
-   RoleId parent = 3;
-}
-
-message XRole {
-   RoleId ident = 1;
-   Role value = 2;
+   Node node = 1;
+   repeated Role tail = 2; 
 }

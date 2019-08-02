@@ -2,7 +2,7 @@
 
 module Database.Migration.V2 (sql) where
 
-import EdgeNode.Model.User.Qualification (StateExamination)
+import EdgeNode.Model.User.Qualification
 import EdgeNode.Model.User (User)
 
 import Data.String.Interpolate
