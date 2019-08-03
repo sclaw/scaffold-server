@@ -29,6 +29,7 @@ module EdgeNode.Model.User
        , fromUserGender
        , toUserGender
        , coercedUserGender
+       , hasqlEnumUserGender
        ) where
 
 import EdgeNode.User
@@ -47,6 +48,7 @@ import Orphan ()
 import Control.Lens
 import Proto3.Suite.Types
 import Data.Either
+import Control.Lens.Iso.Extended
 
 data AuthenticatedUser =
      AuthenticatedUser
@@ -96,3 +98,6 @@ defUser = def
 
 coercedUserGender :: Enumerated User_Gender -> User_Gender
 coercedUserGender x = x^.(coerced :: Iso' (Enumerated User_Gender) (Either Int User_Gender)).to (fromRight undefined)
+
+hasqlEnumUserGender :: T.Text -> Maybe User_Gender
+hasqlEnumUserGender = Just . toUserGender . (^.from stext)
