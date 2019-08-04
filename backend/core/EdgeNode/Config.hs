@@ -42,6 +42,7 @@ module EdgeNode.Config
        , isAuthEnabled
        , service
        , hosts
+       , userId
        ) 
        where
 
@@ -51,6 +52,7 @@ import Control.Lens
 import Control.Exception
 import Data.Yaml
 import Data.Time.Clock
+import Data.Int
 
 data Db = Db 
      { dbHost :: !String
@@ -93,7 +95,12 @@ data Katip =
 
 data Ekg = Ekg { ekgHost :: !String, ekgPort :: !Int } deriving Show
 
-data Auth = Auth { authJwk :: !FilePath, authIsAuthEnabled :: !Bool }
+data Auth = 
+     Auth 
+     { authJwk :: !FilePath
+     , authIsAuthEnabled :: !Bool
+     , authUserId :: !Int64 
+     }
   deriving Show 
 
 newtype ApiKeys = ApiKeys [(String, String)]

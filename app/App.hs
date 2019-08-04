@@ -71,7 +71,8 @@ main =
            (cfg^.hosts.coerced) 
            (cfg^.ports.port) 
            (fromRight' jwke) 
-           (cfg^.auth.isAuthEnabled)                    
+           (cfg^.auth.isAuthEnabled)
+           (cfg^.auth.userId._Unwrapped')                    
 
       let runApp le = 
            runKatipContextT le (mempty :: LogContexts) mempty $  

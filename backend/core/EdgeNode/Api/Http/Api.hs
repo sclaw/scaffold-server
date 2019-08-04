@@ -12,12 +12,14 @@ module EdgeNode.Api.Http.Api
        , module EdgeNode.Api.Http.Service
        ) where
 
+import Auth
 import EdgeNode.Api.Http.Auth
 import EdgeNode.Api.Http.User
 import EdgeNode.Api.Http.Service
 
 import Servant.API.Generic
 import Servant.API
+import Servant.Auth.Server
 
 data HttpApi route = 
      HttpApi 
@@ -28,6 +30,7 @@ data HttpApi route =
      , _httpApiUser
        :: route
        :- "user"
+       :> Auth '[AppJwt] JWTUser
        :> ToServant UserApi AsApi
      , _httpApiService
        :: route

@@ -18,6 +18,7 @@ module EdgeNode.Application (Cfg (..), AppMonad (..), run) where
 
 import EdgeNode.Api
 import qualified EdgeNode.Controller.Application as App
+import EdgeNode.Model.User (UserId)
 
 import Katip.Monadic                 (askLoggerIO)
 import KatipController
@@ -50,7 +51,8 @@ data Cfg =
        -- JSON Web Key (JWK) is a JavaScript Object Notation (JSON) 
        -- data structure that represents a cryptographic key 
      , cfgJwk :: !JWK
-     , cfgIsAuthEnabled :: !Bool 
+     , cfgIsAuthEnabled :: !Bool
+     , cfgUserId :: !UserId 
      }
 
 newtype AppMonad a = AppMonad { runAppMonad :: RWS.RWST KatipEnv KatipLogger KatipState IO a }
@@ -83,7 +85,9 @@ run Cfg {..} =
       let withSwagger :: Proxy a -> Proxy (a :<|> SwaggerSchemaUI "swagger" "swagger.json")
           withSwagger _ = Proxy
       let jwtCfg = defaultJWTSettings cfgJwk 
-      let context :: Proxy '[CookieSettings, JWTSettings]
+      let context 
+           :: Proxy '[CookieSettings, JWTSettings
+                    , KatipLoggerIO, Bool, UserId]
           context = Proxy     
       let server = 
            hoistServerWithContext 
@@ -93,15 +97,15 @@ run Cfg {..} =
            (toServant App.application :<|> 
             swaggerSchemaUIServerT (swaggerHttpApi cfgHost cfgPort))
       excep <-katipAddNamespace (Namespace ["exception"]) askLoggerIO
+      ctxlog <-katipAddNamespace (Namespace ["context"]) askLoggerIO
       let settings = 
            Warp.defaultSettings
            & Warp.setPort cfgPort
            & Warp.setOnException (logUncaughtException excep)
-      let runServer = 
-           serveWithContext 
-           (withSwagger api) 
-           (defaultCookieSettings :. jwtCfg :. EmptyContext) 
-           server
+      let mkCtx = jwtCfg :. defaultCookieSettings 
+                  :. ctxlog :. cfgIsAuthEnabled 
+                  :. cfgUserId :. EmptyContext      
+      let runServer = serveWithContext (withSwagger api) mkCtx server
       mware <-katipAddNamespace (Namespace ["middleware"]) askLoggerIO
       servAsync <- liftIO $ async $ Warp.runSettings settings (middleware mware runServer)     
       liftIO (void (waitAnyCancel [servAsync])) `logExceptionM` ErrorS

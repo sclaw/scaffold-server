@@ -11,7 +11,6 @@ import Servant.API.Generic
 import Servant.API.WebSocket ()
 import Servant.API
 import ReliefJsonData
-import Servant.Auth.Swagger ()
 import Swagger.ToSchema ()
 import RetrofitReqRespProto
     

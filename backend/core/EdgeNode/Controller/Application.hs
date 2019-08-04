@@ -1,8 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module EdgeNode.Controller.Application (application) where
 
+import Auth
 import EdgeNode.Api
 -- controllers
 import qualified EdgeNode.Controller.Http.Registration as Auth.Registration
@@ -25,7 +27,7 @@ httpApi :: HttpApi (AsServerT KatipController)
 httpApi = 
   HttpApi 
   { _httpApiAuth    = toServant auth
-  , _httpApiUser    = toServant user
+  , _httpApiUser    = (`authGateway` (toServant . user))
   , _httpApiService = toServant service
   }
 
@@ -45,8 +47,8 @@ auth =
   , _authApiRefreshToken = undefined   
   }
 
-user :: UserApi (AsServerT KatipController)
-user = 
+user :: JWTUser -> UserApi (AsServerT KatipController)
+user _ = 
   UserApi 
   { _userApiLoadProfile =
     flip logExceptionM ErrorS 

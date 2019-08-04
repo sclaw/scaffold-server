@@ -1,6 +1,8 @@
 syntax = 'proto3';
 package EdgeNode.Api.Http.Auth.SignIn;
 
+import "Time/Time.proto";
+
 message Request {	
   string email = 1;
   string password = 2;
@@ -9,7 +11,7 @@ message Request {
 message Response {
   bytes accessToken = 1;
   bytes refreshToken = 2;
-  bytes accessTokenLifetime = 3;
+  Time.Time accessTokenLifetime = 3;
 }
 
 enum Error { LoginOrPaswwordWrong = 0; }
