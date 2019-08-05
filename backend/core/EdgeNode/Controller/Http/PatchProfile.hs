@@ -11,7 +11,6 @@ import qualified Data.Text as T
 import Database.AutoKey
 import Control.Lens
 import Database.Action
-import Control.Monad.Reader.Class
 import Database.Groundhog (replace)
 import Control.Lens.Iso.Extended
 import Data.Aeson.Unit

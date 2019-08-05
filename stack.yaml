@@ -69,7 +69,7 @@ extra-deps:
  - postgresql-error-codes-1.0.1@sha256:34ce40401dc21762996dadd38336436f40a09da95ad3309ba6dc506d707cff11,1413
  - string-interpolate-0.1.0.1@sha256:6efbc888a2986ee80ddd014fded600de113554684fe5eaca87cf02ab59cfa95c,1999
  - servant-auth-0.2.7.0@sha256:c7fb459e0aca57fb898a765973932537bf23f13f32187a970b78d1f9b58cf87a,3098
- - git: git@github.com:haskell-servant/servant-auth.git
+ - git: https://github.com/haskell-servant/servant-auth.git
    commit: 27e2e237e3cbd4359fe345aab6364e007aaef81e
    subdirs: 
     - servant-auth-swagger

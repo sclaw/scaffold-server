@@ -18,6 +18,7 @@ module EdgeNode.Api
 
 import EdgeNode.Api.Http.Api
 
+import Servant.API
 import Servant.API.Generic
 import Servant.API.WebSocket ()
 import Data.Proxy
@@ -38,8 +39,11 @@ data ApplicationApi route =
 newtype HttpWrapperApi route = 
         HttpWrapperApi 
         { _httpWrapperApiApi 
-          :: route 
-          :- ToServant HttpApi AsApi 
+          :: route
+          :- Description "http api"
+          :> "api" 
+          :> "v1"
+          :> ToServant HttpApi AsApi 
         } deriving stock Generic
     
 api :: Proxy (ToServantApi ApplicationApi)

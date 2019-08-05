@@ -31,7 +31,6 @@ import Hasql.Session hiding (ServerError)
 import qualified Hasql.Statement as HS 
 import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
-import Control.Monad.Reader.Class
 import Database.Action
 import Crypto.PasswordStore (pbkdf2, makePasswordSaltWith, makeSalt)
 import Data.String.Interpolate

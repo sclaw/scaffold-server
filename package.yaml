@@ -138,6 +138,7 @@ library:
     - http-client-tls
     - memory
     - http-types
+    - unordered-containers
   source-dirs:
     - backend/core
     - backend/extended

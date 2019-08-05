@@ -14,4 +14,7 @@ message Response {
   Time.Time accessTokenLifetime = 3;
 }
 
-enum Error { LoginOrPaswwordWrong = 0; }
+enum Error { 
+  LoginOrPaswwordWrong = 0;
+  AlreadySignedIn = 1; 
+}

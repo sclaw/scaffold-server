@@ -4,10 +4,19 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TemplateHaskell #-}
 
-module Auth (JWTUser (..), AppJwt, authGateway) where
+module Auth 
+      ( JWTUser (..)
+      , AppJwt
+      , authGateway
+      , mkAccessToken
+      , mkRefreshToken
+      ) where
 
 import EdgeNode.Model.User
+import Time.Time
 
 import qualified Data.Text as T
 import Servant.Auth.Server.Internal.JWT
@@ -32,17 +41,25 @@ import KatipController
 import Katip
 import Data.Traversable
 import Data.Bool
+import Crypto.JWT
+import Data.Time.Clock.System
+import Data.Time.Clock
+import qualified Data.HashMap.Strict as HM
+import Data.Aeson (toJSON)
+import Data.Aeson.TH
 
 data AppJwt
 
 data JWTUser = JWTUser { jWTUserUserId :: !UserId, jWTUserEmail :: !T.Text } 
   deriving stock Show
+  
+deriveJSON defaultOptions ''JWTUser
 
-instance FromJWT JWTUser where
-  decodeJWT _ = undefined
+instance FromJWT JWTUser
+instance ToJWT JWTUser 
 
-instance ToJWT JWTUser where
-  encodeJWT _ = undefined
+instance FromJWT UserId
+instance ToJWT UserId
 
 instance HasSecurity AppJwt where
   securityName _ = "AppJwtSecurity"
@@ -93,3 +110,34 @@ getJWTUser log (Right claim) =
   case decodeJWT claim of
     Left e -> do liftIO (log InfoS (logStr ("decode jwt claim error " <> e))); mzero
     Right jwtUser -> return jwtUser
+
+mkAccessToken :: JWK -> UserId -> ExceptT JWTError IO (SignedJWT, Time)
+mkAccessToken jwk uid = 
+  do 
+     alg <- bestJWSAlg jwk
+     ct <- liftIO getCurrentTime
+     let user = JWTUser uid ""
+     let claims = 
+          emptyClaimsSet
+          & claimIss ?~ "edgeNode"
+          & claimIat ?~ NumericDate ct
+          & claimExp ?~ NumericDate (addUTCTime 600 ct)
+          & unregisteredClaims .~ 
+            HM.singleton "dat" (toJSON user) 
+     t <- liftIO getSystemTime
+     let tm = Time (fromIntegral (systemSeconds t)) 0
+     (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims  
+
+mkRefreshToken :: JWK -> UserId -> ExceptT JWTError IO SignedJWT
+mkRefreshToken jwk uid =
+  do 
+    alg <- bestJWSAlg jwk
+    ct <- liftIO getCurrentTime
+    let claims = 
+         emptyClaimsSet
+         & claimIss ?~ "edgeNode"
+         & claimIat ?~ NumericDate ct
+         & claimExp ?~ NumericDate (addUTCTime (7 * 10^6) ct)
+         & unregisteredClaims .~ 
+           HM.singleton "dat" (toJSON uid)       
+    signClaims jwk (newJWSHeader ((), alg)) claims
