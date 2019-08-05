@@ -26,8 +26,11 @@ module KatipController
        , rawDB
        , httpReqManager
        , apiKeys
+       , jwk
          -- * run
-       , runKatipController  
+       , runKatipController
+         -- * re-export
+       , module R  
        ) where
 
 -- import EdgeNode.Rbac
@@ -37,6 +40,7 @@ import Control.Lens
 import Control.Lens.TH (makeFields)
 import Control.Monad.IO.Class
 import Control.Monad.Reader
+import Control.Monad.Reader.Class as R
 import qualified Data.Pool as Pool
 import Database.Groundhog.Postgresql (Postgresql)
 import Katip
@@ -52,6 +56,7 @@ import Control.Exception.Safe (MonadMask)
 import Data.Default.Class
 import Control.DeepSeq
 import Network.HTTP.Client
+import Crypto.JOSE.JWK
 
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 
@@ -66,7 +71,8 @@ data KatipEnv =
      , katipEnvHttpReqManager 
        :: !Manager
      , katipEnvApiKeys
-       :: ![(String, String)]   
+       :: ![(String, String)]
+     , katipEnvJwk :: !JWK     
      }
 
 newtype KatipLogger = AppLogger [String] 

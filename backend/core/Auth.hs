@@ -4,10 +4,18 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TupleSections #-}
 
-module Auth (JWTUser (..), AppJwt, authGateway) where
+module Auth 
+      ( JWTUser (..)
+      , AppJwt
+      , authGateway
+      , mkAccessToken
+      , mkRefreshToken
+      ) where
 
 import EdgeNode.Model.User
+import Time.Time
 
 import qualified Data.Text as T
 import Servant.Auth.Server.Internal.JWT
@@ -32,6 +40,8 @@ import KatipController
 import Katip
 import Data.Traversable
 import Data.Bool
+import Crypto.JWT
+import Data.Time.Clock.System
 
 data AppJwt
 
@@ -93,3 +103,19 @@ getJWTUser log (Right claim) =
   case decodeJWT claim of
     Left e -> do liftIO (log InfoS (logStr ("decode jwt claim error " <> e))); mzero
     Right jwtUser -> return jwtUser
+
+mkAccessToken :: JWK -> UserId -> ExceptT JWTError IO (SignedJWT, Time)
+mkAccessToken jwk _ = 
+  do 
+     alg <- bestJWSAlg jwk
+     let claims = emptyClaimsSet
+     t <- liftIO getSystemTime
+     let tm = Time (fromIntegral (systemSeconds t)) 0
+     (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims  
+
+mkRefreshToken :: JWK -> UserId -> ExceptT JWTError IO SignedJWT
+mkRefreshToken jwk _ =
+  do 
+    alg <- bestJWSAlg jwk
+    let claims = emptyClaimsSet
+    signClaims jwk (newJWSHeader ((), alg)) claims

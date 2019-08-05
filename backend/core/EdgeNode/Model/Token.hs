@@ -15,20 +15,27 @@
 
 module EdgeNode.Model.Token (Token, TokenConstructor (..), Field (..)) where
 
+import EdgeNode.Model.User (UserId)
+
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Data.Time
-import EdgeNode.Model.User (UserId)
+import qualified Data.ByteString as B
 
 data Token =
      Token
-     {  tokenAccessToken  :: !String
-      , tokenRefreshToken :: !String
-      , tokenCreated      :: !UTCTime
-      , tokenUserId       :: !UserId
+     { tokenRefreshToken :: !B.ByteString
+     , tokenCreated      :: !UTCTime
+     , tokenUserId       :: !UserId
      }
 
 mkPersist_ [groundhog| 
  - entity: Token
    schema: auth
+   constructors:
+    - name: Token
+      uniques: 
+       - name: token_tokenUserId_uk
+         type: constraint
+         fields: [tokenUserId]   
  |]

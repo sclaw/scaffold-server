@@ -64,7 +64,7 @@ main =
       let env' = registerScribe "stdout" std defaultScribeSettings env >>= 
                  registerScribe "file" file defaultScribeSettings
 
-      jwke <- eitherDecode `fmap` B.readFile (cfg^.auth.jwk)
+      jwke <- eitherDecode `fmap` B.readFile (cfg^.auth.EdgeNode.Config.jwk)
       jwke `whenLeft` (error . (<>) "jwk decode error: ")
       let appCfg = 
            App.Cfg 
@@ -80,7 +80,7 @@ main =
                let err e = error $ "migration failure, error: " <> show e
                either err (const (App.run appCfg)) e
       manager <- Http.newTlsManagerWith Http.tlsManagerSettings { managerConnCount = 1 }
-      let katipEnv = KatipEnv term orm raw manager (cfg^.service.coerced)
+      let katipEnv = KatipEnv term orm raw manager (cfg^.service.coerced) (fromRight' jwke)
       bracket env' closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)       
       
 mkOrmConn :: Db -> String
