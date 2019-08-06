@@ -57,3 +57,4 @@ swaggerHttpApi hs port =
   & info.description ?~ "EdgeNode server api"^.stext
   & info.version .~ "0.0.1"^.stext
   & info.contact ?~ (Contact Nothing Nothing (Just ("fclaw007@gmail.com"^.stext)))
+  & info.title .~ "EdgeNode: global bank for intellectual capital"
