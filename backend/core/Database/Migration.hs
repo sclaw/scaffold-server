@@ -47,8 +47,8 @@ migrate init =
     v <- (<|> init) `fmap` getVersion
     let batch = Batch.Version `fmap`init
     for_ (v <|> init) $ \i -> do
-      $(logTM) InfoS (logStr ("migration will be start from version " <> (i + 1)^.stringify))     
-      next <- Batch.exec (Batch.Version (i + 1))
+      $(logTM) InfoS (logStr ("migration will be start from version " <> i^.stringify))     
+      next <- Batch.exec (Batch.Version i)
       for_ (next <|> batch) $ \ident -> do
         tm <- liftIO getCurrentTime
         let v = ident^.coerced 

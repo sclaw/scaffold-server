@@ -9,11 +9,11 @@ import Data.String.Interpolate
 import Data.Typeable
 
 sql :: String 
-sql = [i|create table "edgeNode"."#{show (typeOf (undefined :: Qualification))}" 
+sql = [i|create table if not exists "edgeNode"."#{show (typeOf (undefined :: Qualification))}" 
          (id bigserial not null constraint "Qualification_pk" primary key,
           country varchar not null, name varchar not null,
           provider varchar not null);
-         create table "edgeNode"."userQualification"
+         create table if not exists "edgeNode"."userQualification"
          (user_id int8 not null constraint "userQualification_user_id_fk" references "edgeNode"."User"(id),
           "qualification_id" int8 not null constraint 
           "userQualification_qualification_id_fk" 

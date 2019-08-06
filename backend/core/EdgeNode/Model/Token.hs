@@ -21,12 +21,14 @@ import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Data.Time
 import qualified Data.ByteString as B
+import Data.Word (Word64)
 
 data Token =
      Token
      { tokenRefreshToken :: !B.ByteString
      , tokenCreated      :: !UTCTime
      , tokenUserId       :: !UserId
+     , tokenUnique       :: !Word64
      }
 
 mkPersist_ [groundhog| 
@@ -35,7 +37,7 @@ mkPersist_ [groundhog|
    constructors:
     - name: Token
       uniques: 
-       - name: token_tokenUserId_uk
+       - name: token_tokenUserId_tokenUnique_uk
          type: constraint
-         fields: [tokenUserId]   
+         fields: [tokenUserId, tokenUnique]   
  |]

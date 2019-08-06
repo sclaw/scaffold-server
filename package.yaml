@@ -139,6 +139,7 @@ library:
     - memory
     - http-types
     - unordered-containers
+    - pcg-random
   source-dirs:
     - backend/core
     - backend/extended
