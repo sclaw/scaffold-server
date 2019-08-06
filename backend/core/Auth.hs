@@ -6,6 +6,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Auth 
       ( JWTUser (..)
@@ -47,6 +48,13 @@ import Data.Time.Clock
 import qualified Data.HashMap.Strict as HM
 import Data.Aeson (toJSON)
 import Data.Aeson.TH
+import qualified Hasql.Pool as Hasql
+import qualified Hasql.Session as Hasql
+import qualified Hasql.Statement as HS
+import qualified Hasql.Encoders as HE
+import qualified Hasql.Decoders as HD
+import Data.String.Interpolate
+import Data.Bifunctor
 
 data AppJwt
 
@@ -70,23 +78,26 @@ instance HasSecurity AppJwt where
    (Just "JSON Web Token-based API key")
   
 instance IsAuth AppJwt JWTUser where
-  type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, Bool, UserId]
-  runAuth _ _ cfg log isAuth uid = bool (return (JWTUser uid mempty)) (Auth.jwtAuthCheck cfg log) isAuth
+  type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, UserId, Hasql.Pool, Bool]
+  runAuth _ _ cfg log uid pool = 
+   bool (return (JWTUser uid mempty)) 
+        (Auth.jwtAuthCheck cfg log pool)
 
 authGateway :: ThrowAll api => AuthResult JWTUser -> (JWTUser -> api) -> api
 authGateway (Authenticated user) api = api user  
 authGateway err _ = throwAll err401 { errBody = show err^.stext.textbsl }
 
-jwtAuthCheck :: JWTSettings -> KatipLoggerIO -> AuthCheck JWTUser
-jwtAuthCheck cfg log = 
+jwtAuthCheck :: JWTSettings -> KatipLoggerIO -> Hasql.Pool -> AuthCheck JWTUser
+jwtAuthCheck cfg log pool = 
   do
     headers <- fmap requestHeaders ask
     jwt <- for (getToken headers) $ \token -> do
-     verified <- liftIO $ runExceptT $ verifyToken cfg token
-     getJWTUser log verified
-    let headerError = do liftIO (log InfoS "jwt header error"); mzero 
-    maybe headerError return jwt
-
+      verified <- liftIO $ runExceptT $ verifyToken cfg token
+      getJWTUser log verified
+    check <- liftIO $ Hasql.use pool (actionCheckToken jwt)
+    let mkErr e = do liftIO (log InfoS (logStr e)); mzero
+    either mkErr return (join (first show check))
+   
 getToken :: RequestHeaders -> Maybe BS.ByteString
 getToken headers = 
   do 
@@ -110,6 +121,16 @@ getJWTUser log (Right claim) =
   case decodeJWT claim of
     Left e -> do liftIO (log InfoS (logStr ("decode jwt claim error " <> e))); mzero
     Right jwtUser -> return jwtUser
+
+actionCheckToken :: Maybe JWTUser -> Hasql.Session (Either String JWTUser)
+actionCheckToken Nothing = return $ Left "jwt header error"
+actionCheckToken (Just user) = 
+  do 
+     let sql = [i|select exists (select 1 from "auth"."Token" where "tokenUserId" = $1)|]
+     let encoder = jWTUserUserId user^._Wrapped' >$ HE.param HE.int8
+     let decoder = HD.singleRow $ HD.column HD.bool    
+     exists <- Hasql.statement () (HS.Statement sql encoder decoder False)
+     return $ if exists then Right user else Left "token not found"
 
 mkAccessToken :: JWK -> UserId -> ExceptT JWTError IO (SignedJWT, Time)
 mkAccessToken jwk uid = 

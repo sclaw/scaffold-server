@@ -43,6 +43,7 @@ import Control.Monad.RWS.Strict as RWS
 import Control.Monad.Base (MonadBase)
 import Control.Monad.Catch
 import Control.Monad.Trans.Control
+import qualified Hasql.Pool as Hasql
 
 data Cfg = 
      Cfg 
@@ -86,8 +87,13 @@ run Cfg {..} =
           withSwagger _ = Proxy
       let jwtCfg = defaultJWTSettings cfgJwk 
       let context 
-           :: Proxy '[CookieSettings, JWTSettings
-                    , KatipLoggerIO, Bool, UserId]
+           :: Proxy 
+              '[CookieSettings
+              , JWTSettings
+              , KatipLoggerIO
+              , Bool
+              , UserId
+              , Hasql.Pool]
           context = Proxy     
       let server = 
            hoistServerWithContext 
@@ -104,7 +110,8 @@ run Cfg {..} =
            & Warp.setOnException (logUncaughtException excep)
       let mkCtx = jwtCfg :. defaultCookieSettings 
                   :. ctxlog :. cfgIsAuthEnabled 
-                  :. cfgUserId :. EmptyContext      
+                  :. cfgUserId :. (cfg^.katipEnv.rawDB) 
+                  :. EmptyContext      
       let runServer = serveWithContext (withSwagger api) mkCtx server
       mware <-katipAddNamespace (Namespace ["middleware"]) askLoggerIO
       servAsync <- liftIO $ async $ Warp.runSettings settings (middleware mware runServer)     
