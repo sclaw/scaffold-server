@@ -24,14 +24,12 @@ data UserApi route =
        :: route
        :- Description "load user's profile"
        :> "profile"
-       :> Capture "uid" UserId
        :> "load" 
        :> Get '[JSON] (Alternative T.Text User)
      , _userPatchProfile
      :: route
      :- Description "load user's profile"
      :> "profile"
-     :> Capture "uid" UserId
      :> "patch"
      :> ReqBody '[JSON] User 
      :> Patch '[JSON] (Alternative T.Text Unit)

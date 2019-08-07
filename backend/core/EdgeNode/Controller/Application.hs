@@ -48,18 +48,18 @@ auth =
   }
 
 user :: JWTUser -> UserApi (AsServerT KatipController)
-user _ = 
+user user = 
   UserApi 
   { _userApiLoadProfile =
+    flip logExceptionM ErrorS $
+    katipAddNamespace 
+    (Namespace ["user", "loadProfile"])
+    (User.LoadProfile.controller (jWTUserUserId user))
+  , _userPatchProfile =
     flip logExceptionM ErrorS 
     . katipAddNamespace 
-      (Namespace ["user", "loadProfile"])
-    . User.LoadProfile.controller
-  , _userPatchProfile = \uid patch ->
-    flip logExceptionM ErrorS $
-     katipAddNamespace 
-     (Namespace ["user", "patchProfile"])
-     (User.PatchProfile.controller uid patch)
+      (Namespace ["user", "patchProfile"])
+    . User.PatchProfile.controller (jWTUserUserId user)
   , _userSaveQualification = \_ -> 
     flip logExceptionM ErrorS $
     katipAddNamespace 
