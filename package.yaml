@@ -143,6 +143,7 @@ library:
     - utf8-string
     - wai-cors
     - either-unwrap
+    - monad-time
   source-dirs:
     - backend/core
     - backend/extended

@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+{-# OPTIONS_GHC -fno-warn-missing-methods #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE FunctionalDependencies     #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -57,6 +58,8 @@ import Data.Default.Class
 import Control.DeepSeq
 import Network.HTTP.Client
 import Crypto.JOSE.JWK
+import Control.Monad.Time
+import Data.Time
 
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 
@@ -92,6 +95,9 @@ data Config =
       , configKatipEnv :: !KatipEnv
       }
 
+instance MonadTime Handler where
+  currentTime = liftIO getCurrentTime
+
 newtype KatipController a = KatipController { unwrap :: ReaderT Config Handler a }
   deriving newtype Functor
   deriving newtype Applicative
@@ -104,6 +110,7 @@ newtype KatipController a = KatipController { unwrap :: ReaderT Config Handler a
   deriving newtype MonadCatch
   deriving newtype MonadThrow
   deriving newtype MonadMask 
+  deriving newtype MonadTime
   
 makeFields ''Config
 makeFields ''KatipEnv

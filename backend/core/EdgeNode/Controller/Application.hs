@@ -15,6 +15,7 @@ import qualified EdgeNode.Controller.Http.PatchProfile as User.PatchProfile
 import qualified EdgeNode.Controller.Http.LoadCountries as Service.LoadCountries
 import qualified EdgeNode.Controller.Http.SaveQualification as User.SaveQualification
 import qualified EdgeNode.Controller.Http.GetQualification as User.GetQualification
+import qualified EdgeNode.Controller.Http.RefreshToken as Auth.RefreshToken
 
 import Katip
 import KatipController
@@ -45,7 +46,11 @@ auth =
     . katipAddNamespace 
       (Namespace ["auth", "signIn"])  
     . Auth.SignIn.controller
-  , _authApiRefreshToken = undefined
+  , _authApiRefreshToken =
+    flip logExceptionM ErrorS 
+    . katipAddNamespace 
+      (Namespace ["auth", "refreshToken"])  
+    . Auth.RefreshToken.controller
   , _authApiSignOut = 
     flip authGateway $ 
     flip logExceptionM ErrorS 
