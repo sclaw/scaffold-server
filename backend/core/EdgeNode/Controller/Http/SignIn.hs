@@ -35,6 +35,9 @@ import Crypto.PasswordStore (pbkdf2, verifyPasswordWith)
 import Crypto.JOSE.Compact as Jose
 import Data.Bifunctor
 import Control.Monad.Except
+import System.Random.PCG.Unique
+import Hash
+import Data.ByteString.UTF8
 
 controller :: SignInRequest -> KatipController (Alternative (Error SignInError) SignInResponse)
 controller req = 
@@ -83,7 +86,8 @@ ok _ (Just (uid, _)) =
     env <- fmap (^.katipEnv) ask
     let key = env^.jwk
     let encode x = x^.to Jose.encodeCompact.bytesLazy
-    acccess <- liftIO $ runExceptT (Auth.mkAccessToken key uid)
+    unique <- liftIO $ fmap (toString . mkHash) (uniformW64 =<< createSystemRandom)
+    acccess <- liftIO $ runExceptT (Auth.mkAccessToken key uid unique)
     refresh <- liftIO $ runExceptT (Auth.mkRefreshToken key uid)
     let acccesse = fmap (bimap encode Just) acccess
     let refreshe = fmap encode refresh
@@ -95,27 +99,27 @@ ok _ (Just (uid, _)) =
          Error (ServerError (InternalServerError (show e^.stextl)))
     case (,) <$> acccesse <*> refreshe of  
      Right ((accessToken, lt), refreshToken) -> do
-      x <- runTryDbConnHasql (actionToken refreshToken uid) (env^.rawDB)
+      x <- runTryDbConnHasql (actionToken refreshToken uid unique) (env^.rawDB)
       let resp (Just _) = Fortune $ SignInResponse (Response accessToken refreshToken lt)
           resp Nothing = Error (ResponseError AlreadySignedIn)      
       either mkErr (return . resp) x
      Left e -> mkErr e
 
-actionToken :: B.ByteString -> UserId -> KatipLoggerIO -> Hasql.Session.Session (Maybe Bool)
-actionToken token uid logger = 
+actionToken :: B.ByteString -> UserId -> String -> KatipLoggerIO -> Hasql.Session.Session (Maybe Bool)
+actionToken token uid unique logger = 
   do
     let sql = 
          [i|insert into "auth"."Token" 
-            ( "tokenRefreshToken"
-            , "tokenCreated"
-            , "tokenUserId") 
-            values ($1, now(), $2)
+            ( "tokenRefreshToken", "tokenCreated"
+            , "tokenUserId", "tokenUnique") 
+            values ($1, now(), $2, $3)
             on conflict do nothing 
             returning true|]
     let log = (sql^.from textbs.from stext) <> ", loc: " <> show getLoc
     liftIO $ logger InfoS (logStr log)     
     let encoder = 
          (token >$ HE.param HE.bytea) <>
-         (uid^._Wrapped' >$ HE.param HE.int8) 
+         (uid^._Wrapped' >$ HE.param HE.int8) <>
+         (unique^.stext >$ HE.param HE.text)
     let decoder = HD.rowMaybe $ HD.column HD.bool
     Hasql.Session.statement () (HS.Statement sql encoder decoder True)

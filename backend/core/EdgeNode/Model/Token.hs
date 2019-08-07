@@ -21,14 +21,14 @@ import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Data.Time
 import qualified Data.ByteString as B
-import Data.Word (Word64)
+import qualified Data.Text as T
 
 data Token =
      Token
      { tokenRefreshToken :: !B.ByteString
      , tokenCreated      :: !UTCTime
      , tokenUserId       :: !UserId
-     , tokenUnique       :: !Word64
+     , tokenUnique       :: !T.Text
      }
 
 mkPersist_ [groundhog| 

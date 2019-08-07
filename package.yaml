@@ -140,6 +140,7 @@ library:
     - http-types
     - unordered-containers
     - pcg-random
+    - utf8-string
   source-dirs:
     - backend/core
     - backend/extended

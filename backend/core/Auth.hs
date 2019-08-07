@@ -46,7 +46,7 @@ import Crypto.JWT
 import Data.Time.Clock.System
 import Data.Time.Clock
 import qualified Data.HashMap.Strict as HM
-import Data.Aeson (toJSON)
+import Data.Aeson
 import Data.Aeson.TH
 import qualified Hasql.Pool as Hasql
 import qualified Hasql.Session as Hasql
@@ -115,25 +115,33 @@ verifyToken cfg token =
    (jwtSettingsToJwtValidationSettings cfg)
    (validationKeys cfg)
 
-getJWTUser :: KatipLoggerIO -> Either Jose.JWTError Jose.ClaimsSet -> AuthCheck JWTUser
+getJWTUser :: KatipLoggerIO -> Either Jose.JWTError Jose.ClaimsSet -> AuthCheck (JWTUser, String)
 getJWTUser log (Left e) = do liftIO (log InfoS (logStr (show e))); mzero 
-getJWTUser log (Right claim) =
-  case decodeJWT claim of
-    Left e -> do liftIO (log InfoS (logStr ("decode jwt claim error " <> e))); mzero
-    Right jwtUser -> return jwtUser
+getJWTUser log (Right claim) = either err return ((,) <$> decodeJWT claim <*> decodeUnique)
+  where err e = do liftIO (log InfoS (logStr ("decode jwt claim error " <> e))); mzero
+        decodeUnique = 
+          case HM.lookup "unique" (claim^.Jose.unregisteredClaims) of
+            Nothing -> Left "Missing 'unique' claim"
+            Just v  -> case fromJSON v of
+              Error e -> Left $ T.pack e
+              Success a -> Right a
 
-actionCheckToken :: Maybe JWTUser -> Hasql.Session (Either String JWTUser)
+actionCheckToken :: Maybe (JWTUser, String) -> Hasql.Session (Either String JWTUser)
 actionCheckToken Nothing = return $ Left "jwt header error"
-actionCheckToken (Just user) = 
+actionCheckToken (Just (user, unique)) = 
   do 
-     let sql = [i|select exists (select 1 from "auth"."Token" where "tokenUserId" = $1)|]
-     let encoder = jWTUserUserId user^._Wrapped' >$ HE.param HE.int8
+     let sql = [i|select exists (select 1 from "auth"."Token" where "tokenUserId" = $1 and "tokenUnique" = $2)|]
+     let encoder = 
+          (jWTUserUserId user^._Wrapped' >$ 
+           HE.param HE.int8) <> 
+          (unique^.stext >$ 
+           HE.param HE.text)
      let decoder = HD.singleRow $ HD.column HD.bool    
      exists <- Hasql.statement () (HS.Statement sql encoder decoder False)
      return $ if exists then Right user else Left "token not found"
 
-mkAccessToken :: JWK -> UserId -> ExceptT JWTError IO (SignedJWT, Time)
-mkAccessToken jwk uid = 
+mkAccessToken :: JWK -> UserId -> String -> ExceptT JWTError IO (SignedJWT, Time)
+mkAccessToken jwk uid unique = 
   do 
      alg <- bestJWSAlg jwk
      ct <- liftIO getCurrentTime
@@ -144,10 +152,11 @@ mkAccessToken jwk uid =
           & claimIat ?~ NumericDate ct
           & claimExp ?~ NumericDate (addUTCTime 600 ct)
           & unregisteredClaims .~ 
-            HM.singleton "dat" (toJSON user) 
+            HM.singleton "dat" (toJSON user)
+     let claims' = addClaim "unique" (toJSON unique) claims             
      t <- liftIO getSystemTime
      let tm = Time (fromIntegral (systemSeconds t)) 0
-     (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims  
+     (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims'  
 
 mkRefreshToken :: JWK -> UserId -> ExceptT JWTError IO SignedJWT
 mkRefreshToken jwk uid =
@@ -161,4 +170,4 @@ mkRefreshToken jwk uid =
          & claimExp ?~ NumericDate (addUTCTime (7 * 10^6) ct)
          & unregisteredClaims .~ 
            HM.singleton "dat" (toJSON uid)       
-    signClaims jwk (newJWSHeader ((), alg)) claims
+    signClaims jwk (newJWSHeader ((), alg)) claims 
