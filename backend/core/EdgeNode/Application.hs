@@ -35,7 +35,7 @@ import Servant.Auth.Server
 import Crypto.JOSE.JWK
 import Control.Concurrent.Async
 import Control.Monad (when, void)
-import Network.Wai (Request, rawPathInfo)
+import Network.Wai
 import Control.Lens.Iso.Extended
 import GHC.Exception.Type (SomeException) 
 import qualified Middleware
@@ -44,6 +44,7 @@ import Control.Monad.Base (MonadBase)
 import Control.Monad.Catch
 import Control.Monad.Trans.Control
 import qualified Hasql.Pool as Hasql
+import Network.Wai.Middleware.Cors
 
 data Cfg = 
      Cfg 
@@ -118,9 +119,19 @@ run Cfg {..} =
       liftIO (void (waitAnyCancel [servAsync])) `logExceptionM` ErrorS
     
 middleware :: KatipLoggerIO -> Application -> Application
-middleware = Middleware.logger
+middleware log app = mkCors $ Middleware.logger log app
 
 logUncaughtException :: KatipLoggerIO -> Maybe Request -> SomeException -> IO ()     
 logUncaughtException log req e = when (Warp.defaultShouldDisplayException e) $ maybe without within req
   where without = log ErrorS (logStr ("Uncaught exception " <> show e))
         within r = log ErrorS (logStr ("\"GET " <> rawPathInfo r^.from textbs.from stext <> " HTTP/1.1\" 500 - " <> show e))
+
+mkCors :: Middleware
+mkCors = cors (const (pure newCors))
+  where 
+    newCors = 
+      simpleCorsResourcePolicy
+       { corsRequestHeaders = ["Authorization", "content-type"]
+       , corsExposedHeaders = Just ["X-Set-Bearer"]
+       , corsMethods = simpleMethods ++ ["PUT", "PATCH"]
+       }

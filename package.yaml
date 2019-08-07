@@ -141,6 +141,7 @@ library:
     - unordered-containers
     - pcg-random
     - utf8-string
+    - wai-cors
   source-dirs:
     - backend/core
     - backend/extended
