@@ -58,7 +58,12 @@ import Data.Bifunctor
 
 data AppJwt
 
-data JWTUser = JWTUser { jWTUserUserId :: !UserId, jWTUserEmail :: !T.Text } 
+data JWTUser = 
+     JWTUser 
+     { jWTUserUserId :: !UserId
+     , jWTUserEmail :: !T.Text
+     , jWTUserUnique :: !String 
+     } 
   deriving stock Show
   
 deriveJSON defaultOptions ''JWTUser
@@ -80,7 +85,7 @@ instance HasSecurity AppJwt where
 instance IsAuth AppJwt JWTUser where
   type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, UserId, Hasql.Pool, Bool]
   runAuth _ _ cfg log uid pool = 
-   bool (return (JWTUser uid mempty)) 
+   bool (return (JWTUser uid mempty mempty)) 
         (Auth.jwtAuthCheck cfg log pool)
 
 authGateway :: ThrowAll api => AuthResult JWTUser -> (JWTUser -> api) -> api
@@ -115,26 +120,24 @@ verifyToken cfg token =
    (jwtSettingsToJwtValidationSettings cfg)
    (validationKeys cfg)
 
-getJWTUser :: KatipLoggerIO -> Either Jose.JWTError Jose.ClaimsSet -> AuthCheck (JWTUser, String)
+getJWTUser :: KatipLoggerIO -> Either Jose.JWTError Jose.ClaimsSet -> AuthCheck JWTUser
 getJWTUser log (Left e) = do liftIO (log InfoS (logStr (show e))); mzero 
-getJWTUser log (Right claim) = either err return ((,) <$> decodeJWT claim <*> decodeUnique)
+getJWTUser log (Right claim) = either err return (decodeJWT claim)
   where err e = do liftIO (log InfoS (logStr ("decode jwt claim error " <> e))); mzero
-        decodeUnique = 
-          case HM.lookup "unique" (claim^.Jose.unregisteredClaims) of
-            Nothing -> Left "Missing 'unique' claim"
-            Just v  -> case fromJSON v of
-              Error e -> Left $ T.pack e
-              Success a -> Right a
 
-actionCheckToken :: Maybe (JWTUser, String) -> Hasql.Session (Either String JWTUser)
+actionCheckToken :: Maybe JWTUser -> Hasql.Session (Either String JWTUser)
 actionCheckToken Nothing = return $ Left "jwt header error"
-actionCheckToken (Just (user, unique)) = 
+actionCheckToken (Just user) = 
   do 
-     let sql = [i|select exists (select 1 from "auth"."Token" where "tokenUserId" = $1 and "tokenUnique" = $2)|]
+     let sql = 
+          [i|select exists (select 1 
+             from "auth"."Token" 
+             where "tokenUserId" = $1 
+             and "tokenUnique" = $2)|]
      let encoder = 
           (jWTUserUserId user^._Wrapped' >$ 
            HE.param HE.int8) <> 
-          (unique^.stext >$ 
+          (jWTUserUnique user^.stext >$ 
            HE.param HE.text)
      let decoder = HD.singleRow $ HD.column HD.bool    
      exists <- Hasql.statement () (HS.Statement sql encoder decoder False)
@@ -145,18 +148,17 @@ mkAccessToken jwk uid unique =
   do 
      alg <- bestJWSAlg jwk
      ct <- liftIO getCurrentTime
-     let user = JWTUser uid ""
+     let user = JWTUser uid "" unique
      let claims = 
           emptyClaimsSet
           & claimIss ?~ "edgeNode"
           & claimIat ?~ NumericDate ct
           & claimExp ?~ NumericDate (addUTCTime 600 ct)
           & unregisteredClaims .~ 
-            HM.singleton "dat" (toJSON user)
-     let claims' = addClaim "unique" (toJSON unique) claims             
+            HM.singleton "dat" (toJSON user)            
      t <- liftIO getSystemTime
      let tm = Time (fromIntegral (systemSeconds t)) 0
-     (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims'  
+     (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims
 
 mkRefreshToken :: JWK -> UserId -> ExceptT JWTError IO SignedJWT
 mkRefreshToken jwk uid =

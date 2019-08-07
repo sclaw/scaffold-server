@@ -9,6 +9,7 @@ import EdgeNode.Api
 -- controllers
 import qualified EdgeNode.Controller.Http.Registration as Auth.Registration
 import qualified EdgeNode.Controller.Http.SignIn as Auth.SignIn
+import qualified EdgeNode.Controller.Http.SignOut as Auth.SignOut
 import qualified EdgeNode.Controller.Http.LoadProfile as User.LoadProfile 
 import qualified EdgeNode.Controller.Http.PatchProfile as User.PatchProfile
 import qualified EdgeNode.Controller.Http.LoadCountries as Service.LoadCountries
@@ -44,7 +45,13 @@ auth =
     . katipAddNamespace 
       (Namespace ["auth", "signIn"])  
     . Auth.SignIn.controller
-  , _authApiRefreshToken = undefined   
+  , _authApiRefreshToken = undefined
+  , _authApiSignOut = 
+    flip authGateway $ 
+    flip logExceptionM ErrorS 
+    . katipAddNamespace 
+      (Namespace ["auth", "signOut"])  
+    . Auth.SignOut.controller    
   }
 
 user :: JWTUser -> UserApi (AsServerT KatipController)

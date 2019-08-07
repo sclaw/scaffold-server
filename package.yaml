@@ -142,6 +142,7 @@ library:
     - pcg-random
     - utf8-string
     - wai-cors
+    - either-unwrap
   source-dirs:
     - backend/core
     - backend/extended

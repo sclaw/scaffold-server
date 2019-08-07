@@ -10,8 +10,8 @@ module EdgeNode.Controller.Http.SignIn (controller) where
 import EdgeNode.Model.User
 import EdgeNode.Error
 import EdgeNode.Api.Http.Auth.SignIn (Response (..))
-import qualified Auth as Auth
 
+import qualified Auth as Auth
 import RetrofitReqRespProto
 import ReliefJsonData
 import KatipController

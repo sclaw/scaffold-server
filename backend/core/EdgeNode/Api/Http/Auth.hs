@@ -7,13 +7,17 @@
 
 module EdgeNode.Api.Http.Auth (AuthApi (..)) where
 
+import Auth
+
 import Servant.API.Generic
 import Servant.API.WebSocket ()
 import Servant.API
 import ReliefJsonData
 import Swagger.ToSchema ()
 import RetrofitReqRespProto
-    
+import Data.Aeson.Unit
+import Servant.Auth.Server    
+
 data AuthApi route = 
      AuthApi
      { _authApiRegistration
@@ -33,5 +37,11 @@ data AuthApi route =
        :- Description "refresh token"
        :> "refresh-token"
        :> ReqBody '[JSON] RefreshTokenRequest
-       :> Post '[JSON] (Alternative (Error RefreshTokenError) RefreshTokenResponse)       
+       :> Post '[JSON] (Alternative (Error RefreshTokenError) RefreshTokenResponse)
+     , _authApiSignOut
+       :: route 
+       :- Description "signout"
+       :> Auth '[AppJwt] JWTUser
+       :> "signout"
+       :> Post '[JSON] (Alternative (Error Unit) Unit)             
      } deriving stock Generic
