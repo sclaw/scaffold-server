@@ -13,7 +13,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 
-module EdgeNode.Model.Token (Token, TokenConstructor (..), Field (..)) where
+module EdgeNode.Model.Token (Token (..), TokenConstructor (..), Field (..)) where
 
 import EdgeNode.Model.User (UserId)
 

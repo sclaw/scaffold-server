@@ -19,6 +19,7 @@ data Groundhog =
      | MigrationSqlEmpty Word32
      | JWSError Jose.Error
      | JWTError Jose.JWTError
+     | Common String
      deriving Show
 
 data Hasql = 
