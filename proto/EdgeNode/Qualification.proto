@@ -1,0 +1,52 @@
+syntax = 'proto3';
+package EdgeNode.Qualification;
+
+message ProviderId { sint64 value = 1; }
+
+message CourseId { sint64 value = 1; }
+
+message StateExamId { sint64 value = 1; } 
+
+message StateExam {
+    string title = 1;
+    string country = 2;
+}
+
+message XStateExam {
+    StateExamId ident = 1;
+    StateExam value = 2;
+}
+
+message HigherDegreeId { sint64 value = 1; } 
+
+message HigherDegree {
+    string country = 1;
+    string provider = 2;
+}
+
+message XHigherDegree {
+    HigherDegreeId ident = 1;
+    HigherDegree value = 2;
+}
+
+message InternationalDiplomaId { sint64 value = 1; } 
+
+message InternationalDiploma { string title = 1; }
+
+message XInternationalDiploma {
+    InternationalDiplomaId ident = 1;
+    InternationalDiploma value = 2;
+}
+
+message LanguageStandardId { sint64 value = 1; } 
+
+message LanguageStandard {
+    string standard = 1;
+    Grade grade = 2;
+}
+message Grade { int32 intgeral = 1; int32 fractional = 2; }
+
+message XLanguageStandard {
+    LanguageStandardId ident = 1;
+    LanguageStandard value = 2;
+}

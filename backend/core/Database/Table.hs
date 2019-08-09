@@ -5,6 +5,7 @@ module Database.Table (mkTables, Database.Table.print) where
 import qualified EdgeNode.Application as App
 import EdgeNode.Model.User (AuthenticatedUser, User, UserTablesBonds)
 import EdgeNode.Model.Token (Token)
+import EdgeNode.Model.EducationLevel
 
 import Database.DbMeta  
 import Database.Groundhog.Core
@@ -37,3 +38,7 @@ migration =
     migrate (undefined :: User)
     migrate (undefined :: UserTablesBonds)
     migrate (undefined :: Token)
+    migrate (undefined :: StateExam)
+    migrate (undefined :: HigherDegree)
+    migrate (undefined :: InternationalDiploma)
+    migrate (undefined :: LanguageStandard)

@@ -1,0 +1,12 @@
+syntax = 'proto3';
+package EdgeNode.Provider;
+
+
+message ProviderId {  sint64 value = 1; }
+
+message Provider {}
+
+message XProvider {
+    ProviderId ident = 1;
+    Provider value = 2;   
+}

@@ -12,7 +12,8 @@ import qualified EdgeNode.Api.Http.Auth.SignIn as SignIn
 import qualified EdgeNode.Api.Http.Auth.RefreshToken as RefreshToken
 import qualified EdgeNode.Service.Countries as Countries 
 import qualified EdgeNode.Api.Http.User.SaveQualification as SaveQualification 
-import qualified EdgeNode.Api.Http.User.GetQualification as GetQualification
+import qualified EdgeNode.Api.Http.User.GetQualificationFullInfo as GetQualificationFullInfo
+import qualified EdgeNode.Api.Http.User.GetEducationLevelList as GetEducationLevelList 
 
 import TH.Generator
 import GHC.Generics
@@ -36,5 +37,5 @@ requestWrapper ''Countries.Request
 responseWrapper ''Countries.Response
 requestWrapper ''SaveQualification.Request
 responseWrapper ''SaveQualification.Response
-requestWrapper ''GetQualification.Request
-responseWrapper ''GetQualification.Response
+responseWrapper ''GetQualificationFullInfo.Response
+responseWrapper ''GetEducationLevelList.Response

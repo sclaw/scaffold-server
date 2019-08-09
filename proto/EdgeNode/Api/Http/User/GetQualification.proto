@@ -1,8 +1,0 @@
-syntax = 'proto3';
-package EdgeNode.Api.Http.User.GetQualification;
-
-import "EdgeNode/User/Qualification.proto";
-
-message Request { QualificationId ids = 1; }
-
-message Response { Qualification value = 1; }

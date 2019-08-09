@@ -7,6 +7,7 @@ module EdgeNode.Controller.Http.LoadCountries (controller) where
 import EdgeNode.Service.Data (ServiceLanguage (..))
 import EdgeNode.Service.Countries
 import EdgeNode.Service.Data.Google 
+import EdgeNode.Error
 
 import ReliefJsonData
 import KatipController
@@ -27,7 +28,7 @@ newtype Country = Country T.Text
 instance FromJSON Country where
     parseJSON = withObject "Country" $ \o -> Country `fmap` (o .: "name")
   
-controller :: ServiceLanguage -> KatipController (Alternative T.Text CountriesResponse)
+controller :: ServiceLanguage -> KatipController (Alternative (Error T.Text) CountriesResponse)
 controller lang = 
   do
     keys <- (^.katipEnv.apiKeys) `fmap` ask
@@ -51,5 +52,5 @@ controller lang =
              Right (Items xs) -> return $ Right $ xs^..traverse.to T.strip
              Left e -> return $ Left e 
     let mkOk (Right xs) = Fortune $ CountriesResponse $ Response (V.fromList (xs^..traverse.from lazytext))
-        mkOk (Left e) = ReliefJsonData.Error $ e^.stext          
-    return $ maybe (ReliefJsonData.Error "api key not found") mkOk (join `fmap` resp)
+        mkOk (Left e) = ReliefJsonData.Error $ ServerError (InternalServerError (e^.stextl))          
+    return $ maybe (ReliefJsonData.Error (ServerError (InternalServerError "api key not found"))) mkOk (join `fmap` resp)

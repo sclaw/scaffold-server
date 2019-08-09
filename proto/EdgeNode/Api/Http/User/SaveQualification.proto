@@ -3,6 +3,6 @@ package EdgeNode.Api.Http.User.SaveQualification;
 
 import "EdgeNode/User/Qualification.proto";
 
-message Request {	Qualification values = 1; }
+message Request {}
 
-message Response { QualificationId ids = 1; }
+message Response {}

@@ -1,0 +1,9 @@
+syntax = 'proto3';
+package EdgeNode.Api.Http.User.GetProvider;
+
+import "EdgeNode/Qualification.proto";
+import "EdgeNode/Provider.proto";
+
+message Reuqest { EdgeNode.Qualification.StateExamId ident = 1; }
+
+message Response { repeated EdgeNode.Provider.XProvider values = 1; }

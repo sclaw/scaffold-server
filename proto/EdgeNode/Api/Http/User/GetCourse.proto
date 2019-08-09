@@ -1,0 +1,6 @@
+syntax = 'proto3';
+package EdgeNode.Api.Http.User.GetCourse;
+
+message Reuqest {}
+
+message Response {}

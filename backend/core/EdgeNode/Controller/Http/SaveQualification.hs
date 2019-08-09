@@ -1,9 +1,9 @@
 module EdgeNode.Controller.Http.SaveQualification (controller) where
 
 import RetrofitReqRespProto
-import qualified Data.Text as T
 import KatipController
 import ReliefJsonData
+import Data.Aeson.Unit
 
-controller :: KatipController (Alternative T.Text SaveQualificationResponse)
+controller :: KatipController (Alternative (Error Unit) SaveQualificationResponse)
 controller = undefined

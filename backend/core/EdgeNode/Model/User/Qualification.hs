@@ -13,18 +13,6 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 
-module EdgeNode.Model.User.Qualification 
-       ( Qualification
-       ) where
+module EdgeNode.Model.User.Qualification (Qualification) where
 
-import EdgeNode.User.Qualification
-
-import Database.Groundhog.TH.Extended
-import Orphan ()
-import Database.Groundhog.Instances ()
-
-mkPersist_ [groundhog| 
- - entity: Qualification
-   schema: edgeNode
-
- |]
+data Qualification

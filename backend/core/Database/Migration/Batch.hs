@@ -4,6 +4,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Database.Migration.Batch (Version (..), exec) where 
 
@@ -11,6 +13,7 @@ import EdgeNode.Application
 import qualified Database.Migration.V2 as V2
 import qualified Database.Migration.V3 as V3
 import qualified Database.Migration.V4 as V4
+import qualified Database.Migration.V5 as V5
 
 import Data.Word (Word32)
 import Database.Exception
@@ -34,7 +37,7 @@ exec :: Version -> TryAction Groundhog (KatipContextT AppMonad) Postgresql (Mayb
 exec _ | null list = return Nothing    
 exec ver = maybe err ok (migrMap Map.!? ver) 
   where
-    ok tpl | isEmpty tpl = throwError (MigrationSqlEmpty (coerce ver))  
+    ok val | isEmpty val = throwError (MigrationSqlEmpty (coerce (ver + 1)))  
     ok val = 
       case val of
         Stop -> return (Just ver)
@@ -56,5 +59,6 @@ list =
   [ (Version 1, Next V2.sql (Version 2))
   , (Version 2, Next V3.sql (Version 3))
   , (Version 3, Next V4.sql (Version 4))
-  , (Version 4, Stop)
+  , (Version 4, Next V5.sql (Version 5))
+  , (Version 5, Stop)
   ]

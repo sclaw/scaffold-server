@@ -3,6 +3,7 @@
 module EdgeNode.Controller.Http.LoadProfile (controller) where
 
 import EdgeNode.Model.User 
+import EdgeNode.Error
 
 import ReliefJsonData
 import Katip
@@ -14,7 +15,7 @@ import Database.Action
 import Database.Groundhog (get)
 import Control.Lens.Iso.Extended
 
-controller :: UserId -> KatipController (Alternative T.Text User)
+controller :: UserId -> KatipController (Alternative (Error T.Text) User)
 controller uid = do
     orm <- (^.katipEnv.ormDB) `fmap` ask 
     res <- flip runTryDbConnGH orm $ do 
@@ -22,6 +23,6 @@ controller uid = do
       $(logTM) DebugS (logStr (show profile))
       return profile
     case res of 
-      Right Nothing -> return $ Error "user not found"
+      Right Nothing -> return $ Error $ ResponseError "user not found"
       Right (Just x) -> return $ Fortune x
-      Left e -> return $ Error (e^.to show.stext)
+      Left e -> return $ Error $ ServerError (InternalServerError (e^.to show.stextl))

@@ -1,10 +1,31 @@
 syntax = 'proto3';
 package EdgeNode.User.Qualififcation;
 
-message Qualifications { repeated Qualification xs = 1; }
+import "EdgeNode/Qualification.proto";
 
-message Qualification {}
+message QualificationIds {
+    oneof education {
+        EdgeNode.Qualification.StateExamId stateExamId = 1;
+        EdgeNode.Qualification.HigherDegreeId higherDegreeId = 2;
+        EdgeNode.Qualification.InternationalDiplomaId internationalDiplomaId = 3;
+        EdgeNode.Qualification.LanguageStandardId languageStandardId = 4;
+    }
+    EdgeNode.Qualification.ProviderId providerIdent = 5;
+    EdgeNode.Qualification.CourseId courseIdent = 6;
+}
 
-message QualificationIds { repeated QualificationId xs = 1; }
+message QualificationId { sint64 value = 1; }
 
-message QualificationId { sint64 ident = 1; }
+message XQualificationIds {
+    QualificationId ident = 1;
+    QualificationIds value = 2;
+}
+
+message QualificationFullinfo { 
+    oneof education {
+       StateExam stateExam = 1;
+       HigherDegree higherDegree = 2;
+       InternationalDiploma internationalDiploma = 3;
+       LanguageStandard languageStandard = 4; 
+    }
+}

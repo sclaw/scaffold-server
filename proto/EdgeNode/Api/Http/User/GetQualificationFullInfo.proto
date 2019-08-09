@@ -1,0 +1,8 @@
+syntax = 'proto3';
+package EdgeNode.Api.Http.User.GetQualificationFullInfo;
+
+import "EdgeNode/User/Qualification.proto";
+
+message Request {}
+
+message Response { repeated QualificationFullinfo xs = 1; }

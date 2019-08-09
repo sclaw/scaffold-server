@@ -22,5 +22,5 @@ newtype ServiceApi route =
        :- Description "load all countries"
        :> "countries" 
        :> Capture "lang" ServiceLanguage
-       :> Get '[JSON] (Alternative T.Text CountriesResponse)     
+       :> Get '[JSON] (Alternative (Error T.Text) CountriesResponse)     
      } deriving stock Generic
