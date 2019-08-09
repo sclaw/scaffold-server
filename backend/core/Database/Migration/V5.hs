@@ -12,11 +12,18 @@ sql :: String
 sql = [i|drop table if exists "edgeNode"."userQualification";
          drop table if exists "edgeNode"."#{show (typeOf (undefined :: Qualification))}";
          create table if not exists "edgeNode"."#{show (typeOf (undefined :: StateExam))}" 
-         ("stateExamTitle" text not null, "stateExamCountry" text not null);
+         (id bigserial primary key, 
+          "stateExamTitle" text not null, 
+          "stateExamCountry" text not null);
          create table if not exists "edgeNode"."#{show (typeOf (undefined :: HigherDegree))}" 
-         ("higherDegreeCountry" text not null, "higherDegreeProvider" text not null);
+         (id bigserial primary key, 
+          "higherDegreeCountry" text not null, 
+          "higherDegreeProvider" text not null);
          create table if not exists "edgeNode"."#{show (typeOf (undefined :: InternationalDiploma))}" 
-         ("internationalDiplomaTitle" text not null);
+         (id bigserial primary key, 
+          "internationalDiplomaTitle" text not null);
          create table if not exists "edgeNode"."#{show (typeOf (undefined :: LanguageStandard))}" 
-         ("languageStandardStandard" text not null, "languageStandardGrade" bytea not null);
+         (id bigserial primary key, 
+          "languageStandardStandard" text not null, 
+          "languageStandardGrade" bytea not null);
       |]

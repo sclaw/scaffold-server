@@ -35,7 +35,9 @@ import Data.Bifunctor
 import Control.Lens.Iso.Extended
 import Control.Monad.Trans.Class
 import Control.Monad.IO.Class
-import Control.Monad.Error.Class (throwError, catchError)
+import Control.Monad.Error.Class 
+       ( throwError
+       , catchError)
 import Control.Exception (fromException)
 import Servant.Auth.Server.Internal.ConfigTypes
 import qualified Data.HashMap.Strict as HM
