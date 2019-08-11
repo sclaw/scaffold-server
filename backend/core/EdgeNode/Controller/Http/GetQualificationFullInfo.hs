@@ -1,6 +1,6 @@
 module EdgeNode.Controller.Http.GetQualificationFullInfo (controller) where
 
-import RetrofitReqRespProto
+import RetrofitProto
 import KatipController
 import ReliefJsonData
 import Data.Aeson.Unit

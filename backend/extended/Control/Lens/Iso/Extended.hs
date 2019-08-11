@@ -74,6 +74,7 @@ enumtext =
          x' <- T.stripPrefix "\"" x
          T.stripSuffix "\"" x'
 
-jsonb :: (FromJSON a, ToJSON a) => Iso' a BL.ByteString
-jsonb = iso encode (either err id `fmap` eitherDecode) 
-    where err = error . (<>) "decode error: "
+jsonb :: (FromJSON a, ToJSON a) => Iso' a Value
+jsonb = iso toJSON (fmap getObj fromJSON) 
+    where getObj (Success x) = x
+          getObj (Error e) = error $ "decode error: " <> show e

@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module Database.Migration.V5 (sql) where
+module Database.Migration.Version5 (sql) where
 
 import EdgeNode.Model.EducationLevel
 import EdgeNode.Model.User.Qualification

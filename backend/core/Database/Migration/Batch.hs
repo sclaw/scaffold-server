@@ -10,10 +10,12 @@
 module Database.Migration.Batch (Version (..), exec) where 
 
 import EdgeNode.Application
-import qualified Database.Migration.V2 as V2
-import qualified Database.Migration.V3 as V3
-import qualified Database.Migration.V4 as V4
-import qualified Database.Migration.V5 as V5
+import qualified Database.Migration.Version2 as V2
+import qualified Database.Migration.Version3 as V3
+import qualified Database.Migration.Version4 as V4
+import qualified Database.Migration.Version5 as V5
+import qualified Database.Migration.Version6 as V6
+import qualified Database.Migration.Version7 as V7
 
 import Data.Word (Word32)
 import Database.Exception
@@ -60,5 +62,7 @@ list =
   , (Version 2, Next V3.sql (Version 3))
   , (Version 3, Next V4.sql (Version 4))
   , (Version 4, Next V5.sql (Version 5))
-  , (Version 5, Stop)
+  , (Version 5, Next V6.sql (Version 6))
+  , (Version 6, Next V7.sql (Version 7))
+  , (Version 7, Stop)
   ]

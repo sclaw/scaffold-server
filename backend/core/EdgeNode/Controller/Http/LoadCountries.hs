@@ -11,7 +11,7 @@ import EdgeNode.Error
 
 import ReliefJsonData
 import KatipController
-import RetrofitReqRespProto
+import RetrofitProto
 import qualified Data.Text as T
 import Network.HTTP.Client
 import Data.String.Interpolate

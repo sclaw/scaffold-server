@@ -141,7 +141,10 @@ deriveToSchemaAndJSON name = do
 
 deriveToSchemaAndDefJSON :: Name -> Q [Dec]
 deriveToSchemaAndDefJSON name = do
-  x <- deriveJSON (defaultOptions { tagSingleConstructors = True }) name
+  x <- deriveJSON 
+       (defaultOptions 
+        { tagSingleConstructors = True }) 
+       name
   y <- deriveToSchemaDef name
   return $ x ++ y
 

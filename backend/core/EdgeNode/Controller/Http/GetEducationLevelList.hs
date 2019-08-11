@@ -10,7 +10,7 @@ import EdgeNode.Error
 import EdgeNode.Model.EducationLevel
 import EdgeNode.Api.Http.User.GetEducationLevelList
 
-import RetrofitReqRespProto
+import RetrofitProto
 import KatipController
 import ReliefJsonData
 import Data.Aeson.Unit

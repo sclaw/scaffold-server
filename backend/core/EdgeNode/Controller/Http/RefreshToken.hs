@@ -19,7 +19,7 @@ import Auth
 import Database.Groundhog.Core
 import Database.Groundhog.Postgresql
 import Database.Exception
-import RetrofitReqRespProto
+import RetrofitProto
 import ReliefJsonData
 import Katip
 import KatipController

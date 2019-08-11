@@ -144,6 +144,10 @@ library:
     - wai-cors
     - either-unwrap
     - monad-time
+    - tagged
+    - th-printf
+    - resourcet
+    - monad-loops
   source-dirs:
     - backend/core
     - backend/extended

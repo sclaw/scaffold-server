@@ -1,0 +1,20 @@
+syntax = 'proto3';
+package EdgeNode;
+
+enum Language {
+    Danish = 0;
+    Dutch = 1;
+    English =2;
+    Finnish = 3;
+    French = 4;
+    German = 5;
+    Hungarian = 6;
+    Italian = 7;
+    Norwegian = 8;
+    Portuguese = 9;
+    Romanian = 10;
+    Russian = 11;
+    Spanish = 12;
+    Swedish = 13;
+    Turkish = 14;
+  }

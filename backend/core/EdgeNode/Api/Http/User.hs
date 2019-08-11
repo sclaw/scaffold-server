@@ -9,7 +9,7 @@ module EdgeNode.Api.Http.User (UserApi (..)) where
 
 import EdgeNode.Model.User
 
-import RetrofitReqRespProto
+import RetrofitProto
 import Servant.API.Generic
 import Servant.API.WebSocket ()
 import Servant.API
@@ -50,7 +50,17 @@ data UserApi route =
        :: route 
        :- Description "list of educational level"
        :> "qualification"
-       :> "new" 
-       :> "education-list"
-       :> Get '[JSON] (Alternative (Error Unit) GetEducationLevelListResponse)                   
+       :> "new"
+       :> "get" 
+       :> "educations"
+       :> Get '[JSON] (Alternative (Error Unit) GetEducationLevelListResponse)
+     , _userGetProvider
+       :: route 
+       :- Description "list of provider"
+       :> "qualification"
+       :> "new"
+       :> "get" 
+       :> "providers"
+       :> ReqBody '[JSON] GetProviderRequest
+       :> Post '[JSON] (Alternative (Error T.Text) GetProviderResponse)
      } deriving stock Generic

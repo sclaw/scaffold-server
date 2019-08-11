@@ -1,6 +1,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module Database.Migration.V4 (sql) where
+module Database.Migration.Version4 (sql) where
 
 import EdgeNode.Model.Token (Token)
 

@@ -12,7 +12,7 @@ import EdgeNode.Service.Data
 import Servant.API.Generic
 import Servant.API
 import ReliefJsonData
-import RetrofitReqRespProto
+import RetrofitProto
 import qualified Data.Text as T
 
 newtype ServiceApi route = 

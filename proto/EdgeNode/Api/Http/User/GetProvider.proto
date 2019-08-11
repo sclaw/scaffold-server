@@ -3,7 +3,17 @@ package EdgeNode.Api.Http.User.GetProvider;
 
 import "EdgeNode/Qualification.proto";
 import "EdgeNode/Provider.proto";
+import "EdgeNode/Lang.proto";
 
-message Reuqest { EdgeNode.Qualification.StateExamId ident = 1; }
+message Request { 
+    oneof ident {
+        EdgeNode.Qualification.StateExamId stateExamId = 1;
+        EdgeNode.Qualification.HigherDegreeId higherDegreeId = 2;
+        EdgeNode.Qualification.InternationalDiplomaId internationalDiplomaId = 3;
+        EdgeNode.Qualification.LanguageStandardId languageStandardId = 4; 
+    }
+    Language lang = 5;
+    string query = 6;
+}
 
 message Response { repeated EdgeNode.Provider.XProvider values = 1; }

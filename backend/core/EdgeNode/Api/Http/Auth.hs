@@ -14,7 +14,7 @@ import Servant.API.WebSocket ()
 import Servant.API
 import ReliefJsonData
 import Swagger.ToSchema ()
-import RetrofitReqRespProto
+import RetrofitProto
 import Data.Aeson.Unit
 import Servant.Auth.Server    
 

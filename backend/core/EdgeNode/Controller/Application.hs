@@ -17,6 +17,7 @@ import qualified EdgeNode.Controller.Http.SaveQualification as User.SaveQualific
 import qualified EdgeNode.Controller.Http.GetQualificationFullInfo as User.GetQualificationFullInfo
 import qualified EdgeNode.Controller.Http.RefreshToken as Auth.RefreshToken
 import qualified EdgeNode.Controller.Http.GetEducationLevelList as User.GetEducationLevelList
+import qualified EdgeNode.Controller.Http.GetProvider as User.GetProvider
 
 import Katip
 import KatipController
@@ -57,7 +58,7 @@ auth =
     flip logExceptionM ErrorS 
     . katipAddNamespace 
       (Namespace ["auth", "signOut"])  
-    . Auth.SignOut.controller    
+    . Auth.SignOut.controller
   }
 
 user :: JWTUser -> UserApi (AsServerT KatipController)
@@ -87,15 +88,20 @@ user user =
     flip logExceptionM ErrorS $
     katipAddNamespace 
     (Namespace ["user", "getEducationLevelList"])
-    User.GetEducationLevelList.controller      
+    User.GetEducationLevelList.controller
+  , _userGetProvider =
+    flip logExceptionM ErrorS
+    . katipAddNamespace 
+      (Namespace ["user", "GetProvider"])
+    . User.GetProvider.controller  
   }
 
 service :: ServiceApi (AsServerT KatipController)
 service =
   ServiceApi
-  { _serviceApiLoadCountries = \lang ->
-    flip logExceptionM ErrorS $ 
-     katipAddNamespace 
-     (Namespace ["service", "loadContries"])
-     (Service.LoadCountries.controller lang)
+  { _serviceApiLoadCountries =
+    flip logExceptionM ErrorS 
+    . katipAddNamespace 
+      (Namespace ["service", "loadContries"])
+    . Service.LoadCountries.controller
   }

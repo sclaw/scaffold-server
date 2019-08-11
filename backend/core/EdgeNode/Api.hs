@@ -40,7 +40,7 @@ newtype HttpWrapperApi route =
         HttpWrapperApi 
         { _httpWrapperApiApi 
           :: route
-          :- Description "http api"
+          :- Description "http api: "
           :> "api" 
           :> "v1"
           :> ToServant HttpApi AsApi 

@@ -1,10 +1,12 @@
 syntax = 'proto3';
 package EdgeNode.Provider;
 
-
 message ProviderId {  sint64 value = 1; }
 
-message Provider {}
+message Provider {
+    string title = 1;
+    string country = 2;
+}
 
 message XProvider {
     ProviderId ident = 1;
