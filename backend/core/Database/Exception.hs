@@ -20,6 +20,7 @@ data Groundhog =
      | JWSError Jose.Error
      | JWTError Jose.JWTError
      | Common String
+     | Action String
      deriving Show
 
 data Hasql = 
