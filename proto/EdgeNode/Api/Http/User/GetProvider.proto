@@ -12,8 +12,7 @@ message Request {
         EdgeNode.Qualification.InternationalDiplomaId internationalDiplomaId = 3;
         EdgeNode.Qualification.LanguageStandardId languageStandardId = 4; 
     }
-    Language lang = 5;
-    string query = 6;
+    fixed32 chunk = 5;
 }
 
 message Response { repeated EdgeNode.Provider.XProvider values = 1; }

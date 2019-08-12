@@ -120,7 +120,8 @@ createSearchQuery lang fields selects name =
         from "edgeNode"."#{untag name}" 
         where to_tsvector
         ('#{langStr lang}', 
-         #{indexBody fields}) @@ to_tsquery(?);
+         #{indexBody fields}) @@ 
+         to_tsquery(?);
      |]
 
 providerDropIndexQuery :: Language -> QueryString

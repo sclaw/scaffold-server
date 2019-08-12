@@ -7,6 +7,5 @@ import Data.String.Interpolate
 
 sql :: String 
 sql = [i|alter table "edgeNode"."Provider" add column if not exists "providerCountry" text not null;
-         -- alter table "edgeNode"."Provider" alter column "providerTitle" type text collate "ru_RU";
-        #{concatMap (\(x, y) -> x ++ ";" ++ y) $ recreateIndex providerDropIndexQuery providerCreateIndexQuery}
+         #{concatMap (\(x, y) -> x ++ ";" ++ y) $ recreateIndex providerDropIndexQuery providerCreateIndexQuery}
       |]

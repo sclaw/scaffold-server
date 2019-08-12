@@ -35,7 +35,8 @@ getResults
      m Postgresql (m1 a)
 getResults valuesToObj (QueryString query) term = 
   do 
-    rows <- queryRaw False query [PersistText term]
+    let term' = T.replace " " "|" term
+    rows <- queryRaw False query [PersistText term']
     $(logTM) InfoS [i|search: #{query}, #{term}|]
     values <- liftIO.withAcquire rows $ unfoldM'
     return $ fmap valuesToObj values
