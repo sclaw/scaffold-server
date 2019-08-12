@@ -10,7 +10,7 @@
 {-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module EdgeNode.Model.EducationLevel 
+module EdgeNode.Model.Category 
        ( StateExam
        , XStateExam (..)
        , HigherDegree
@@ -23,7 +23,7 @@ module EdgeNode.Model.EducationLevel
        ) 
        where
 
-import EdgeNode.Qualification
+import EdgeNode.Category
 
 import Database.Groundhog.Postgresql ()
 import Database.Groundhog.TH.Extended

@@ -4,11 +4,11 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DataKinds #-}
 
-module EdgeNode.Controller.Http.GetEducationLevelList (controller) where
+module EdgeNode.Controller.Http.GetCategories (controller) where
 
 import EdgeNode.Error
-import EdgeNode.Model.EducationLevel
-import EdgeNode.Api.Http.User.GetEducationLevelList
+import EdgeNode.Model.Category
+import EdgeNode.Api.Http.User.GetCategories
 
 import RetrofitProto
 import KatipController
@@ -30,7 +30,7 @@ import Data.Vector.Lens
 import Data.Default.Class.Extended
 import Data.Generics.Product
 
-controller :: KatipController (Alternative (Error Unit) GetEducationLevelListResponse)
+controller :: KatipController (Alternative (Error Unit) GetCategoriesResponse)
 controller =
   do
     orm <- fmap (^.katipEnv.ormDB) ask
@@ -45,7 +45,7 @@ controller =
     (^.eitherToAlt) . first mkError <$> 
      runTryDbConnGH (action `catchError` logErr) orm
 
-action :: TryAction Groundhog KatipController Postgresql GetEducationLevelListResponse
+action :: TryAction Groundhog KatipController Postgresql GetCategoriesResponse
 action = 
   do
     exams :: [(AutoKey StateExam, StateExam)] <- selectAll
@@ -69,4 +69,4 @@ action =
          & field @"xlanguageStandardIdent" ?~ (k^.from autokey) 
          & field @"xlanguageStandardValue" ?~ v
     let resp = Response (exams'^.vector) (degrees'^.vector) (diplomas'^.vector) (langs'^.vector)
-    return $ GetEducationLevelListResponse resp
+    return $ GetCategoriesResponse resp

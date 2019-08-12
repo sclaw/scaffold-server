@@ -2,7 +2,7 @@
 
 module Database.Migration.Version5 (sql) where
 
-import EdgeNode.Model.EducationLevel
+import EdgeNode.Model.Category
 import EdgeNode.Model.User.Qualification
 
 import Data.String.Interpolate

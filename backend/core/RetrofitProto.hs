@@ -13,7 +13,7 @@ import qualified EdgeNode.Api.Http.Auth.RefreshToken as RefreshToken
 import qualified EdgeNode.Service.Countries as Countries 
 import qualified EdgeNode.Api.Http.User.SaveQualification as SaveQualification 
 import qualified EdgeNode.Api.Http.User.GetQualificationFullInfo as GetQualificationFullInfo
-import qualified EdgeNode.Api.Http.User.GetEducationLevelList as GetEducationLevelList 
+import qualified EdgeNode.Api.Http.User.GetCategories as GetCategories 
 import qualified EdgeNode.Api.Http.User.GetProvider as GetProvider 
 import EdgeNode.Lang
 
@@ -41,7 +41,7 @@ responseWrapper ''Countries.Response
 requestWrapper ''SaveQualification.Request
 responseWrapper ''SaveQualification.Response
 responseWrapper ''GetQualificationFullInfo.Response
-responseWrapper ''GetEducationLevelList.Response
+responseWrapper ''GetCategories.Response
 requestWrapper ''GetProvider.Request
 responseWrapper ''GetProvider.Response
 

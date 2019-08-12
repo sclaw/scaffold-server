@@ -1,7 +1,5 @@
 syntax = 'proto3';
-package EdgeNode.Qualification;
-
-message ProviderId { sint64 value = 1; }
+package EdgeNode.Category;
 
 message CourseId { sint64 value = 1; }
 

@@ -52,8 +52,8 @@ data UserApi route =
        :> "qualification"
        :> "new"
        :> "get" 
-       :> "educations"
-       :> Get '[JSON] (Alternative (Error Unit) GetEducationLevelListResponse)
+       :> "categories"
+       :> Get '[JSON] (Alternative (Error Unit) GetCategoriesResponse)
      , _userGetProvider
        :: route 
        :- Description "list of provider"

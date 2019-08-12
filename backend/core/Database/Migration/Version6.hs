@@ -2,7 +2,7 @@
 
 module Database.Migration.Version6 (sql) where
 
-import EdgeNode.Model.EducationLevel
+import EdgeNode.Model.Category
 
 import Data.String.Interpolate
 import Data.Typeable

@@ -5,7 +5,7 @@ module Database.Table (mkTables, Database.Table.print) where
 import qualified EdgeNode.Application as App
 import EdgeNode.Model.User (AuthenticatedUser, User, UserTablesBonds)
 import EdgeNode.Model.Token (Token)
-import EdgeNode.Model.EducationLevel
+import EdgeNode.Model.Category
 
 import Database.DbMeta  
 import Database.Groundhog.Core

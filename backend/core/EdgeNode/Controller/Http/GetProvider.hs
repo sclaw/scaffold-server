@@ -14,7 +14,6 @@ import EdgeNode.Error
 import EdgeNode.Lang
 import EdgeNode.Model.Provider
 
-import Database.FullText.Search
 import RetrofitProto
 import KatipController
 import ReliefJsonData
@@ -38,16 +37,16 @@ import Data.Generics.Sum
 import Data.Traversable
 import Control.Applicative ((<|>))
 import Control.Monad.IO.Class
-import Data.Maybe
 import Data.String.Interpolate
 import Control.Monad
+import Data.Word
 
 controller :: GetProviderRequest -> KatipController (Alternative (Error T.Text) GetProviderResponse)
 controller req =
   do
     let ident = req^._Wrapped'.field @"requestIdent"
     let Just lang = req^?_Wrapped'.field @"requestLang".field @"enumerated"._Right
-    let query = req^._Wrapped'.field @"requestQuery".lazytext
+    let cursor = req^._Wrapped'.field @"requestCursor"
     orm <- fmap (^.katipEnv.ormDB) ask
     let logErr e = 
           do $(logTM) ErrorS (logStr (show e))
@@ -59,46 +58,63 @@ controller req =
            Just (Common x) -> ServerError $ InternalServerError (x^.stextl)
            _ -> ServerError $ InternalServerError "unkonwn server error, please pay a visit to log"
     (^.eitherToAlt) . first mkError <$> 
-     runTryDbConnGH (action query lang ident `catchError` logErr) orm
+     runTryDbConnGH (action cursor lang ident `catchError` logErr) orm
     
-action :: T.Text -> Language -> Maybe RequestIdent -> TryAction Groundhog KatipController Postgresql GetProviderResponse
+action :: Word32 -> Language -> Maybe RequestIdent -> TryAction Groundhog KatipController Postgresql GetProviderResponse
 action _ _ Nothing = throwError $ Action "ident blank"
-action term lang (Just ident) = 
-  do 
-    xs :: [(ProviderId, Provider)] <- provider lang term
-    let xs' = map (\(i, v) -> XProvider (Just i) (Just v)) $ 
-              xs^..folded.filtered 
-              ( (== fromLanguage lang) 
-              . (^._2.field @"providerCountry".lazytext.from stext))
-    $(logTM) DebugS (logStr ("full text: " ++ show xs'))          
+action cursor lang (Just ident) = 
+  do        
     exam <- for (ident^?_Ctor @"RequestIdentStateExamId") getExam
     degree <- for (ident^?_Ctor @"RequestIdentHigherDegreeId") getDegree
     diploma <- for (ident^?_Ctor @"RequestIdentInternationalDiplomaId") getDiploma
     ilang <- for (ident^?_Ctor @"RequestIdentLanguageStandardId") getILang
-    let pickOut (is :: [ProviderId]) = 
-         [ x | x@(XProvider (Just ident) _) <- xs'
-         , ident `elem` is
-         ]
-    xs'' <- maybe (throwError (Action "ident not found")) 
-                  (return . pickOut) 
-                  (join (exam <|> degree <|> diploma <|> ilang))
-    return $ GetProviderResponse $ Response $ xs''^.vector
+    maybe (throwError (Action "ident not found"))
+          (return . GetProviderResponse . Response . (^.vector))                
+          (join (exam <|> degree <|> diploma <|> ilang))
   where 
     getExam ident =  
       do 
-        let sql = [i|select provider_id from "edgeNode"."StateExamProvider" where state_exam_id = ?|]
-        stream <- queryRaw False sql [PersistInt64 (ident^.field @"stateExamIdValue")]
+        let sql = 
+             [i|select p.id, p."providerTitle", p."providerCountry" 
+                from "edgeNode"."StateExamProvider" as e
+                join "edgeNode"."Provider" as p
+                on e.provider_id = p.id 
+                where e.state_exam_id = ? and p."providerCountry" = ?
+                order by p."providerTitle" asc 
+                limit 10 offset ?
+             |]
+        stream <- queryRaw False sql 
+         [ PersistInt64 (ident^.field @"stateExamIdValue")
+         , PersistText (fromLanguage lang^.stext)
+         , PersistInt64 (fromIntegral cursor)]
         xs <- liftIO $ streamToList stream
         $(logTM) DebugS (logStr ("exam.streamToList: " ++ show xs))
-        xs' <- catMaybes `fmap` mapM (\x -> for (x^?_head) fromSinglePersistValue) xs
+        xs' <- forM xs $ \(x:xs) -> do 
+          ident <- fromSinglePersistValue x
+          (v, _) <- fromPersistValues xs
+          return $ XProvider ident v
         return $ if null xs' then Nothing else Just xs'
     getDegree ident = 
       do 
-        let sql = [i|select provider_id from "edgeNode"."HigherDegreeProvider" where higher_degree_id = ?|]
-        stream <- queryRaw False sql [PersistInt64 (ident^.field @"higherDegreeIdValue")]
+        let sql = 
+             [i|select p.id, p."providerTitle", p."providerCountry" 
+               from "edgeNode"."HigherDegreeProvider" as d
+               join "edgeNode"."Provider" as p
+               on d.provider_id = p.id 
+               where d.higher_degree_id = ? and p."providerCountry" = ?
+               order by p."providerTitle" asc 
+               limit 10 offset ?
+             |]
+        stream <- queryRaw False sql 
+         [ PersistInt64 (ident^.field @"higherDegreeIdValue")
+         , PersistText (fromLanguage lang^.stext)
+          , PersistInt64 (fromIntegral cursor)]
         xs <- liftIO $ streamToList stream
         $(logTM) DebugS (logStr ("degree.streamToList: " ++ show xs))
-        xs' <- catMaybes `fmap` mapM (\x -> for (x^?_head) fromSinglePersistValue) xs
+        xs' <- forM xs $ \(x:xs) -> do 
+          ident <- fromSinglePersistValue x
+          (v, _) <- fromPersistValues xs
+          return $ XProvider ident v
         return $ if null xs' then Nothing else Just xs'     
     getDiploma _ =  throwError $ Action "international diploma not supported"
     getILang _ = throwError $ Action "language standard not supported"

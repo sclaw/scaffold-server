@@ -1,18 +1,19 @@
 syntax = 'proto3';
 package EdgeNode.Api.Http.User.GetProvider;
 
-import "EdgeNode/Qualification.proto";
+import "EdgeNode/Category.proto";
 import "EdgeNode/Provider.proto";
 import "EdgeNode/Lang.proto";
 
 message Request { 
     oneof ident {
-        EdgeNode.Qualification.StateExamId stateExamId = 1;
-        EdgeNode.Qualification.HigherDegreeId higherDegreeId = 2;
-        EdgeNode.Qualification.InternationalDiplomaId internationalDiplomaId = 3;
-        EdgeNode.Qualification.LanguageStandardId languageStandardId = 4; 
+        EdgeNode.Category.StateExamId stateExamId = 1;
+        EdgeNode.Category.HigherDegreeId higherDegreeId = 2;
+        EdgeNode.Category.InternationalDiplomaId internationalDiplomaId = 3;
+        EdgeNode.Category.LanguageStandardId languageStandardId = 4; 
     }
-    fixed32 chunk = 5;
+    Language lang = 5;
+    fixed32 cursor = 6;
 }
 
 message Response { repeated EdgeNode.Provider.XProvider values = 1; }

@@ -1,7 +1,7 @@
 syntax = 'proto3';
-package EdgeNode.Api.Http.User.GetEducationLevelList;
+package EdgeNode.Api.Http.User.GetCategories;
 
-import "EdgeNode/Qualification.proto";
+import "EdgeNode/Category.proto";
 
 message Reuqest {}
 
