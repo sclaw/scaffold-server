@@ -1,0 +1,17 @@
+syntax = 'proto3';
+package EdgeNode.Qualification;
+
+message QualificationId { sint64 value = 1; }
+
+message Qualification {
+    string title = 1;
+    oneof grade {
+        string char = 2;
+        fixed32 integral = 3; 
+    }
+}
+
+message XQualification {
+    QualificationId ident = 1;
+    Qualification value = 2;      
+}

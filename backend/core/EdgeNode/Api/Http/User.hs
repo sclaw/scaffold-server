@@ -46,9 +46,9 @@ data UserApi route =
        :> "qualification"
        :> "get"
        :> Post '[JSON] (Alternative (Error Unit) GetQualificationFullInfoResponse)
-     , _userGetEducationLevelList 
+     , _userGetCategories
        :: route 
-       :- Description "list of educational level"
+       :- Description "list of categories"
        :> "qualification"
        :> "new"
        :> "get" 
@@ -61,6 +61,15 @@ data UserApi route =
        :> "new"
        :> "get" 
        :> "providers"
-       :> ReqBody '[JSON] GetProviderRequest
-       :> Post '[JSON] (Alternative (Error T.Text) GetProviderResponse)
+       :> ReqBody '[JSON] GetProvidersRequest
+       :> Post '[JSON] (Alternative (Error T.Text) GetProvidersResponse)
+     , _userGetQualififcations  
+       :: route 
+       :- Description "list of provider"
+       :> "qualification"
+       :> "new"
+       :> "get" 
+       :> "qualififcations"
+       :> ReqBody '[JSON] GetQualififcationsRequest
+       :> Post '[JSON] (Alternative (Error T.Text) GetQualififcationsResponse)     
      } deriving stock Generic

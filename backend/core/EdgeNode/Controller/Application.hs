@@ -17,7 +17,8 @@ import qualified EdgeNode.Controller.Http.SaveQualification as User.SaveQualific
 import qualified EdgeNode.Controller.Http.GetQualificationFullInfo as User.GetQualificationFullInfo
 import qualified EdgeNode.Controller.Http.RefreshToken as Auth.RefreshToken
 import qualified EdgeNode.Controller.Http.GetCategories as User.GetCategories
-import qualified EdgeNode.Controller.Http.GetProvider as User.GetProvider
+import qualified EdgeNode.Controller.Http.GetProviders as User.GetProviders
+import qualified EdgeNode.Controller.Http.GetQualififcations as User.GetQualififcations 
 
 import Katip
 import KatipController
@@ -84,16 +85,21 @@ user user =
     katipAddNamespace 
     (Namespace ["user", "getQualififcationFullInfo"])
     User.GetQualificationFullInfo.controller
-  , _userGetEducationLevelList =
+  , _userGetCategories =
     flip logExceptionM ErrorS $
     katipAddNamespace 
-    (Namespace ["user", "getEducationLevelList"])
+    (Namespace ["user", "getCategories"])
     User.GetCategories.controller
   , _userGetProvider =
     flip logExceptionM ErrorS
     . katipAddNamespace 
-      (Namespace ["user", "GetProvider"])
-    . User.GetProvider.controller  
+      (Namespace ["user", "getProviders"])
+    . User.GetProviders.controller
+  , _userGetQualififcations =
+    flip logExceptionM ErrorS
+    . katipAddNamespace 
+      (Namespace ["user", "getQualififcations"])
+    . User.GetQualififcations.controller    
   }
 
 service :: ServiceApi (AsServerT KatipController)

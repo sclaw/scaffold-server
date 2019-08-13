@@ -7,9 +7,9 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module EdgeNode.Controller.Http.GetProvider (controller) where
+module EdgeNode.Controller.Http.GetProviders (controller) where
 
-import EdgeNode.Api.Http.User.GetProvider
+import EdgeNode.Api.Http.User.GetProviders
 import EdgeNode.Error
 import EdgeNode.Lang
 import EdgeNode.Model.Provider
@@ -41,7 +41,7 @@ import Data.String.Interpolate
 import Control.Monad
 import Data.Word
 
-controller :: GetProviderRequest -> KatipController (Alternative (Error T.Text) GetProviderResponse)
+controller :: GetProvidersRequest -> KatipController (Alternative (Error T.Text) GetProvidersResponse)
 controller req =
   do
     let ident = req^._Wrapped'.field @"requestIdent"
@@ -60,7 +60,7 @@ controller req =
     (^.eitherToAlt) . first mkError <$> 
      runTryDbConnGH (action cursor lang ident `catchError` logErr) orm
     
-action :: Word32 -> Language -> Maybe RequestIdent -> TryAction Groundhog KatipController Postgresql GetProviderResponse
+action :: Word32 -> Language -> Maybe RequestIdent -> TryAction Groundhog KatipController Postgresql GetProvidersResponse
 action _ _ Nothing = throwError $ Action "ident blank"
 action cursor lang (Just ident) = 
   do        
@@ -69,7 +69,7 @@ action cursor lang (Just ident) =
     diploma <- for (ident^?_Ctor @"RequestIdentInternationalDiplomaId") getDiploma
     ilang <- for (ident^?_Ctor @"RequestIdentLanguageStandardId") getILang
     maybe (throwError (Action "ident not found"))
-          (return . GetProviderResponse . Response . (^.vector))                
+          (return . GetProvidersResponse . Response . (^.vector))                
           (join (exam <|> degree <|> diploma <|> ilang))
   where 
     getExam ident =  

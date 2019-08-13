@@ -14,7 +14,8 @@ import qualified EdgeNode.Service.Countries as Countries
 import qualified EdgeNode.Api.Http.User.SaveQualification as SaveQualification 
 import qualified EdgeNode.Api.Http.User.GetQualificationFullInfo as GetQualificationFullInfo
 import qualified EdgeNode.Api.Http.User.GetCategories as GetCategories 
-import qualified EdgeNode.Api.Http.User.GetProvider as GetProvider 
+import qualified EdgeNode.Api.Http.User.GetProviders as GetProviders
+import qualified EdgeNode.Api.Http.User.GetQualififcations as GetQualififcations   
 import EdgeNode.Lang
 
 import TH.Generator
@@ -42,7 +43,9 @@ requestWrapper ''SaveQualification.Request
 responseWrapper ''SaveQualification.Response
 responseWrapper ''GetQualificationFullInfo.Response
 responseWrapper ''GetCategories.Response
-requestWrapper ''GetProvider.Request
-responseWrapper ''GetProvider.Response
+requestWrapper ''GetProviders.Request
+responseWrapper ''GetProviders.Response
+requestWrapper ''GetQualififcations.Request
+responseWrapper ''GetQualififcations.Response
 
 enumConvertor ''Language

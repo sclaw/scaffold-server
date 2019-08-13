@@ -1,0 +1,9 @@
+syntax = 'proto3';
+package EdgeNode.Api.Http.User.GetQualififcations;
+
+import "EdgeNode/Qualification.proto";
+import "EdgeNode/Provider.proto";
+
+message Request { EdgeNode.Provider.ProviderId ident = 1; }
+
+message Response { repeated EdgeNode.Qualification.XQualification values = 1; }
