@@ -12,31 +12,20 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE DerivingStrategies     #-}
 
 module EdgeNode.Model.Qualification 
-       ( Qualification (..)
-       , XQualification (..)
+       ( QualificationProvider
+       , QualificationTree (..)
        , QualificationId (..)
-       , Key (..)
-       , autokey
+       , Qualification (..)
+       , Node (..)
        ) where
 
 import EdgeNode.Qualification
 
-import Database.Groundhog.TH.Extended
-import Database.Groundhog.Core 
-import Database.AutoKey
-import TH.Generator
-import Database.Groundhog.Generic
-import Control.Lens.Iso.Extended
 import Data.Aeson.TH
 
-mkPersist_ [groundhog| 
- - entity: Qualification
-   schema: edgeNode
- |]
+data QualificationProvider
 
-deriveWrappedPrimitivePersistField ''QualificationId
-deriveAutoKey ''Qualification
 deriveJSON defaultOptions ''QualificationGrade
-derivePrimitivePersistField ''QualificationGrade [| jsonb |]

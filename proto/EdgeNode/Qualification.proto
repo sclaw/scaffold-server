@@ -11,7 +11,12 @@ message Qualification {
     }
 }
 
-message XQualification {
+message Node {
     QualificationId ident = 1;
     Qualification value = 2;      
+}
+
+message QualificationTree {
+    Node node = 1;
+    repeated QualificationTree tail = 2;
 }

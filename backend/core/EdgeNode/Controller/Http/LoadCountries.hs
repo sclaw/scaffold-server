@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module EdgeNode.Controller.Http.LoadCountries (controller) where
 

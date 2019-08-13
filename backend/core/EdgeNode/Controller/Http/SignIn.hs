@@ -69,7 +69,7 @@ actionUser email logger =
          HD.rowMaybe $ 
           (,) <$> (HD.column HD.int8 <&> (^.from _Wrapped'))
           <*> HD.column HD.bytea 
-    Hasql.Session.statement () (HS.Statement sql encoder decoder True)
+    Hasql.Session.statement () (HS.Statement sql encoder decoder False)
 
 ok :: B.ByteString 
    -> Maybe (UserId, B.ByteString) 
@@ -122,4 +122,4 @@ actionToken token uid unique logger =
          (uid^._Wrapped' >$ HE.param HE.int8) <>
          (unique^.stext >$ HE.param HE.text)
     let decoder = HD.rowMaybe $ HD.column HD.bool
-    Hasql.Session.statement () (HS.Statement sql encoder decoder True)
+    Hasql.Session.statement () (HS.Statement sql encoder decoder False)

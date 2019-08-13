@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE Rank2Types             #-}
 {-# LANGUAGE TypeFamilyDependencies #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Control.Lens.Iso.Extended
        (

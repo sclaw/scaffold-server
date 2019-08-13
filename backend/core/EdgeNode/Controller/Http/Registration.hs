@@ -135,7 +135,7 @@ persist req =
            ((^._Unwrapped') . Reg.Response . Just . User.UserId)
       let log = (sql^.from textbs.from stext) <> ", loc: " <> show getLoc
       liftIO $ logger InfoS (logStr log)
-      statement () (HS.Statement sql encoder decoder True)
+      statement () (HS.Statement sql encoder decoder False)
 
 -- | EdgeNode.Controller.Http.Registration:mkRespBody
 --

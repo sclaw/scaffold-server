@@ -3,30 +3,33 @@ package EdgeNode.User.Qualififcation;
 
 import "EdgeNode/Category.proto";
 import "EdgeNode/Provider.proto";
+import "EdgeNode/Qualification.proto";
 
-message QualificationIds {
-    oneof education {
+message UserQualification {
+    oneof category {
         EdgeNode.Category.StateExamId stateExamId = 1;
         EdgeNode.Category.HigherDegreeId higherDegreeId = 2;
         EdgeNode.Category.InternationalDiplomaId internationalDiplomaId = 3;
         EdgeNode.Category.LanguageStandardId languageStandardId = 4;
     }
     EdgeNode.Provider.ProviderId providerIdent = 5;
-    EdgeNode.Category.CourseId courseIdent = 6;
+    EdgeNode.Qualification.QualificationId qualificationIdent = 6;
 }
 
-message QualificationId { sint64 value = 1; }
+message UserQualificationId { sint64 value = 1; }
 
-message XQualificationIds {
-    QualificationId ident = 1;
-    QualificationIds value = 2;
+message XUserQualification {
+    UserQualificationId ident = 1;
+    UserQualification value = 2;
 }
 
 message QualificationFullinfo { 
-    oneof education {
-       StateExam stateExam = 1;
-       HigherDegree higherDegree = 2;
-       InternationalDiploma internationalDiploma = 3;
-       LanguageStandard languageStandard = 4; 
+    oneof category {
+      EdgeNode.Category.StateExam stateExam = 1;
+      EdgeNode.Category.HigherDegree higherDegree = 2;
+      EdgeNode.Category.InternationalDiploma internationalDiploma = 3;
+      EdgeNode.Category.LanguageStandard languageStandard = 4; 
     }
+    EdgeNode.Provider.Provider provider = 5;
+    EdgeNode.Qualification.Qualification qualification = 6;
 }

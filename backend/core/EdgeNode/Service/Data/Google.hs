@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module EdgeNode.Service.Data.Google (Items (..)) where
 
 import qualified Data.Text as T

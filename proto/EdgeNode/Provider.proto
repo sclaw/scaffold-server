@@ -10,5 +10,5 @@ message Provider {
 
 message XProvider {
     ProviderId ident = 1;
-    Provider value = 2;   
+    Provider value = 2;
 }

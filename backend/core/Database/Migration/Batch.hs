@@ -16,6 +16,7 @@ import qualified Database.Migration.Version4 as V4
 import qualified Database.Migration.Version5 as V5
 import qualified Database.Migration.Version6 as V6
 import qualified Database.Migration.Version7 as V7
+import qualified Database.Migration.Version8 as V8
 
 import Data.Word (Word32)
 import Database.Exception
@@ -26,6 +27,8 @@ import Control.Monad.Except
 import Data.Coerce
 import qualified Data.Map.Strict as Map
 import Data.String.Interpolate
+import Data.Sort
+import Control.Lens
 
 newtype Version = Version Word32
   deriving newtype Num
@@ -33,7 +36,15 @@ newtype Version = Version Word32
   deriving newtype Ord
   deriving stock Show 
 
-data MigrationStep = Next String Version | Stop deriving Eq
+data MigrationStep = 
+       NextSql String Version 
+     | NextMigration 
+       (Migration 
+        (TryAction Groundhog 
+         (KatipContextT AppMonad) 
+          Postgresql))
+       Version    
+     | Stop
 
 exec :: Version -> TryAction Groundhog (KatipContextT AppMonad) Postgresql (Maybe Version) 
 exec _ | null list = return Nothing    
@@ -43,7 +54,9 @@ exec ver = maybe err ok (migrMap Map.!? ver)
     ok val = 
       case val of
         Stop -> return (Just ver)
-        Next sql ver -> withSql sql >> exec ver
+        NextSql sql ver -> withSql sql >> exec ver
+        NextMigration migr ver -> 
+          mkSql migr >>= mapM_ withSql >> exec ver
     withSql sql = 
       do 
         $(logTM) InfoS (logStr ([i|new migration from #{ver} to #{ver + 1}|] :: String))
@@ -53,16 +66,27 @@ exec ver = maybe err ok (migrMap Map.!? ver)
     migrMap = Map.fromList list
 
 isEmpty :: MigrationStep -> Bool
-isEmpty (Next sql _) = null sql
+isEmpty (NextSql sql _) = null sql
+isEmpty (NextMigration _ _) = False
 isEmpty Stop = False
 
+mkSql 
+  :: Migration (TryAction Groundhog (KatipContextT AppMonad) Postgresql)
+  -> TryAction Groundhog (KatipContextT AppMonad) Postgresql [String]
+mkSql migration = createMigration migration >>= (fmap concat . make)
+  where 
+   make migs = forM (Map.assocs migs) $ \(_, v) -> either (fmap (const []) . err) (return . ok) v
+   err = mapM_ (\e -> $(logTM) InfoS (logStr ("\tError:\t" ++ e)))
+   ok xs = map (^._3) $ sortOn (^._2) xs
+         
 list :: [(Version, MigrationStep)]
 list = 
-  [ (Version 1, Next V2.sql (Version 2))
-  , (Version 2, Next V3.sql (Version 3))
-  , (Version 3, Next V4.sql (Version 4))
-  , (Version 4, Next V5.sql (Version 5))
-  , (Version 5, Next V6.sql (Version 6))
-  , (Version 6, Next V7.sql (Version 7))
-  , (Version 7, Stop)
+  [ (Version 1, NextSql V2.sql (Version 2))
+  , (Version 2, NextSql V3.sql (Version 3))
+  , (Version 3, NextSql V4.sql (Version 4))
+  , (Version 4, NextSql V5.sql (Version 5))
+  , (Version 5, NextSql V6.sql (Version 6))
+  , (Version 6, NextSql V7.sql (Version 7))
+  , (Version 7, NextSql V8.sql (Version 8))
+  , (Version 8, Stop)
   ]

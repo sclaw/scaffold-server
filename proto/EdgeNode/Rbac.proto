@@ -7,7 +7,7 @@ message RoleId { sint64 value = 1; }
 
 message Node {
    string title = 1;
-   Protobuf.String description = 2;
+   Protobuf.Scalar.String description = 2;
 }
 
 message Role {

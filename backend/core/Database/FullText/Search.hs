@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Database.FullText.Search (provider) where
 
@@ -15,7 +16,6 @@ import Database.Groundhog.Core
 import Database.Groundhog.Postgresql
 import Database.FullText.Index
 import qualified Database.Exception as Exception
-import Control.Monad.Trans.Control
 import Katip
 import Control.Lens.Iso.Extended
 import Control.Lens
@@ -24,8 +24,7 @@ import Katip.Core (getLoc)
 import Data.String.Interpolate
 
 getResults 
-  :: (KatipContext m, 
-      MonadBaseControl IO m,
+  :: (KatipContext m,
       MonadPlus m1)
   => ([PersistValue] -> a) 
   -> QueryString 
@@ -42,8 +41,7 @@ getResults valuesToObj (QueryString query) term =
     return $ fmap valuesToObj values
 
 provider 
-  :: (KatipContext m, 
-      MonadBaseControl IO m,
+  :: (KatipContext m,
       MonadPlus m1) 
   => Language 
   -> T.Text 

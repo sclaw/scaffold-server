@@ -3,7 +3,14 @@ package EdgeNode.Api.Http.User.GetQualififcations;
 
 import "EdgeNode/Qualification.proto";
 import "EdgeNode/Provider.proto";
+import "Protobuf/Scalar.proto";
 
 message Request { EdgeNode.Provider.ProviderId ident = 1; }
 
-message Response { repeated EdgeNode.Qualification.XQualification values = 1; }
+message Response { 
+    message Value {
+        Protobuf.Scalar.String degreeType = 1;
+        repeated EdgeNode.Qualification.QualificationTree values = 2;
+    }
+    repeated Value value = 3;
+}

@@ -107,6 +107,7 @@ library:
     - regex-with-pcre
     - validation
     - pretty-tree
+    - rosezipper
     - pwstore-fast 
     - servant-swagger-ui
     - servant-swagger-ui-core
@@ -148,6 +149,7 @@ library:
     - th-printf
     - resourcet
     - monad-loops
+    - sort
   source-dirs:
     - backend/core
     - backend/extended

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package Protobuf;
+package Protobuf.Scalar;
 
 // Wrapper message for `double`.
 //
