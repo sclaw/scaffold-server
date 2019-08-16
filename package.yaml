@@ -150,6 +150,7 @@ library:
     - resourcet
     - monad-loops
     - sort
+    - contravariant-extras
   source-dirs:
     - backend/core
     - backend/extended

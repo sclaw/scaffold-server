@@ -33,14 +33,14 @@ data UserApi route =
      :> "patch"
      :> ReqBody '[JSON] User 
      :> Patch '[JSON] (Alternative (Error Unit) Unit)
-     , _userSaveQualification
+     , _userSaveQualifications
       :: route 
       :- Description "save new qualification"
       :> "qualification"
       :> "save"
-      :> ReqBody '[JSON] SaveQualificationRequest
-      :> Post '[JSON] (Alternative (Error Unit) SaveQualificationResponse)
-     , _userGetQualififcation
+      :> ReqBody '[JSON] SaveQualificationsRequest
+      :> Post '[JSON] (Alternative (Error T.Text) SaveQualificationsResponse)
+     , _userGetFullInfoQualififcation
        :: route 
        :- Description "get qualification by given ids, if no ids passed all qualififcations got back"
        :> "qualification"

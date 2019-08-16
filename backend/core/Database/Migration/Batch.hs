@@ -17,6 +17,7 @@ import qualified Database.Migration.Version5 as V5
 import qualified Database.Migration.Version6 as V6
 import qualified Database.Migration.Version7 as V7
 import qualified Database.Migration.Version8 as V8
+import qualified Database.Migration.Version9 as V9
 
 import Data.Word (Word32)
 import Database.Exception
@@ -38,12 +39,7 @@ newtype Version = Version Word32
 
 data MigrationStep = 
        NextSql String Version 
-     | NextMigration 
-       (Migration 
-        (TryAction Groundhog 
-         (KatipContextT AppMonad) 
-          Postgresql))
-       Version    
+     | NextMigration (Migration (TryAction Groundhog (KatipContextT AppMonad) Postgresql)) Version    
      | Stop
 
 exec :: Version -> TryAction Groundhog (KatipContextT AppMonad) Postgresql (Maybe Version) 
@@ -88,5 +84,6 @@ list =
   , (Version 5, NextSql V6.sql (Version 6))
   , (Version 6, NextSql V7.sql (Version 7))
   , (Version 7, NextSql V8.sql (Version 8))
-  , (Version 8, Stop)
+  , (Version 8, NextSql V9.sql (Version 9))
+  , (Version 9, Stop)
   ]

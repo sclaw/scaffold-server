@@ -1,0 +1,8 @@
+syntax = 'proto3';
+package EdgeNode.Api.Http.User.SaveQualifications;
+
+import "EdgeNode/User/Qualification.proto"  ;
+
+message Request { repeated EdgeNode.User.Qualififcation.UserQualification values = 1; }
+
+message Response { repeated EdgeNode.User.Qualififcation.UserQualificationId values = 1; }

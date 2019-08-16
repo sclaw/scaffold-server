@@ -13,7 +13,7 @@ import qualified EdgeNode.Controller.Http.SignOut as Auth.SignOut
 import qualified EdgeNode.Controller.Http.LoadProfile as User.LoadProfile 
 import qualified EdgeNode.Controller.Http.PatchProfile as User.PatchProfile
 import qualified EdgeNode.Controller.Http.LoadCountries as Service.LoadCountries
-import qualified EdgeNode.Controller.Http.SaveQualification as User.SaveQualification
+import qualified EdgeNode.Controller.Http.SaveQualifications as User.SaveQualifications
 import qualified EdgeNode.Controller.Http.GetQualificationFullInfo as User.GetQualificationFullInfo
 import qualified EdgeNode.Controller.Http.RefreshToken as Auth.RefreshToken
 import qualified EdgeNode.Controller.Http.GetCategories as User.GetCategories
@@ -75,12 +75,12 @@ user user =
     . katipAddNamespace 
       (Namespace ["user", "patchProfile"])
     . User.PatchProfile.controller (jWTUserUserId user)
-  , _userSaveQualification = \_ -> 
-    flip logExceptionM ErrorS $
-    katipAddNamespace 
-    (Namespace ["user", "saveQualification"])
-    User.SaveQualification.controller
-  , _userGetQualififcation =
+  , _userSaveQualifications =
+    flip logExceptionM ErrorS
+    . katipAddNamespace 
+      (Namespace ["user", "saveQualifications"])
+    . User.SaveQualifications.controller
+  , _userGetFullInfoQualififcation =
     flip logExceptionM ErrorS $
     katipAddNamespace 
     (Namespace ["user", "getQualififcationFullInfo"])

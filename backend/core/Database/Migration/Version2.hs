@@ -2,15 +2,13 @@
 
 module Database.Migration.Version2 (sql) where
 
-import EdgeNode.Model.User.Qualification
 import EdgeNode.Model.User (User)
 
 import Data.String.Interpolate
 import Data.Typeable
 
 sql :: String 
-sql = [i|create table if not exists "edgeNode"."#{show (typeOf (undefined :: Qualification))}" 
-         (id bigserial not null constraint "Qualification_pk" primary key,
+sql = [i| (id bigserial not null constraint "Qualification_pk" primary key,
           country varchar not null, name varchar not null,
           provider varchar not null);
          create table if not exists "edgeNode"."userQualification"

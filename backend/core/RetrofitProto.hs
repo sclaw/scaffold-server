@@ -11,12 +11,13 @@ import qualified EdgeNode.Api.Http.Auth.Register as Reg
 import qualified EdgeNode.Api.Http.Auth.SignIn as SignIn
 import qualified EdgeNode.Api.Http.Auth.RefreshToken as RefreshToken
 import qualified EdgeNode.Service.Countries as Countries 
-import qualified EdgeNode.Api.Http.User.SaveQualification as SaveQualification 
+import qualified EdgeNode.Api.Http.User.SaveQualifications as SaveQualifications 
 import qualified EdgeNode.Api.Http.User.GetQualificationFullInfo as GetQualificationFullInfo
 import qualified EdgeNode.Api.Http.User.GetCategories as GetCategories 
 import qualified EdgeNode.Api.Http.User.GetProviders as GetProviders
 import qualified EdgeNode.Api.Http.User.GetQualififcations as GetQualififcations   
 import EdgeNode.Lang
+import EdgeNode.Category
 
 import TH.Generator
 import GHC.Generics
@@ -39,8 +40,8 @@ requestWrapper ''Reg.Request
 responseWrapper ''Reg.Response
 requestWrapper ''Countries.Request
 responseWrapper ''Countries.Response
-requestWrapper ''SaveQualification.Request
-responseWrapper ''SaveQualification.Response
+requestWrapper ''SaveQualifications.Request
+responseWrapper ''SaveQualifications.Response
 responseWrapper ''GetQualificationFullInfo.Response
 responseWrapper ''GetCategories.Response
 requestWrapper ''GetProviders.Request
@@ -49,3 +50,4 @@ requestWrapper ''GetQualififcations.Request
 responseWrapper ''GetQualififcations.Response
 
 enumConvertor ''Language
+enumConvertor ''Type

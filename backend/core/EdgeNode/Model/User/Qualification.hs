@@ -9,10 +9,6 @@
 {-# LANGUAGE QuasiQuotes            #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
+module EdgeNode.Model.User.Qualification (UserQualification) where
 
-module EdgeNode.Model.User.Qualification (Qualification) where
-
-data Qualification
+data UserQualification

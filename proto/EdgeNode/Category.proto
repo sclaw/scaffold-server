@@ -1,6 +1,13 @@
 syntax = 'proto3';
 package EdgeNode.Category;
 
+enum Type {
+    StateExam = 0;
+    HigherDegree = 1;
+    InternationalDiploma = 2; 
+    LanguageStandard = 3;
+}
+
 message CourseId { sint64 value = 1; }
 
 message StateExamId { sint64 value = 1; } 

@@ -3,15 +3,12 @@
 module Database.Migration.Version5 (sql) where
 
 import EdgeNode.Model.Category
-import EdgeNode.Model.User.Qualification
 
 import Data.String.Interpolate
 import Data.Typeable
 
 sql :: String 
-sql = [i|drop table if exists "edgeNode"."userQualification";
-         drop table if exists "edgeNode"."#{show (typeOf (undefined :: Qualification))}";
-         create table if not exists "edgeNode"."#{show (typeOf (undefined :: StateExam))}" 
+sql = [i|create table if not exists "edgeNode"."#{show (typeOf (undefined :: StateExam))}" 
          (id bigserial primary key, 
           "stateExamTitle" text not null, 
           "stateExamCountry" text not null);
