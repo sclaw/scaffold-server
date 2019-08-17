@@ -5,13 +5,16 @@ module Database.Migration.Version9 (sql) where
 import EdgeNode.Model.User.Qualification
 import EdgeNode.Model.Provider
 import EdgeNode.Model.Qualification
+import EdgeNode.Model.User
 
 import Data.String.Interpolate
 import Data.Typeable
 
 sql :: String 
 sql = [i|create table if not exists "edgeNode"."#{show (typeOf (undefined :: UserQualification))}"
-         (id bigserial primary key, 
+         (id bigserial primary key,
+          "userId" int8 not null constraint "#{show (typeOf (undefined :: User))}_provider_id_fk"
+          references "edgeNode"."#{show (typeOf (undefined :: User))}"(id) ,
           "categoryType" text not null,
           "categoryKey" int8 not null, 
           "providerKey" int8 not null 

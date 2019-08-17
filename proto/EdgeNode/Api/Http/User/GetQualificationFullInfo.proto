@@ -5,4 +5,4 @@ import "EdgeNode/User/Qualification.proto";
 
 message Request {}
 
-message Response { repeated QualificationFullinfo xs = 1; }
+message Response { repeated XUserQualificationFullinfo values = 1; }

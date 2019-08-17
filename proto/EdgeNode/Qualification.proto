@@ -11,6 +11,11 @@ message Qualification {
     }
 }
 
+message XQualification {
+    QualificationId ident = 1;
+    Qualification value = 2;
+}
+
 message Node {
     QualificationId ident = 1;
     Qualification value = 2;      

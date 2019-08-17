@@ -18,18 +18,18 @@ message UserQualification {
 
 message UserQualificationId { sint64 value = 1; }
 
-message XUserQualification {
-    UserQualificationId ident = 1;
-    UserQualification value = 2;
+message UserQualificationFullinfo { 
+    oneof category {
+      EdgeNode.Category.XStateExam stateExam = 1;
+      EdgeNode.Category.XHigherDegree higherDegree = 2;
+      EdgeNode.Category.XInternationalDiploma internationalDiploma = 3;
+      EdgeNode.Category.XLanguageStandard languageStandard = 4; 
+    }
+    EdgeNode.Provider.XProvider provider = 5;
+    EdgeNode.Qualification.XQualification qualification = 6;
 }
 
-message QualificationFullinfo { 
-    oneof category {
-      EdgeNode.Category.StateExam stateExam = 1;
-      EdgeNode.Category.HigherDegree higherDegree = 2;
-      EdgeNode.Category.InternationalDiploma internationalDiploma = 3;
-      EdgeNode.Category.LanguageStandard languageStandard = 4; 
-    }
-    EdgeNode.Provider.Provider provider = 5;
-    EdgeNode.Qualification.Qualification qualification = 6;
+message XUserQualificationFullinfo {
+    UserQualificationId ident = 1;
+    UserQualificationFullinfo value = 2;
 }

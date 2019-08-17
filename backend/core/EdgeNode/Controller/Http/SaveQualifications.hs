@@ -10,6 +10,7 @@ import EdgeNode.Error
 import EdgeNode.Api.Http.User.SaveQualifications
 import EdgeNode.User.Qualification
 import EdgeNode.Category
+import EdgeNode.Model.User
 
 import RetrofitProto
 import Katip
@@ -33,28 +34,38 @@ import Data.Int
 import Data.Typeable
 import Data.Maybe
 
-controller :: SaveQualificationsRequest -> KatipController (Alternative (Error T.Text) SaveQualificationsResponse)
-controller req =
+controller :: UserId -> SaveQualificationsRequest -> KatipController (Alternative (Error T.Text) SaveQualificationsResponse)
+controller userId req =
   do 
     raw <- (^.katipEnv.rawDB) `fmap` ask
-    x <- flip runTryDbConnHasql raw $ \_ -> do 
+    x <- flip runTryDbConnHasql raw $ const (do 
       let xs = req^._Wrapped'.field @"requestValues".from vector
       let xs' = mapMaybe mkTpl xs
       let sql = 
-            [i|insert into "edgeNode"."#{show (typeOf (undefined :: UserQualification))}"
-               ("categoryType", "categoryKey", "providerKey", "qualificationKey") 
-               (select * from unnest($1, $2, $3, $4)) returning id
+            [i|with real as (select 
+               case when t = '#{fromType TypeStateExam}' then 
+               (select id from "edgeNode"."#{show (typeOf (undefined :: StateExam))}" where id = i)
+               when t = '#{fromType TypeHigherDegree}' then  
+               (select id from "edgeNode"."#{show (typeOf (undefined :: HigherDegree))}" where id = i)
+               when t = '#{fromType TypeInternationalDiploma}' then
+               (select id from "edgeNode"."#{show (typeOf (undefined :: InternationalDiploma))}" where id = i)
+               else (select id from "edgeNode"."#{show (typeOf (undefined :: LanguageStandard))}" where id = i) end as ident
+               from unnest($1, $2) as u(t, i))
+               insert into "edgeNode"."#{show (typeOf (undefined :: UserQualification))}"
+               ("categoryType", "categoryKey", "providerKey", "qualificationKey", "userId") 
+               (select x.*, $5 from unnest($1, (select array_agg(ident) from real), $3, $4) as x) returning id
             |]
       let vector v = HE.param (HE.array (HE.dimension foldl' (HE.element v)))
-      let encoder = 
+      let encoderXs = 
             unzip4 xs' >$
             contrazip4 
             (vector HE.text) 
             (vector HE.int8) 
             (vector HE.int8) 
             (vector HE.int8)
+      let encoder = encoderXs <> (userId^._Wrapped' >$ HE.param HE.int8)     
       let decoder = HD.rowList $ HD.column HD.int8 <&> UserQualificationId
-      Hasql.Session.statement () (HS.Statement sql encoder decoder False) 
+      Hasql.Session.statement () (HS.Statement sql encoder decoder False)) 
     whenLeft x ($(logTM) ErrorS . logStr . show) 
     let mkErr e = ServerError $ InternalServerError (show e^.stextl)
     let mkResp = SaveQualificationsResponse . Response . (^.vector)     

@@ -45,7 +45,7 @@ data UserApi route =
        :- Description "get qualification by given ids, if no ids passed all qualififcations got back"
        :> "qualification"
        :> "get"
-       :> Post '[JSON] (Alternative (Error Unit) GetQualificationFullInfoResponse)
+       :> Get '[JSON] (Alternative (Error T.Text) GetQualificationFullInfoResponse)
      , _userGetCategories
        :: route 
        :- Description "list of categories"

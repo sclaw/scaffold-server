@@ -79,12 +79,13 @@ user user =
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["user", "saveQualifications"])
-    . User.SaveQualifications.controller
+    . User.SaveQualifications.controller (jWTUserUserId user)
   , _userGetFullInfoQualififcation =
     flip logExceptionM ErrorS $
     katipAddNamespace 
     (Namespace ["user", "getQualififcationFullInfo"])
-    User.GetQualificationFullInfo.controller
+    (User.GetQualificationFullInfo.controller 
+     (jWTUserUserId user))
   , _userGetCategories =
     flip logExceptionM ErrorS $
     katipAddNamespace 
