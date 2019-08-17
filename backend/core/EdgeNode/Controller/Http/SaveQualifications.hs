@@ -37,6 +37,7 @@ import Data.Maybe
 controller :: UserId -> SaveQualificationsRequest -> KatipController (Alternative (Error T.Text) SaveQualificationsResponse)
 controller userId req =
   do 
+    $(logTM) DebugS (logStr (show req))
     raw <- (^.katipEnv.rawDB) `fmap` ask
     x <- flip runTryDbConnHasql raw $ const (do 
       let xs = req^._Wrapped'.field @"requestValues".from vector

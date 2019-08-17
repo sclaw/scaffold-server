@@ -1,6 +1,8 @@
 syntax = 'proto3';
 package EdgeNode.Qualification;
 
+import "Protobuf/Scalar.proto";
+
 message QualificationId { sint64 value = 1; }
 
 message Qualification {
@@ -13,7 +15,8 @@ message Qualification {
 
 message XQualification {
     QualificationId ident = 1;
-    Qualification value = 2;
+    String degreeType = 2;
+    Qualification value = 3;
 }
 
 message Node {
