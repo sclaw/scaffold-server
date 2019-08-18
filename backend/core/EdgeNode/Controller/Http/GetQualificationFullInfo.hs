@@ -13,6 +13,7 @@ import EdgeNode.Model.Category
 import EdgeNode.Category
 import EdgeNode.Qualification
 import qualified EdgeNode.Iso as Iso
+import EdgeNode.Model.User.Qualification ()
 
 import RetrofitProto
 import Katip
@@ -34,18 +35,18 @@ import Data.Aeson
 import Control.Applicative ((<|>))
 import Protobuf.Scalar
 
-controller :: UserId -> KatipController (Alternative (Error T.Text) GetQualificationFullInfoResponse)
-controller userId = 
+controller :: UserId -> Maybe UserQualificationId -> KatipController (Alternative (Error T.Text) GetQualificationFullInfoResponse)
+controller userId qualId = 
   do
     raw <- (^.katipEnv.rawDB) `fmap` ask
-    x <- runTryDbConnHasql (action userId) raw
+    x <- runTryDbConnHasql (action userId qualId) raw
     whenLeft x ($(logTM) ErrorS . logStr . show) 
     let mkErr e = ServerError $ InternalServerError (show e^.stextl)
     let mkResp = GetQualificationFullInfoResponse . Response . (^.vector)     
     return $ bimap mkErr mkResp x^.eitherToAlt
 
-action :: UserId -> KatipLoggerIO -> Hasql.Session.Session [XUserQualificationFullinfo]
-action userId _ =
+action :: UserId -> Maybe UserQualificationId -> KatipLoggerIO -> Hasql.Session.Session [XUserQualificationFullinfo]
+action userId qualId  _ =
   do
     let sql = 
          [i|select
@@ -75,8 +76,11 @@ action userId _ =
              "qualificationProviderGrade") 
              from "edgeNode"."#{show (typeOf (undefined :: QualificationProvider))}"
              where id = uq."providerKey")   
-            from "edgeNode"."#{show (typeOf (undefined :: UserQualification))}" as uq where "userId" = $1|]
-    let encoder = userId^._Wrapped' >$ HE.param HE.int8
+            from "edgeNode"."#{show (typeOf (undefined :: UserQualification))}" as uq 
+              where "userId" = $1 and (case when ($2 :: bigint) is not null then uq.id = ($2 :: bigint) else true end) |]
+    let encoder = 
+         (userId^._Wrapped' >$ HE.param HE.int8) <>
+         (qualId^?_Just._Wrapped' >$ HE.nullableParam HE.int8)
     let decoder = HD.rowList fullInfoDecoder 
     Hasql.Session.statement () (HS.Statement sql encoder decoder False)
 

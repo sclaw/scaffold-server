@@ -1,0 +1,8 @@
+syntax = 'proto3';
+package EdgeNode.Api.Http.User.GetTrajectories;
+
+import "EdgeNode/User/Trajectories.proto";
+
+message Request {}
+
+message Response {}

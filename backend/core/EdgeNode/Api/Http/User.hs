@@ -8,6 +8,8 @@
 module EdgeNode.Api.Http.User (UserApi (..)) where
 
 import EdgeNode.Model.User
+import EdgeNode.User.Qualification
+import EdgeNode.Model.User.Qualification ()
 
 import RetrofitProto
 import Servant.API.Generic
@@ -45,6 +47,7 @@ data UserApi route =
        :- Description "get qualification by given ids, if no ids passed all qualififcations got back"
        :> "qualification"
        :> "get"
+       :> QueryParam "id" UserQualificationId
        :> Get '[JSON] (Alternative (Error T.Text) GetQualificationFullInfoResponse)
      , _userGetCategories
        :: route 
