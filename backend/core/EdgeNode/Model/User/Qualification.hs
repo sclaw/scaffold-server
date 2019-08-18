@@ -27,12 +27,13 @@ import Data.Swagger.ParamSchema
 import Servant.API
 import Control.Lens.Iso.Extended
 import Control.Lens
+import Data.Text.Read
 
 data UserQualification
 
 instance ToParamSchema UserQualificationId
 
 instance FromHttpApiData UserQualificationId where
-  parseUrlPiece x = Right $ UserQualificationId (x^.from stext.to read)
+  parseUrlPiece x = bimap (^.stext) (UserQualificationId . fst) (decimal x)
 
 deriveWrappedPrimitivePersistField ''UserQualificationId
