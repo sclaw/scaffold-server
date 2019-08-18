@@ -134,8 +134,9 @@ providerSearchQuery :: Language -> QueryString
 providerSearchQuery lang = createSearchQuery lang providerFtFs providerSelectFs [i|#{show (typeOf (undefined :: Provider))}|]
 
 recreateIndex :: (Language -> QueryString) -> (Language -> QueryString) -> [(String, String)]
-recreateIndex drop create = map mkIndex [LanguageDanish .. LanguageTurkish]
-  where mkIndex lang =  
-         let QueryString drop' = drop lang
-             QueryString create' = create lang
-         in (drop', create')
+recreateIndex drop create = 
+  flip map [LanguageDanish .. 
+            LanguageTurkish] $ \lang ->
+    let QueryString drop' = drop lang
+        QueryString create' = create lang
+    in (drop', create')

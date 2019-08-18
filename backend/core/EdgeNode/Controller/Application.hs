@@ -33,7 +33,7 @@ httpApi =
   HttpApi 
   { _httpApiAuth    = toServant auth
   , _httpApiUser    = (`authGateway` (toServant . user))
-  , _httpApiService = toServant service
+  , _httpApiService = (`authGateway` const (toServant service))
   }
 
 auth :: AuthApi (AsServerT KatipController)

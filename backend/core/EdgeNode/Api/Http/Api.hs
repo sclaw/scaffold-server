@@ -35,5 +35,6 @@ data HttpApi route =
      , _httpApiService
        :: route
        :- "service"
+       :> Auth '[AppJwt] JWTUser
        :> ToServant ServiceApi AsApi                   
      } deriving stock Generic 
