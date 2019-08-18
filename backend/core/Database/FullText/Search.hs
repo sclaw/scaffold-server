@@ -6,6 +6,7 @@
 module Database.FullText.Search (provider) where
 
 import EdgeNode.Model.Provider
+import qualified EdgeNode.Iso as Iso
 
 import Control.Monad.IO.Class
 import Control.Monad.Loops
@@ -57,5 +58,5 @@ provider lang = getResults valuesToObj (providerSearchQuery lang)
           = ( ProviderKey ident^.from autokey
             , Provider 
               (title^.from lazytext) 
-              (country^.from lazytext))
+              (country^.from Iso.country))
         valuesToObj x = error [i|#{show getLoc} : #{show x}|]

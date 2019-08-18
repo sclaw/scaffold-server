@@ -1,6 +1,8 @@
 syntax = 'proto3';
 package EdgeNode.Category;
 
+import "EdgeNode/Country.proto";
+
 enum Type {
     StateExam = 0;
     HigherDegree = 1;
@@ -14,7 +16,7 @@ message StateExamId { sint64 value = 1; }
 
 message StateExam {
     string title = 1;
-    string country = 2;
+    EdgeNode.Country country = 2;
 }
 
 message XStateExam {
@@ -25,7 +27,7 @@ message XStateExam {
 message HigherDegreeId { sint64 value = 1; } 
 
 message HigherDegree {
-    string country = 1;
+    EdgeNode.Country country = 1;
     string provider = 2;
 }
 

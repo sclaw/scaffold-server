@@ -18,6 +18,7 @@ import qualified EdgeNode.Api.Http.User.GetProviders as GetProviders
 import qualified EdgeNode.Api.Http.User.GetQualififcations as GetQualififcations   
 import EdgeNode.Lang
 import EdgeNode.Category
+import EdgeNode.Country
 
 import TH.Generator
 import GHC.Generics
@@ -51,3 +52,4 @@ responseWrapper ''GetQualififcations.Response
 
 enumConvertor ''Language
 enumConvertor ''Type
+enumConvertor ''Country

@@ -12,6 +12,7 @@ import EdgeNode.Model.Qualification
 import EdgeNode.Model.Category
 import EdgeNode.Category
 import EdgeNode.Qualification
+import qualified EdgeNode.Iso as Iso
 
 import RetrofitProto
 import Katip
@@ -120,8 +121,8 @@ fullInfoDecoder =
       do 
         id <- fmap ProviderId (HD.field HD.int8)
         title <- HD.field HD.text
-        country <- HD.field HD.text
-        return $ XProvider (Just id) (Just (Provider (title^.from lazytext) (country^.from lazytext)))
+        country <- fmap (^.from Iso.country) (HD.field HD.text)
+        return $ XProvider (Just id) (Just (Provider (title^.from lazytext) country))
     qualComp =
       do 
         id <- fmap QualificationId (HD.field HD.int8)

@@ -16,6 +16,8 @@
 
 module Orm.PersistField () where
 
+import EdgeNode.Country
+
 import Time.Time  
 import Control.Lens
 import qualified Data.Sequence as Seq
@@ -27,6 +29,7 @@ import TH.Generator (deriveWrappedPrimitivePersistField, derivePrimitivePersistF
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import GHC.Float
 import Data.Aeson
+import RetrofitProto
 
 {- We need (PersistField (Seq a)) to make model out of protobuffer
  - datatypes. Unfortunatelly, Seq is a newtype, and Groundhog somewhy
@@ -67,6 +70,8 @@ deriveWrappedPrimitivePersistField ''Protobuf.Scalar.SInt64
 deriveWrappedPrimitivePersistField ''Protobuf.Scalar.SInt32
 deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Fixed64
 deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Fixed32
+
+derivePrimitivePersistField ''Country [| iso fromCountry toCountry |]
 
 derivePrimitivePersistField ''FullDay [| iso toJSON (getVal . fromJSON) |]
 

@@ -28,6 +28,8 @@ import Database.Groundhog.Core
 import Database.AutoKey
 import TH.Generator
 import Database.Groundhog.Generic
+import Orm.PersistField ()
+import Orphan ()
 
 mkPersist_ [groundhog| 
  - entity: Provider

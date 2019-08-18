@@ -34,6 +34,8 @@ import Database.Groundhog.Generic
 import Control.Lens.Iso.Extended
 import Database.AutoKey
 import Data.Default.Class.Extended
+import Orm.PersistField ()
+import Orphan ()
 
 instance Default XStateExam
 instance Default XHigherDegree

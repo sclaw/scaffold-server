@@ -229,6 +229,7 @@ enumConvertor name =
      let stripUnderScore = filter (not . (`elem` ("_" :: String))) . nameBase
      let stripPrefix s = s^.stext.to (T.stripPrefix (nameBase name^.stext))._Just.from stext
      let str = mkName "String"
+     let err = mkName "error"
      let isoNFrom = mkName ("from" <> stripUnderScore name)
      let mkClauseFrom (NormalC n _) = 
           let n' = (quietSnake . stripPrefix . nameBase) n  
@@ -245,12 +246,19 @@ enumConvertor name =
           let n' = (quietSnake . stripPrefix . nameBase) n
           in Clause 
               [LitP (StringL n')]
-              (NormalB (ConE n)) []
+              (NormalB (ConE n)) []         
+     let mkErrorClauseTo = 
+          Clause 
+          [WildP] 
+          (NormalB 
+           (AppE (VarE err) 
+            (LitE (StringL ("error in enum converting: " <> 
+             nameBase name))))) []         
      let toSig = 
           SigD 
            isoNTo 
            (AppT (AppT ArrowT (ConT str)) (ConT name))         
-     let toN = FunD isoNTo (map mkClauseTo xs)
+     let toN = FunD isoNTo (map mkClauseTo xs ++ [mkErrorClauseTo])
      let isoN = mkName $ "iso" <> stripUnderScore name
      let iso = mkName "Iso'"
      let isoSig = SigD isoN (AppT (AppT (ConT iso) (ConT name)) (ConT str))  
