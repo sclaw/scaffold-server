@@ -77,7 +77,7 @@ action userId qualId  _ =
              from "edgeNode"."#{show (typeOf (undefined :: QualificationProvider))}"
              where id = uq."providerKey")   
             from "edgeNode"."#{show (typeOf (undefined :: UserQualification))}" as uq 
-              where "userId" = $1 and (case when ($2 :: bigint) is not null then uq.id = ($2 :: bigint) else true end) |]
+            where (case when ($2 :: bigint) is not null then uq."userId" = $1 and uq.id = ($2 :: bigint) else uq."userId" = $1 end)|]
     let encoder = 
          (userId^._Wrapped' >$ HE.param HE.int8) <>
          (qualId^?_Just._Wrapped' >$ HE.nullableParam HE.int8)
