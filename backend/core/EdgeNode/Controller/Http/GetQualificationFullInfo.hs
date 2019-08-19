@@ -11,7 +11,7 @@ import EdgeNode.Model.Provider
 import EdgeNode.Model.Qualification
 import EdgeNode.Model.Category
 import EdgeNode.Category
-import EdgeNode.Qualification
+import EdgeNode.Provider.Qualification
 import qualified EdgeNode.Iso as Iso
 import EdgeNode.Model.User.Qualification ()
 

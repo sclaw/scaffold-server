@@ -1,5 +1,5 @@
 syntax = 'proto3';
-package EdgeNode.Qualification;
+package EdgeNode.Provider.Qualification;
 
 import "Protobuf/Scalar.proto";
 
@@ -28,3 +28,5 @@ message QualificationTree {
     Node node = 1;
     repeated QualificationTree tail = 2;
 }
+
+message SearchQualificationInfo {} 

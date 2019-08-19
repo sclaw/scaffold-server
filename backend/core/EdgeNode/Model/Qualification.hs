@@ -22,7 +22,7 @@ module EdgeNode.Model.Qualification
        , Node (..)
        ) where
 
-import EdgeNode.Qualification
+import EdgeNode.Provider.Qualification
 
 import Data.Aeson.TH
 

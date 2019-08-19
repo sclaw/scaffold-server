@@ -3,7 +3,7 @@ package EdgeNode.User.Qualififcation;
 
 import "EdgeNode/Category.proto";
 import "EdgeNode/Provider.proto";
-import "EdgeNode/Qualification.proto";
+import "EdgeNode/Provider/Qualification.proto";
 
 message UserQualification {
     oneof category {
@@ -13,7 +13,7 @@ message UserQualification {
         EdgeNode.Category.LanguageStandardId languageStandardId = 4;
     }
     EdgeNode.Provider.ProviderId providerIdent = 5;
-    EdgeNode.Qualification.QualificationId qualificationIdent = 6;
+    EdgeNode.Provider.Qualification.QualificationId qualificationIdent = 6;
 }
 
 message UserQualificationId { sint64 value = 1; }
@@ -26,7 +26,7 @@ message UserQualificationFullinfo {
       EdgeNode.Category.XLanguageStandard languageStandard = 4; 
     }
     EdgeNode.Provider.XProvider provider = 5;
-    EdgeNode.Qualification.XQualification qualification = 6;
+    EdgeNode.Provider.Qualification.XQualification qualification = 6;
 }
 
 message XUserQualificationFullinfo {
