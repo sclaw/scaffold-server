@@ -134,7 +134,11 @@ fullInfoDecoder =
                   (HD.nullableField HD.text)
         title <- HD.field HD.text
         grade <-  fmap fromJSON (HD.field HD.jsonb)
-        let mkQual = XQualification (Just id) degree . Just . Qualification (title^.from lazytext)
+        let mkQual = 
+               XQualification (Just id) degree 
+             . Just 
+             . EdgeNode.Provider.Qualification.Qualification 
+              (title^.from lazytext)
         case fmap mkQual grade of 
           Success x -> return x
           Data.Aeson.Error e -> 

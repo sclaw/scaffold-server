@@ -88,7 +88,8 @@ action ident logger =
           title <- HD.field HD.text
           grade <- fmap (^.from jsonb) <$> HD.nullableField HD.jsonb 
           path <- HD.field HD.text
-          let qual = Qualification (title^.from lazytext) grade
+          let qual = EdgeNode.Model.Qualification.Qualification 
+                     (title^.from lazytext) grade
           return (path, Node (Just (QualificationId i)) (Just qual)) 
     let decoder = HD.rowList $ do
           degree <- (fmap (^.from lazytext.to Proto.String)) <$> 

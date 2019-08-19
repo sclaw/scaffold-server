@@ -11,7 +11,7 @@ module TH.Generator
        , deriveWrappedForDataWithSingleField
        , deriveToSchemaAndJSON
        , deriveToSchemaAndJSONProtoIdent
-       , deriveToSchemaAndJSONProtoEnum
+       , deriveSRGEnum
        , deriveToSchemaAndDefJSON
        , enumConvertor
        , derivePrimitivePersistFieldParam
@@ -206,8 +206,8 @@ deriveToSchemaAndJSONProtoIdent name =
       |]
      return $ entiityWrapper : xs 
 
-deriveToSchemaAndJSONProtoEnum :: Name -> String -> Q [Dec]
-deriveToSchemaAndJSONProtoEnum name prefix = 
+deriveSRGEnum :: Name -> String -> Q [Dec]
+deriveSRGEnum name prefix = 
   do TyConI (DataD ctx n xs kind ys cl) <- reify name
      let new = mkName $ prefix <> nameBase name
      let geni = DerivClause Nothing [ConT (mkName "Generic")]
@@ -219,7 +219,7 @@ deriveToSchemaAndJSONProtoEnum name prefix =
           stripPrefix 
           (nameBase name^.stext) 
           (nameBase n^.stext)
-     let err = error $ "error: " <> show name     
+     let err = error $ "error: " <> show name
      let ys' = map (fromMaybe err . purgeNamePrefix) ys
      return [DataD ctx new xs kind ys' ([geni, showi, read] ++ cl)]
 

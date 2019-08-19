@@ -11,6 +11,7 @@ module EdgeNode.Api
        , HttpApi (..)
        , AuthApi (..)
        , UserApi (..)
+       , ProviderApi (..)
        , ServiceApi (..)
      --  , WebsocketApi (..)
        , api

@@ -15,7 +15,8 @@ import qualified EdgeNode.Api.Http.User.SaveQualifications as SaveQualifications
 import qualified EdgeNode.Api.Http.User.GetQualificationFullInfo as GetQualificationFullInfo
 import qualified EdgeNode.Api.Http.User.GetCategories as GetCategories 
 import qualified EdgeNode.Api.Http.User.GetProviders as GetProviders
-import qualified EdgeNode.Api.Http.User.GetQualififcations as GetQualififcations   
+import qualified EdgeNode.Api.Http.User.GetQualififcations as GetQualififcations
+import qualified EdgeNode.Api.Http.Provider.SearchQualification as SearchQualification   
 import EdgeNode.Lang
 import EdgeNode.Category
 import EdgeNode.Country
@@ -26,11 +27,11 @@ import Data.Aeson
 import Data.Swagger
 import Control.Lens
 
-deriveToSchemaAndJSONProtoEnum ''Reg.Error "Register"
+deriveSRGEnum ''Reg.Error "Register"
 deriveToSchemaAndDefJSON ''RegisterError
-deriveToSchemaAndJSONProtoEnum ''SignIn.Error "SignIn"
+deriveSRGEnum ''SignIn.Error "SignIn"
 deriveToSchemaAndDefJSON ''SignInError
-deriveToSchemaAndJSONProtoEnum ''RefreshToken.Error "RefreshToken"
+deriveSRGEnum ''RefreshToken.Error "RefreshToken"
 deriveToSchemaAndDefJSON ''RefreshTokenError
 
 requestWrapper ''RefreshToken.Request
@@ -49,6 +50,8 @@ requestWrapper ''GetProviders.Request
 responseWrapper ''GetProviders.Response
 requestWrapper ''GetQualififcations.Request
 responseWrapper ''GetQualififcations.Response
+requestWrapper ''SearchQualification.Request
+responseWrapper ''SearchQualification.Response
 
 enumConvertor ''Language
 enumConvertor ''Type
