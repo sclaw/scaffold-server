@@ -16,7 +16,7 @@ import qualified EdgeNode.Api.Http.User.GetQualificationFullInfo as GetQualifica
 import qualified EdgeNode.Api.Http.User.GetCategories as GetCategories 
 import qualified EdgeNode.Api.Http.User.GetProviders as GetProviders
 import qualified EdgeNode.Api.Http.User.GetQualififcations as GetQualififcations
-import qualified EdgeNode.Api.Http.Provider.SearchQualification as SearchQualification   
+import qualified EdgeNode.Api.Http.Search.Qualification as Qualification
 import EdgeNode.Lang
 import EdgeNode.Category
 import EdgeNode.Country
@@ -50,8 +50,8 @@ requestWrapper ''GetProviders.Request
 responseWrapper ''GetProviders.Response
 requestWrapper ''GetQualififcations.Request
 responseWrapper ''GetQualififcations.Response
-requestWrapper ''SearchQualification.Request
-responseWrapper ''SearchQualification.Response
+requestWrapper ''Qualification.Request
+responseWrapper ''Qualification.Response
 
 enumConvertor ''Language
 enumConvertor ''Type

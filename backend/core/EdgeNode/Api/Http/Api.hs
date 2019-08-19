@@ -10,14 +10,14 @@ module EdgeNode.Api.Http.Api
        , module EdgeNode.Api.Http.Auth
        , module EdgeNode.Api.Http.User
        , module EdgeNode.Api.Http.Service
-       , module EdgeNode.Api.Http.Provider
+       , module EdgeNode.Api.Http.Search
        ) where
 
 import Auth
 import EdgeNode.Api.Http.Auth
 import EdgeNode.Api.Http.User
 import EdgeNode.Api.Http.Service
-import EdgeNode.Api.Http.Provider
+import EdgeNode.Api.Http.Search
 
 import Servant.API.Generic
 import Servant.API
@@ -39,8 +39,8 @@ data HttpApi route =
        :- "service"
        :> Auth '[AppJwt] JWTUser
        :> ToServant ServiceApi AsApi
-     , _httpApiProvider
+     , _httpApiSearch
        :: route 
-       :- "provider"
-       :> ToServant ProviderApi AsApi
+       :- "search"
+       :> ToServant SearchApi AsApi
      } deriving stock Generic 

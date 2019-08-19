@@ -12,15 +12,12 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE InstanceSigs  #-}
 
 module EdgeNode.Model.Provider 
        ( Provider (..)
        , XProvider (..)
        , ProviderId (..)
        , Key (..)
-       , SearchPiece (..)
        , autokey
        ) where
 
@@ -33,12 +30,6 @@ import TH.Generator
 import Database.Groundhog.Generic
 import Orm.PersistField ()
 import Orphan ()
-import GHC.Generics
-
-data SearchPiece = All | Qualification 
-  deriving stock Generic
-  deriving stock Show
-  deriving stock Read
 
 mkPersist_ [groundhog| 
  - entity: Provider
@@ -47,5 +38,3 @@ mkPersist_ [groundhog|
 
 deriveWrappedPrimitivePersistField ''ProviderId
 deriveAutoKey ''Provider
-mkParamSchemaEnum ''SearchPiece
-mkFromHttpApiDataEnum ''SearchPiece

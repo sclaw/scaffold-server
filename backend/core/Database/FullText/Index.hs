@@ -14,6 +14,7 @@ module Database.FullText.Index
        , providerDropIndexQuery
        , providerCreateIndexQuery
        , providerSearchQuery
+       , qualificationSearchQuery
        , recreateIndex
        ) where
 
@@ -61,8 +62,7 @@ pattern IndexName a = Tagged a
 langStr :: Language -> String
 langStr = fromLanguage
 
--- List of fields in `provider' table, that should be indexed for full-text
--- search. See 'User' datatype.
+-- List of fields in `provider' table, that should be indexed for full-text search
 providerFtFs :: [FieldName]
 providerFtFs = [ "providerTitle", "providerCountry" ]
 
@@ -107,19 +107,20 @@ quote :: FieldName -> String
 quote (FieldName s) = "\"" ++ s ++ "\""
 
 createSearchQuery 
-  :: Language
+  :: Maybe Language
   -> [FieldName] -- ^ list of full-text indexed fields.
   -> [FieldName] -- ^ list of fields to select
   -> TableName
   -> QueryString
-createSearchQuery lang fields selects name =
+createSearchQuery langm fields selects name =
   let select :: String
-      select = intercalate "," (map quote selects) 
+      select = intercalate "," (map quote selects)
+      lang = maybe "simple" langStr langm
   in QueryString
      [i|select #{select} 
         from "edgeNode"."#{untag name}" 
         where to_tsvector
-        ('#{langStr lang}', 
+        ('#{lang}', 
          #{indexBody fields}) @@ 
          to_tsquery(?);
      |]
@@ -130,8 +131,11 @@ providerDropIndexQuery lang = dropIndexQuery lang [i|#{show (typeOf (undefined :
 providerCreateIndexQuery :: Language -> QueryString
 providerCreateIndexQuery lang = createIndexQuery lang [i|#{show (typeOf (undefined :: Provider))}|] providerFtFs
      
-providerSearchQuery :: Language -> QueryString
+providerSearchQuery :: Maybe Language -> QueryString
 providerSearchQuery lang = createSearchQuery lang providerFtFs providerSelectFs [i|#{show (typeOf (undefined :: Provider))}|]
+
+qualificationSearchQuery :: Maybe Language -> QueryString
+qualificationSearchQuery _ = undefined
 
 recreateIndex :: (Language -> QueryString) -> (Language -> QueryString) -> [(String, String)]
 recreateIndex drop create = 

@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE DeriveGeneric          #-}
@@ -12,17 +11,20 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE DerivingStrategies     #-}
+{-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE InstanceSigs  #-}
 
-module EdgeNode.Model.Qualification 
-       ( QualificationProvider
-       , module EdgeNode.Provider.Qualification
-       ) where
+module EdgeNode.Search (SearchPiece (..)) where
 
-import EdgeNode.Provider.Qualification
+import TH.Generator
+import Orm.PersistField ()
+import Orphan ()
+import GHC.Generics
 
-import Data.Aeson.TH
+data SearchPiece = All | Qualification 
+  deriving stock Generic
+  deriving stock Show
+  deriving stock Read
 
-data QualificationProvider
-
-deriveJSON defaultOptions ''QualificationGrade
+mkParamSchemaEnum ''SearchPiece
+mkFromHttpApiDataEnum ''SearchPiece

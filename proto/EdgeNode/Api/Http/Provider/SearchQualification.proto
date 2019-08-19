@@ -1,8 +1,0 @@
-syntax = 'proto3';
-package EdgeNode.Api.Http.Provider.SearchQualification;
-
-import "EdgeNode/Provider/Qualification.proto";
-
-message Request { string query = 1; }
-
-message Response { repeated EdgeNode.Provider.Qualification.SearchQualificationInfo values = 1; }

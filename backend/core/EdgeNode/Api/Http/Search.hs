@@ -5,9 +5,9 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module EdgeNode.Api.Http.Provider (ProviderApi (..)) where
+module EdgeNode.Api.Http.Search (SearchApi (..)) where
 
-import EdgeNode.Model.Provider
+import EdgeNode.Search
 
 import Servant.API.Generic
 import Servant.API
@@ -15,13 +15,15 @@ import ReliefJsonData
 import RetrofitProto
 import qualified Data.Text as T
 
-newtype ProviderApi route = 
-        ProviderApi
-        { _providerApiSearchQualification
+newtype SearchApi route = 
+        SearchApi
+        { _searchApiSearch
           :: route
-          :- Description "search qualification"
-          :> "search" 
+          :- Description "search"
           :> Capture "piece" SearchPiece
-          :> ReqBody '[JSON] SearchQualificationRequest
-          :> Post '[JSON] (Alternative (Error T.Text) SearchQualificationResponse)     
+          :> ReqBody '[JSON] QualificationRequest
+          :> Post '[JSON] 
+            (Alternative 
+             (Error T.Text) 
+             QualificationResponse)     
         } deriving stock Generic

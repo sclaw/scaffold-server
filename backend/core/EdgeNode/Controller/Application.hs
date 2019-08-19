@@ -19,7 +19,7 @@ import qualified EdgeNode.Controller.Http.RefreshToken as Auth.RefreshToken
 import qualified EdgeNode.Controller.Http.GetCategories as User.GetCategories
 import qualified EdgeNode.Controller.Http.GetProviders as User.GetProviders
 import qualified EdgeNode.Controller.Http.GetQualififcations as User.GetQualififcations 
-import qualified EdgeNode.Controller.Http.SearchQualification as Provider.SearchQualification
+import qualified EdgeNode.Controller.Http.SearchQualification as SearchQualification
 
 import Katip
 import KatipController
@@ -35,7 +35,7 @@ httpApi =
   { _httpApiAuth    = toServant auth
   , _httpApiUser    = (`authGateway` (toServant . user))
   , _httpApiService = (`authGateway` const (toServant service))
-  , _httpApiProvider = toServant provider
+  , _httpApiSearch  = toServant search
   }
 
 auth :: AuthApi (AsServerT KatipController)
@@ -115,12 +115,12 @@ service =
     . Service.LoadCountries.controller
   }
 
-provider :: ProviderApi (AsServerT KatipController)
-provider = 
-  ProviderApi 
-  { _providerApiSearchQualification = \piece ->
+search :: SearchApi (AsServerT KatipController)
+search = 
+  SearchApi 
+  { _searchApiSearch = \piece ->
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["provider", "searchQualification"])
-    . Provider.SearchQualification.controller piece
+    . SearchQualification.controller piece
   }

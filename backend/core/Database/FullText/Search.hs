@@ -3,9 +3,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Database.FullText.Search (provider) where
+module Database.FullText.Search (provider, qualification) where
 
 import EdgeNode.Model.Provider
+import EdgeNode.Model.Qualification
 import qualified EdgeNode.Iso as Iso
 
 import Control.Monad.IO.Class
@@ -35,7 +36,7 @@ getResults
      m Postgresql (m1 a)
 getResults valuesToObj (QueryString query) term = 
   do 
-    let term' = T.replace " " "|" term
+    let term' = T.replace " " "<->" (T.strip term) <> ":*"
     rows <- queryRaw False query [PersistText term']
     $(logTM) InfoS [i|search: #{query}, #{term}|]
     values <- liftIO.withAcquire rows $ unfoldM'
@@ -44,12 +45,11 @@ getResults valuesToObj (QueryString query) term =
 provider 
   :: (KatipContext m,
       MonadPlus m1) 
-  => Language 
+  => Maybe Language 
   -> T.Text 
   -> TryAction 
      Exception.Groundhog 
-     m Postgresql 
-     (m1 (ProviderId, Provider))
+     m Postgresql (m1 (ProviderId, Provider))
 provider lang = getResults valuesToObj (providerSearchQuery lang) 
   where valuesToObj
           [ ident
@@ -60,3 +60,14 @@ provider lang = getResults valuesToObj (providerSearchQuery lang)
               (title^.from lazytext) 
               (country^.from Iso.country))
         valuesToObj x = error [i|#{show getLoc} : #{show x}|]
+
+qualification         
+  :: (KatipContext m,
+      MonadPlus m1) 
+  => Maybe Language 
+  -> T.Text 
+  -> TryAction 
+  Exception.Groundhog 
+  m Postgresql (m1 (QualificationId, QualificationFullInfo))
+qualification lang = getResults valuesToObj (qualificationSearchQuery lang)
+  where valuesToObj = undefined

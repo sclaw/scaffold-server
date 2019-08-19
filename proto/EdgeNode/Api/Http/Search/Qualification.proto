@@ -1,0 +1,12 @@
+syntax = 'proto3';
+package EdgeNode.Api.Http.Search.Qualification;
+
+import "EdgeNode/Provider/Qualification.proto";
+import "EdgeNode/Lang.proto";
+
+message Request { 
+    EdgeNode.Language language = 1;
+    string query = 2; 
+}
+
+message Response { repeated EdgeNode.Provider.Qualification.QualificationFullInfo values = 1; }

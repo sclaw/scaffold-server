@@ -29,4 +29,4 @@ message QualificationTree {
     repeated QualificationTree tail = 2;
 }
 
-message SearchQualificationInfo {} 
+message QualificationFullInfo {}
