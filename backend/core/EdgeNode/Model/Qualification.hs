@@ -1,5 +1,6 @@
 module EdgeNode.Model.Qualification 
        ( QualificationProvider
+       , QualificationDependency
        , QualificationDependencies
        , module EdgeNode.Provider.Qualification
        ) where
@@ -7,4 +8,6 @@ module EdgeNode.Model.Qualification
 import EdgeNode.Provider.Qualification
 
 data QualificationProvider
-data QualificationDependencies
+-- obsolete    
+data QualificationDependencies   
+data QualificationDependency
