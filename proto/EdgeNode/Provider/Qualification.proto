@@ -7,9 +7,13 @@ message QualificationId { sint64 value = 1; }
 
 message Qualification {
     string title = 1;
-    oneof grade {
-        string char = 2;
-        fixed32 integral = 3; 
+    repeated Grade range = 2; 
+}
+
+message Grade {
+    oneof value {
+        string char = 1;
+        fixed32 integral = 2; 
     }
 }
 

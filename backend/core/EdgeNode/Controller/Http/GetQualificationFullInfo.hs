@@ -73,7 +73,7 @@ action userId qualId  _ =
              where id = uq."providerKey"),
             (select row(id, "qualificationProviderDegreeType", 
              "qualificationProviderTitle", 
-             "qualificationProviderGrade") 
+             "qualificationProviderGradeRange") 
              from "edgeNode"."#{show (typeOf (undefined :: QualificationProvider))}"
              where id = uq."providerKey")   
             from "edgeNode"."#{show (typeOf (undefined :: UserQualification))}" as uq 
@@ -91,13 +91,11 @@ fullInfoDecoder =
     category <- HD.column $ HD.composite categoryComp
     provider <- HD.nullableColumn $ HD.composite providerComp
     qualification <- HD.nullableColumn $ HD.composite qualComp
+    skill <- fmap (^.from jsonb) <$> HD.nullableColumn HD.jsonb
     let value = 
          XUserQualificationFullinfo 
          (Just id) 
-         (Just (UserQualificationFullinfo 
-                (Just category) 
-                provider 
-                qualification))
+         (Just (UserQualificationFullinfo (Just category) provider qualification skill))
     return value
   where
     categoryComp =

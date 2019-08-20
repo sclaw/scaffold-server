@@ -17,4 +17,5 @@ enum Language {
     Spanish = 12;
     Swedish = 13;
     Turkish = 14;
+    None = 15;
   }

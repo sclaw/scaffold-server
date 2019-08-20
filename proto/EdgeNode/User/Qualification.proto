@@ -14,6 +14,7 @@ message UserQualification {
     }
     EdgeNode.Provider.ProviderId providerIdent = 5;
     EdgeNode.Provider.Qualification.QualificationId qualificationIdent = 6;
+    EdgeNode.Provider.Qualification.Grade qualificatonSkillLevel = 7;
 }
 
 message UserQualificationId { sint64 value = 1; }
@@ -27,6 +28,7 @@ message UserQualificationFullinfo {
     }
     EdgeNode.Provider.XProvider provider = 5;
     EdgeNode.Provider.Qualification.XQualification qualification = 6;
+    EdgeNode.Provider.Qualification.Grade qualificatonSkillLevel = 7;
 }
 
 message XUserQualificationFullinfo {

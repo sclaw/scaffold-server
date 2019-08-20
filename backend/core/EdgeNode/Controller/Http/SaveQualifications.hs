@@ -33,6 +33,7 @@ import Contravariant.Extras.Contrazip
 import Data.Int
 import Data.Typeable
 import Data.Maybe
+import Data.Aeson (Value, toJSON)
 
 controller :: UserId -> SaveQualificationsRequest -> KatipController (Alternative (Error T.Text) SaveQualificationsResponse)
 controller userId req =
@@ -53,17 +54,18 @@ controller userId req =
                else (select id from "edgeNode"."#{show (typeOf (undefined :: LanguageStandard))}" where id = i) end as ident
                from unnest($1, $2) as u(t, i))
                insert into "edgeNode"."#{show (typeOf (undefined :: UserQualification))}"
-               ("categoryType", "categoryKey", "providerKey", "qualificationKey", "userId") 
-               (select x.*, $5 from unnest($1, (select array_agg(ident) from real), $3, $4) as x) returning id
+               ("categoryType", "categoryKey", "providerKey", "qualificationKey", "qualificationSkillLevel", "userId") 
+               (select x.*, $6 from unnest($1, (select array_agg(ident) from real), $3, $4, $5) as x) returning id
             |]
       let vector v = HE.param (HE.array (HE.dimension foldl' (HE.element v)))
       let encoderXs = 
-            unzip4 xs' >$
-            contrazip4 
+            unzip5 xs' >$
+            contrazip5 
             (vector HE.text) 
             (vector HE.int8) 
             (vector HE.int8) 
             (vector HE.int8)
+            (vector HE.jsonb)
       let encoder = encoderXs <> (userId^._Wrapped' >$ HE.param HE.int8)     
       let decoder = HD.rowList $ HD.column HD.int8 <&> UserQualificationId
       Hasql.Session.statement () (HS.Statement sql encoder decoder False)) 
@@ -72,7 +74,7 @@ controller userId req =
     let mkResp = SaveQualificationsResponse . Response . (^.vector)     
     return $ bimap mkErr mkResp x^.eitherToAlt
 
-mkTpl :: UserQualification -> Maybe (T.Text, Int64, Int64, Int64)
+mkTpl :: UserQualification -> Maybe (T.Text, Int64, Int64, Int64, Value)
 mkTpl x = 
   do  
     cat <- x^?field @"userQualificationCategory"._Just
@@ -88,4 +90,5 @@ mkTpl x =
              (fromType TypeLanguageStandard^.stext, i)
     provider <- x^?field @"userQualificationProviderIdent"._Just.field @"providerIdValue"
     qual <- x^?field @"userQualificationQualificationIdent"._Just.field @"qualificationIdValue"
-    return (catType, catId, provider, qual)
+    skill <- x^?field @"userQualificationQualificatonSkillLevel"._Just.to toJSON
+    return (catType, catId, provider, qual, skill)

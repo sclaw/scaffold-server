@@ -43,6 +43,7 @@ import qualified Data.Vector as V
 import qualified Data.Tree.Extended as Tree
 import System.IO.Unsafe
 import Data.Tree.Pretty
+import Data.Maybe
 
 controller :: GetQualififcationsRequest -> KatipController (Alternative (Error T.Text) GetQualififcationsResponse)
 controller req = maybe (return err) ok (req^?_Wrapped'.field @"requestIdent"._Just._Wrapped')
@@ -76,7 +77,7 @@ action ident logger =
              "qualificationProviderDegreeType",
              ltree2text(subpath(path, 0, 1)) as root, 
              array_agg (row(id, "qualificationProviderTitle",
-             "qualificationProviderGrade", 
+             "qualificationProviderGradeRange", 
              ltree2text(path)) order by path)
             from "edgeNode"."QualificationProvider" 
             where "qualificationProviderKey" = $1 
@@ -89,7 +90,8 @@ action ident logger =
           grade <- fmap (^.from jsonb) <$> HD.nullableField HD.jsonb 
           path <- HD.field HD.text
           let qual = EdgeNode.Model.Qualification.Qualification 
-                     (title^.from lazytext) grade
+                     (title^.from lazytext)
+                     (fromMaybe V.empty grade)
           return (path, Node (Just (QualificationId i)) (Just qual)) 
     let decoder = HD.rowList $ do
           degree <- (fmap (^.from lazytext.to Proto.String)) <$> 

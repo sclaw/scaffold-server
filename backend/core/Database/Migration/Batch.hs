@@ -18,6 +18,7 @@ import qualified Database.Migration.Version6 as V6
 import qualified Database.Migration.Version7 as V7
 import qualified Database.Migration.Version8 as V8
 import qualified Database.Migration.Version9 as V9
+import qualified Database.Migration.Version10 as V10
 
 import Data.Word (Word32)
 import Database.Exception
@@ -85,5 +86,6 @@ list =
   , (Version 6, NextSql V7.sql (Version 7))
   , (Version 7, NextSql V8.sql (Version 8))
   , (Version 8, NextSql V9.sql (Version 9))
-  , (Version 9, Stop)
+  , (Version 9, NextSql V10.sql (Version 10))
+  , (Version 10, Stop)
   ]
