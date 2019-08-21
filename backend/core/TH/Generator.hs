@@ -20,6 +20,7 @@ module TH.Generator
        , mkFromHttpApiDataIdent
        , mkFromHttpApiDataEnum
        , mkParamSchemaEnum
+       , mkMigrationSeq
        )
        where
 
@@ -347,3 +348,20 @@ mkParamSchemaEnum name = do
   [d| instance ToParamSchema $(conT name) where
        toParamSchema _ = mempty & type_ .~ SwaggerString & enum_ ?~ xs'
    |]
+
+mkMigrationSeq :: Integer -> Integer -> Q [Dec]
+mkMigrationSeq min max = do
+  let version = mkName "Version"
+  let step = mkName "MigrationStep"
+  let list = mkName "list" 
+  let next = mkName "NextSql"
+  let stop = mkName "Stop"
+  let mkVersion xs [i] = TupE [AppE (ConE version) (LitE (IntegerL i)), ConE stop] : xs
+      mkVersion xs (i:is) = 
+       TupE [ AppE (ConE version) (LitE (IntegerL i)) 
+            , AppE (AppE (ConE next) 
+              (VarE (mkName ("V" <> show (i + 1) <> ".sql")))) 
+              (AppE (ConE version) (LitE (IntegerL (i + 1))))] 
+       : mkVersion xs is
+  let xs = mkVersion [] [min .. max]
+  return [ValD (VarP list) (NormalB (ListE xs)) []]
