@@ -1,16 +1,13 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module Database.Migration.Version6 (sql) where
-
-import EdgeNode.Model.Category
+module Database.Migration.Version.Version6 (sql) where
 
 import Data.String.Interpolate
-import Data.Typeable
 
 sql :: String 
-sql = [i|alter table "edgeNode"."#{show (typeOf (undefined :: LanguageStandard))}" 
+sql = [i|alter table "edgeNode"."LanguageStandard" 
          drop column "languageStandardGrade";
-         alter table "edgeNode"."#{show (typeOf (undefined :: LanguageStandard))}" 
+         alter table "edgeNode"."LanguageStandard" 
          add column "languageStandardGrade" jsonb not null 
          default '{"intgeral":0,"fractional":0}';
          create table if not exists "edgeNode"."Provider"
@@ -38,5 +35,4 @@ sql = [i|alter table "edgeNode"."#{show (typeOf (undefined :: LanguageStandard))
           constraint "LanguageStandardProvider_language_standard_id_fk" 
           references "edgeNode"."LanguageStandard"(id),
           provider_id int8 not null constraint "LanguageStandardProvider_provider_id_fk" 
-          references "edgeNode"."Provider"(id));                                
-      |]
+          references "edgeNode"."Provider"(id));|]
