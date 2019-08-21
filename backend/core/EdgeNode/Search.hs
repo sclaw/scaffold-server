@@ -13,6 +13,7 @@
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE InstanceSigs  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module EdgeNode.Search (SearchPiece (..)) where
 
