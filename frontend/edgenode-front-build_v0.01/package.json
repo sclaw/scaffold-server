@@ -1,0 +1,25 @@
+{
+  "name": "edgenode-landing",
+  "version": "0.0.1",
+  "description": "Landing part of EdgeNode front-end",
+  "main": "index.html",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "http-proxy-middleware": "^0.19.1",
+    "qs": "^6.7.0",
+    "requirejs": "^2.3.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://yaahromeev@bitbucket.org/yaahromeev/edgenode-front.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/yaahromeev/edgenode-front#readme"
+}
