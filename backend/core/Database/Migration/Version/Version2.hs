@@ -1,11 +1,8 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module Database.Migration.Version2 (sql) where
-
-import EdgeNode.Model.User (User)
+module Database.Migration.Version.Version2 (sql) where
 
 import Data.String.Interpolate
-import Data.Typeable
 
 sql :: String 
 sql = [i| (id bigserial not null constraint "Qualification_pk" primary key,
@@ -16,5 +13,4 @@ sql = [i| (id bigserial not null constraint "Qualification_pk" primary key,
           "qualification_id" int8 not null constraint 
           "userQualification_qualification_id_fk" 
           references "edgeNode"."Qualification"(id));
-         alter table "edgeNode"."#{show (typeOf (undefined :: User))}" add column if not exists "userGender" varchar null 
-      |]
+         alter table "edgeNode"."User" add column if not exists "userGender" varchar null;|]
