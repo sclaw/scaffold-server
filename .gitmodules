@@ -1,0 +1,3 @@
+[submodule "proto"]
+  path = sub/proto
+  url = git@gitlab.com:edgenode2/proto.git

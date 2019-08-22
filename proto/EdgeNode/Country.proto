@@ -1,7 +1,0 @@
-syntax = 'proto3';
-package EdgeNode;
-
-enum Country {
-    Russia = 0;
-    UnitedKingdom = 1;
-}

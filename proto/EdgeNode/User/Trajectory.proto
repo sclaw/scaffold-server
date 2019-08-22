@@ -1,4 +1,0 @@
-syntax = 'proto3';
-package EdgeNode.User.Trajectory;
-
-message Trajectory {}

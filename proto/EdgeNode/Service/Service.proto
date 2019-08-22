@@ -1,7 +1,0 @@
-syntax = 'proto3';
-package EdgeNode.Service;
-
-enum Language {
-    ru = 0;
-    en = 1;
-}
