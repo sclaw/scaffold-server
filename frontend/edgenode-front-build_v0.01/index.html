@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel = "stylesheet" href = "https://fonts.googleapis.com/css?family=Abel&display=swap"/>
+        <link rel = "stylesheet" href = "index.css"/>
+        <link rel = "stylesheet" href = "https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css"/>
+        <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/parsley.js/2.9.1/parsley.min.js"></script>
+        <script src = "index.js"></script>
+        <script src = "axios.js"></script>
+    </head>
+    <body>
+        <div id = "filterontop"></div>
+        <div id = "menu">
+            <div id = "seg0" onclick = "getLogin()">LOGIN</div>
+            <div id = "seg1" onclick = "getReg()">REGISTER</div>
+            <div id = "seg2" onclick = "getPart()">PARTNERSHIP</div>
+            <div id = "seg3" onclick = "getLegal()">LEGAL</div>
+            <div id = "seg4" onclick = "getNews()">NEWS</div>
+            <div id = "seg5" onclick = "getAbout()">ABOUT US</div>
+            <!-- <img id = "logo" onclick = "getHome()" src = "../media/logo.png"/> -->
+        </div>
+        <form id="loginblock" onsubmit="return login()">
+            <input id="name" data-parsley-group="first" required data-parsley-minlength="2" placeholder = "Username or E-mail" type = "text" name="email" />
+            <input id="pass" data-parsley-group="second" required data-parsley-minlength="2" placeholder = "Password" type = "text" name="password"/>
+            <input class="submit-button" onclick="login()" value = "SUBMIT" type = "button"/>
+        </form>
+        <div id = "greetings">
+            <p class = "heading">Global bank for</br>intellectual capital.</p>            <svg height = "50px" width = "50px"><line x1 = "0px" y1 = "25px" x2 = "50px" y2 = "25px" style = "stroke: rgba(255,255,255,1); stroke-width: 5px";/></svg>
+            <p class = "followup">We are an infrastruture of online dynamic search engines for higher and professional education.</br>Create an account and get a detailed view of your best options worldwide.</p>
+            <a id = "search" href = "search.html">Search</a>
+            <div id = "register" onclick = "getReg()">Register</div>
+        </div>
+        <div id = "createaccount">
+            <div id = "invitation">
+                <p class = "heading">CREATE YOUR ACCOUNT.</p>
+                <svg height = "50px" width = "50px"><line x1 = "0px" y1 = "25px" x2 = "50px" y2 = "25px" style = "stroke: rgba(255,255,255,1); stroke-width: 5px";/></svg>
+                <p class = "followup">EdgeNode works equally as a multi-paradigmal search engine,</br>which can both formulate roadmaps for your dream destinations,</br>and consult you on how to best manage your current achievements.</p>
+            </div>
+            <form id = "registry_panel" action = "app.hs" method = "get">
+                <input type = "text" name = "username" placeholder = "Username"/>
+                <input type = "text" name = "email" placeholder = "E-mail address"/>
+                <input type = "text" name = "repeatemail" placeholder = "Re-enter e-mail address"/>
+                <input type = "text" name = "password" placeholder = "Password"/>
+                <input type = "text" name = "repeatpassword" placeholder = "Re-enter password"/>
+                <div id = "conditions"><input type = "checkbox"/><p>I agree with the terms of conditions and data usage policies of EdgeNode LLC.</p></div>
+                <input type = "submit" value = "SUBMIT"/>
+            </form>
+        </div>
+        <div id = "legal">Under construction</div>
+        <div id = "partnership">Under construction</div>
+        <div id = "news">Under construction</div>
+        <div id = "about">
+            <div id = "aboutmedia"><div id = "filterontopofmedia"></div></div>
+            <div id = "aboutmaintext">
+                <p class = "amt_head">Freedom technologies</p>
+                <p class = "amt_follow">EdgeNode is aimed at gathering the latest breakthroughs in fundamental science and technology, with the aim of providing the best solutions for education and educational infrastruture in general.</p>
+                <p class = "amt_follow">We are a multidisciplinary collective of developers and researchers, united by a common philosophical approach to artificial and natural intelligence.</p>
+                <p class = "amt_head" style = "margin-top: 20px;">Contact us</p>
+                <p class = "amt_follow">E-mail: info@edgenode.org</br>Address: upcoming</br>Phone: upcoming</p>
+                <p class = "amt_follow">Follow us on social media: <a href = "#">Facebook</a>,<a href = "#">Linkedin</a></p>
+            </div>
+        </div>
+        <div id = "copyright">All rights reserved © EdgeNode LLC 2019</div>
+    </body>
+</html>
