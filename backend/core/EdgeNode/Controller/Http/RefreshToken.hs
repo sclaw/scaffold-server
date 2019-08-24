@@ -67,7 +67,7 @@ controller req =
     (^.eitherToAlt) . first mkError <$> 
      runTryDbConnGH (action bs key `catchError` logErr) orm
    
-action :: B.ByteString -> Jose.JWK -> TryAction Groundhog KatipController Postgresql RefreshTokenResponse
+action :: B.ByteString -> Jose.JWK -> EdgeNodeAction RefreshTokenResponse
 action bs key = 
   do 
     let cfg = defaultJWTSettings key

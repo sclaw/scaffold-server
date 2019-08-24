@@ -10,7 +10,7 @@ sql = [i|create table if not exists "edgeNode"."QualificationProviderFeatures"
           constraint "QualificationProviderFeatures_qualififcationKey_fk" 
           references "edgeNode"."QualificationProvider"(id),
           "academicAreas" jsonb, "durationPeriod" int, 
-          "tuitionFees" int, "admissionDeadline" date, 
+          "tuitionFeesPerAnnum" int, "admissionDeadline" date, 
           "language" text not null, "studyMode" text,
           constraint "QualificationProviderFeatures_qualififcationKey_uniq" 
           unique ("qualififcationKey"));

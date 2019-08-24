@@ -20,7 +20,6 @@ import Database.Action
 import Katip
 import Control.Lens.Iso.Extended
 import Database.Groundhog.Core
-import Database.Groundhog.Postgresql
 import Database.Exception
 import Data.Bifunctor
 import Control.Monad.Error.Class 
@@ -46,7 +45,7 @@ controller =
     (^.eitherToAlt) . first mkError <$> 
      runTryDbConnGH (action `catchError` logErr) orm
 
-action :: TryAction Groundhog KatipController Postgresql GetCategoriesResponse
+action :: EdgeNodeAction GetCategoriesResponse
 action = 
   do
     exams :: [(AutoKey StateExam, StateExam)] <- selectAll

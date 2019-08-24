@@ -40,6 +40,7 @@ import Text.Casing (quietSnake)
 import Servant.API
 import Data.Char
 import qualified Data.Text as T
+import Text.Read (readMaybe)
 
 derivePrimitivePersistField :: Name -> ExpQ -> Q [Dec]
 derivePrimitivePersistField name iso = [d|
@@ -337,7 +338,12 @@ mkFromHttpApiDataEnum name = do
   let base = nameBase name
   [d| instance FromHttpApiData $(conT name) where
         parseUrlPiece :: T.Text -> Either T.Text $(conT name)
-        parseUrlPiece x = Right $ x^.from stext.to (read . (& _head %~ toUpper))
+        parseUrlPiece x = 
+          maybe 
+          (Left ( "parseUrlPiece error: " <> x)) 
+          Right 
+          (readMaybe (toUpper y : ys)) 
+          where (y:ys) = x^.from stext
    |]
 
 mkParamSchemaEnum :: Name -> Q [Dec]

@@ -9,6 +9,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-} 
 {-# LANGUAGE TransformListComp #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module EdgeNode.Controller.Http.GetQualififcations (controller) where
 
@@ -44,6 +45,7 @@ import qualified Data.Tree.Extended as Tree
 import System.IO.Unsafe
 import Data.Tree.Pretty
 import Data.Maybe
+import Data.Sort
 
 controller :: GetQualififcationsRequest -> KatipController (Alternative (Error T.Text) GetQualififcationsResponse)
 controller req = maybe (return err) ok (req^?_Wrapped'.field @"requestIdent"._Just._Wrapped')
@@ -81,7 +83,7 @@ action ident logger =
              ltree2text(path)) order by path)
             from "edgeNode"."QualificationProvider" 
             where "qualificationProviderKey" = $1 
-            group by root, "qualificationProviderDegreeType"
+            group by root, "qualificationProviderDegreeType"           
          |]
     let encoder = ident >$ HE.param HE.int8
     let qualComposite = do 
@@ -89,9 +91,13 @@ action ident logger =
           title <- HD.field HD.text
           grade <- fmap (^.from jsonb) <$> HD.nullableField HD.jsonb 
           path <- HD.field HD.text
+          let mkRange xs = V.fromList 
+               [exGradeRangeGrade 
+                | ExGradeRange {..} <- 
+                  sortOn exGradeRangeRank xs] 
           let qual = EdgeNode.Model.Qualification.Qualification 
                      (title^.from lazytext)
-                     (fromMaybe V.empty grade)
+                     (maybe V.empty mkRange grade)
           return (path, Node (Just (QualificationId i)) (Just qual)) 
     let decoder = HD.rowList $ do
           degree <- (fmap (^.from lazytext.to Proto.String)) <$> 

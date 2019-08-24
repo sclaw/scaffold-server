@@ -20,6 +20,8 @@ import qualified EdgeNode.Controller.Http.GetCategories as User.GetCategories
 import qualified EdgeNode.Controller.Http.GetProviders as User.GetProviders
 import qualified EdgeNode.Controller.Http.GetQualififcations as User.GetQualififcations 
 import qualified EdgeNode.Controller.Http.SearchQualification as SearchQualification
+import qualified EdgeNode.Controller.Http.GetTrajectories as User.GetTrajectories
+import qualified EdgeNode.Controller.Http.SaveTrajectory as User.SaveTrajectory
 
 import Katip
 import KatipController
@@ -102,7 +104,17 @@ user user =
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["user", "getQualififcations"])
-    . User.GetQualififcations.controller    
+    . User.GetQualififcations.controller
+  , _userGetTrajectories =
+    flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["user", "getTrajectories"])
+     User.GetTrajectories.controller
+  , _userSaveTrajectory =
+    flip logExceptionM ErrorS
+    . katipAddNamespace 
+      (Namespace ["user", "saveTrajectory"])
+    . User.SaveTrajectory.controller (jWTUserUserId user)   
   }
 
 service :: ServiceApi (AsServerT KatipController)

@@ -2,7 +2,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE DerivingStrategies #-}
 
-module Database.Exception (Groundhog (..), Hasql(..)) where
+module Database.Exception (Groundhog (..), Hasql(..), _Request) where
 
 import Control.Exception.Base ()   
 import Control.Exception.Hierarchy
@@ -13,6 +13,7 @@ import Data.Word (Word32)
 import Control.Lens
 import qualified Crypto.JOSE.Error as Jose
 import qualified Crypto.JWT as Jose
+import Data.Aeson
 
 data Groundhog =  
        MigrationNotFound Word32 
@@ -21,6 +22,7 @@ data Groundhog =
      | JWTError Jose.JWTError
      | Common String
      | Action String
+     | Request Value
      deriving Show
 
 data Hasql = 

@@ -151,6 +151,8 @@ library:
     - monad-loops
     - sort
     - contravariant-extras
+    - lens-aeson
+    - thyme
   source-dirs:
     - backend/core
     - backend/extended

@@ -23,7 +23,6 @@ import Control.Lens
 import Database.Action
 import Katip
 import Database.Groundhog.Core
-import Database.Groundhog.Postgresql
 import Database.Groundhog.Generic
 import Database.Exception
 import Control.Lens.Iso.Extended
@@ -61,7 +60,7 @@ controller req =
     (^.eitherToAlt) . first mkError <$> 
      runTryDbConnGH (action cursor lang ident `catchError` logErr) orm
     
-action :: Word32 -> Language -> Maybe RequestIdent -> TryAction Groundhog KatipController Postgresql GetProvidersResponse
+action :: Word32 -> Language -> Maybe RequestIdent -> EdgeNodeAction GetProvidersResponse
 action _ _ Nothing = throwError $ Action "ident blank"
 action cursor lang (Just ident) = 
   do        

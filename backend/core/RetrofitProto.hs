@@ -17,6 +17,8 @@ import qualified EdgeNode.Api.Http.User.GetCategories as GetCategories
 import qualified EdgeNode.Api.Http.User.GetProviders as GetProviders
 import qualified EdgeNode.Api.Http.User.GetQualififcations as GetQualififcations
 import qualified EdgeNode.Api.Http.Search.Qualification as Qualification
+import qualified EdgeNode.Api.Http.User.GetTrajectories as GetTrajectories
+import qualified EdgeNode.Api.Http.User.SaveTrajectory as SaveTrajectory
 import EdgeNode.Lang
 import EdgeNode.Category
 import EdgeNode.Country
@@ -33,6 +35,8 @@ deriveSRGEnum ''SignIn.Error "SignIn"
 deriveToSchemaAndDefJSON ''SignInError
 deriveSRGEnum ''RefreshToken.Error "RefreshToken"
 deriveToSchemaAndDefJSON ''RefreshTokenError
+deriveSRGEnum ''SaveTrajectory.Error "SaveTrajectory"
+deriveToSchemaAndDefJSON ''SaveTrajectoryError
 
 requestWrapper ''RefreshToken.Request
 responseWrapper ''RefreshToken.Response
@@ -52,6 +56,10 @@ requestWrapper ''GetQualififcations.Request
 responseWrapper ''GetQualififcations.Response
 requestWrapper ''Qualification.Request
 responseWrapper ''Qualification.Response
+requestWrapper ''GetTrajectories.Request
+responseWrapper ''GetTrajectories.Response
+requestWrapper ''SaveTrajectory.Request
+responseWrapper ''SaveTrajectory.Response
 
 enumConvertor ''Language
 enumConvertor ''Type

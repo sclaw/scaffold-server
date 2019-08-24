@@ -10,6 +10,7 @@ module EdgeNode.Api.Http.User (UserApi (..)) where
 import EdgeNode.Model.User
 import EdgeNode.User.Qualification
 import EdgeNode.Model.User.Qualification ()
+import EdgeNode.Provider.Qualification
 
 import RetrofitProto
 import Servant.API.Generic
@@ -19,6 +20,7 @@ import ReliefJsonData
 import Swagger.ToSchema ()    
 import Data.Aeson.Unit
 import qualified Data.Text as T
+import Data.Aeson.WithField
 
 data UserApi route = 
      UserApi
@@ -74,5 +76,19 @@ data UserApi route =
        :> "get" 
        :> "qualififcations"
        :> ReqBody '[JSON] GetQualififcationsRequest
-       :> Post '[JSON] (Alternative (Error T.Text) GetQualififcationsResponse)     
+       :> Post '[JSON] (Alternative (Error T.Text) GetQualififcationsResponse)
+     , _userGetTrajectories
+       :: route 
+        :- Description "list of trajectories"
+        :> "trajectory"
+        :> "list"
+        :> Get '[JSON] (Alternative (Error T.Text) GetTrajectoriesResponse)
+     , _userSaveTrajectory
+       :: route 
+       :- Description "add trajectory to wish list"
+       :> "trajectory"
+       :> "add"
+       :> ReqBody '[JSON] SaveTrajectoryRequest
+       :> Post '[JSON] 
+          (Alternative (Error [WithField "qualificationId" (Maybe QualificationId) SaveTrajectoryError]) SaveTrajectoryResponse)                 
      } deriving stock Generic

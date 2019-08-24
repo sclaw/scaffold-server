@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Database.Action (runTryDbConnGH, runTryDbConnHasql) where
+module Database.Action (EdgeNodeAction, runTryDbConnGH, runTryDbConnHasql) where
 
 import KatipController
 import Database.Groundhog.Core
@@ -20,6 +20,9 @@ import PostgreSQL.ErrorCodes
 import Data.Foldable 
 import Control.Monad.Trans.Control
 import Control.Monad.Catch
+
+
+type EdgeNodeAction = TryAction Exception.Groundhog KatipController Postgresql
 
 runTryDbConnGH 
   :: (KatipContext m, 
