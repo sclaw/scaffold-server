@@ -14,7 +14,7 @@ sql = [i|alter table "edgeNode"."QualificationProvider"
          alter table "edgeNode"."QualificationDependency" 
          add column  "dependency" int8 not null 
          constraint "#QualificationDependency_dependency_fk" 
-         references "QualificationProvider"(id);
+         references "edgeNode"."QualificationProvider"(id);
          alter table "edgeNode"."QualificationDependency" 
          add column "minRequiredGrade" jsonb;
          alter table "edgeNode"."UserQualification" 
