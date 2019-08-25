@@ -1,10 +1,10 @@
 name:                edgeNode-server
 version:             0.1.0.0
-github:              "githubuser/web"
+gitlab:              "https://gitlab.com/edgenode2/server.git"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2018 Author name here"
+author:              "edgeNode"
+maintainer:          "Sergey Yakovlev<fclaw007@gmail.com>"
+copyright:           "2019 edgeNode"
 ghc-options:
   - -threaded
   - -rtsopts
