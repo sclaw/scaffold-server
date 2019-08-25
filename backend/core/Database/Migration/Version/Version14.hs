@@ -205,7 +205,7 @@ sql = [i|drop table "edgeNode"."QualificationProvider" cascade;
            "qualificationProviderDegreeType", 
            "qualificationProviderKey", path, 
            "qualificationProviderGradeRange") 
-          select 'Physics A', 'ALevelGCE', 3, 'Physics A', 
+          select 'Physics A', 'ALevelGCE', 3, 'PhysicsA', 
           array_to_json(array_agg(json_build_object('grade', json_build_object('value', json_build_object('text', x)), 'rank', i))) 
           from unnest(array[1, 2, 3, 4, 5, 6], array['A*', 'A', 'B', 'C', 'D', 'F']) as tpl(i, x);
           insert into "edgeNode"."QualificationProvider" 
