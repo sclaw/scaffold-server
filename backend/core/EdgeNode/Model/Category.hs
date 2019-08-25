@@ -53,7 +53,7 @@ mkPersist_ [groundhog|
    schema: edgeNode  
  |]
 
-derivePrimitivePersistField ''Grade [| jsonb |]
+derivePrimitivePersistField ''LSGrade [| jsonb |]
 deriveAutoKey ''StateExam
 deriveAutoKey ''HigherDegree
 deriveAutoKey ''InternationalDiploma

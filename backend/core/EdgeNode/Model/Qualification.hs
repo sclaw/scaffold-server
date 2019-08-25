@@ -18,10 +18,10 @@ import GHC.Generics
 data QualificationProvider  
 data QualificationDependency
 
--- json: "{"grade":{"value":{"char":"2"}},"rank":2}"    
+-- json: "{"grade":{"value":{"string":"2"}},"rank":2}"    
 data ExGradeRange = 
      ExGradeRange
-     { exGradeRangeGrade :: !Grade
+     { exGradeRangeGrade :: !QualificationGrade
      , exGradeRangeRank :: !Word32 
      } deriving stock Generic
 

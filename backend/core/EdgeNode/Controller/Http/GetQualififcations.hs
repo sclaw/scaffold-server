@@ -81,7 +81,7 @@ action ident logger =
              array_agg (row(id, "qualificationProviderTitle",
              "qualificationProviderGradeRange", 
              ltree2text(path)) order by path)
-            from "edgeNode"."QualificationProvider" 
+            from "edgeNode"."QualificationProvider"
             where "qualificationProviderKey" = $1 
             group by root, "qualificationProviderDegreeType"           
          |]

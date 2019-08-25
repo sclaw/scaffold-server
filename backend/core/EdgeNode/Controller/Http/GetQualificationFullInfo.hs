@@ -85,7 +85,7 @@ action userId qualId  _ =
     Hasql.Session.statement () (HS.Statement sql encoder decoder False)
 
 fullInfoDecoder :: HD.Row XUserQualificationFullinfo
-fullInfoDecoder = 
+fullInfoDecoder =
   do
     id <- fmap UserQualificationId (HD.column HD.int8)
     category <- HD.column $ HD.composite categoryComp

@@ -11,6 +11,7 @@ import EdgeNode.Api.Http.User.SaveQualifications
 import EdgeNode.User.Qualification
 import EdgeNode.Category
 import EdgeNode.Model.User
+import EdgeNode.Model.User.Qualification ()
 
 import RetrofitProto
 import Katip
@@ -90,5 +91,5 @@ mkTpl x =
              (fromType TypeLanguageStandard^.stext, i)
     provider <- x^?field @"userQualificationProviderIdent"._Just.field @"providerIdValue"
     qual <- x^?field @"userQualificationQualificationIdent"._Just.field @"qualificationIdValue"
-    skill <- x^?field @"userQualificationQualificatonSkillLevel"._Just.to toJSON
+    skill <- x^?field @"userQualificationSkill"._Just.to toJSON
     return (catType, catId, provider, qual, skill)

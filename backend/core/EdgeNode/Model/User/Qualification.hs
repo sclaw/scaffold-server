@@ -28,6 +28,7 @@ import Servant.API
 import Control.Lens.Iso.Extended
 import Control.Lens
 import Data.Text.Read
+import Data.Aeson.Extended
 
 data UserQualification
 
@@ -37,3 +38,5 @@ instance FromHttpApiData UserQualificationId where
   parseUrlPiece x = bimap (^.stext) (UserQualificationId . fst) (decimal x)
 
 deriveWrappedPrimitivePersistField ''UserQualificationId
+deriveJSON' ''UserQualificationSkill
+deriveJSON' ''UserQualificationFullinfoSkill
