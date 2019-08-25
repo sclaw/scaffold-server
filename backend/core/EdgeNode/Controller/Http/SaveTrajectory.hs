@@ -26,16 +26,17 @@ import Control.Monad.Error.Class
        ( throwError
        , catchError)
 import Control.Exception (fromException)
-import Data.Aeson.Lens
-import Data.Aeson
 import Data.Maybe
 import Data.Generics.Product
+
+
+type RequestError = [WithField "qualificationId" (Maybe QualificationId) SaveTrajectoryError]
 
 controller 
   :: UserId 
   -> SaveTrajectoryRequest 
   -> KatipController 
-     (Alternative (Error [WithField "qualificationId" (Maybe QualificationId) SaveTrajectoryError]) 
+     (Alternative (Error RequestError) 
       SaveTrajectoryResponse)    
 controller uid req =
   do
@@ -48,18 +49,19 @@ controller uid req =
          maybe 
          (ServerError (InternalServerError (show e^.stextl))) 
          (fromMaybe (error "panic!!!!") . 
-          (^?_Request._JSON.to ResponseError)) 
-         (fromException e :: Maybe Groundhog)
+          (^?_Request.to ResponseError)) 
+         (fromException e :: Maybe (Groundhog RequestError))
     (^.eitherToAlt) . first mkError <$> 
      runTryDbConnGH (action uid ident `catchError` logErr) orm
 
-action :: UserId -> Maybe QualificationId -> EdgeNodeAction SaveTrajectoryResponse     
-action _ = maybe (throwError (Request (toJSON val))) ok
+action :: UserId -> Maybe QualificationId -> EdgeNodeAction RequestError SaveTrajectoryResponse     
+action _ = maybe (throwError (Request [val])) ok
   where 
-    val :: WithField 
-           "qualificationId" 
-           (Maybe QualificationId) 
-           SaveTrajectoryError
+    val :: 
+      WithField 
+      "qualificationId" 
+      (Maybe QualificationId) 
+      SaveTrajectoryError
     val = WithField Nothing TrajectoryQualificationNotPassed
     -- UserQualification, QualificationDependency
-    ok _ = throwError (Request (toJSON [val]))
+    ok _ = throwError (Request [val])

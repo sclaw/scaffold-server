@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Database.Action (EdgeNodeAction, runTryDbConnGH, runTryDbConnHasql) where
+module Database.Action (EdgeNodeAction, EdgeNodeActionKatip, runTryDbConnGH, runTryDbConnHasql) where
 
 import KatipController
 import Database.Groundhog.Core
@@ -20,20 +20,26 @@ import PostgreSQL.ErrorCodes
 import Data.Foldable 
 import Control.Monad.Trans.Control
 import Control.Monad.Catch
+import Data.Typeable
 
+type EdgeNodeAction e = TryAction (Exception.Groundhog e) KatipController Postgresql
 
-type EdgeNodeAction = TryAction Exception.Groundhog KatipController Postgresql
+type EdgeNodeActionKatip e a = EdgeNodeAction e a ->  Pool Postgresql -> KatipController (Either SomeException a)
 
 runTryDbConnGH 
   :: (KatipContext m, 
       MonadBaseControl IO m, 
-      MonadCatch m) 
-  => TryAction Exception.Groundhog m Postgresql a 
+      MonadCatch m, Typeable e, Show e) 
+  => TryAction (Exception.Groundhog e) m Postgresql a 
   -> Pool Postgresql 
   -> m (Either SomeException a)
 runTryDbConnGH action = katipAddNamespace (Namespace ["orm"]) . runTryDbConn action
 
-runTryDbConnHasql :: Show a => (KatipLoggerIO -> Session a) -> Hasql.Pool -> KatipController (Either Exception.Hasql a)
+runTryDbConnHasql 
+  :: Show a 
+  => (KatipLoggerIO -> Session a) 
+  -> Hasql.Pool
+  -> KatipController (Either Exception.Hasql a)
 runTryDbConnHasql action pool = 
   do 
     logger <- katipAddNamespace (Namespace ["raw"]) askLoggerIO

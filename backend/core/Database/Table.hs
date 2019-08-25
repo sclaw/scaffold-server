@@ -15,10 +15,10 @@ import Katip
 import qualified Data.Map as Map
 import Control.Monad
 
-mkTables :: TryAction Exception.Groundhog (KatipContextT App.AppMonad) Postgresql ()
+mkTables :: TryAction (Exception.Groundhog ()) (KatipContextT App.AppMonad) Postgresql ()
 mkTables = runMigration migration
    
-print :: TryAction Exception.Groundhog (KatipContextT App.AppMonad) Postgresql ()
+print :: TryAction (Exception.Groundhog ()) (KatipContextT App.AppMonad) Postgresql ()
 print = createMigration migration >>= print
   where 
    print migs = 
@@ -30,7 +30,7 @@ print = createMigration migration >>= print
         let showSql (isUnsafe, _, sql) = (if isUnsafe then "Unsafe:\t" else "Safe:\t") ++ sql
         mapM_ ($(logTM) InfoS . logStr . ("\t" ++) . showSql) sqls
 
-migration :: Migration (TryAction Exception.Groundhog (KatipContextT App.AppMonad) Postgresql)
+migration :: Migration (TryAction (Exception.Groundhog ()) (KatipContextT App.AppMonad) Postgresql)
 migration = 
   do 
     migrate (undefined :: DbMeta)

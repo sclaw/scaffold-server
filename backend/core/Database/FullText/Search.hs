@@ -32,7 +32,7 @@ getResults
   -> QueryString 
   -> T.Text 
   -> TryAction 
-     Exception.Groundhog 
+     (Exception.Groundhog ()) 
      m Postgresql (m1 a)
 getResults valuesToObj (QueryString query) term = 
   do 
@@ -48,7 +48,7 @@ provider
   => Maybe Language 
   -> T.Text 
   -> TryAction 
-     Exception.Groundhog 
+     (Exception.Groundhog ()) 
      m Postgresql (m1 (ProviderId, Provider))
 provider lang = getResults valuesToObj (providerSearchQuery lang) 
   where valuesToObj
@@ -67,7 +67,7 @@ qualification
   => Maybe Language 
   -> T.Text 
   -> TryAction 
-  Exception.Groundhog 
+  (Exception.Groundhog ()) 
   m Postgresql (m1 (QualificationId, QualificationFullInfo))
 qualification lang = getResults valuesToObj (qualificationSearchQuery lang)
   where valuesToObj = undefined

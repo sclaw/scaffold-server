@@ -1,6 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
 
 module Database.Exception (Groundhog (..), Hasql(..), _Request) where
 
@@ -13,16 +16,15 @@ import Data.Word (Word32)
 import Control.Lens
 import qualified Crypto.JOSE.Error as Jose
 import qualified Crypto.JWT as Jose
-import Data.Aeson
 
-data Groundhog =  
+data Groundhog e =  
        MigrationNotFound Word32 
      | MigrationSqlEmpty Word32
      | JWSError Jose.Error
      | JWTError Jose.JWTError
      | Common String
      | Action String
-     | Request Value
+     | Request e
      deriving Show
 
 data Hasql = 
@@ -31,16 +33,16 @@ data Hasql =
     | UniqueViolation 
       !B.ByteString
     | OtherError 
-      !UsageError
+      !UsageError  
     deriving Typeable
     deriving Show
   
-exceptionHierarchy Nothing (ExType ''Groundhog)
-exceptionHierarchy Nothing (ExType ''Hasql)
+exceptionHierarchy True Nothing (ExType ''Groundhog)
 makeClassyPrisms ''Groundhog
+exceptionHierarchy False Nothing (ExType ''Hasql)
 
-instance Jose.AsError Groundhog where
+instance Jose.AsError (Groundhog a) where
   _Error = _JWSError
 
-instance Jose.AsJWTError Groundhog where
+instance Jose.AsJWTError (Groundhog a) where
   _JWTError = _JWTError

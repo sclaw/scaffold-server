@@ -29,7 +29,7 @@ import Data.Maybe
 import Control.Monad
 import Control.Applicative
 
-type MigrationAction a = TryAction Exception.Groundhog (KatipContextT App.AppMonad) Postgresql a
+type MigrationAction a = TryAction (Exception.Groundhog ()) (KatipContextT App.AppMonad) Postgresql a
 
 run :: Pool Postgresql -> KatipContextT App.AppMonad (Either SomeException ())
 run cm = (checkDBMeta >>= traverse_ (bool Database.Migration.init (Database.Migration.migrate Nothing))) `runTryDbConnGH` cm

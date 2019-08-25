@@ -24,6 +24,7 @@ import qualified Database.Migration.Version.Version11 as V11
 import qualified Database.Migration.Version.Version12 as V12
 import qualified Database.Migration.Version.Version13 as V13
 import qualified Database.Migration.Version.Version14 as V14
+import qualified Database.Migration.Version.Version15 as V15
 
 import Data.Word (Word32)
 import Database.Exception
@@ -48,15 +49,15 @@ data MigrationStep =
        NextSql String Version 
      | NextMigration 
        (Migration 
-        (TryAction Groundhog 
+        (TryAction (Groundhog ())
          (KatipContextT AppMonad) 
           Postgresql)) 
        Version    
      | Stop
 
-$(mkMigrationSeq 1 14)
+$(mkMigrationSeq 1 15)
 
-exec :: Version -> TryAction Groundhog (KatipContextT AppMonad) Postgresql (Maybe Version) 
+exec :: Version -> TryAction (Groundhog ()) (KatipContextT AppMonad) Postgresql (Maybe Version) 
 exec _ | null list = return Nothing    
 exec ver = maybe err ok (migrMap Map.!? ver) 
   where
@@ -81,8 +82,8 @@ isEmpty (NextMigration _ _) = False
 isEmpty Stop = False
 
 mkSql 
-  :: Migration (TryAction Groundhog (KatipContextT AppMonad) Postgresql)
-  -> TryAction Groundhog (KatipContextT AppMonad) Postgresql [String]
+  :: Migration (TryAction (Groundhog ()) (KatipContextT AppMonad) Postgresql)
+  -> TryAction (Groundhog ()) (KatipContextT AppMonad) Postgresql [String]
 mkSql migration = 
   createMigration migration >>= 
   (fmap concat . make)

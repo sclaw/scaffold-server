@@ -20,7 +20,7 @@ controller :: JWTUser -> KatipController (Alternative (Error Unit) Unit)
 controller user = 
   do
     orm <- fmap (^.katipEnv.ormDB) ask
-    resp <- flip runTryDbConnGH orm $ 
+    resp <- flip (runTryDbConnGH :: EdgeNodeActionKatip () ()) orm $ 
      delete $ 
      TokenUserIdF ==. jWTUserUserId user &&.  
      TokenUniqueF ==. (jWTUserUnique user^.stext)

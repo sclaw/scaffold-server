@@ -41,11 +41,11 @@ controller =
          maybe 
          (ServerError (InternalServerError (show e^.stextl))) 
          (const (ResponseError Unit)) 
-         (fromException e :: Maybe Groundhog)
+         (fromException e :: Maybe (Groundhog ()))
     (^.eitherToAlt) . first mkError <$> 
      runTryDbConnGH (action `catchError` logErr) orm
 
-action :: EdgeNodeAction GetCategoriesResponse
+action :: EdgeNodeAction () GetCategoriesResponse
 action = 
   do
     exams :: [(AutoKey StateExam, StateExam)] <- selectAll

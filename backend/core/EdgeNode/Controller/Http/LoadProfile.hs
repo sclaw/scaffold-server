@@ -19,7 +19,7 @@ import Control.Lens.Iso.Extended
 controller :: UserId -> KatipController (Alternative (Error T.Text) User)
 controller uid = do
     orm <- (^.katipEnv.ormDB) `fmap` ask 
-    res <- flip runTryDbConnGH orm $ do 
+    res <- flip (runTryDbConnGH :: EdgeNodeActionKatip () (Maybe User)) orm $ do 
       profile <- get (uid^.autokey)
       $(logTM) DebugS (logStr (show profile))
       return profile

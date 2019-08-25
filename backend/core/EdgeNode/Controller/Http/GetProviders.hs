@@ -53,14 +53,14 @@ controller req =
              throwError e    
     let mkError e =  
          case fromException e 
-              :: Maybe Groundhog of
+              :: Maybe (Groundhog ()) of
            Just (Action x) -> ResponseError (x^.stext)
            Just (Common x) -> ServerError $ InternalServerError (x^.stextl)
            _ -> ServerError $ InternalServerError "unkonwn server error, please pay a visit to log"
     (^.eitherToAlt) . first mkError <$> 
      runTryDbConnGH (action cursor lang ident `catchError` logErr) orm
     
-action :: Word32 -> Language -> Maybe RequestIdent -> EdgeNodeAction GetProvidersResponse
+action :: Word32 -> Language -> Maybe RequestIdent -> EdgeNodeAction () GetProvidersResponse
 action _ _ Nothing = throwError $ Action "ident blank"
 action cursor lang (Just ident) = 
   do        

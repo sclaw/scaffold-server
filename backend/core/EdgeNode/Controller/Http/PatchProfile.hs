@@ -1,4 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module EdgeNode.Controller.Http.PatchProfile (controller) where
 
@@ -19,6 +21,6 @@ controller :: UserId -> User -> KatipController (Alternative (Error Unit) Unit)
 controller uid patch = do
     $(logTM) DebugS (logStr (show patch))
     orm <- (^.katipEnv.ormDB) `fmap` ask 
-    res <- flip runTryDbConnGH orm $ 
+    res <- flip (runTryDbConnGH :: EdgeNodeActionKatip () ()) orm $ 
       replace (uid^.autokey) patch
     return $ bimap (\x -> ServerError (InternalServerError (x^.to show.stextl))) (const Unit) res^.eitherToAlt

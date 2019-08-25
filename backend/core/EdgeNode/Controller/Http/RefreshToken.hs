@@ -63,11 +63,11 @@ controller req =
          maybe 
          (ServerError (InternalServerError (show e^.stextl))) 
          (const (ResponseError RefreshTokenInvalid)) 
-         (fromException e :: Maybe Groundhog) 
+         (fromException e :: Maybe (Groundhog ())) 
     (^.eitherToAlt) . first mkError <$> 
      runTryDbConnGH (action bs key `catchError` logErr) orm
    
-action :: B.ByteString -> Jose.JWK -> EdgeNodeAction RefreshTokenResponse
+action :: B.ByteString -> Jose.JWK -> EdgeNodeAction () RefreshTokenResponse
 action bs key = 
   do 
     let cfg = defaultJWTSettings key
