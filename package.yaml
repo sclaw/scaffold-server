@@ -1,6 +1,5 @@
 name:                edgeNode-server
 version:             0.1.0.0
-gitlab:              "https://gitlab.com/edgenode2/server.git"
 license:             BSD3
 author:              "edgeNode"
 maintainer:          "Sergey Yakovlev<fclaw007@gmail.com>"

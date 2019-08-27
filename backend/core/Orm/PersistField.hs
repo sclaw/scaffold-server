@@ -30,6 +30,10 @@ import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import GHC.Float
 import Data.Aeson
 import RetrofitProto
+import ReliefJsonData
+import Data.Bifunctor
+import qualified Data.Aeson as Aeson
+import Control.Lens.Iso.Extended
 
 {- We need (PersistField (Seq a)) to make model out of protobuffer
  - datatypes. Unfortunatelly, Seq is a newtype, and Groundhog somewhy
@@ -55,6 +59,16 @@ instance (PersistField a) => PersistField (Seq.Seq a) where
     (XList l, values') <- fromPersistValues values
     pure (Seq.fromList l, values')
   dbType p s = dbType p (XList $ s^..traverse)
+  
+instance PersistField ValueWrapper where 
+  persistName _ = "JsonValueWrapper"
+  toPersistValues (ValueWrapper x) = primToPersistValue x
+  fromPersistValues = fmap (first ValueWrapper) . primFromPersistValue
+  dbType _ _ = DbTypePrimitive DbBlob False Nothing Nothing
+
+instance PrimitivePersistField ValueWrapper where
+  toPrimitivePersistValue (ValueWrapper x) = PersistText $ Aeson.encode x^.from textbsl
+  fromPrimitivePersistValue = ValueWrapper . fromPrimitivePersistValue
 
 derivePrimitivePersistField ''Float [| iso float2Double double2Float |]
 

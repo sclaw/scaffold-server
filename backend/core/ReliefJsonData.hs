@@ -9,10 +9,16 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 -- | A wrapper for the either that is only applicative and has serialization that
 -- is useful for us.
-module ReliefJsonData (Alternative(..), eitherToAlt, Error (..)) where
+module ReliefJsonData 
+       ( Alternative(..)
+       , eitherToAlt
+       , Error (..)
+       , ValueWrapper (..)
+       ) where
 
 import EdgeNode.Error
 
@@ -98,3 +104,8 @@ instance (Typeable a, ToSchema a) => ToSchema (Error a) where
           & type_ .~ SwaggerObject
           & properties .~ [("server", server), ("client", a)]
     return schema
+
+newtype ValueWrapper = ValueWrapper Value
+  deriving stock Generic
+  deriving newtype ToJSON
+  deriving newtype FromJSON

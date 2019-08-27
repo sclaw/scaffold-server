@@ -10,7 +10,9 @@
 {-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module EdgeNode.Model.User.Trajectory () where
+module EdgeNode.Model.User.Trajectory 
+       (module EdgeNode.User.Trajectory
+       ) where
 
 import EdgeNode.User.Trajectory
 
@@ -23,3 +25,4 @@ import Database.Groundhog.Generic
        , primFromPersistValue)
 
 derivePrimitivePersistField ''QualificationDiff [| jsonb |]
+deriveWrappedPrimitivePersistField ''TrajectoryId

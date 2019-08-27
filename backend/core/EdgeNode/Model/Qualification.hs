@@ -1,6 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DerivingStrategies  #-}
 {-# LANGUAGE DeriveGeneric  #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module EdgeNode.Model.Qualification 
        ( QualificationProvider
@@ -14,6 +17,9 @@ import EdgeNode.Provider.Qualification
 import TH.Generator
 import Data.Word
 import GHC.Generics
+import Database.Groundhog.Instances ()
+import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
+import Control.Lens.Iso.Extended
 
 data QualificationProvider  
 data QualificationDependency
@@ -26,3 +32,8 @@ data ExGradeRange =
      } deriving stock Generic
 
 deriveToSchemaAndJSON ''ExGradeRange
+derivePrimitivePersistField ''ExGradeRange [| jsonb |]
+deriveWrappedPrimitivePersistField ''QualificationId
+
+
+
