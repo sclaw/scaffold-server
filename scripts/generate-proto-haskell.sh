@@ -19,7 +19,7 @@ main =
         , "compile-proto-file"
         , "--"
         , "--out"
-        , "backend/proto/"
+        , "src/proto/"
         ,  "--includeDir"
         , "sub/proto/"
         , "--proto"

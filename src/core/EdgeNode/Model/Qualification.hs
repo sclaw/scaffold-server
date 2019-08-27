@@ -10,9 +10,11 @@ module EdgeNode.Model.Qualification
        , QualificationDependency
        , ExGradeRange (..)
        , module EdgeNode.Provider.Qualification
+       , mkRange
        ) where
 
 import EdgeNode.Provider.Qualification
+import EdgeNode.Category
 
 import TH.Generator
 import Data.Word
@@ -27,13 +29,14 @@ data QualificationDependency
 -- json: "{"grade":{"value":{"string":"2"}},"rank":2}"    
 data ExGradeRange = 
      ExGradeRange
-     { exGradeRangeGrade :: !QualificationGrade
+     { exGradeRangeGrade :: !(Either LSGrade QualificationGrade)
      , exGradeRangeRank :: !Word32 
      } deriving stock Generic
+
+mkRange :: Either LSGrade QualificationGrade -> Range
+mkRange (Left x) = Range $ Just $ RangeValueLanguage x
+mkRange (Right x) = Range $ Just $ RangeValueQualification x
 
 deriveToSchemaAndJSON ''ExGradeRange
 derivePrimitivePersistField ''ExGradeRange [| jsonb |]
 deriveWrappedPrimitivePersistField ''QualificationId
-
-
-

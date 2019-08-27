@@ -118,8 +118,14 @@ accScore :: (Int, Double) -> [PersistValue] -> EdgeNodeAction RequestError (Int,
 accScore score xs = 
   do
     let seq = xs^.seql
-    ty <- maybe (error "persist field category type not found") (fmap toType . fromSinglePersistValue) (seq Seq.!? 1)
-    qual :: ValueWrapper <- maybe (error "persist field required grade not found") fromSinglePersistValue (seq Seq.!? 2)
-    user :: Maybe ValueWrapper <- traverse fromSinglePersistValue $ seq Seq.!? 3
-    range :: Maybe ExGradeRange <- traverse fromSinglePersistValue $ seq Seq.!? 4
+    ty <- maybe (error "persist field category type not found") 
+          (fmap toType . fromSinglePersistValue) (seq Seq.!? 1)
+    qual :: ValueWrapper <- 
+      maybe (error "persist field required grade not found") 
+      fromSinglePersistValue (seq Seq.!? 2)
+    user :: Maybe ValueWrapper <- 
+      traverse fromSinglePersistValue $ seq Seq.!? 3
+    range :: ExGradeRange <- 
+      maybe (error "persist field grade range not found") 
+      fromSinglePersistValue (seq Seq.!? 4)
     return score

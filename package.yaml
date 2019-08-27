@@ -153,9 +153,9 @@ library:
     - lens-aeson
     - thyme
   source-dirs:
-    - backend/core
-    - backend/extended
-    - backend/proto
+    - src/core
+    - src/extended
+    - src/proto
     - test
     - app
 

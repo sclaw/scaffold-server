@@ -92,7 +92,8 @@ action ident logger =
           grade <- fmap (^.from jsonb) <$> HD.nullableField HD.jsonb 
           path <- HD.field HD.text
           let mkRange xs = V.fromList 
-               [exGradeRangeGrade 
+               [EdgeNode.Model.Qualification.mkRange 
+                exGradeRangeGrade 
                 | ExGradeRange {..} <- 
                   sortOn exGradeRangeRank xs] 
           let qual = EdgeNode.Model.Qualification.Qualification 

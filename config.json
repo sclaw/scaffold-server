@@ -1,3 +1,3 @@
 {
-    "sourceFolders": ["backend", "test"]
+    "sourceFolders": ["src", "test"]
 }
