@@ -30,11 +30,15 @@ import TH.Generator
 import Database.Groundhog.Generic
 import Orm.PersistField ()
 import Orphan ()
+import Data.Swagger.ParamSchema
 
 mkPersist_ [groundhog| 
  - entity: Provider
    schema: edgeNode
  |]
 
+instance ToParamSchema ProviderId
+
 deriveWrappedPrimitivePersistField ''ProviderId
 deriveAutoKey ''Provider
+mkFromHttpApiDataIdent ''ProviderId

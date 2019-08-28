@@ -32,7 +32,7 @@ ghc-options:
   - -Wmissing-pattern-synonym-signatures
   - -XMonadFailDesugaring
   - -XOverloadedStrings
-  - -ddump-splices
+ # - -ddump-splices
 
 extra-source-files:
 - README.md

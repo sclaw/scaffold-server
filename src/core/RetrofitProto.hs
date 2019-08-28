@@ -52,7 +52,6 @@ responseWrapper ''GetQualificationFullInfo.Response
 responseWrapper ''GetCategories.Response
 requestWrapper ''GetProviders.Request
 responseWrapper ''GetProviders.Response
-requestWrapper ''GetQualififcations.Request
 responseWrapper ''GetQualififcations.Response
 requestWrapper ''Qualification.Request
 responseWrapper ''Qualification.Response

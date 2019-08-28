@@ -28,7 +28,6 @@ import Servant.Swagger
 import Data.Swagger
 import Control.Lens
 import Servant.Auth.Swagger ()
-import Swagger.ToSchema ()
 import Control.Lens.Iso.Extended
 
 data ApplicationApi route = 

@@ -47,12 +47,13 @@ import Data.Tree.Pretty
 import Data.Maybe
 import Data.Sort
 
-controller :: GetQualififcationsRequest -> KatipController (Alternative (Error T.Text) GetQualififcationsResponse)
-controller req = maybe (return err) ok (req^?_Wrapped'.field @"requestIdent"._Just._Wrapped')
+controller :: ProviderId -> KatipController (Alternative (Error T.Text) GetQualififcationsResponse)
+controller provider = maybe (return err) ok (provider^?field @"providerIdValue")
   where 
     err = Error $ ResponseError "provider empty"
     ok ident = 
       do
+        $(logTM) DebugS (logStr ([i|provider id: #{show ident}|] :: String))
         raw <- fmap (^.katipEnv.rawDB) ask
         logtree <- katipAddNamespace (Namespace ["tree"]) askLoggerIO 
         x <- runTryDbConnHasql (action ident) raw

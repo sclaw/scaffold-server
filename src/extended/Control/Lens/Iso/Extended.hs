@@ -3,6 +3,7 @@
 {-# LANGUAGE Rank2Types             #-}
 {-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Control.Lens.Iso.Extended
        (
@@ -30,6 +31,7 @@ import qualified Data.Text.Encoding      as T
 import qualified Data.Text.Lazy          as LT
 import qualified Data.Text.Lazy.Encoding as LT
 import Data.Aeson
+import Data.String.Interpolate
 
 -- WARNING: Strictly speaking, 'utf8' is not isomorphism, since exists
 -- ByteString, that is not decodable as Text. But it is very convenient.
@@ -78,4 +80,4 @@ enumtext =
 jsonb :: (FromJSON a, ToJSON a) => Iso' a Value
 jsonb = iso toJSON (fmap getObj fromJSON) 
     where getObj (Success x) = x
-          getObj (Error e) = error $ "decode error: " <> show e
+          getObj (Error e) = error [i|decode error: #{show e}|]

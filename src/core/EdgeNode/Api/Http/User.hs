@@ -17,10 +17,10 @@ import Servant.API.Generic
 import Servant.API.WebSocket ()
 import Servant.API
 import ReliefJsonData
-import Swagger.ToSchema ()    
 import Data.Aeson.Unit
 import qualified Data.Text as T
 import Data.Aeson.WithField
+import EdgeNode.Model.Provider
 
 data UserApi route = 
      UserApi
@@ -75,8 +75,8 @@ data UserApi route =
        :> "new"
        :> "get" 
        :> "qualififcations"
-       :> ReqBody '[JSON] GetQualififcationsRequest
-       :> Post '[JSON] (Alternative (Error T.Text) GetQualififcationsResponse)
+       :> Capture "id" ProviderId
+       :> Get '[JSON] (Alternative (Error T.Text) GetQualififcationsResponse)
      , _userGetTrajectories
        :: route 
         :- Description "list of trajectories"
