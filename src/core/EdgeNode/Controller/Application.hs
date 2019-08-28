@@ -95,11 +95,11 @@ user user =
     katipAddNamespace 
     (Namespace ["user", "getCategories"])
     User.GetCategories.controller
-  , _userGetProvider =
-    flip logExceptionM ErrorS
-    . katipAddNamespace 
+  , _userGetProvider = \cntry catType catId cursor ->
+    flip logExceptionM ErrorS $
+      katipAddNamespace 
       (Namespace ["user", "getProviders"])
-    . User.GetProviders.controller
+      (User.GetProviders.controller cntry catType catId cursor)
   , _userGetQualififcations =
     flip logExceptionM ErrorS
     . katipAddNamespace 

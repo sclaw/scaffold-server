@@ -11,7 +11,7 @@ module TH.Generator
        , deriveWrappedForDataWithSingleField
        , deriveToSchemaAndJSON
        , deriveToSchemaAndJSONProtoIdent
-       , deriveSRGEnum
+       , deriveSRGEqEnum
        , deriveToSchemaAndDefJSON
        , enumConvertor
        , derivePrimitivePersistFieldParam
@@ -208,13 +208,14 @@ deriveToSchemaAndJSONProtoIdent name =
       |]
      return $ entiityWrapper : xs 
 
-deriveSRGEnum :: Name -> String -> Q [Dec]
-deriveSRGEnum name prefix = 
+deriveSRGEqEnum :: Name -> String -> Q [Dec]
+deriveSRGEqEnum name prefix = 
   do TyConI (DataD ctx n xs kind ys cl) <- reify name
      let new = mkName $ prefix <> nameBase name
      let geni = DerivClause Nothing [ConT (mkName "Generic")]
      let showi = DerivClause (Just StockStrategy) [ConT (mkName "Show")]
      let read = DerivClause (Just StockStrategy) [ConT (mkName "Read")]
+     let eq = DerivClause (Just StockStrategy) [ConT (mkName "Eq")]
      let capitalizeHead x = x & _head %~ toUpper 
      let purgeNamePrefix (NormalC n xs) = 
           ((`NormalC` xs) . mkName . capitalizeHead . (^.from stext)) `fmap`
@@ -223,13 +224,13 @@ deriveSRGEnum name prefix =
           (nameBase n^.stext)
      let err = error $ "error: " <> show name
      let ys' = map (fromMaybe err . purgeNamePrefix) ys
-     return [DataD ctx new xs kind ys' ([geni, showi, read] ++ cl)]
+     return [DataD ctx new xs kind ys' ([geni, showi, read, eq] ++ cl)]
 
 enumConvertor :: Name -> Q [Dec]
 enumConvertor name = 
   do TyConI (DataD _ _ _ _ xs _) <- reify name
      let stripUnderScore = filter (not . (`elem` ("_" :: String))) . nameBase
-     let stripPrefix s = s^.stext.to (T.stripPrefix (nameBase name^.stext))._Just.from stext
+     let stripPrefix s = fromMaybe s $ s^?stext.to (T.stripPrefix (nameBase name^.stext))._Just.from stext
      let str = mkName "String"
      let err = mkName "error"
      let isoNFrom = mkName ("from" <> stripUnderScore name)

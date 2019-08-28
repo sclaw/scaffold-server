@@ -11,6 +11,7 @@ import EdgeNode.Model.User
 import EdgeNode.User.Qualification
 import EdgeNode.Model.User.Qualification ()
 import EdgeNode.Provider.Qualification
+import EdgeNode.Model.Provider
 
 import RetrofitProto
 import Servant.API.Generic
@@ -20,7 +21,8 @@ import ReliefJsonData
 import Data.Aeson.Unit
 import qualified Data.Text as T
 import Data.Aeson.WithField
-import EdgeNode.Model.Provider
+import Data.Int
+import Data.Word
 
 data UserApi route = 
      UserApi
@@ -66,8 +68,11 @@ data UserApi route =
        :> "new"
        :> "get" 
        :> "providers"
-       :> ReqBody '[JSON] GetProvidersRequest
-       :> Post '[JSON] (Alternative (Error T.Text) GetProvidersResponse)
+       :> Capture "country" WrapperCountry
+       :> Capture "category" WrapperType
+       :> Capture "id" Int64
+       :> QueryParam "cursor" Word32
+       :> Get '[JSON] (Alternative (Error T.Text) GetProvidersResponse)
      , _userGetQualififcations  
        :: route 
        :- Description "list of provider"

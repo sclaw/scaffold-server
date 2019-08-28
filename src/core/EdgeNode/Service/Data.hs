@@ -11,6 +11,6 @@ import EdgeNode.Service.Service
 import TH.Generator
 import GHC.Generics
 
-deriveSRGEnum ''Language "Service"
+deriveSRGEqEnum ''Language "Service"
 mkFromHttpApiDataEnum ''ServiceLanguage
 mkParamSchemaEnum ''ServiceLanguage

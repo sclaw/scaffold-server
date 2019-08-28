@@ -12,13 +12,11 @@ module EdgeNode.Controller.Http.GetProviders (controller) where
 
 import EdgeNode.Api.Http.User.GetProviders
 import EdgeNode.Error
-import EdgeNode.Lang
 import EdgeNode.Model.Provider
 
 import RetrofitProto
 import KatipController
 import ReliefJsonData
-import Data.Generics.Product
 import Control.Lens
 import Database.Action
 import Katip
@@ -28,25 +26,20 @@ import Database.Exception
 import Control.Lens.Iso.Extended
 import qualified Data.Text as T
 import Data.Bifunctor
-import Control.Monad.Error.Class 
-       ( throwError
-       , catchError)
+import Control.Monad.Error.Class (throwError, catchError)
 import Control.Exception (fromException)
 import Data.Vector.Lens
-import Data.Generics.Sum
 import Data.Traversable
-import Control.Applicative ((<|>))
 import Control.Monad.IO.Class
 import Data.String.Interpolate
 import Control.Monad
+import Data.Int
 import Data.Word
+import Data.Maybe
 
-controller :: GetProvidersRequest -> KatipController (Alternative (Error T.Text) GetProvidersResponse)
-controller req =
+controller :: WrapperCountry -> WrapperType -> Int64 -> Maybe Word32 -> KatipController (Alternative (Error T.Text) GetProvidersResponse)
+controller country ty ident cursor =
   do
-    let ident = req^._Wrapped'.field @"requestIdent"
-    let Just lang = req^?_Wrapped'.field @"requestLang".field @"enumerated"._Right
-    let cursor = req^._Wrapped'.field @"requestCursor"
     orm <- fmap (^.katipEnv.ormDB) ask
     let logErr e = 
           do $(logTM) ErrorS (logStr (show e))
@@ -58,21 +51,24 @@ controller req =
            Just (Common x) -> ServerError $ InternalServerError (x^.stextl)
            _ -> ServerError $ InternalServerError "unkonwn server error, please pay a visit to log"
     (^.eitherToAlt) . first mkError <$> 
-     runTryDbConnGH (action cursor lang ident `catchError` logErr) orm
+     runTryDbConnGH (action country ty ident cursor `catchError` logErr) orm
     
-action :: Word32 -> Language -> Maybe RequestIdent -> EdgeNodeAction () GetProvidersResponse
-action _ _ Nothing = throwError $ Action "ident blank"
-action cursor lang (Just ident) = 
+action :: WrapperCountry -> WrapperType -> Int64 -> Maybe Word32 -> EdgeNodeAction () GetProvidersResponse
+action _ ty _ _ 
+  | ty == InternationalDiploma || 
+    ty == LanguageStandard = 
+    throwError $ Action 
+      [i|next categories doesn't support providers 
+         #{fromWrapperType InternationalDiploma}, 
+         #{fromWrapperType LanguageStandard}|]  
+action country ty ident cursor = 
   do        
-    exam <- for (ident^?_Ctor @"RequestIdentStateExamId") getExam
-    degree <- for (ident^?_Ctor @"RequestIdentHigherDegreeId") getDegree
-    diploma <- for (ident^?_Ctor @"RequestIdentInternationalDiplomaId") getDiploma
-    ilang <- for (ident^?_Ctor @"RequestIdentLanguageStandardId") getILang
-    maybe (throwError (Action "ident not found"))
-          (return . GetProvidersResponse . Response . (^.vector))                
-          (join (exam <|> degree <|> diploma <|> ilang))
+    m <- fmap (fmap (GetProvidersResponse . Response . (^.vector))) 
+         (case ty of StateExam -> getExam; HigherDegree -> getDegree)
+    when (isNothing m) $ throwError (Action "ident not found")
+    return $ fromJust m     
   where 
-    getExam ident =  
+    getExam =  
       do 
         let sql = 
              [i|select p.id, p."providerTitle", p."providerCountry" 
@@ -81,12 +77,12 @@ action cursor lang (Just ident) =
                 on e.provider_id = p.id 
                 where e.state_exam_id = ? and p."providerCountry" = ?
                 order by p."providerTitle" asc 
-                limit 10 offset ?
+                limit 10 offset coalesce(?, 0)
              |]
         stream <- queryRaw False sql 
-         [ PersistInt64 (ident^.field @"stateExamIdValue")
-         , PersistText (fromLanguage lang^.stext)
-         , PersistInt64 (fromIntegral cursor)]
+         [ PersistInt64 ident
+         , PersistText (country^.isoWrapperCountry.stext)
+         , toPrimitivePersistValue (fmap fromIntegral cursor :: Maybe Int32)]
         xs <- liftIO $ streamToList stream
         $(logTM) DebugS (logStr ("exam.streamToList: " ++ show xs))
         xs' <- forM xs $ \(x:xs) -> do 
@@ -94,7 +90,7 @@ action cursor lang (Just ident) =
           (v, _) <- fromPersistValues xs
           return $ XProvider ident v
         return $ if null xs' then Nothing else Just xs'
-    getDegree ident = 
+    getDegree = 
       do 
         let sql = 
              [i|select p.id, p."providerTitle", p."providerCountry" 
@@ -103,18 +99,16 @@ action cursor lang (Just ident) =
                on d.provider_id = p.id 
                where d.higher_degree_id = ? and p."providerCountry" = ?
                order by p."providerTitle" asc 
-               limit 10 offset ?
+               limit 10 offset coalesce(?, 0)
              |]
         stream <- queryRaw False sql 
-         [ PersistInt64 (ident^.field @"higherDegreeIdValue")
-         , PersistText (fromLanguage lang^.stext)
-          , PersistInt64 (fromIntegral cursor)]
+         [ PersistInt64 ident
+         , PersistText (country^.isoWrapperCountry.stext)
+         , toPrimitivePersistValue (fmap fromIntegral cursor :: Maybe Int32)]
         xs <- liftIO $ streamToList stream
         $(logTM) DebugS (logStr ("degree.streamToList: " ++ show xs))
         xs' <- forM xs $ \(x:xs) -> do 
           ident <- fromSinglePersistValue x
           (v, _) <- fromPersistValues xs
           return $ XProvider ident v
-        return $ if null xs' then Nothing else Just xs'     
-    getDiploma _ =  throwError $ Action "international diploma not supported"
-    getILang _ = throwError $ Action "language standard not supported"
+        return $ if null xs' then Nothing else Just xs'

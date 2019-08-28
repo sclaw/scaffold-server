@@ -4,6 +4,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE InstanceSigs #-}
 
 module RetrofitProto where
 
@@ -29,13 +30,13 @@ import Data.Aeson
 import Data.Swagger
 import Control.Lens
 
-deriveSRGEnum ''Reg.Error "Register"
+deriveSRGEqEnum ''Reg.Error "Register"
 deriveToSchemaAndDefJSON ''RegisterError
-deriveSRGEnum ''SignIn.Error "SignIn"
+deriveSRGEqEnum ''SignIn.Error "SignIn"
 deriveToSchemaAndDefJSON ''SignInError
-deriveSRGEnum ''RefreshToken.Error "RefreshToken"
+deriveSRGEqEnum ''RefreshToken.Error "RefreshToken"
 deriveToSchemaAndDefJSON ''RefreshTokenError
-deriveSRGEnum ''SaveTrajectory.Error "SaveTrajectory"
+deriveSRGEqEnum ''SaveTrajectory.Error "SaveTrajectory"
 deriveToSchemaAndDefJSON ''SaveTrajectoryError
 
 requestWrapper ''RefreshToken.Request
@@ -50,7 +51,6 @@ requestWrapper ''SaveQualifications.Request
 responseWrapper ''SaveQualifications.Response
 responseWrapper ''GetQualificationFullInfo.Response
 responseWrapper ''GetCategories.Response
-requestWrapper ''GetProviders.Request
 responseWrapper ''GetProviders.Response
 responseWrapper ''GetQualififcations.Response
 requestWrapper ''Qualification.Request
@@ -63,3 +63,13 @@ responseWrapper ''SaveTrajectory.Response
 enumConvertor ''Language
 enumConvertor ''Type
 enumConvertor ''Country
+
+deriveSRGEqEnum ''Country "Wrapper"
+enumConvertor ''WrapperCountry
+mkParamSchemaEnum ''WrapperCountry
+mkFromHttpApiDataEnum ''WrapperCountry
+
+deriveSRGEqEnum ''Type "Wrapper"
+enumConvertor ''WrapperType
+mkParamSchemaEnum ''WrapperType
+mkFromHttpApiDataEnum ''WrapperType
