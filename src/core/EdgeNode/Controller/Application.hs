@@ -109,7 +109,7 @@ user user =
     flip logExceptionM ErrorS $
      katipAddNamespace 
      (Namespace ["user", "getTrajectories"])
-     User.GetTrajectories.controller
+     (User.GetTrajectories.controller (jWTUserUserId user))
   , _userSaveTrajectory =
     flip logExceptionM ErrorS
     . katipAddNamespace 

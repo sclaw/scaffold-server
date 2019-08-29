@@ -70,6 +70,16 @@ instance PrimitivePersistField ValueWrapper where
   toPrimitivePersistValue (ValueWrapper x) = PersistText $ Aeson.encode x^.from textbsl
   fromPrimitivePersistValue = ValueWrapper . fromPrimitivePersistValue
 
+instance NeverNull ValueWrapper
+
+instance PrimitivePersistField (Maybe ValueWrapper) where
+  toPrimitivePersistValue (Just (ValueWrapper x)) = 
+    PersistText $ Aeson.encode x^.from textbsl
+  toPrimitivePersistValue _ = PersistNull
+  fromPrimitivePersistValue PersistNull = Nothing  
+  fromPrimitivePersistValue x = 
+    (Just . ValueWrapper . fromPrimitivePersistValue) x
+
 derivePrimitivePersistField ''Float [| iso float2Double double2Float |]
 
 deriveWrappedPrimitivePersistField ''Protobuf.Scalar.String

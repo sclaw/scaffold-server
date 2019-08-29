@@ -45,7 +45,7 @@ data UserApi route =
       :> "qualification"
       :> "save"
       :> ReqBody '[JSON] SaveQualificationsRequest
-      :> Post '[JSON] (Alternative (Error T.Text) SaveQualificationsResponse)
+      :> Put '[JSON] (Alternative (Error T.Text) SaveQualificationsResponse)
      , _userGetFullInfoQualififcation
        :: route 
        :- Description "get qualification by given ids, if no ids passed all qualififcations got back"
@@ -94,6 +94,6 @@ data UserApi route =
        :> "trajectory"
        :> "add"
        :> ReqBody '[JSON] SaveTrajectoryRequest
-       :> Post '[JSON] 
+       :> Put '[JSON] 
           (Alternative (Error [WithField "qualificationId" (Maybe QualificationId) SaveTrajectoryError]) SaveTrajectoryResponse)                 
      } deriving stock Generic

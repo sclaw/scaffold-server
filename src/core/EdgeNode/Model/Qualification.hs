@@ -26,12 +26,24 @@ import Control.Lens.Iso.Extended
 data QualificationProvider  
 data QualificationDependency
 
--- json: "{"grade":{"value":{"string":"2"}},"rank":2}"    
+-- json: 
+-- {
+--   "grade": {
+--     "Right": {
+--       "value": {
+--         "string": "2"
+--       }
+--     }
+--   },
+--   "rank": 2
+-- }   
 data ExGradeRange = 
-     ExGradeRange
+     ExGradeRange 
      { exGradeRangeGrade :: !(Either LSGrade QualificationGrade)
      , exGradeRangeRank :: !Word32 
      } deriving stock Generic
+       deriving stock Show
+       deriving stock Eq
 
 mkRange :: Either LSGrade QualificationGrade -> Range
 mkRange (Left x) = Range $ Just $ RangeValueLanguage x
