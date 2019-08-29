@@ -145,7 +145,7 @@ mkScore :: (Sum Int, Sum Double) -> WrapperType -> Aeson.Value -> Maybe Aeson.Va
 mkScore score ty qualVal userVal xs = 
   case result of 
     Aeson.Success x -> x 
-    Aeson.Error e -> error [i|from jdon error: #{show ty}, #{show qualVal}, #{show userVal}|] 
+    Aeson.Error e -> error [i|from json error: #{show ty}, #{show qualVal}, #{show userVal}|] 
   where 
     go lens = do 
       qual <- Aeson.fromJSON qualVal 
