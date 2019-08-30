@@ -19,10 +19,10 @@ import EdgeNode.User.Trajectory
 import Control.Lens.Iso.Extended
 import Orm.PersistField ()
 import Orphan ()
-import TH.Generator
+import TH.Mk
 import Database.Groundhog.Generic 
        ( primToPersistValue
        , primFromPersistValue)
 
-derivePrimitivePersistField ''QualificationDiff [| jsonb |]
-deriveWrappedPrimitivePersistField ''TrajectoryId
+mkPrimitivePersistField ''QualificationDiff [| jsonb |]
+mkWrappedPrimitivePersistField ''TrajectoryId

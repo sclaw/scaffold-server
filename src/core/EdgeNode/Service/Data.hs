@@ -8,9 +8,9 @@ module EdgeNode.Service.Data (ServiceLanguage (..)) where
 
 import EdgeNode.Service.Service
 
-import TH.Generator
+import TH.Mk
 import GHC.Generics
 
-deriveSRGEqEnum ''Language "Service"
+mkSRGEqEnum ''Language "Service"
 mkFromHttpApiDataEnum ''ServiceLanguage
 mkParamSchemaEnum ''ServiceLanguage

@@ -27,7 +27,7 @@ import EdgeNode.Category
 
 import Database.Groundhog.Postgresql ()
 import Database.Groundhog.TH.Extended
-import TH.Generator
+import TH.Mk
 import Database.Groundhog.Generic 
        ( primToPersistValue
        , primFromPersistValue)
@@ -53,7 +53,7 @@ mkPersist_ [groundhog|
    schema: edgeNode  
  |]
 
-derivePrimitivePersistField ''LSGrade [| jsonb |]
+mkPrimitivePersistField ''LSGrade [| jsonb |]
 deriveAutoKey ''StateExam
 deriveAutoKey ''HigherDegree
 deriveAutoKey ''InternationalDiploma

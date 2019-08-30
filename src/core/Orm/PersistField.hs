@@ -25,7 +25,7 @@ import Database.Groundhog ()
 import Database.Groundhog.Core
 import Database.Groundhog.TH
 import qualified Protobuf.Scalar
-import TH.Generator (deriveWrappedPrimitivePersistField, derivePrimitivePersistField)
+import TH.Mk (mkWrappedPrimitivePersistField, mkPrimitivePersistField)
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import GHC.Float
 import Data.Aeson
@@ -80,24 +80,24 @@ instance PrimitivePersistField (Maybe ValueWrapper) where
   fromPrimitivePersistValue x = 
     (Just . ValueWrapper . fromPrimitivePersistValue) x
 
-derivePrimitivePersistField ''Float [| iso float2Double double2Float |]
+mkPrimitivePersistField ''Float [| iso float2Double double2Float |]
 
-deriveWrappedPrimitivePersistField ''Protobuf.Scalar.String
-deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Bytes
-deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Double
-deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Float
-deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Int32
-deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Int64
-deriveWrappedPrimitivePersistField ''Protobuf.Scalar.UInt64
-deriveWrappedPrimitivePersistField ''Protobuf.Scalar.UInt32
-deriveWrappedPrimitivePersistField ''Protobuf.Scalar.SInt64
-deriveWrappedPrimitivePersistField ''Protobuf.Scalar.SInt32
-deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Fixed64
-deriveWrappedPrimitivePersistField ''Protobuf.Scalar.Fixed32
+mkWrappedPrimitivePersistField ''Protobuf.Scalar.String
+mkWrappedPrimitivePersistField ''Protobuf.Scalar.Bytes
+mkWrappedPrimitivePersistField ''Protobuf.Scalar.Double
+mkWrappedPrimitivePersistField ''Protobuf.Scalar.Float
+mkWrappedPrimitivePersistField ''Protobuf.Scalar.Int32
+mkWrappedPrimitivePersistField ''Protobuf.Scalar.Int64
+mkWrappedPrimitivePersistField ''Protobuf.Scalar.UInt64
+mkWrappedPrimitivePersistField ''Protobuf.Scalar.UInt32
+mkWrappedPrimitivePersistField ''Protobuf.Scalar.SInt64
+mkWrappedPrimitivePersistField ''Protobuf.Scalar.SInt32
+mkWrappedPrimitivePersistField ''Protobuf.Scalar.Fixed64
+mkWrappedPrimitivePersistField ''Protobuf.Scalar.Fixed32
 
-derivePrimitivePersistField ''Country [| iso fromCountry toCountry |]
+mkPrimitivePersistField ''Country [| iso fromCountry toCountry |]
 
-derivePrimitivePersistField ''FullDay [| iso toJSON (getVal . fromJSON) |]
+mkPrimitivePersistField ''FullDay [| iso toJSON (getVal . fromJSON) |]
 
 getVal :: Result FullDay -> FullDay
 getVal (Success x) = x

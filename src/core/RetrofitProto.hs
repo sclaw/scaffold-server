@@ -24,52 +24,52 @@ import EdgeNode.Lang
 import EdgeNode.Category
 import EdgeNode.Country
 
-import TH.Generator
+import TH.Mk
 import GHC.Generics
 import Data.Aeson
 import Data.Swagger
 import Control.Lens
 
-deriveSRGEqEnum ''Reg.Error "Register"
-deriveToSchemaAndDefJSON ''RegisterError
-deriveSRGEqEnum ''SignIn.Error "SignIn"
-deriveToSchemaAndDefJSON ''SignInError
-deriveSRGEqEnum ''RefreshToken.Error "RefreshToken"
-deriveToSchemaAndDefJSON ''RefreshTokenError
-deriveSRGEqEnum ''SaveTrajectory.Error "SaveTrajectory"
-deriveToSchemaAndDefJSON ''SaveTrajectoryError
+mkSRGEqEnum ''Reg.Error "Register"
+mkToSchemaAndDefJSON ''RegisterError
+mkSRGEqEnum ''SignIn.Error "SignIn"
+mkToSchemaAndDefJSON ''SignInError
+mkSRGEqEnum ''RefreshToken.Error "RefreshToken"
+mkToSchemaAndDefJSON ''RefreshTokenError
+mkSRGEqEnum ''SaveTrajectory.Error "SaveTrajectory"
+mkToSchemaAndDefJSON ''SaveTrajectoryError
 
-requestWrapper ''RefreshToken.Request
-responseWrapper ''RefreshToken.Response
-requestWrapper ''SignIn.Request
-responseWrapper ''SignIn.Response
-requestWrapper ''Reg.Request
-responseWrapper ''Reg.Response
-requestWrapper ''Countries.Request
-responseWrapper ''Countries.Response
-requestWrapper ''SaveQualifications.Request
-responseWrapper ''SaveQualifications.Response
-responseWrapper ''GetQualificationFullInfo.Response
-responseWrapper ''GetCategories.Response
-responseWrapper ''GetProviders.Response
-responseWrapper ''GetQualififcations.Response
-requestWrapper ''Qualification.Request
-responseWrapper ''Qualification.Response
-requestWrapper ''GetTrajectories.Request
-responseWrapper ''GetTrajectories.Response
-requestWrapper ''SaveTrajectory.Request
-responseWrapper ''SaveTrajectory.Response
+mkRequestWrapper ''RefreshToken.Request
+mkResponseWrapper ''RefreshToken.Response
+mkRequestWrapper ''SignIn.Request
+mkResponseWrapper ''SignIn.Response
+mkRequestWrapper ''Reg.Request
+mkResponseWrapper ''Reg.Response
+mkRequestWrapper ''Countries.Request
+mkResponseWrapper ''Countries.Response
+mkRequestWrapper ''SaveQualifications.Request
+mkResponseWrapper ''SaveQualifications.Response
+mkResponseWrapper ''GetQualificationFullInfo.Response
+mkResponseWrapper ''GetCategories.Response
+mkResponseWrapper ''GetProviders.Response
+mkResponseWrapper ''GetQualififcations.Response
+mkRequestWrapper ''Qualification.Request
+mkResponseWrapper ''Qualification.Response
+mkRequestWrapper ''GetTrajectories.Request
+mkResponseWrapper ''GetTrajectories.Response
+mkRequestWrapper ''SaveTrajectory.Request
+mkResponseWrapper ''SaveTrajectory.Response
 
-enumConvertor ''Language
-enumConvertor ''Type
-enumConvertor ''Country
+mkEnumConvertor ''Language
+mkEnumConvertor ''Type
+mkEnumConvertor ''Country
 
-deriveSRGEqEnum ''Country "Wrapper"
-enumConvertor ''WrapperCountry
+mkSRGEqEnum ''Country "Wrapper"
+mkEnumConvertor ''WrapperCountry
 mkParamSchemaEnum ''WrapperCountry
 mkFromHttpApiDataEnum ''WrapperCountry
 
-deriveSRGEqEnum ''Type "Wrapper"
-enumConvertor ''WrapperType
+mkSRGEqEnum ''Type "Wrapper"
+mkEnumConvertor ''WrapperType
 mkParamSchemaEnum ''WrapperType
 mkFromHttpApiDataEnum ''WrapperType

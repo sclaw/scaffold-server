@@ -40,7 +40,7 @@ import qualified Data.Map.Strict as Map
 import Data.String.Interpolate
 import Data.Sort
 import Control.Lens
-import TH.Generator
+import TH.Mk
 
 newtype Version = Version Word32
   deriving newtype Num

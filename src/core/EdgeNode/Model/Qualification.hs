@@ -16,7 +16,7 @@ module EdgeNode.Model.Qualification
 import EdgeNode.Provider.Qualification
 import EdgeNode.Category
 
-import TH.Generator
+import TH.Mk
 import Data.Word
 import GHC.Generics
 import Database.Groundhog.Instances ()
@@ -49,6 +49,6 @@ mkRange :: Either LSGrade QualificationGrade -> Range
 mkRange (Left x) = Range $ Just $ RangeValueLanguage x
 mkRange (Right x) = Range $ Just $ RangeValueQualification x
 
-deriveToSchemaAndJSON ''ExGradeRange
-derivePrimitivePersistField ''ExGradeRange [| jsonb |]
-deriveWrappedPrimitivePersistField ''QualificationId
+mkToSchemaAndJSON ''ExGradeRange
+mkPrimitivePersistField ''ExGradeRange [| jsonb |]
+mkWrappedPrimitivePersistField ''QualificationId

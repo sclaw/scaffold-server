@@ -4,19 +4,19 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 
-module TH.Generator
-       ( derivePrimitivePersistField
-       , deriveWrappedPrimitivePersistField
-       , deriveNumInstanceFromWrappedNum
-       , deriveWrappedForDataWithSingleField
-       , deriveToSchemaAndJSON
-       , deriveToSchemaAndJSONProtoIdent
-       , deriveSRGEqEnum
-       , deriveToSchemaAndDefJSON
-       , enumConvertor
-       , derivePrimitivePersistFieldParam
-       , requestWrapper
-       , responseWrapper
+module TH.Mk
+       ( mkPrimitivePersistField
+       , mkWrappedPrimitivePersistField
+       , mkNumInstanceFromWrappedNum
+       , mkWrappedForDataWithSingleField
+       , mkToSchemaAndJSON
+       , mkToSchemaAndJSONProtoIdent
+       , mkSRGEqEnum
+       , mkToSchemaAndDefJSON
+       , mkEnumConvertor
+       , mkPrimitivePersistFieldParam
+       , mkRequestWrapper
+       , mkResponseWrapper
        , mkFromHttpApiDataIdent
        , mkFromHttpApiDataEnum
        , mkParamSchemaEnum
@@ -42,8 +42,8 @@ import Data.Char
 import qualified Data.Text as T
 import Text.Read (readMaybe)
 
-derivePrimitivePersistField :: Name -> ExpQ -> Q [Dec]
-derivePrimitivePersistField name iso = [d|
+mkPrimitivePersistField :: Name -> ExpQ -> Q [Dec]
+mkPrimitivePersistField name iso = [d|
   instance PersistField $nameT where
     persistName _ = $(litE.stringL.show $ name)
     toPersistValues = primToPersistValue
@@ -58,8 +58,8 @@ derivePrimitivePersistField name iso = [d|
   |]
   where nameT = conT name
 
-derivePrimitivePersistFieldParam :: Name -> ExpQ -> Q [Dec]
-derivePrimitivePersistFieldParam name iso = 
+mkPrimitivePersistFieldParam :: Name -> ExpQ -> Q [Dec]
+mkPrimitivePersistFieldParam name iso = 
   [d|
      instance (PrimitivePersistField $(varT a)
              , ToJSON $(varT a)
@@ -82,14 +82,14 @@ derivePrimitivePersistFieldParam name iso =
   where nameT = conT name
         a = mkName "a"  
 
-deriveWrappedPrimitivePersistField :: Name -> Q [Dec]
-deriveWrappedPrimitivePersistField name = do
+mkWrappedPrimitivePersistField :: Name -> Q [Dec]
+mkWrappedPrimitivePersistField name = do
   decs1 <- makeWrapped name
-  decs2 <- derivePrimitivePersistField name [| _Wrapped' |]
+  decs2 <- mkPrimitivePersistField name [| _Wrapped' |]
   pure $ decs1 ++ decs2
 
-deriveNumInstanceFromWrappedNum :: Name -> ExpQ -> Q [Dec]
-deriveNumInstanceFromWrappedNum name iso =
+mkNumInstanceFromWrappedNum :: Name -> ExpQ -> Q [Dec]
+mkNumInstanceFromWrappedNum name iso =
   do
     let x = mkName "x"
         y = mkName "y"
@@ -120,8 +120,8 @@ getConstructorPat (RecC c _) = c
 getConstructorPat (NormalC c _) = c
 getConstructorPat _ = error "data not supported"
 
-deriveWrappedForDataWithSingleField :: Name -> Q [Dec]
-deriveWrappedForDataWithSingleField name =
+mkWrappedForDataWithSingleField :: Name -> Q [Dec]
+mkWrappedForDataWithSingleField name =
   do
     TyConI (DataD _ _ _ _ [c] _) <- reify name
     let constructor = getConstructorType c
@@ -135,14 +135,14 @@ deriveWrappedForDataWithSingleField name =
         _Wrapped' = iso $from $to
      |]        
 
-deriveToSchemaAndJSON :: Name -> Q [Dec]
-deriveToSchemaAndJSON name = do
+mkToSchemaAndJSON :: Name -> Q [Dec]
+mkToSchemaAndJSON name = do
   x <- deriveJSON' name
   y <- deriveToSchema name
   return $ x ++ y
 
-deriveToSchemaAndDefJSON :: Name -> Q [Dec]
-deriveToSchemaAndDefJSON name = do
+mkToSchemaAndDefJSON :: Name -> Q [Dec]
+mkToSchemaAndDefJSON name = do
   x <- deriveJSON 
        (defaultOptions 
         { tagSingleConstructors = True }) 
@@ -159,8 +159,8 @@ deriveToSchemaAndDefJSON name = do
    drawback: original type is slighty changed, we should add postfix Wrapper for 
    2 tantamount instances of same type: from proto3-suite and our
  -}  
-deriveToSchemaAndJSONProtoIdent :: Name -> Q [Dec]
-deriveToSchemaAndJSONProtoIdent name =
+mkToSchemaAndJSONProtoIdent :: Name -> Q [Dec]
+mkToSchemaAndJSONProtoIdent name =
   do let nameT = conT name
      let i = mkName "i"
      TyConI (DataD _ _ _ _ [c] _) <- reify name
@@ -208,8 +208,8 @@ deriveToSchemaAndJSONProtoIdent name =
       |]
      return $ entiityWrapper : xs 
 
-deriveSRGEqEnum :: Name -> String -> Q [Dec]
-deriveSRGEqEnum name prefix = 
+mkSRGEqEnum :: Name -> String -> Q [Dec]
+mkSRGEqEnum name prefix = 
   do TyConI (DataD ctx n xs kind ys cl) <- reify name
      let new = mkName $ prefix <> nameBase name
      let geni = DerivClause Nothing [ConT (mkName "Generic")]
@@ -226,8 +226,8 @@ deriveSRGEqEnum name prefix =
      let ys' = map (fromMaybe err . purgeNamePrefix) ys
      return [DataD ctx new xs kind ys' ([geni, showi, read, eq] ++ cl)]
 
-enumConvertor :: Name -> Q [Dec]
-enumConvertor name = 
+mkEnumConvertor :: Name -> Q [Dec]
+mkEnumConvertor name = 
   do TyConI (DataD _ _ _ _ xs _) <- reify name
      let stripUnderScore = filter (not . (`elem` ("_" :: String))) . nameBase
      let stripPrefix s = fromMaybe s $ s^?stext.to (T.stripPrefix (nameBase name^.stext))._Just.from stext
@@ -258,8 +258,8 @@ enumConvertor name =
      iosDec <- [d| $(varP isoN) = $(appE (appE (varE (mkName "iso")) (varE isoNFrom)) (varE isoNTo)) |]
      return $ [fromSig, fromN, toSig, toN, isoSig] ++ iosDec
 
-requestWrapper :: Name -> Q [Dec]
-requestWrapper name = do
+mkRequestWrapper :: Name -> Q [Dec]
+mkRequestWrapper name = do
   TyConI (DataD _ n _ _ _ _) <- reify name
   let Just prefix = fmap (last . (^.stext.to (split (== '.')))) $ nameModule n
   let wrapper = mkName $ (prefix^.from stext) <> nameBase name
@@ -288,8 +288,8 @@ requestWrapper name = do
     |]                  
   return $ entiityWrapper : inst 
 
-responseWrapper :: Name -> Q [Dec]
-responseWrapper name =  do
+mkResponseWrapper :: Name -> Q [Dec]
+mkResponseWrapper name =  do
   TyConI (DataD _ n _ _ _ _) <- reify name
   let Just prefix = fmap (last . (^.stext.to (split (== '.')))) $ nameModule n
   let wrapper = mkName $ (prefix^.from stext) <> nameBase name

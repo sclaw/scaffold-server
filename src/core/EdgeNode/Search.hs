@@ -17,7 +17,7 @@
 
 module EdgeNode.Search (SearchPiece (..)) where
 
-import TH.Generator
+import TH.Mk
 import Orm.PersistField ()
 import Orphan ()
 import GHC.Generics

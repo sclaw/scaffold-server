@@ -38,7 +38,7 @@ import Database.AutoKey
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
 import Data.ByteString
-import TH.Generator
+import TH.Mk
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import qualified Data.Text as T
 import Orm.PersistField ()
@@ -87,11 +87,11 @@ mkPersist_ [groundhog|
  |]
  
 deriveAutoKey ''User
-deriveToSchemaAndJSONProtoIdent ''UserId
-deriveWrappedPrimitivePersistField ''UserId
+mkToSchemaAndJSONProtoIdent ''UserId
+mkWrappedPrimitivePersistField ''UserId
 mkFromHttpApiDataIdent ''UserId
-enumConvertor ''User_Gender
-derivePrimitivePersistField ''User_Gender [| iso fromUserGender toUserGender |] 
+mkEnumConvertor ''User_Gender
+mkPrimitivePersistField ''User_Gender [| iso fromUserGender toUserGender |] 
 
 defUser :: User
 defUser = def

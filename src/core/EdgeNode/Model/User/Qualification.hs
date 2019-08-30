@@ -20,7 +20,7 @@ module EdgeNode.Model.User.Qualification
 
 import EdgeNode.User.Qualification
 
-import TH.Generator
+import TH.Mk
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import Database.Groundhog.TH.Extended ()
 import Data.Swagger.ParamSchema
@@ -37,6 +37,6 @@ instance ToParamSchema UserQualificationId
 instance FromHttpApiData UserQualificationId where
   parseUrlPiece x = bimap (^.stext) (UserQualificationId . fst) (decimal x)
 
-deriveWrappedPrimitivePersistField ''UserQualificationId
+mkWrappedPrimitivePersistField ''UserQualificationId
 deriveJSON' ''UserQualificationSkill
 deriveJSON' ''UserQualificationFullinfoSkill

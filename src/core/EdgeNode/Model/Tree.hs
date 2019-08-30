@@ -25,9 +25,9 @@ import Control.Lens
 import qualified Data.ByteString.Lazy as B
 import Data.Aeson
 import Data.Tree
-import TH.Generator
+import TH.Mk
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import Control.Lens.Iso.Extended
 
-derivePrimitivePersistFieldParam ''Tree [| jsonb |]
+mkPrimitivePersistFieldParam ''Tree [| jsonb |]
   

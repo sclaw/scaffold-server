@@ -26,7 +26,7 @@ import EdgeNode.Provider
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core 
 import Database.AutoKey
-import TH.Generator
+import TH.Mk
 import Database.Groundhog.Generic
 import Orm.PersistField ()
 import Orphan ()
@@ -39,6 +39,6 @@ mkPersist_ [groundhog|
 
 instance ToParamSchema ProviderId
 
-deriveWrappedPrimitivePersistField ''ProviderId
+mkWrappedPrimitivePersistField ''ProviderId
 deriveAutoKey ''Provider
 mkFromHttpApiDataIdent ''ProviderId

@@ -28,8 +28,8 @@ module EdgeNode.Model.Rbac
 import EdgeNode.Rbac 
 
 import Orm.PersistField ()
-import TH.Generator
+import TH.Mk
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
  
-deriveWrappedPrimitivePersistField ''RoleId
-deriveToSchemaAndJSONProtoIdent ''RoleId
+mkWrappedPrimitivePersistField ''RoleId
+mkToSchemaAndJSONProtoIdent ''RoleId
