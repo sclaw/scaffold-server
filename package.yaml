@@ -152,6 +152,7 @@ library:
     - contravariant-extras
     - lens-aeson
     - thyme
+    - hashing
   source-dirs:
     - src/core
     - src/extended
