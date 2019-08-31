@@ -41,8 +41,8 @@ import Data.Validation
 import Data.Traversable
 import Data.Bifunctor
 
-controller :: UserId -> SaveQualificationsRequest -> KatipController (Alternative (Error T.Text) SaveQualificationsResponse)
-controller userId req =
+controller :: SaveQualificationsRequest -> UserId  -> KatipController (Alternative (Error T.Text) SaveQualificationsResponse)
+controller req userId =
   do 
     $(logTM) DebugS (logStr (show req))
     raw <- (^.katipEnv.rawDB) `fmap` ask

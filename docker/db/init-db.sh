@@ -58,7 +58,8 @@ init_user_and_db() {
      grant all privileges on database $DB_DATABASE to $DB_USER;
      create extension postgres_fdw;
      create extension hstore;
-     create extension ltree   
+     create extension ltree;
+     create extension pg_trgm;   
 EOSQL
 }
 

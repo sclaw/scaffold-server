@@ -32,7 +32,7 @@ configEkg:
 
 configAuth: 
   authJwk: symmetric.jwk
-  authIsAuthEnabled: false
+  authIsAuthEnabled: true
   authUserId: 1 
 
 configService:

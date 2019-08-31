@@ -16,6 +16,7 @@ import ReliefJsonData
 import RetrofitProto
 import Data.Aeson.Unit
 import Servant.Auth.Server    
+import qualified Data.Text as T
 
 data AuthApi route = 
      AuthApi
@@ -42,5 +43,5 @@ data AuthApi route =
        :- Description "signout"
        :> Auth '[AppJwt] JWTUser
        :> "signout"
-       :> Post '[JSON] (Alternative (Error Unit) Unit)             
+       :> Post '[JSON] (Alternative (Error T.Text) Unit)             
      } deriving stock Generic

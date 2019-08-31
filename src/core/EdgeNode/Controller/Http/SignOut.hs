@@ -15,8 +15,9 @@ import Database.Groundhog
 import Control.Lens
 import Control.Lens.Iso.Extended
 import Data.Either.Unwrap
+import qualified Data.Text as T
 
-controller :: JWTUser -> KatipController (Alternative (Error Unit) Unit)
+controller :: JWTUser -> KatipController (Alternative (Error T.Text) Unit)
 controller user = 
   do
     orm <- fmap (^.katipEnv.ormDB) ask

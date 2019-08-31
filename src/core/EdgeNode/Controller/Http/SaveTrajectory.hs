@@ -48,12 +48,12 @@ import Data.Monoid
 type RequestError = [WithField "qualificationId" (Maybe QualificationId) SaveTrajectoryError]
 
 controller 
-  :: UserId 
-  -> SaveTrajectoryRequest 
+  :: SaveTrajectoryRequest
+  -> UserId 
   -> KatipController 
      (Alternative (Error RequestError) 
       SaveTrajectoryResponse)    
-controller uid req =
+controller req uid  =
   do
     let ident = req^._Wrapped'.field @"requestIdent"
     orm <- fmap (^.katipEnv.ormDB) ask

@@ -35,8 +35,8 @@ import Data.Aeson
 import Control.Applicative ((<|>))
 import Protobuf.Scalar
 
-controller :: UserId -> Maybe UserQualificationId -> KatipController (Alternative (Error T.Text) GetQualificationFullInfoResponse)
-controller userId qualId = 
+controller ::  Maybe UserQualificationId -> UserId -> KatipController (Alternative (Error T.Text) GetQualificationFullInfoResponse)
+controller qualId userId = 
   do
     raw <- (^.katipEnv.rawDB) `fmap` ask
     x <- runTryDbConnHasql (action userId qualId) raw

@@ -16,9 +16,10 @@ import Database.Action
 import Database.Groundhog (replace)
 import Control.Lens.Iso.Extended
 import Data.Aeson.Unit
+import qualified Data.Text as T
 
-controller :: UserId -> User -> KatipController (Alternative (Error Unit) Unit)
-controller uid patch = do
+controller :: User -> UserId -> KatipController (Alternative (Error T.Text) Unit)
+controller patch uid = do
     $(logTM) DebugS (logStr (show patch))
     orm <- (^.katipEnv.ormDB) `fmap` ask 
     res <- flip (runTryDbConnGH :: EdgeNodeActionKatip () ()) orm $ 

@@ -17,7 +17,6 @@ import qualified EdgeNode.Api.Http.User.GetQualificationFullInfo as GetQualifica
 import qualified EdgeNode.Api.Http.User.GetCategories as GetCategories 
 import qualified EdgeNode.Api.Http.User.GetProviders as GetProviders
 import qualified EdgeNode.Api.Http.User.GetQualififcations as GetQualififcations
-import qualified EdgeNode.Api.Http.Search.Qualification as Qualification
 import qualified EdgeNode.Api.Http.User.GetTrajectories as GetTrajectories
 import qualified EdgeNode.Api.Http.User.SaveTrajectory as SaveTrajectory
 import EdgeNode.Lang
@@ -53,8 +52,6 @@ mkResponseWrapper ''GetQualificationFullInfo.Response
 mkResponseWrapper ''GetCategories.Response
 mkResponseWrapper ''GetProviders.Response
 mkResponseWrapper ''GetQualififcations.Response
-mkRequestWrapper ''Qualification.Request
-mkResponseWrapper ''Qualification.Response
 mkRequestWrapper ''GetTrajectories.Request
 mkResponseWrapper ''GetTrajectories.Response
 mkRequestWrapper ''SaveTrajectory.Request

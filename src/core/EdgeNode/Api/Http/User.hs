@@ -38,7 +38,7 @@ data UserApi route =
      :> "profile"
      :> "patch"
      :> ReqBody '[JSON] User 
-     :> Patch '[JSON] (Alternative (Error Unit) Unit)
+     :> Patch '[JSON] (Alternative (Error T.Text) Unit)
      , _userSaveQualifications
       :: route 
       :- Description "save new qualification"

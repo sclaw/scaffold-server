@@ -15,6 +15,7 @@ module Auth
       , authGateway
       , mkAccessToken
       , mkRefreshToken
+      , applyController
       ) where
 
 import EdgeNode.Model.User
@@ -23,7 +24,6 @@ import Time.Time
 import qualified Data.Text as T
 import Servant.Auth.Server.Internal.JWT
 import Servant.Auth.Server
-import Servant.Server.Internal.ServantErr
 import Control.Lens.Iso.Extended
 import Control.Lens
 import Servant.Auth.Server.Internal.Class
@@ -56,6 +56,7 @@ import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
 import Data.String.Interpolate
 import Data.Bifunctor
+import ReliefJsonData
 
 data AppJwt
 
@@ -89,9 +90,18 @@ instance IsAuth AppJwt JWTUser where
    bool (return (JWTUser uid mempty mempty)) 
         (Auth.jwtAuthCheck cfg log pool)
 
-authGateway :: ThrowAll api => AuthResult JWTUser -> (JWTUser -> api) -> api
-authGateway (Authenticated user) api = api user  
-authGateway err _ = throwAll err401 { errBody = show err^.stext.textbsl }
+authGateway :: AuthResult JWTUser -> (AuthResult JWTUser -> api) -> api
+authGateway auth api = api auth
+
+applyController 
+  :: (JWTUser -> KatipController (Alternative (ReliefJsonData.Error e) a)) 
+  -> AuthResult JWTUser 
+  -> KatipController (Alternative (ReliefJsonData.Error e) a)
+applyController controller user = 
+  case user of 
+    Authenticated u -> controller u
+    Indefinite -> return $ ReliefJsonData.Error (AuthError "jwt token not found")
+    err -> return $ ReliefJsonData.Error (AuthError (show err^.stext))
 
 jwtAuthCheck :: JWTSettings -> KatipLoggerIO -> Hasql.Pool -> AuthCheck JWTUser
 jwtAuthCheck cfg log pool = 
