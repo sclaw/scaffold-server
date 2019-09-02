@@ -12,6 +12,7 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module EdgeNode.Model.Provider 
        ( Provider (..)

@@ -1,7 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Database.Action (EdgeNodeAction, EdgeNodeActionKatip, runTryDbConnGH, runTryDbConnHasql) where
+module Database.Action 
+      ( EdgeNodeAction
+      , EdgeNodeActionKatip
+      , runTryDbConnGH
+      , runTryDbConnHasql
+      , render
+      ) where
 
 import KatipController
 import Database.Groundhog.Core
@@ -21,6 +27,9 @@ import Data.Foldable
 import Control.Monad.Trans.Control
 import Control.Monad.Catch
 import Data.Typeable
+import Database.Groundhog.Generic.Sql
+import Control.Lens.Iso.Extended
+import Control.Lens
 
 type EdgeNodeAction e = TryAction (Exception.Groundhog e) KatipController Postgresql
 
@@ -59,3 +68,8 @@ fromHasqlToServerExcep
     Exception.UniqueViolation msg
   | otherwise = Exception.OtherError e 
 fromHasqlToServerExcep e = Exception.OtherError e
+
+render :: Cond Postgresql r -> [PersistValue] -> String
+render cond xs = fromUtf8 (maybe mempty mkString (renderCond (RenderConfig id) cond))^.from textbs.from stext
+  where mkString r = getQuery r <> intercalateS "," (map (fromString . defaultShowPrim) (getValues r xs)) 
+

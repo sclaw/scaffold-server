@@ -5,6 +5,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module RetrofitProto where
 

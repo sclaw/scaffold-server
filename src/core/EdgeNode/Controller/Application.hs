@@ -84,17 +84,26 @@ user user =
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["user", "patchProfile"])
-    . (\patch -> applyController (User.PatchProfile.controller patch . jWTUserUserId) user)
+    . (\patch -> 
+        applyController 
+        ( User.PatchProfile.controller patch 
+        . jWTUserUserId) user)
   , _userSaveQualifications =
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["user", "saveQualifications"])
-    . (\req -> applyController (User.SaveQualifications.controller req . jWTUserUserId) user)
+    . (\req -> 
+        applyController 
+        ( User.SaveQualifications.controller req 
+        . jWTUserUserId) user)
   , _userGetFullInfoQualififcation =
     flip logExceptionM ErrorS 
     . katipAddNamespace 
       (Namespace ["user", "getQualififcationFullInfo"])
-    . (\qid -> applyController (User.GetQualificationFullInfo.controller qid . jWTUserUserId) user)
+    . (\qid -> 
+        applyController 
+        ( User.GetQualificationFullInfo.controller qid 
+        . jWTUserUserId) user)
   , _userGetCategories =
     flip logExceptionM ErrorS $
     katipAddNamespace 
@@ -109,17 +118,23 @@ user user =
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["user", "getQualififcations"])
-    . (\pid -> applyController (const (User.GetQualififcations.controller pid)) user)
+    . (`applyController` user) 
+    . const . User.GetQualififcations.controller
   , _userGetTrajectories =
     flip logExceptionM ErrorS $
      katipAddNamespace 
      (Namespace ["user", "getTrajectories"])
-     (applyController (User.GetTrajectories.controller . jWTUserUserId) user)
+     (applyController 
+      ( User.GetTrajectories.controller 
+      . jWTUserUserId) user)
   , _userSaveTrajectory =
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["user", "saveTrajectory"])
-    . (\req -> applyController (User.SaveTrajectory.controller req . jWTUserUserId) user)  
+    . (\req -> 
+        applyController 
+        ( User.SaveTrajectory.controller req 
+        . jWTUserUserId) user)  
   }
 
 service :: AuthResult JWTUser -> ServiceApi (AsServerT KatipController)
@@ -129,7 +144,8 @@ service user =
     flip logExceptionM ErrorS 
     . katipAddNamespace 
       (Namespace ["service", "loadContries"])
-    . (\lang -> applyController (const (Service.LoadCountries.controller lang)) user)
+    . (`applyController` user) 
+    . const . Service.LoadCountries.controller
   }
 
 search :: SearchApi (AsServerT KatipController)
