@@ -66,12 +66,7 @@ controller req =
          $(logTM) ErrorS (logStr (show e)) $> 
          Error (ServerError (InternalServerError (show e^.stextl)))
     either mkErr return (mkResp x)
-     
--- | EdgeNode.Controller.Http.Registration:validateInfo
---
--- >>> validateInfo (RegisterRequest (Reg.Request (""^.stextl) (""^.stextl)))
--- Failure [WrongEmail,PasswordWeek]
--- 
+      
 validateInfo :: RegisterRequest -> Validation [RegisterError] ()
 validateInfo info  = validateEmail *> validatePassword  
   where
@@ -137,10 +132,6 @@ persist req =
       liftIO $ logger InfoS (logStr log)
       statement () (HS.Statement sql encoder decoder False)
 
--- | EdgeNode.Controller.Http.Registration:mkRespBody
---
--- >>> mkResp (Failure [PasswordWeek])
--- Right (Error (ResponseError [PasswordWeek]))
 mkResp 
   :: Validation 
      [RegisterError] 

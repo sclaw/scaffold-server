@@ -57,6 +57,9 @@ import qualified Hasql.Decoders as HD
 import Data.String.Interpolate
 import Data.Bifunctor
 import ReliefJsonData
+import Control.Concurrent.MVar
+import Data.Either.Unwrap
+import qualified Control.Monad.State.Class as S
 
 data AppJwt
 
@@ -85,10 +88,10 @@ instance HasSecurity AppJwt where
    (Just "JSON Web Token-based API key")
   
 instance IsAuth AppJwt JWTUser where
-  type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, UserId, Hasql.Pool, Bool]
-  runAuth _ _ cfg log uid pool = 
+  type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, UserId, Hasql.Pool, MVar Jose.JWTError, Bool]
+  runAuth _ _ cfg log uid pool var = 
    bool (return (JWTUser uid mempty mempty)) 
-        (Auth.jwtAuthCheck cfg log pool)
+        (Auth.jwtAuthCheck cfg log pool var)
 
 authGateway :: AuthResult JWTUser -> (AuthResult JWTUser -> api) -> api
 authGateway auth api = api auth
@@ -100,15 +103,22 @@ applyController
 applyController controller user = 
   case user of 
     Authenticated u -> controller u
-    Indefinite -> return $ ReliefJsonData.Error (AuthError "jwt token not found")
+    Indefinite -> do
+      KatipControllerState var <- S.get
+      m <- liftIO $ tryTakeMVar var
+      let mkErr JWTExpired = "token expired"
+          mkErr _ = "token not valid"
+      let err = maybe "auth header error" mkErr m
+      return $ ReliefJsonData.Error (AuthError err)
     err -> return $ ReliefJsonData.Error (AuthError (show err^.stext))
 
-jwtAuthCheck :: JWTSettings -> KatipLoggerIO -> Hasql.Pool -> AuthCheck JWTUser
-jwtAuthCheck cfg log pool = 
+jwtAuthCheck :: JWTSettings -> KatipLoggerIO -> Hasql.Pool -> MVar Jose.JWTError -> AuthCheck JWTUser
+jwtAuthCheck cfg log pool var = 
   do
     headers <- fmap requestHeaders ask
     jwt <- for (getToken headers) $ \token -> do
       verified <- liftIO $ runExceptT $ verifyToken cfg token
+      whenLeft verified (liftIO . putMVar var)  
       getJWTUser log verified
     check <- liftIO $ Hasql.use pool (actionCheckToken jwt)
     let mkErr e = do liftIO (log InfoS (logStr e)); mzero

@@ -17,6 +17,7 @@ module KatipController
        , KatipLogger (..)
        , KatipState (..)
        , KatipLoggerIO
+       , KatipControllerState (..)
          -- * lens
        , nm
        , ctx
@@ -60,6 +61,10 @@ import Network.HTTP.Client
 import Crypto.JOSE.JWK
 import Control.Monad.Time
 import Data.Time
+import qualified Control.Monad.RWS.Strict as RWS 
+import Control.Monad.RWS.Class
+import Control.Concurrent.MVar
+import Crypto.JWT (JWTError)
 
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 
@@ -78,12 +83,12 @@ data KatipEnv =
      , katipEnvJwk :: !JWK     
      }
 
-newtype KatipLogger = AppLogger [String] 
+newtype KatipLogger = KatipWriter [String] 
   deriving newtype Monoid
   deriving newtype Semigroup  
   deriving newtype NFData   
 
-newtype KatipState = AppState Int
+newtype KatipState = KatipState Int
   deriving newtype Default
   deriving newtype NFData
 
@@ -98,12 +103,27 @@ data Config =
 instance MonadTime Handler where
   currentTime = liftIO getCurrentTime
 
-newtype KatipController a = KatipController { unwrap :: ReaderT Config Handler a }
+newtype KatipControllerState = KatipControllerState { jwtError :: MVar JWTError }
+
+newtype KatipControllerWriter = KatipControllerWriter [String]
+  deriving newtype Monoid
+  deriving newtype Semigroup  
+
+newtype KatipController a = 
+        KatipController 
+        { unwrap 
+          :: RWS.RWST Config 
+             KatipControllerWriter
+             KatipControllerState 
+             Handler a 
+        }
   deriving newtype Functor
   deriving newtype Applicative
   deriving newtype Monad
   deriving newtype MonadIO
   deriving newtype (MonadReader Config)
+  deriving newtype (MonadState KatipControllerState)
+  deriving newtype (MonadWriter KatipControllerWriter)
   deriving newtype (MonadBase IO)
   deriving newtype (MonadBaseControl IO)
   deriving newtype (MonadError ServantErr)
@@ -111,6 +131,7 @@ newtype KatipController a = KatipController { unwrap :: ReaderT Config Handler a
   deriving newtype MonadThrow
   deriving newtype MonadMask 
   deriving newtype MonadTime
+  deriving newtype (MonadRWS Config KatipControllerWriter KatipControllerState)
   
 makeFields ''Config
 makeFields ''KatipEnv
@@ -126,5 +147,5 @@ instance KatipContext KatipController where
     getKatipNamespace = KatipController $ asks configNm
     localKatipNamespace f (KatipController m) = KatipController (local (over nm f) m)
 
-runKatipController :: Config -> KatipController a -> Handler a
-runKatipController cfg app = runReaderT (unwrap app) cfg   
+runKatipController :: Config -> KatipControllerState -> KatipController a -> Handler a
+runKatipController cfg st app = fmap fst (RWS.evalRWST (unwrap app) cfg st)
