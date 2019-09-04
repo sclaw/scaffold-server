@@ -16,7 +16,6 @@ sql = [i|alter table "edgeNode"."QualificationProvider"
          where not ("qualificationProviderDegreeType" = 
           any(array['UnifiedStateExam', 'ALevelGCE']));
          alter table "edgeNode"."QualificationProvider"
-         alter column "qualificationProviderCategoryType" set not null;
          alter table "edgeNode"."Trajectory" 
          rename column "qualififcationKey" to "qualificationKey";
          alter table "edgeNode"."Trajectory" 
