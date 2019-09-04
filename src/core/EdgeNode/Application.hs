@@ -45,8 +45,6 @@ import Control.Monad.Catch
 import Control.Monad.Trans.Control
 import qualified Hasql.Pool as Hasql
 import Network.Wai.Middleware.Cors
-import Control.Concurrent.MVar
-import Crypto.JWT (JWTError)
 
 data Cfg = 
      Cfg 
@@ -86,7 +84,6 @@ run Cfg {..} =
              configNm <-  getKatipNamespace
              return $ Config {..}
       cfg <- initCfg
-      jwtError <- liftIO newEmptyMVar 
       let withSwagger :: Proxy a -> Proxy (a :<|> SwaggerSchemaUI "swagger" "swagger.json")
           withSwagger _ = Proxy
       let jwtCfg = defaultJWTSettings cfgJwk 
@@ -97,14 +94,13 @@ run Cfg {..} =
               , KatipLoggerIO
               , Bool
               , UserId
-              , Hasql.Pool
-              , MVar JWTError]
+              , Hasql.Pool]
           context = Proxy     
       let server = 
            hoistServerWithContext 
            (withSwagger api)
            context
-           (runKatipController cfg (KatipControllerState jwtError)) 
+           (runKatipController cfg (KatipControllerState 0)) 
            (toServant App.application :<|> 
             swaggerSchemaUIServerT (swaggerHttpApi cfgHost cfgPort))
       excep <-katipAddNamespace (Namespace ["exception"]) askLoggerIO
@@ -116,7 +112,6 @@ run Cfg {..} =
       let mkCtx = jwtCfg :. defaultCookieSettings 
                   :. ctxlog :. cfgIsAuthEnabled 
                   :. cfgUserId :. (cfg^.katipEnv.rawDB)
-                  :. jwtError 
                   :. EmptyContext      
       let runServer = serveWithContext (withSwagger api) mkCtx server
       mware <-katipAddNamespace (Namespace ["middleware"]) askLoggerIO

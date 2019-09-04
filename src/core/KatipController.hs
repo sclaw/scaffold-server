@@ -63,8 +63,6 @@ import Control.Monad.Time
 import Data.Time
 import qualified Control.Monad.RWS.Strict as RWS 
 import Control.Monad.RWS.Class
-import Control.Concurrent.MVar
-import Crypto.JWT (JWTError)
 
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 
@@ -103,7 +101,7 @@ data Config =
 instance MonadTime Handler where
   currentTime = liftIO getCurrentTime
 
-newtype KatipControllerState = KatipControllerState { jwtError :: MVar JWTError }
+newtype KatipControllerState = KatipControllerState Int
 
 newtype KatipControllerWriter = KatipControllerWriter [String]
   deriving newtype Monoid
