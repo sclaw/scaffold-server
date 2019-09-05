@@ -28,6 +28,7 @@ import qualified Database.Migration.Version.Version15 as V15
 import qualified Database.Migration.Version.Version16 as V16
 import qualified Database.Migration.Version.Version17 as V17
 import qualified Database.Migration.Version.Version18 as V18
+import qualified Database.Migration.Version.Version19 as V19
 
 import Data.Word (Word32)
 import Database.Exception
@@ -58,7 +59,7 @@ data MigrationStep =
        Version    
      | Stop
 
-$(mkMigrationSeq 1 18)
+$(mkMigrationSeq 1 19)
 
 exec :: Version -> TryAction (Groundhog ()) (KatipContextT AppMonad) Postgresql (Maybe Version) 
 exec _ | null list = return Nothing    

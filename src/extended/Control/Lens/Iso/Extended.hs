@@ -32,6 +32,8 @@ import qualified Data.Text.Lazy          as LT
 import qualified Data.Text.Lazy.Encoding as LT
 import Data.Aeson
 import Data.String.Interpolate
+import Text.Casing
+
 
 -- WARNING: Strictly speaking, 'utf8' is not isomorphism, since exists
 -- ByteString, that is not decodable as Text. But it is very convenient.
@@ -70,13 +72,13 @@ enumtext :: (FromJSON a, ToJSON a) => Iso' a T.Text
 enumtext = 
   iso ((^.from textbsl.to strip._Just) . encode) 
       (either err id `fmap` 
-       (eitherDecode . (^.to mkJson.textbsl))) 
+       (eitherDecode . (^.from stext.to pascal.stext.to mkJson.textbsl))) 
   where err = error . (<>) "decode error: "
         mkJson x = "\"" <> x <> "\""
         strip x = do 
          x' <- T.stripPrefix "\"" x
          T.stripSuffix "\"" x'
-
+  
 jsonb :: (FromJSON a, ToJSON a) => Iso' a Value
 jsonb = iso toJSON (fmap getObj fromJSON) 
     where getObj (Success x) = x

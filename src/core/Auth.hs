@@ -100,7 +100,7 @@ applyController
 applyController controller user = 
   case user of 
     Authenticated u -> controller u
-    Indefinite ->return $ Json.Error (AuthError "jwt not valid or malformed")
+    Indefinite -> return $ Json.Error (AuthError "jwt not valid or malformed")
     err -> return $ Json.Error (AuthError (show err^.stext))
 
 jwtAuthCheck :: JWTSettings -> KatipLoggerIO -> Hasql.Pool -> AuthCheck JWTUser
