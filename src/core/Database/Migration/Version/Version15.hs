@@ -3,7 +3,7 @@
 module Database.Migration.Version.Version15 (sql) where
 
 import Data.String.Interpolate
-import RetrofitProto
+import Proto
 import EdgeNode.Lang
 
 sql :: String

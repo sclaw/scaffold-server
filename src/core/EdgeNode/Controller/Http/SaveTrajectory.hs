@@ -17,9 +17,9 @@ import EdgeNode.Model.Qualification
 import EdgeNode.Api.Http.User.SaveTrajectory (Response (..))
 import EdgeNode.Model.User.Trajectory
 
-import RetrofitProto
+import Proto
 import KatipController
-import ReliefJsonData
+import Json
 import Data.Aeson.WithField
 import Control.Lens
 import Database.Action

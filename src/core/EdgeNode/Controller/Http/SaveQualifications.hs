@@ -15,10 +15,10 @@ import EdgeNode.Category
 import EdgeNode.Model.User
 import EdgeNode.Model.User.Qualification ()
 
-import RetrofitProto
+import Proto
 import Katip
 import KatipController
-import ReliefJsonData
+import Json
 import Data.Generics.Product
 import Control.Lens
 import qualified Data.Text as T

@@ -7,7 +7,7 @@ import EdgeNode.Error
 
 import Auth
 import Data.Aeson.Unit
-import ReliefJsonData
+import Json
 import Katip
 import KatipController
 import Database.Action

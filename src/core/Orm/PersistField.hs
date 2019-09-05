@@ -29,8 +29,8 @@ import TH.Mk (mkWrappedPrimitivePersistField, mkPrimitivePersistField)
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import GHC.Float
 import Data.Aeson
-import RetrofitProto
-import ReliefJsonData
+import Proto
+import Json
 import Data.Bifunctor
 import qualified Data.Aeson as Aeson
 import Control.Lens.Iso.Extended

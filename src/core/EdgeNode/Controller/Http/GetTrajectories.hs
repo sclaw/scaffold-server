@@ -10,10 +10,10 @@ import EdgeNode.Api.Http.User.GetTrajectories
 import EdgeNode.Model.User.Trajectory
 import Time.Time
 
-import RetrofitProto
+import Proto
 import Katip
 import KatipController
-import ReliefJsonData
+import Json
 import qualified Data.Text as T
 import qualified Hasql.Session as Hasql.Session
 import qualified Hasql.Statement as HS

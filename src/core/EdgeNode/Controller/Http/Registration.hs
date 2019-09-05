@@ -21,7 +21,7 @@ import Katip
 import Katip.Core (getLoc)
 import KatipController
 import Pretty
-import ReliefJsonData
+import Json
 import Control.Lens.Iso.Extended
 import Control.Monad.IO.Class
 import Text.RE.PCRE.Text (matched, (?=~), re)
@@ -37,7 +37,7 @@ import Data.String.Interpolate
 import Data.Generics.Internal.VL.Lens
 import Data.Generics.Product
 import Data.Generics.Internal.VL.Prism
-import RetrofitProto
+import Proto
 import Data.Functor (($>))
 import qualified Database.Exception as Exception
 import Data.Aeson (encode)

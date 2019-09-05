@@ -13,11 +13,11 @@ import EdgeNode.Model.User.Qualification ()
 import EdgeNode.Provider.Qualification
 import EdgeNode.Model.Provider
 
-import RetrofitProto
+import Proto
 import Servant.API.Generic
 import Servant.API.WebSocket ()
 import Servant.API
-import ReliefJsonData
+import Json
 import Data.Aeson.Unit
 import qualified Data.Text as T
 import Data.Aeson.WithField

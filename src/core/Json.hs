@@ -13,7 +13,7 @@
 
 -- | A wrapper for the either that is only applicative and has serialization that
 -- is useful for us.
-module ReliefJsonData 
+module Json 
        ( Alternative(..)
        , eitherToAlt
        , Error (..)

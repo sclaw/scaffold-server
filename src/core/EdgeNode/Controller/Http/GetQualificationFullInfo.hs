@@ -15,10 +15,10 @@ import EdgeNode.Provider.Qualification
 import qualified EdgeNode.Iso as Iso
 import EdgeNode.Model.User.Qualification ()
 
-import RetrofitProto
+import Proto
 import Katip
 import KatipController
-import ReliefJsonData
+import Json
 import Database.Action
 import qualified Data.Text as T
 import Data.Either.Unwrap

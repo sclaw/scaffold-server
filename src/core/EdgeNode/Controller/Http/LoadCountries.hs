@@ -10,9 +10,9 @@ import EdgeNode.Service.Countries
 import EdgeNode.Service.Data.Google 
 import EdgeNode.Error
 
-import ReliefJsonData
+import Json
 import KatipController
-import RetrofitProto
+import Proto
 import qualified Data.Text as T
 import Network.HTTP.Client
 import Data.String.Interpolate
@@ -53,5 +53,5 @@ controller lang =
              Right (Items xs) -> return $ Right $ xs^..traverse.to T.strip
              Left e -> return $ Left e 
     let mkOk (Right xs) = Fortune $ CountriesResponse $ Response (V.fromList (xs^..traverse.from lazytext))
-        mkOk (Left e) = ReliefJsonData.Error $ ServerError (InternalServerError (e^.stextl))          
-    return $ maybe (ReliefJsonData.Error (ServerError (InternalServerError "api key not found"))) mkOk (join `fmap` resp)
+        mkOk (Left e) = Json.Error $ ServerError (InternalServerError (e^.stextl))          
+    return $ maybe (Json.Error (ServerError (InternalServerError "api key not found"))) mkOk (join `fmap` resp)

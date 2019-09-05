@@ -7,7 +7,7 @@ module EdgeNode.Controller.Http.PatchProfile (controller) where
 import EdgeNode.Model.User
 import EdgeNode.Error
 
-import ReliefJsonData
+import Json
 import Katip
 import KatipController
 import Database.AutoKey

@@ -11,9 +11,9 @@ import EdgeNode.Error
 import EdgeNode.Model.Category
 import EdgeNode.Api.Http.User.GetCategories
 
-import RetrofitProto
+import Proto
 import KatipController
-import ReliefJsonData
+import Json
 import Data.Aeson.Unit
 import Control.Lens
 import Database.Action

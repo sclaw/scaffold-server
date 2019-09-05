@@ -12,7 +12,7 @@ import EdgeNode.Provider.Qualification
 
 import Servant.API.Generic
 import Servant.API
-import ReliefJsonData
+import Json
 import qualified Data.Text as T
 
 data SearchApi route = 

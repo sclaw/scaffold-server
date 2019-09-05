@@ -12,8 +12,8 @@ import Auth
 import Servant.API.Generic
 import Servant.API.WebSocket ()
 import Servant.API
-import ReliefJsonData
-import RetrofitProto
+import Json
+import Proto
 import Data.Aeson.Unit
 import Servant.Auth.Server    
 import qualified Data.Text as T

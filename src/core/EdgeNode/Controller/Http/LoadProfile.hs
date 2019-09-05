@@ -6,7 +6,7 @@ module EdgeNode.Controller.Http.LoadProfile (controller) where
 import EdgeNode.Model.User 
 import EdgeNode.Error
 
-import ReliefJsonData
+import Json
 import Katip
 import KatipController
 import qualified Data.Text as T

@@ -14,9 +14,9 @@ import EdgeNode.Api.Http.User.GetProviders
 import EdgeNode.Error
 import EdgeNode.Model.Provider
 
-import RetrofitProto
+import Proto
 import KatipController
-import ReliefJsonData
+import Json
 import Control.Lens
 import Database.Action
 import Katip

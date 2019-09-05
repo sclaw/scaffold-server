@@ -20,8 +20,8 @@ import Auth
 import Database.Groundhog.Core
 import Database.Groundhog.Postgresql
 import Database.Exception
-import RetrofitProto
-import ReliefJsonData
+import Proto
+import Json
 import Katip
 import KatipController
 import qualified Crypto.JOSE.Compact as Jose

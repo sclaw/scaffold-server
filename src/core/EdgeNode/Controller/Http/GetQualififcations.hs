@@ -18,9 +18,9 @@ import EdgeNode.Model.Provider
 import EdgeNode.Model.Qualification
 import EdgeNode.Api.Http.User.GetQualififcations
 
-import RetrofitProto
+import Proto
 import KatipController
-import ReliefJsonData
+import Json
 import qualified Data.Text as T
 import Data.Generics.Product
 import Control.Lens

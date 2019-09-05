@@ -56,7 +56,7 @@ import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
 import Data.String.Interpolate
 import Data.Bifunctor
-import ReliefJsonData
+import Json
 
 data AppJwt
 
@@ -94,14 +94,14 @@ authGateway :: AuthResult JWTUser -> (AuthResult JWTUser -> api) -> api
 authGateway auth api = api auth
 
 applyController 
-  :: (JWTUser -> KatipController (Alternative (ReliefJsonData.Error e) a)) 
+  :: (JWTUser -> KatipController (Alternative (Json.Error e) a)) 
   -> AuthResult JWTUser 
-  -> KatipController (Alternative (ReliefJsonData.Error e) a)
+  -> KatipController (Alternative (Json.Error e) a)
 applyController controller user = 
   case user of 
     Authenticated u -> controller u
-    Indefinite ->return $ ReliefJsonData.Error (AuthError "jwt not valid or malformed")
-    err -> return $ ReliefJsonData.Error (AuthError (show err^.stext))
+    Indefinite ->return $ Json.Error (AuthError "jwt not valid or malformed")
+    err -> return $ Json.Error (AuthError (show err^.stext))
 
 jwtAuthCheck :: JWTSettings -> KatipLoggerIO -> Hasql.Pool -> AuthCheck JWTUser
 jwtAuthCheck cfg log pool = 

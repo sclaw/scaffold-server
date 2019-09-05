@@ -3,7 +3,7 @@ module EdgeNode.Controller.Http.SearchQualification (controller) where
 import EdgeNode.Search
 import EdgeNode.Provider.Qualification
 
-import ReliefJsonData
+import Json
 import KatipController
 import qualified Data.Text as T
 

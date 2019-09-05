@@ -4,7 +4,7 @@ module EdgeNode.Iso (country) where
 
 import EdgeNode.Country
 
-import RetrofitProto
+import Proto
 import Control.Lens
 import qualified Data.Text as T
 import Proto3.Suite.Types

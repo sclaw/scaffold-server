@@ -2,7 +2,7 @@ module EdgeNode.Controller.Http.SearchInit (controller) where
 
 import EdgeNode.Provider.Qualification
 
-import ReliefJsonData
+import Json
 import KatipController
 import qualified Data.Text as T
 
