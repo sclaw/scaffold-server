@@ -32,5 +32,5 @@ data SearchApi route =
        :> Get '[JSON] 
           (Alternative 
            (Error T.Text) 
-           XQualificationFullInfo)
+           [XQualificationFullInfo])
      } deriving stock Generic

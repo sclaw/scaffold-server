@@ -7,6 +7,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedLists #-}
 
 module EdgeNode.Controller.Http.GetProviders (controller) where
 
@@ -32,10 +33,10 @@ import Data.Vector.Lens
 import Data.Traversable
 import Control.Monad.IO.Class
 import Data.String.Interpolate
-import Control.Monad
 import Data.Int
 import Data.Word
 import Data.Maybe
+import Database.Render
 
 controller :: WrapperCountry -> WrapperType -> Int64 -> Maybe Word32 -> KatipController (Alternative (Error T.Text) GetProvidersResponse)
 controller country ty ident cursor =
@@ -63,10 +64,9 @@ action _ ty _ _
          #{fromWrapperType LanguageStandard}|]  
 action country ty ident cursor = 
   do        
-    m <- fmap (fmap (GetProvidersResponse . Response . (^.vector))) 
-         (case ty of StateExam -> getExam; HigherDegree -> getDegree)
-    when (isNothing m) $ throwError (Action "ident not found")
-    return $ fromJust m     
+    response <- fmap (fmap (GetProvidersResponse . Response . (^.vector))) 
+                (case ty of StateExam -> getExam; HigherDegree -> getDegree)
+    return $ fromMaybe (GetProvidersResponse (Response [])) response
   where 
     getExam =  
       do 
@@ -79,11 +79,13 @@ action country ty ident cursor =
                 order by p."providerTitle" asc 
                 limit 10 offset coalesce(?, 0)
              |]
-        stream <- queryRaw False sql 
-         [ PersistInt64 ident
-         , PersistText (country^.isoWrapperCountry.stext)
-         , toPrimitivePersistValue (fmap fromIntegral cursor :: Maybe Int32)]
+        let vs = 
+             [ PersistInt64 ident
+             , PersistText (country^.isoWrapperCountry.stext)
+             , toPrimitivePersistValue (fmap fromIntegral cursor :: Maybe Int32)]     
+        stream <- queryRaw False sql vs
         xs <- liftIO $ streamToList stream
+        $(logTM) DebugS (logStr ("query: " ++ rawSql sql vs))
         $(logTM) DebugS (logStr ("exam.streamToList: " ++ show xs))
         xs' <- forM xs $ \(x:xs) -> do 
           ident <- fromSinglePersistValue x

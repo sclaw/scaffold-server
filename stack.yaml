@@ -9,7 +9,7 @@
 # to be used for project dependencies. For example:
 #
 # resolver: lts-3.5
-resolver: lts-13.29
+resolver: lts-13.28
 
 allow-newer: true
 
@@ -118,12 +118,12 @@ extra-deps:
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
     
-# nix:
-#   enable: true
-#   pure: true
-#   shell-file: shell.nix
-
-docker:
+nix:
   enable: true
-  auto-pull: true
-  repo: "fpco/stack-build:latest"  
+  pure: true
+  shell-file: shell.nix
+
+# docker:
+#   enable: true
+#   auto-pull: true
+#   repo: "fpco/stack-build:latest"  

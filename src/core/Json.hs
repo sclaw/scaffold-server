@@ -108,10 +108,7 @@ instance (Typeable a, ToSchema a) => ToSchema (Error a) where
     let schema = 
           NamedSchema (Just name) $ mempty
           & type_ .~ SwaggerObject
-          & properties .~ 
-            [ ("server", server)
-            , ("client", a)
-            , ("auth", auth)]
+          & properties .~ [("server", server), ("client", a), ("auth", auth)]
     return schema
 
 newtype ValueWrapper = ValueWrapper Value
