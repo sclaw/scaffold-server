@@ -68,5 +68,10 @@ action =
          (def :: XLanguageStandard) 
          & field @"xlanguageStandardIdent" ?~ (k^.from autokey) 
          & field @"xlanguageStandardValue" ?~ v
-    let resp = Response (exams'^.vector) (degrees'^.vector) (diplomas'^.vector) (langs'^.vector)
+    let resp = 
+         Response 
+         (Just (Response_XStateExamValue (show StateExam^.stext.from lazytext) (exams'^.vector))) 
+         (Just (Response_XHigherDegreeValue (show HigherDegree^.stext.from lazytext) (degrees'^.vector))) 
+         (Just (Response_XInternationalDiplomaValue (show InternationalDiploma^.stext.from lazytext) (diplomas'^.vector))) 
+         (Just (Response_XLanguageStandardValue (show LanguageStandard^.stext.from lazytext) (langs'^.vector)))
     return $ GetCategoriesResponse resp
