@@ -30,4 +30,3 @@ import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import Control.Lens.Iso.Extended
 
 mkPrimitivePersistFieldParam ''Tree [| jsonb |]
-  

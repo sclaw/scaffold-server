@@ -123,7 +123,7 @@ persist req =
            ((defu^.field @"userAllegiance".lazytext) >$ HE.param HE.text) <>
            ((defu^.field @"userAvatar") >$ HE.param HE.bytea) <>
            ((defu^.field @"userGender".to User.coercedUserGender) >$ 
-            HE.param (HE.enum ((^.stext) . User.fromUserGender)))
+            HE.param (HE.enum ((^.stext) . User.fromGender)))
       let decoder = 
            HD.singleRow $ 
            HD.column HD.int8 <&> 

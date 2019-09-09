@@ -25,9 +25,9 @@ module EdgeNode.Model.User
        , UserConstructor (..)
        , UserTablesBonds
        , defUser
-       , isoUserGender
-       , fromUserGender
-       , toUserGender
+       , isoGender
+       , fromGender
+       , toGender
        , coercedUserGender
        , hasqlEnumUserGender
        ) where
@@ -44,11 +44,12 @@ import qualified Data.Text as T
 import Orm.PersistField ()
 import Data.Default.Class.Extended
 import Data.Swagger
-import Orphan ()
 import Control.Lens
 import Proto3.Suite.Types
 import Data.Either
 import Control.Lens.Iso.Extended
+import Data.Aeson
+import Orphan ()
 
 data AuthenticatedUser =
      AuthenticatedUser
@@ -65,7 +66,7 @@ data UserTablesBonds =
        DefaultKey User
      }
 
-instance Default User_Gender where
+instance Default Gender where
   def = toEnum 0   
   
 instance Default User
@@ -90,14 +91,26 @@ deriveAutoKey ''User
 mkToSchemaAndJSONProtoIdent ''UserId
 mkWrappedPrimitivePersistField ''UserId
 mkFromHttpApiDataIdent ''UserId
-mkEnumConvertor ''User_Gender
-mkPrimitivePersistField ''User_Gender [| iso fromUserGender toUserGender |] 
+mkEnumConvertor ''Gender
+mkPrimitivePersistField ''Gender [| iso fromGender toGender |] 
+mkPrimitivePersistFieldParam ''Enumerated [| enumGender |]
+
+enumGender :: (FromJSON a, ToJSON a) => Iso' a T.Text
+enumGender = 
+  iso ((^.from textbsl.to strip._Just) . encode) 
+      (either err id `fmap` 
+       (eitherDecode . (^.to mkJson.textbsl))) 
+  where err = error . (<>) "decode error: "
+        mkJson x = "\"" <> x <> "\""
+        strip x = do 
+         x' <- T.stripPrefix "\"" x
+         T.stripSuffix "\"" x'  
 
 defUser :: User
 defUser = def
 
-coercedUserGender :: Enumerated User_Gender -> User_Gender
-coercedUserGender x = x^.(coerced :: Iso' (Enumerated User_Gender) (Either Int User_Gender)).to (fromRight undefined)
+coercedUserGender :: Enumerated Gender -> Gender
+coercedUserGender x = x^.(coerced :: Iso' (Enumerated Gender) (Either Int Gender)).to (fromRight undefined)
 
-hasqlEnumUserGender :: T.Text -> Maybe User_Gender
-hasqlEnumUserGender = Just . toUserGender . (^.from stext)
+hasqlEnumUserGender :: T.Text -> Maybe Gender
+hasqlEnumUserGender = Just . toGender . (^.from stext)

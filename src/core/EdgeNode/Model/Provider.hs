@@ -29,6 +29,7 @@ import Database.Groundhog.Core
 import Database.AutoKey
 import TH.Mk
 import Database.Groundhog.Generic
+import Orm.PersistField.Enumerated ()
 import Orm.PersistField ()
 import Orphan ()
 import Data.Swagger.ParamSchema

@@ -25,7 +25,7 @@ import Database.Groundhog ()
 import Database.Groundhog.Core
 import Database.Groundhog.TH
 import qualified Protobuf.Scalar
-import TH.Mk (mkWrappedPrimitivePersistField, mkPrimitivePersistField)
+import TH.Mk
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import GHC.Float
 import Data.Aeson
@@ -34,6 +34,7 @@ import Json
 import Data.Bifunctor
 import qualified Data.Aeson as Aeson
 import Control.Lens.Iso.Extended
+import Orphan ()
 
 {- We need (PersistField (Seq a)) to make model out of protobuffer
  - datatypes. Unfortunatelly, Seq is a newtype, and Groundhog somewhy
