@@ -38,6 +38,7 @@ import Data.Word
 import Data.Maybe
 import Database.Render
 
+
 controller :: WrapperCountry -> WrapperType -> Int64 -> Maybe Word32 -> KatipController (Alternative (Error T.Text) GetProvidersResponse)
 controller country ty ident cursor =
   do
@@ -67,7 +68,11 @@ action country ty ident cursor =
     response <- fmap (fmap (GetProvidersResponse . Response . (^.vector))) 
                 (case ty of StateExam -> getExam; HigherDegree -> getDegree)
     return $ fromMaybe (GetProvidersResponse (Response [])) response
-  where 
+  where
+    providerDecoder xs@(x:_) = do 
+      ident <- fromSinglePersistValue x
+      (v, _) <- fromPersistValues xs
+      return $ XProvider ident v
     getExam =  
       do 
         let sql = 
@@ -87,10 +92,7 @@ action country ty ident cursor =
         xs <- liftIO $ streamToList stream
         $(logTM) DebugS (logStr ("query: " ++ rawSql sql vs))
         $(logTM) DebugS (logStr ("exam.streamToList: " ++ show xs))
-        xs' <- forM xs $ \(x:xs) -> do 
-          ident <- fromSinglePersistValue x
-          (v, _) <- fromPersistValues xs
-          return $ XProvider ident v
+        xs' <- forM xs providerDecoder
         return $ if null xs' then Nothing else Just xs'
     getDegree = 
       do 
@@ -109,8 +111,5 @@ action country ty ident cursor =
          , toPrimitivePersistValue (fmap fromIntegral cursor :: Maybe Int32)]
         xs <- liftIO $ streamToList stream
         $(logTM) DebugS (logStr ("degree.streamToList: " ++ show xs))
-        xs' <- forM xs $ \(x:xs) -> do 
-          ident <- fromSinglePersistValue x
-          (v, _) <- fromPersistValues xs
-          return $ XProvider ident v
+        xs' <- forM xs providerDecoder
         return $ if null xs' then Nothing else Just xs'
