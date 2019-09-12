@@ -368,22 +368,19 @@ mkMigrationSeq :: Q [Dec]
 mkMigrationSeq = do
   migrations <- liftIO loadMigrationList
   let version = mkName "Version"
+  let lastIdx = fst (last migrations) 
   let step = mkName "MigrationStep"
   let list = mkName "list" 
   let next = mkName "NextSql"
   let stop = mkName "Stop"
-  let mkVersion [] [] = []
-      mkVersion xs ((i, str):is) 
-        | not (null is) =
-          TupE [ AppE (ConE version) (LitE (IntegerL i)) 
+  let mkVersion xs [] = xs ++ [TupE [AppE (ConE version) (LitE (IntegerL lastIdx)), ConE stop]]
+      mkVersion xs ((i, str):is) =
+          TupE [ AppE (ConE version) (LitE (IntegerL (i - 1))) 
                , AppE (AppE (ConE next) 
                  (LitE (StringL str))) 
-                 (AppE (ConE version) (LitE (IntegerL (i + 1))))]
-          : mkVersion xs is       
-        | otherwise = 
-          TupE [AppE (ConE version) (LitE (IntegerL i)), 
-                AppE (ConE stop) (LitE (StringL str))] : xs
-  let xs =  mkVersion [] migrations
+                 (AppE (ConE version) (LitE (IntegerL i)))]
+          : mkVersion xs is
+  let xs = if null migrations then [] else mkVersion [] migrations
   return [ValD (VarP list) (NormalB (ListE xs)) []]
   where 
     loadMigrationList =

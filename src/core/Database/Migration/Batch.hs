@@ -41,7 +41,7 @@ data MigrationStep =
          (KatipContextT AppMonad) 
           Postgresql)) 
        Version    
-     | Stop String
+     | Stop
 
 $mkMigrationSeq
 
@@ -51,7 +51,7 @@ exec ver = maybe err ok (migrMap Map.!? ver)
   where  
     ok val = 
       case val of
-        Stop sql -> fmap (const (Just ver)) $ withSql sql
+        Stop -> return $ Just ver
         NextSql sql ver -> withSql sql >> exec ver
         NextMigration migr ver -> 
           mkSql migr >>= mapM_ withSql >> exec ver
