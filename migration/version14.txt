@@ -1,0 +1,11 @@
+drop table "edgeNode"."QualificationProvider" cascade;
+         create table "edgeNode"."QualificationProvider" 
+         (id bigserial primary key,
+         "qualificationProviderKey" int8 not null 
+         constraint "QualificationProvider_provider_id_fk" 
+         references "edgeNode"."Provider"(id),
+         "qualificationProviderDegreeType" text,
+         "qualificationProviderTitle" text not null,
+         "qualificationProviderGradeRange" jsonb, path ltree,
+         constraint "QualificationProvider_qualificationProviderKey_qualificationProviderTitle_path_uniq" 
+         unique ("qualificationProviderKey", "qualificationProviderTitle", path));

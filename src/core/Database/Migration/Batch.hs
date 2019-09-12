@@ -11,24 +11,6 @@
 module Database.Migration.Batch (Version (..), exec) where 
 
 import EdgeNode.Application
-import qualified Database.Migration.Version.Version2 as V2
-import qualified Database.Migration.Version.Version3 as V3
-import qualified Database.Migration.Version.Version4 as V4
-import qualified Database.Migration.Version.Version5 as V5
-import qualified Database.Migration.Version.Version6 as V6
-import qualified Database.Migration.Version.Version7 as V7
-import qualified Database.Migration.Version.Version8 as V8
-import qualified Database.Migration.Version.Version9 as V9
-import qualified Database.Migration.Version.Version10 as V10
-import qualified Database.Migration.Version.Version11 as V11
-import qualified Database.Migration.Version.Version12 as V12
-import qualified Database.Migration.Version.Version13 as V13
-import qualified Database.Migration.Version.Version14 as V14
-import qualified Database.Migration.Version.Version15 as V15
-import qualified Database.Migration.Version.Version16 as V16
-import qualified Database.Migration.Version.Version17 as V17
-import qualified Database.Migration.Version.Version18 as V18
-import qualified Database.Migration.Version.Version19 as V19
 
 import Data.Word (Word32)
 import Database.Exception
@@ -42,6 +24,8 @@ import Data.String.Interpolate
 import Data.Sort
 import Control.Lens
 import TH.Mk
+
+import Debug.Trace 
 
 newtype Version = Version Word32
   deriving newtype Num
@@ -57,21 +41,21 @@ data MigrationStep =
          (KatipContextT AppMonad) 
           Postgresql)) 
        Version    
-     | Stop
+     | Stop String
 
-$(mkMigrationSeq 1 19)
+$mkMigrationSeq
 
 exec :: Version -> TryAction (Groundhog ()) (KatipContextT AppMonad) Postgresql (Maybe Version) 
 exec _ | null list = return Nothing    
 exec ver = maybe err ok (migrMap Map.!? ver) 
-  where
-    ok val | isEmpty val = throwError (MigrationSqlEmpty (coerce (ver + 1)))  
+  where  
     ok val = 
       case val of
-        Stop -> return (Just ver)
+        Stop sql -> fmap (const (Just ver)) $ withSql sql
         NextSql sql ver -> withSql sql >> exec ver
         NextMigration migr ver -> 
           mkSql migr >>= mapM_ withSql >> exec ver
+    withSql sql | null sql = $(logTM) InfoS "migration empty"      
     withSql sql = 
       do 
         $(logTM) InfoS (logStr ([i|new migration from #{ver} to #{ver + 1}|] :: String))
@@ -79,11 +63,6 @@ exec ver = maybe err ok (migrMap Map.!? ver)
         executeRaw False sql []     
     err = throwError (MigrationNotFound (coerce ver))     
     migrMap = Map.fromList list
-
-isEmpty :: MigrationStep -> Bool
-isEmpty (NextSql sql _) = null sql
-isEmpty (NextMigration _ _) = False
-isEmpty Stop = False
 
 mkSql 
   :: Migration (TryAction (Groundhog ()) (KatipContextT AppMonad) Postgresql)

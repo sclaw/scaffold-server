@@ -42,3 +42,4 @@ migration =
     migrate (undefined :: HigherDegree)
     migrate (undefined :: InternationalDiploma)
     migrate (undefined :: LanguageStandard)
+    migrate (undefined :: Token)

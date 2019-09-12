@@ -1,11 +1,4 @@
-{-# LANGUAGE QuasiQuotes #-}
-
-module Database.Migration.Version.Version13 (sql) where
-
-import Data.String.Interpolate
-
-sql :: String 
-sql = [i|create table if not exists "edgeNode"."QualificationProviderFeatures" 
+create table if not exists "edgeNode"."QualificationProviderFeatures" 
          ("qualififcationKey" int8 not null 
           constraint "QualificationProviderFeatures_qualififcationKey_fk" 
           references "edgeNode"."QualificationProvider"(id),
@@ -23,4 +16,4 @@ sql = [i|create table if not exists "edgeNode"."QualificationProviderFeatures"
           references "edgeNode"."QualificationProvider"(id),
           "overlap" jsonb not null,
           constraint "Trajectory_qualififcationKey_uniq" 
-          unique ("qualififcationKey", "user"));|]
+          unique ("qualififcationKey", "user"));

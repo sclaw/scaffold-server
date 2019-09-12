@@ -1,11 +1,4 @@
-{-# LANGUAGE QuasiQuotes #-}
-
-module Database.Migration.Version.Version6 (sql) where
-
-import Data.String.Interpolate
-
-sql :: String 
-sql = [i|alter table "edgeNode"."LanguageStandard" 
+alter table "edgeNode"."LanguageStandard" 
          drop column "languageStandardGrade";
          alter table "edgeNode"."LanguageStandard" 
          add column "languageStandardGrade" jsonb not null 
@@ -35,4 +28,4 @@ sql = [i|alter table "edgeNode"."LanguageStandard"
           constraint "LanguageStandardProvider_language_standard_id_fk" 
           references "edgeNode"."LanguageStandard"(id),
           provider_id int8 not null constraint "LanguageStandardProvider_provider_id_fk" 
-          references "edgeNode"."Provider"(id));|]
+          references "edgeNode"."Provider"(id));

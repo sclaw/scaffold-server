@@ -1,0 +1,6 @@
+alter table "edgeNode"."QualificationDependency"
+         drop column "dependency";
+         alter table "edgeNode"."QualificationDependency" 
+         add column  "dependency" int8 not null 
+         constraint "#QualificationDependency_dependency_fk" 
+         references "edgeNode"."QualificationProvider"(id);

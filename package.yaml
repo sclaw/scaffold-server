@@ -153,6 +153,7 @@ library:
     - lens-aeson
     - thyme
     - hashing
+    - strict
   source-dirs:
     - src/core
     - src/extended

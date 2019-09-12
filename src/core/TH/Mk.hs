@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TupleSections #-}
 
 module TH.Mk
        ( mkPrimitivePersistField
@@ -32,7 +33,7 @@ import Data.Swagger.Schema.Extended
 import Data.Aeson
 import Data.Swagger
 import Data.Scientific as Scientific
-import Data.Maybe (fromMaybe)
+import Data.Maybe
 import Data.Proxy
 import Control.Lens.Iso.Extended
 import Data.Text (stripPrefix, split)
@@ -41,6 +42,13 @@ import Servant.API
 import Data.Char
 import qualified Data.Text as T
 import Text.Read (readMaybe)
+import Control.Monad.IO.Class
+import System.Directory
+import System.FilePath.Posix
+import Data.List
+import System.IO
+import Control.Monad
+import qualified System.IO.Strict as IOS
 
 mkPrimitivePersistField :: Name -> ExpQ -> Q [Dec]
 mkPrimitivePersistField name iso = [d|
@@ -219,7 +227,7 @@ mkSRGEqEnum name prefix =
      let capitalizeHead x = x & _head %~ toUpper 
      let purgeNamePrefix (NormalC n xs) = 
           ((`NormalC` xs) . mkName . capitalizeHead . (^.from stext)) `fmap`
-          stripPrefix 
+          Data.Text.stripPrefix 
           (nameBase name^.stext) 
           (nameBase n^.stext)
      let err = error $ "error: " <> show name
@@ -356,19 +364,41 @@ mkParamSchemaEnum name = do
        toParamSchema _ = mempty & type_ .~ SwaggerString & enum_ ?~ xs'
    |]
 
-mkMigrationSeq :: Integer -> Integer -> Q [Dec]
-mkMigrationSeq min max = do
+mkMigrationSeq :: Q [Dec]
+mkMigrationSeq = do
+  migrations <- liftIO loadMigrationList
   let version = mkName "Version"
   let step = mkName "MigrationStep"
   let list = mkName "list" 
   let next = mkName "NextSql"
   let stop = mkName "Stop"
-  let mkVersion xs [i] = TupE [AppE (ConE version) (LitE (IntegerL i)), ConE stop] : xs
-      mkVersion xs (i:is) = 
-       TupE [ AppE (ConE version) (LitE (IntegerL i)) 
-            , AppE (AppE (ConE next) 
-              (VarE (mkName ("V" <> show (i + 1) <> ".sql")))) 
-              (AppE (ConE version) (LitE (IntegerL (i + 1))))] 
-       : mkVersion xs is
-  let xs = mkVersion [] [min .. max]
+  let mkVersion [] [] = []
+      mkVersion xs ((i, str):is) 
+        | not (null is) =
+          TupE [ AppE (ConE version) (LitE (IntegerL i)) 
+               , AppE (AppE (ConE next) 
+                 (LitE (StringL str))) 
+                 (AppE (ConE version) (LitE (IntegerL (i + 1))))]
+          : mkVersion xs is       
+        | otherwise = 
+          TupE [AppE (ConE version) (LitE (IntegerL i)), 
+                AppE (ConE stop) (LitE (StringL str))] : xs
+  let xs =  mkVersion [] migrations
   return [ValD (VarP list) (NormalB (ListE xs)) []]
+  where 
+    loadMigrationList =
+      do
+         dir <- getCurrentDirectory
+         let migDir = dir </> "migration"
+         let mkTpl file = 
+              fmap 
+              (, migDir </> file) 
+              (Data.List.stripPrefix 
+               "version" 
+               (dropExtension file))           
+         fs <- fmap (mapMaybe mkTpl) (listDirectory migDir)
+         fmap (sortOn (^._1)) $ forM fs $ \x -> do 
+          hdl <- openFile (x^._2) ReadMode
+          content <- IOS.hGetContents hdl
+          hClose hdl
+          return (read (x^._1) :: Integer, content)
