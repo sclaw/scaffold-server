@@ -124,7 +124,8 @@ fullInfoDecoder =
         id <- fmap ProviderId (HD.field HD.int8)
         title <- HD.field HD.text
         country <- fmap (^.from Iso.country) (HD.field HD.text)
-        return $ XProvider (Just id) (Just (Provider (title^.from lazytext) country))
+        degrees <- undefined
+        return $ XProvider (Just id) (Just (Provider (title^.from lazytext) country)) degrees
     qualComp =
       do 
         id <- fmap QualificationId (HD.field HD.int8)

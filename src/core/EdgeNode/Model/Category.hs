@@ -37,6 +37,7 @@ import Data.Default.Class.Extended
 import Orm.PersistField.Enumerated ()
 import Orm.PersistField ()
 import Orphan ()
+import EdgeNode.Model.Provider ()
 
 instance Default XStateExam
 instance Default XHigherDegree

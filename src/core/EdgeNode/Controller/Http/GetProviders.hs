@@ -21,95 +21,97 @@ import Json
 import Control.Lens
 import Database.Action
 import Katip
-import Database.Groundhog.Core
-import Database.Groundhog.Generic
-import Database.Exception
 import Control.Lens.Iso.Extended
 import qualified Data.Text as T
-import Data.Bifunctor
-import Control.Monad.Error.Class (throwError, catchError)
-import Control.Exception (fromException)
+import Control.Monad.Error.Class (throwError)
 import Data.Vector.Lens
-import Data.Traversable
 import Control.Monad.IO.Class
 import Data.String.Interpolate
 import Data.Int
 import Data.Word
-import Data.Maybe
-import Database.Render
-
+import qualified Hasql.Session as Hasql.Session
+import qualified Hasql.Statement as HS
+import qualified Hasql.Encoders as HE
+import qualified Hasql.Decoders as HD
+import Data.Functor
+import Proto3.Suite.Types
+import Control.Monad
 
 controller :: WrapperCountry -> WrapperType -> Int64 -> Maybe Word32 -> KatipController (Alternative (Error T.Text) GetProvidersResponse)
 controller country ty ident cursor =
   do
-    orm <- fmap (^.katipEnv.ormDB) ask
-    let logErr e = 
-          do $(logTM) ErrorS (logStr (show e))
-             throwError e    
-    let mkError e =  
-         case fromException e 
-              :: Maybe (Groundhog ()) of
-           Just (Action x) -> ResponseError (x^.stext)
-           Just (Common x) -> ServerError $ InternalServerError (x^.stextl)
-           _ -> ServerError $ InternalServerError "unkonwn server error, please pay a visit to log"
-    (^.eitherToAlt) . first mkError <$> 
-     runTryDbConnGH (action country ty ident cursor `catchError` logErr) orm
-    
-action :: WrapperCountry -> WrapperType -> Int64 -> Maybe Word32 -> EdgeNodeAction () GetProvidersResponse
-action _ ty _ _ 
+    raw <- (^.katipEnv.rawDB) `fmap` ask
+    x <- runTryDbConnHasql (action country ty ident cursor) raw
+    let mkErr e = 
+         $(logTM) ErrorS (logStr (show e)) $> 
+         Error (ServerError (InternalServerError (show e^.stextl)))
+    either mkErr (return . Fortune) x
+
+action :: WrapperCountry -> WrapperType -> Int64 -> Maybe Word32 -> KatipLoggerIO -> Hasql.Session.Session GetProvidersResponse
+action _ ty _ _ _
   | ty == InternationalDiploma || 
     ty == LanguageStandard = 
-    throwError $ Action 
+    throwError $ 
+      Hasql.Session.QueryError 
       [i|next categories doesn't support providers 
          #{fromWrapperType InternationalDiploma}, 
-         #{fromWrapperType LanguageStandard}|]  
-action country ty ident cursor = 
-  do        
-    response <- fmap (fmap (GetProvidersResponse . Response . (^.vector))) 
-                (case ty of StateExam -> getExam; HigherDegree -> getDegree)
-    return $ fromMaybe (GetProvidersResponse (Response [])) response
+         #{fromWrapperType LanguageStandard}|]
+      []
+      (Hasql.Session.ClientError Nothing)    
+action country ty ident cursor logger = 
+  fmap (GetProvidersResponse . Response . (^.vector)) 
+  (case ty of StateExam -> getExam; HigherDegree -> getDegree)
   where
-    providerDecoder xs@(x:_) = do 
-      ident <- fromSinglePersistValue x
-      (v, _) <- fromPersistValues xs
-      return $ XProvider ident v
-    getExam =  
+    getExam =
       do 
         let sql = 
-             [i|select p.id, p."providerTitle", p."providerCountry" 
-                from "edgeNode"."StateExamProvider" as e
-                join "edgeNode"."Provider" as p
-                on e.provider_id = p.id 
-                where e.state_exam_id = ? and p."providerCountry" = ?
-                order by p."providerTitle" asc 
-                limit 10 offset coalesce(?, 0)
-             |]
-        let vs = 
-             [ PersistInt64 ident
-             , PersistText (country^.isoWrapperCountry.stext)
-             , toPrimitivePersistValue (fmap fromIntegral cursor :: Maybe Int32)]     
-        stream <- queryRaw False sql vs
-        xs <- liftIO $ streamToList stream
-        $(logTM) DebugS (logStr ("query: " ++ rawSql sql vs))
-        $(logTM) DebugS (logStr ("exam.streamToList: " ++ show xs))
-        xs' <- forM xs providerDecoder
-        return $ if null xs' then Nothing else Just xs'
-    getDegree = 
-      do 
+              [i|select p.id, p."providerTitle", p."providerCountry" 
+                 from "edgeNode"."StateExamProvider" as e
+                 join "edgeNode"."Provider" as p
+                 on e.provider_id = p.id 
+                 where e.state_exam_id = $1 and p."providerCountry" = $2
+                 order by p."providerTitle" asc 
+                 limit 10 offset coalesce($3, 0)|]
+        let encoder =
+              (ident >$ HE.param HE.int8) <>
+              (country^.isoWrapperCountry.stext >$ HE.param HE.text) <>
+              (cursor^?_Just.integral >$ HE.nullableParam HE.int4)
+        let examDecoder = do
+              ident <- HD.column HD.int8 <&> (^._Unwrapped')
+              title <- HD.column HD.text <&> (^.from lazytext)
+              ctry <- HD.column (HD.enum (Just . (^.from stext.to toCountry)))
+              let value = Provider title (Enumerated (Right ctry))
+              return $ XProvider (Just ident) (Just value) []
+        let decoder = HD.rowList examDecoder
+        let params = (ident, country^.isoWrapperCountry, cursor)      
+        liftIO $ logger DebugS (logStr (sql^.from textbs.from stext ++ show params))
+        Hasql.Session.statement () (HS.Statement sql encoder decoder False)          
+    getDegree =
+      do
         let sql = 
-             [i|select p.id, p."providerTitle", p."providerCountry" 
-               from "edgeNode"."HigherDegreeProvider" as d
-               join "edgeNode"."Provider" as p
-               on d.provider_id = p.id 
-               where d.higher_degree_id = ? and p."providerCountry" = ?
-               order by p."providerTitle" asc 
-               limit 10 offset coalesce(?, 0)
-             |]
-        stream <- queryRaw False sql 
-         [ PersistInt64 ident
-         , PersistText (country^.isoWrapperCountry.stext)
-         , toPrimitivePersistValue (fmap fromIntegral cursor :: Maybe Int32)]
-        xs <- liftIO $ streamToList stream
-        $(logTM) DebugS (logStr ("degree.streamToList: " ++ show xs))
-        xs' <- forM xs providerDecoder
-        return $ if null xs' then Nothing else Just xs'
+              [i|select p.id, p."providerTitle", p."providerCountry",
+                 array(select distinct "qualificationProviderDegreeType" 
+                       "qualificationProviderDegreeType"
+                       from "edgeNode"."QualificationProvider" 
+                       where "qualificationProviderKey" = p.id) 
+                 from "edgeNode"."HigherDegreeProvider" as d
+                 join "edgeNode"."Provider" as p
+                 on d.provider_id = p.id 
+                 where d.higher_degree_id = $1 and p."providerCountry" = $2
+                 order by p."providerTitle" asc 
+                 limit 10 offset coalesce($3, 0)|]
+        let encoder =
+              (ident >$ HE.param HE.int8) <>
+              (country^.isoWrapperCountry.stext >$ HE.param HE.text) <>
+              (cursor^?_Just.integral >$ HE.nullableParam HE.int4)        
+        let params = (ident, country^.isoWrapperCountry, cursor)
+        let degreeDecoder = do 
+             ident <- HD.column HD.int8 <&> (^._Unwrapped')  
+             title <- HD.column HD.text <&> (^.from lazytext)
+             ctry <- HD.column (HD.enum (Just . (^.from stext.to toCountry)))
+             degrees <- HD.column (HD.array (HD.dimension replicateM (HD.element HD.text)))
+             let value = Provider title (Enumerated (Right ctry))
+             return $ XProvider (Just ident) (Just value) ((degrees^..traversed.from lazytext)^.vector)          
+        let decoder = HD.rowList degreeDecoder      
+        liftIO $ logger DebugS (logStr (sql^.from textbs.from stext ++ show params))
+        Hasql.Session.statement () (HS.Statement sql encoder decoder False)
