@@ -1,0 +1,2 @@
+alter table "edgeNode"."HigherDegree" drop column "higherDegreeCountry";
+alter table "edgeNode"."StateExam" drop column "stateExamCountry";

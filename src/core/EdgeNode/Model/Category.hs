@@ -11,13 +11,13 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module EdgeNode.Model.Category 
-       ( StateExam
+       ( StateExam (..)
        , XStateExam (..)
-       , HigherDegree
+       , HigherDegree (..)
        , XHigherDegree (..)
-       , InternationalDiploma
+       , InternationalDiploma (..)
        , XInternationalDiploma (..)
-       , LanguageStandard
+       , LanguageStandard (..)
        , XLanguageStandard (..)
        , autokey
        ) 
@@ -39,24 +39,8 @@ import Orm.PersistField ()
 import Orphan ()
 import EdgeNode.Model.Provider ()
 
-instance Default XStateExam
-instance Default XHigherDegree
-instance Default XInternationalDiploma
-instance Default XLanguageStandard
-
-mkPersist_ [groundhog| 
- - entity: StateExam
-   schema: edgeNode
- - entity: HigherDegree
-   schema: edgeNode  
- - entity: InternationalDiploma
-   schema: edgeNode
- - entity: LanguageStandard
-   schema: edgeNode  
- |]
-
 mkPrimitivePersistField ''LSGrade [| jsonb |]
-deriveAutoKey ''StateExam
-deriveAutoKey ''HigherDegree
-deriveAutoKey ''InternationalDiploma
-deriveAutoKey ''LanguageStandard
+mkWrappedPrimitivePersistField ''StateExamId
+mkWrappedPrimitivePersistField ''HigherDegreeId
+mkWrappedPrimitivePersistField ''InternationalDiplomaId
+mkWrappedPrimitivePersistField ''LanguageStandardId

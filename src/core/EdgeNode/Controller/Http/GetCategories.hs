@@ -2,8 +2,9 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module EdgeNode.Controller.Http.GetCategories (controller) where
 
@@ -19,59 +20,108 @@ import Control.Lens
 import Database.Action
 import Katip
 import Control.Lens.Iso.Extended
-import Database.Groundhog.Core
-import Database.Exception
-import Data.Bifunctor
-import Control.Monad.Error.Class 
-       ( throwError
-       , catchError)
-import Control.Exception (fromException)
 import Data.Vector.Lens
-import Data.Default.Class.Extended
-import Data.Generics.Product
+import qualified Hasql.Statement as HS
+import qualified Hasql.Encoders as HE
+import qualified Hasql.Decoders as HD
+import qualified Hasql.Session as Hasql.Session
+import Data.Functor
+import Data.String.Interpolate
+import Proto3.Suite.Types
+import Data.Aeson (eitherDecode)
+import Data.Bifunctor
 
 controller :: KatipController (Alternative (Error Unit) GetCategoriesResponse)
 controller =
   do
-    orm <- fmap (^.katipEnv.ormDB) ask
-    let logErr e = 
-          do $(logTM) ErrorS (logStr (show e))
-             throwError e    
-    let mkError e = 
-         maybe 
-         (ServerError (InternalServerError (show e^.stextl))) 
-         (const (ResponseError Unit)) 
-         (fromException e :: Maybe (Groundhog ()))
-    (^.eitherToAlt) . first mkError <$> 
-     runTryDbConnGH (action `catchError` logErr) orm
-
-action :: EdgeNodeAction () GetCategoriesResponse
+    raw <- (^.katipEnv.rawDB) `fmap` ask
+    x <- runTryDbConnHasql (const action) raw
+    let mkErr e = 
+         $(logTM) ErrorS (logStr (show e)) $> 
+         Error (ServerError (InternalServerError (show e^.stextl)))
+    either mkErr (return . Fortune) x
+ 
+action :: Hasql.Session.Session GetCategoriesResponse
 action = 
   do
-    exams :: [(AutoKey StateExam, StateExam)] <- selectAll
-    degrees :: [(AutoKey HigherDegree, HigherDegree)] <- selectAll
-    diplomas :: [(AutoKey InternationalDiploma, InternationalDiploma)] <- selectAll 
-    langs :: [(AutoKey LanguageStandard, LanguageStandard)] <- selectAll
-    let exams' = flip map exams $ \(k, v) ->
-         (def :: XStateExam) 
-         & field @"xstateExamIdent" ?~ (k^.from autokey) 
-         & field @"xstateExamValue" ?~ v
-    let degrees' = flip map degrees $ \(k, v) ->
-         (def :: XHigherDegree) 
-         & field @"xhigherDegreeIdent" ?~ (k^.from autokey) 
-         & field @"xhigherDegreeValue" ?~ v
-    let diplomas' = flip map diplomas $ \(k, v) ->
-         (def :: XInternationalDiploma) 
-         & field @"xinternationalDiplomaIdent" ?~ (k^.from autokey) 
-         & field @"xinternationalDiplomaValue" ?~ v
-    let langs' = flip map langs $ \(k, v) ->
-         (def :: XLanguageStandard) 
-         & field @"xlanguageStandardIdent" ?~ (k^.from autokey) 
-         & field @"xlanguageStandardValue" ?~ v
+    exams <- Hasql.Session.statement () getStateExams
+    degrees <- Hasql.Session.statement () getHigherDegrees
+    diplomas <- Hasql.Session.statement () getInternationalDiplomas
+    langs <- Hasql.Session.statement () getLanguageStandards
     let resp = 
          Response 
-         (Just (Response_XStateExamValue (show StateExam^.stext.from lazytext) (exams'^.vector))) 
-         (Just (Response_XHigherDegreeValue (show HigherDegree^.stext.from lazytext) (degrees'^.vector))) 
-         (Just (Response_XInternationalDiplomaValue (show InternationalDiploma^.stext.from lazytext) (diplomas'^.vector))) 
-         (Just (Response_XLanguageStandardValue (show LanguageStandard^.stext.from lazytext) (langs'^.vector)))
+         (Just (Response_XStateExamValue 
+                (show Proto.StateExam^.stext.from lazytext) 
+                (exams^.vector))) 
+         (Just (Response_XHigherDegreeValue 
+                (show Proto.HigherDegree^.stext.from lazytext) 
+                (degrees^.vector))) 
+         (Just (Response_XInternationalDiplomaValue 
+                (show Proto.InternationalDiploma^.stext.from lazytext) 
+                (diplomas^.vector))) 
+         (Just (Response_XLanguageStandardValue 
+                (show Proto.LanguageStandard^.stext.from lazytext) 
+                (langs^.vector)))
     return $ GetCategoriesResponse resp
+
+getStateExams :: HS.Statement () [XStateExam]
+getStateExams = HS.Statement sql HE.unit decoder False
+  where sql =
+          [i|select s.id, s."stateExamTitle", p."providerCountry"  
+          from "edgeNode"."StateExam" as s 
+          join "edgeNode"."StateExamProvider" as sp 
+          on s.id = sp.state_exam_id 
+          join "edgeNode"."Provider" as p 
+          on sp.provider_id = p.id|]     
+        decoder = 
+          HD.rowList $ do
+            ident <- HD.column HD.int8 <&> (^._Unwrapped')
+            stateExamTitle <- HD.column HD.text <&> (^.from lazytext)
+            ctry <- HD.column (HD.enum (Just . (^.from stext.to toCountry)))
+            let stateExamCountry = Enumerated (Right ctry)
+            let value = EdgeNode.Model.Category.StateExam {..}
+            return $ XStateExam (Just ident) (Just value)
+
+getHigherDegrees :: HS.Statement () [XHigherDegree]
+getHigherDegrees = HS.Statement sql HE.unit decoder False
+  where sql = 
+          [i|select h.id, p."providerTitle", p."providerCountry"  
+             from "edgeNode"."HigherDegree" as h 
+             join "edgeNode"."HigherDegreeProvider" as hp 
+             on h.id = hp.higher_degree_id 
+             join "edgeNode"."Provider" as p 
+             on hp.provider_id = p.id|]
+        decoder = 
+          HD.rowList $ do
+            ident <- HD.column HD.int8 <&> (^._Unwrapped')
+            higherDegreeProvider <- HD.column HD.text <&> (^.from lazytext)
+            ctry <- HD.column (HD.enum (Just . (^.from stext.to toCountry)))
+            let higherDegreeCountry = Enumerated (Right ctry)
+            let value = EdgeNode.Model.Category.HigherDegree {..}
+            return $ XHigherDegree (Just ident) (Just value)    
+
+getInternationalDiplomas :: HS.Statement () [XInternationalDiploma]
+getInternationalDiplomas = HS.Statement sql HE.unit decoder False
+  where sql = [i|select * from "edgeNode"."InternationalDiploma"|]
+        decoder = 
+          HD.rowList $ do
+            ident <- HD.column HD.int8 <&> (^._Unwrapped')
+            internationalDiplomaTitle <- HD.column HD.text <&> (^.from lazytext)
+            let value = EdgeNode.Model.Category.InternationalDiploma {..}
+            return $ XInternationalDiploma (Just ident) (Just value)
+
+getLanguageStandards :: HS.Statement () [XLanguageStandard]
+getLanguageStandards = HS.Statement sql HE.unit decoder False
+  where sql = [i|select * from "edgeNode"."LanguageStandard"|]
+        decoder = 
+          HD.rowList $ do
+            ident <- HD.column HD.int8 <&> (^._Unwrapped')
+            languageStandardStandard <- HD.column HD.text <&> (^.from lazytext)
+            languageStandardGrade <- 
+              HD.column 
+              (HD.jsonbBytes 
+               ( first (^.stext) 
+               . eitherDecode 
+               . (^.from bytesLazy)))
+            let value = EdgeNode.Model.Category.LanguageStandard {..}
+            return $ XLanguageStandard (Just ident) (Just value)

@@ -79,7 +79,7 @@ action country ty ident cursor logger =
         let examDecoder = do
               ident <- HD.column HD.int8 <&> (^._Unwrapped')
               title <- HD.column HD.text <&> (^.from lazytext)
-              ctry <- HD.column (HD.enum (Just . (^.from stext.to toCountry)))
+              ctry <- HD.column (HD.enum (Just . (^.from stext.to toCountry))) 
               let value = Provider title (Enumerated (Right ctry))
               return $ XProvider (Just ident) (Just value) []
         let decoder = HD.rowList examDecoder
