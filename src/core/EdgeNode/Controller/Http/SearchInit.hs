@@ -43,7 +43,7 @@ action =
             qp."qualificationProviderDegreeType",
             pr."providerTitle",
             qpf."durationPeriod",
-            qpf."tuitionFees",
+            qpf."tuitionFeesPerAnnum",
             qpf."admissionDeadline",
             qpf."studyMode"
             from "edgeNode"."QualificationProvider" as qp
