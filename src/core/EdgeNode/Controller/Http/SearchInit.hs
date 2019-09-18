@@ -25,6 +25,7 @@ import Data.String.Interpolate
 import Data.Time.Clock
 import Data.Time.Clock.POSIX
 import Time.Time
+import Protobuf.Scalar
 
 controller :: KatipController (Alternative (Error T.Text) [XQualificationFullInfo])
 controller = 
@@ -55,13 +56,13 @@ action =
           do
             ident <- HD.column HD.int8 <&> (^._Unwrapped')
             qualificationFullInfoTitle <- HD.column HD.text <&> (^.from lazytext)
-            qualificationFullInfoDegreeType <- HD.column HD.text <&> (^.from lazytext)
+            qualificationFullInfoDegreeType <- HD.nullableColumn HD.text <&> fmap (^.from lazytext.to String)
             qualificationFullInfoProvider <- HD.column HD.text <&> (^.from lazytext)
-            qualificationFullInfoDuration <- HD.column HD.int4
-            qualificationFullInfoTuitionFees <- HD.column HD.int4
-            let mkTime day = Just $ Time ((fromInteger . round . utcTimeToPOSIXSeconds . (`UTCTime` 0)) day) 0
-            qualificationFullInfoAdmissionDeadline <- HD.column HD.date <&> mkTime
-            qualificationFullInfoStudyMode <- HD.column HD.text <&> (^.from lazytext)
+            qualificationFullInfoDuration <- HD.nullableColumn HD.int4 <&> fmap Int32
+            qualificationFullInfoTuitionFees <- HD.nullableColumn HD.int4 <&> fmap Int32
+            let mkTime day = Time ((fromInteger . round . utcTimeToPOSIXSeconds . (`UTCTime` 0)) day) 0
+            qualificationFullInfoAdmissionDeadline <- HD.nullableColumn HD.date <&> fmap mkTime
+            qualificationFullInfoStudyMode <- HD.nullableColumn HD.text <&> fmap (^.from lazytext.to String)
             let value = QualificationFullInfo {..}
             return $ XQualificationFullInfo (Just ident) (Just value)
     let decoder = HD.rowList qualificationDecoder
