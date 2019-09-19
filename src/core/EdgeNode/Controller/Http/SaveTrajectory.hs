@@ -96,16 +96,12 @@ action uid = maybe (throwError (Request [val])) ok
         streamGet <- queryRaw False sqlGet 
          [toPrimitivePersistValue ident, 
           toPrimitivePersistValue uid]
-        xs <- liftIO $ streamToList streamGet
-        $(logTM) DebugS (logStr ([i|raw data -> #{show xs}|] :: String))
-        when (null xs) $
-          throwError $ Request 
-            [WithField 
-             (Just ident) 
-             QualificationDependencyNotFound]
+        deps <- liftIO $ streamToList streamGet
+        $(logTM) DebugS (logStr ([i|raw data -> #{show deps}|] :: String))
         let mkQDiff 0 _ = error [i|counter is zero|]
             mkQDiff cnt score = QualificationDiff (getSum score / fromIntegral (getSum cnt))     
-        diff :: QualificationDiff <- uncurry mkQDiff <$> foldM accScore (Sum 0, Sum 0) xs
+        diff :: QualificationDiff <- uncurry mkQDiff <$> 
+         if null deps then return (Sum 1, Sum 100) else foldM accScore (Sum 0, Sum 0) deps
 
         $(logTM) DebugS (logStr ([i|qualififcation diff: #{show diff}|] :: String)) 
 
