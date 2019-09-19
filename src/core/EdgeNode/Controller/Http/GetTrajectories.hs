@@ -51,11 +51,11 @@ action uid logger =
              qpf.language, pr."providerTitle",
              qpf."admissionDeadline", tr.overlap
             from "edgeNode"."Trajectory" as tr 
-            join "edgeNode"."QualificationProvider" as qp
+            left join "edgeNode"."QualificationProvider" as qp
               on tr."qualificationKey" = qp.id
-            join "edgeNode"."QualificationProviderFeatures" as qpf
+            left join "edgeNode"."QualificationProviderFeatures" as qpf
               on qpf."qualificationKey" = qp.id  
-            join "edgeNode"."Provider" as pr 
+            left join "edgeNode"."Provider" as pr 
               on qp."qualificationProviderKey" = pr.id 
             where tr.user = $1|] 
     let encoder = uid^._Wrapped' >$ HE.param HE.int8
