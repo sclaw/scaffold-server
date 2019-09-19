@@ -26,6 +26,8 @@ import Data.Time.Clock
 import Data.Time.Clock.POSIX
 import Time.Time
 import Protobuf.Scalar
+import Proto3.Suite.Types
+import Proto
 
 controller :: KatipController (Alternative (Error T.Text) [XQualificationFullInfo])
 controller = 
@@ -40,17 +42,20 @@ action :: Hasql.Session.Session [XQualificationFullInfo]
 action = 
   do
     let sql = 
-         [i|select qp.id, qp."qualificationProviderTitle",
+         [i|select 
+            qp.id, 
+            qp."qualificationProviderTitle",
             qp."qualificationProviderDegreeType",
             pr."providerTitle",
+            pr."providerCountry",
             qpf."durationPeriod",
             qpf."tuitionFeesPerAnnum",
             qpf."admissionDeadline",
             qpf."studyMode"
-            from "edgeNode"."QualificationProvider" as qp
-            join "edgeNode"."Provider" as pr
+            from "edgeNode"."Provider" as pr
+            left join "edgeNode"."QualificationProvider" as qp
             on pr.id = qp."qualificationProviderKey"
-            join "edgeNode"."QualificationProviderFeatures" as qpf 
+            left join "edgeNode"."QualificationProviderFeatures" as qpf 
             on qpf."qualificationKey" = qp.id|]
     let qualificationDecoder = 
           do
@@ -58,6 +63,8 @@ action =
             qualificationFullInfoTitle <- HD.column HD.text <&> (^.from lazytext)
             qualificationFullInfoDegreeType <- HD.nullableColumn HD.text <&> fmap (^.from lazytext.to String)
             qualificationFullInfoProvider <- HD.column HD.text <&> (^.from lazytext)
+            qualificationFullInfoProviderCountry <- 
+              HD.column (HD.enum (Just . (^.from stext.to (Enumerated . Right . toCountry))))
             qualificationFullInfoDuration <- HD.nullableColumn HD.int4 <&> fmap Int32
             qualificationFullInfoTuitionFees <- HD.nullableColumn HD.int4 <&> fmap Int32
             let mkTime day = Time ((fromInteger . round . utcTimeToPOSIXSeconds . (`UTCTime` 0)) day) 0
