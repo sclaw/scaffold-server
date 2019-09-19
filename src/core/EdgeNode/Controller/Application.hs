@@ -41,7 +41,7 @@ httpApi =
   { _httpApiAuth    = toServant auth
   , _httpApiUser    = (`authGateway` (toServant . user))
   , _httpApiService = (`authGateway` (toServant . service))
-  , _httpApiSearch  = toServant search
+  , _httpApiSearch  = (`authGateway` (toServant . search))
   }
 
 auth :: AuthApi (AsServerT KatipController)
@@ -67,7 +67,7 @@ auth =
     flip logExceptionM ErrorS 
     . katipAddNamespace 
       (Namespace ["auth", "signOut"])  
-    . (applyController Auth.SignOut.controller)
+    . (\u -> applyController Nothing u Auth.SignOut.controller)
   }
 
 user :: AuthResult JWTUser -> UserApi (AsServerT KatipController)
@@ -77,64 +77,48 @@ user user =
     flip logExceptionM ErrorS $
     katipAddNamespace 
     (Namespace ["user", "loadProfile"])
-    (applyController 
-     ( User.LoadProfile.controller 
-     . jWTUserUserId) user)
+    (applyController Nothing user (User.LoadProfile.controller . jWTUserUserId))
   , _userPatchProfile =
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["user", "patchProfile"])
-    . (\patch -> 
-        applyController 
-        ( User.PatchProfile.controller patch 
-        . jWTUserUserId) user)
+    . (\patch -> applyController Nothing user (User.PatchProfile.controller patch . jWTUserUserId))
   , _userSaveQualifications =
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["user", "saveQualifications"])
-    . (\req -> 
-        applyController 
-        ( User.SaveQualifications.controller req 
-        . jWTUserUserId) user)
+    . (\req -> applyController Nothing user (User.SaveQualifications.controller req . jWTUserUserId))
   , _userGetFullInfoQualififcation =
     flip logExceptionM ErrorS 
     . katipAddNamespace 
       (Namespace ["user", "getQualififcationFullInfo"])
-    . (\qid -> 
-        applyController 
-        ( User.GetQualificationFullInfo.controller qid 
-        . jWTUserUserId) user)
+    . (\qid -> applyController Nothing user (User.GetQualificationFullInfo.controller qid . jWTUserUserId))
   , _userGetCategories =
     flip logExceptionM ErrorS $
     katipAddNamespace 
     (Namespace ["user", "getCategories"])
-    (applyController (const User.GetCategories.controller) user)
+    (applyController Nothing user (const User.GetCategories.controller))
   , _userGetProvider = \cntry catType catId cursor ->
     flip logExceptionM ErrorS $
       katipAddNamespace 
       (Namespace ["user", "getProviders"])
-      (applyController (const (User.GetProviders.controller cntry catType catId cursor)) user)
+      (applyController Nothing user (const (User.GetProviders.controller cntry catType catId cursor)))
   , _userGetQualififcations =
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["user", "getQualififcations"])
-    . (`applyController` user) 
+    . applyController Nothing user 
     . const . User.GetQualififcations.controller
   , _userGetTrajectories =
     flip logExceptionM ErrorS $
      katipAddNamespace 
      (Namespace ["user", "getTrajectories"])
-     (applyController 
-      ( User.GetTrajectories.controller 
-      . jWTUserUserId) user)
+     (applyController Nothing user (User.GetTrajectories.controller . jWTUserUserId))
   , _userSaveTrajectory =
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["user", "saveTrajectory"])
-    . (\req -> 
-        applyController 
-        ( User.SaveTrajectory.controller req 
-        . jWTUserUserId) user)  
+    . (\req -> applyController Nothing user (User.SaveTrajectory.controller req . jWTUserUserId)) 
   }
 
 service :: AuthResult JWTUser -> ServiceApi (AsServerT KatipController)
@@ -144,12 +128,12 @@ service user =
     flip logExceptionM ErrorS 
     . katipAddNamespace 
       (Namespace ["service", "loadContries"])
-    . (`applyController` user) 
+    . applyController Nothing user 
     . const . Service.LoadCountries.controller
   }
 
-search :: SearchApi (AsServerT KatipController)
-search = 
+search :: AuthResult JWTUser -> SearchApi (AsServerT KatipController)
+search user = 
   SearchApi 
   { _searchApiSearch = \piece query ->
     flip logExceptionM ErrorS $
@@ -160,5 +144,5 @@ search =
      flip logExceptionM ErrorS $
       katipAddNamespace 
       (Namespace ["search", "init"])
-      SearchInit.controller
+      (applyController (Just (SearchInit.controller Nothing)) user (SearchInit.controller . Just . jWTUserUserId)) 
   }

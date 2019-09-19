@@ -57,6 +57,7 @@ import qualified Hasql.Decoders as HD
 import Data.String.Interpolate
 import Data.Bifunctor
 import Json
+import Data.Maybe
 
 data AppJwt
 
@@ -94,13 +95,16 @@ authGateway :: AuthResult JWTUser -> (AuthResult JWTUser -> api) -> api
 authGateway auth api = api auth
 
 applyController 
-  :: (JWTUser -> KatipController (Alternative (Json.Error e) a)) 
-  -> AuthResult JWTUser 
+  :: Maybe (KatipController (Alternative (Json.Error e) a)) 
+  -> AuthResult JWTUser
+  -> (JWTUser -> KatipController (Alternative (Json.Error e) a)) 
   -> KatipController (Alternative (Json.Error e) a)
-applyController controller user = 
+applyController unauthorized user authorized = 
   case user of 
-    Authenticated u -> controller u
-    Indefinite -> return $ Json.Error (AuthError "jwt not valid or malformed")
+    Authenticated u -> authorized u
+    Indefinite -> do 
+      out <- sequence unauthorized  
+      return $ fromMaybe (Json.Error (AuthError "jwt not valid or malformed")) out
     err -> return $ Json.Error (AuthError (show err^.stext))
 
 jwtAuthCheck :: JWTSettings -> KatipLoggerIO -> Hasql.Pool -> AuthCheck JWTUser

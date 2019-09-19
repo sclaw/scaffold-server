@@ -87,9 +87,9 @@ action uid = maybe (throwError (Request [val])) ok
                  qp."qualificationProviderCategoryType", 
                  qd."minRequiredGrade",                        
                  uq."qualificationSkillLevel",
-                 qp."qualificationProviderGradeRange"   
-                from "edgeNode"."QualificationDependency" as qd
-                join "edgeNode"."QualificationProvider" as qp
+                 qp."qualificationProviderGradeRange"
+                from "edgeNode"."QualificationProvider" as qp
+                join "edgeNode"."QualificationDependency" as qd
                   on qd.dependency = qp.id
                 cross join "edgeNode"."UserQualification" as uq
                 where qd.key = ? and uq."userId" = ?;|]

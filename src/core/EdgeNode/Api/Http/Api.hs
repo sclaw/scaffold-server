@@ -42,5 +42,6 @@ data HttpApi route =
      , _httpApiSearch
        :: route 
        :- "search"
+       :> Auth '[AppJwt] JWTUser
        :> ToServant SearchApi AsApi
      } deriving stock Generic 
