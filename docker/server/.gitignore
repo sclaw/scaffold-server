@@ -1,5 +1,0 @@
-# all files without extension should be excluded
-# at current time all binary geenrated by stack put at docker folder 
-*
-!/**/
-!*.*

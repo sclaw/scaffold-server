@@ -1,1 +1,0 @@
-# guide to install server inwardly docker container
