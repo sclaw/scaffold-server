@@ -65,8 +65,8 @@ action uid logger =
             trajectoryQualificationDegreeType <- 
               HD.column HD.text <&> (^.from lazytext)
             trajectoryTuitionLanguage <- 
-              HD.column HD.text <&> 
-              (Enumerated . Right . (^.from stext.from isoLanguage))
+              HD.nullableColumn HD.text <&> 
+              fmap (Trajectory_LanguageValue . Enumerated . Right . (^.from stext.from isoLanguage))
             trajectoryProviderTitle <- 
               HD.column HD.text  <&> (^.from lazytext)
             trajectoryAdmissionDeadline <- 

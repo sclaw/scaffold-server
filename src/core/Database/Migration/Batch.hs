@@ -7,6 +7,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Database.Migration.Batch (Version (..), exec) where 
 
