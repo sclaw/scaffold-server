@@ -42,7 +42,7 @@ packages:
 # forks / in-progress versions pinned to a git hash. For example:
 #
 
-local-bin-path: docker/server
+local-bin-path: deploy
 
 extra-deps:
  - tasty-html-0.4.1.2
