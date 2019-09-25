@@ -154,6 +154,7 @@ library:
     - thyme
     - hashing
     - strict
+    - optparse-generic
   source-dirs:
     - src/core
     - src/extended

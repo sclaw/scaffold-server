@@ -1,5 +1,13 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module App (main) where
 
@@ -11,14 +19,13 @@ import BuildInfo (gitLatestCommitHash)
 import Pretty
 import qualified Database.Migration as Migration
 import Control.Exception (bracket)
-import Control.Lens
+import Control.Lens hiding (Wrapped, Unwrapped) 
 import Data.Monoid.Colorful (hGetTerm)
 import Database.Groundhog.Postgresql (createPostgresqlPool)
 import Katip
 import System.IO (stdout)
 import qualified Hasql.Pool as Hasql
 import qualified Hasql.Connection as HasqlConn
-import System.Environment (getArgs)
 import Control.Lens.Iso.Extended
 import Control.Monad
 import Data.Time.Clock (getCurrentTime)
@@ -32,13 +39,32 @@ import Control.Monad.RWS.Strict (evalRWST)
 import Data.String.Interpolate
 import qualified Network.HTTP.Client.TLS as Http
 import Network.HTTP.Client (ManagerSettings (managerConnCount))
+import GHC.Generics (Generic)
+import Options.Generic
+import Data.Maybe
+
+data Cmd w = 
+     Cmd 
+     { cfgPath :: w ::: FilePath  <?> "config file path"
+     , localhost :: w ::: Maybe String  <?> "override db host if needed, used along with port"
+     , localport :: w ::: Maybe Int  <?> "override db port if needed" 
+     , ekgHost :: w ::: Maybe String  <?> "ekg host"
+     } deriving stock Generic
+    
+instance ParseRecord (Cmd Wrapped)
+deriving instance Show (Cmd Unwrapped)
 
 main :: IO ()
 main =
     do
-      (cfgPath:_) <- getArgs
-      cfg <- EdgeNode.Config.load cfgPath
-      pPrint cfg 
+      Cmd {..} <- unwrapRecord "edgenode server"
+      rawCfg <- EdgeNode.Config.load cfgPath
+      let cfg = 
+            rawCfg 
+            & db.host %~ (`fromMaybe` localhost) 
+            & db.port %~ (`fromMaybe` localport) 
+            & ekg.host %~ (`fromMaybe` ekgHost) 
+      pPrint cfg
 
       void $ forkServer (cfg^.ekg.host.stext.textbs) (cfg^.ekg.port)
 

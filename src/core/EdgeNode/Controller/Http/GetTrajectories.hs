@@ -70,8 +70,8 @@ action uid logger =
             trajectoryProviderTitle <- 
               HD.column HD.text  <&> (^.from lazytext)
             trajectoryAdmissionDeadline <- 
-              HD.column HD.timestamptz <&>
-              (Just . (`Time` 0) . fromIntegral . round . utcTimeToPOSIXSeconds)
+              HD.nullableColumn HD.timestamptz <&>
+              fmap ((`Time` 0) . fromIntegral . round . utcTimeToPOSIXSeconds)
             trajectoryMatch <- 
               HD.column 
               (HD.jsonbBytes 
