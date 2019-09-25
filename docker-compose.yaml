@@ -24,10 +24,6 @@ services:
   server:
     image: registry.gitlab.com/edgenode2/server:latest
     container_name: "edge-node-server"
-    links:
-      - server-db
-    # depends_on:
-    #   - server-db
     ports:
       - "12000:12000"
       - "8000:8000"    
