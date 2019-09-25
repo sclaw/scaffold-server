@@ -49,6 +49,7 @@ data Cmd w =
      , localhost :: w ::: Maybe String  <?> "override db host if needed, used along with port"
      , localport :: w ::: Maybe Int  <?> "override db port if needed" 
      , ekgHost :: w ::: Maybe String  <?> "ekg host"
+     , isAuth :: w ::: Maybe Bool  <?> "is auth turn on"
      } deriving stock Generic
     
 instance ParseRecord (Cmd Wrapped)
@@ -63,7 +64,8 @@ main =
             rawCfg 
             & db.host %~ (`fromMaybe` localhost) 
             & db.port %~ (`fromMaybe` localport) 
-            & ekg.host %~ (`fromMaybe` ekgHost) 
+            & ekg.host %~ (`fromMaybe` ekgHost)
+            & auth.isAuthEnabled %~ (`fromMaybe` isAuth)
       pPrint cfg
 
       void $ forkServer (cfg^.ekg.host.stext.textbs) (cfg^.ekg.port)
