@@ -65,7 +65,7 @@ deploy-prod:
   script:
     - docker pull $IMAGE_TAG_LATEST
     - echo "IMAGE_TAG"="$IMAGE_TAG" > .env
-    - docker-compose stop
+    - docker container stop edge-node-server
     - docker-compose up -d
   environment:
     name: Production
