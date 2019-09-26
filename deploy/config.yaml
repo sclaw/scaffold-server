@@ -21,7 +21,7 @@ configPool:
   poolSettingsResPerStripe: 1
 
 configKatip: 
-  katipPath: deploy/katip
+  katipPath: katip
   katipSeverity: DebugS
   katipVerbosity: V3 
   katipEnv: production

@@ -42,14 +42,17 @@ import Network.HTTP.Client (ManagerSettings (managerConnCount))
 import GHC.Generics (Generic)
 import Options.Generic
 import Data.Maybe
+import System.FilePath.Posix
 
 data Cmd w = 
      Cmd 
-     { cfgPath :: w ::: FilePath  <?> "config file path"
-     , localhost :: w ::: Maybe String  <?> "override db host if needed, used along with port"
-     , localport :: w ::: Maybe Int  <?> "override db port if needed" 
-     , ekgHost :: w ::: Maybe String  <?> "ekg host"
-     , isAuth :: w ::: Maybe Bool  <?> "is auth turn on"
+     { cfgPath :: w ::: FilePath <?> "config file path"
+     , localhost :: w ::: Maybe String <?> "override db host if needed, used along with port"
+     , localport :: w ::: Maybe Int <?> "override db port if needed" 
+     , ekgHost :: w ::: Maybe String <?> "ekg host"
+     , isAuth :: w ::: Maybe Bool <?> "is auth turn on"
+     , pathToKatip :: w ::: Maybe FilePath <?> "path to katip log"
+     , pathToJwk :: w ::: Maybe FilePath <?> "path to jwk"
      } deriving stock Generic
     
 instance ParseRecord (Cmd Wrapped)
@@ -66,6 +69,8 @@ main =
             & db.port %~ (`fromMaybe` localport) 
             & ekg.host %~ (`fromMaybe` ekgHost)
             & auth.isAuthEnabled %~ (`fromMaybe` isAuth)
+            & katip.path %~ (\path -> maybe path (</> path) pathToKatip)
+            & auth.EdgeNode.Config.jwk %~ (\path -> maybe path (</> path) pathToJwk)
       pPrint cfg
 
       void $ forkServer (cfg^.ekg.host.stext.textbs) (cfg^.ekg.port)
