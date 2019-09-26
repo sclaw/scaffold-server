@@ -1,6 +1,6 @@
 #!/bin/sh -eu
 
-export ekg_datadir=home/nix/ekg
+export ekg_datadir=home/nix/deploy/ekg
 cd /home/nix/
 
 sleep 2
