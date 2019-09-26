@@ -5,4 +5,4 @@ cd /home/nix/
 
 sleep 2
 echo 'launch server..'
-./edge-node-server config.yaml +RTS -N -T -s -A64m
+../bin/edge-node-server --cfgPath config.yaml +RTS -N -T -s -A64m

@@ -19,13 +19,12 @@ COPY --chown=nix:nix prog prog
 COPY --chown=nix:nix test test
 COPY --chown=nix:nix .git .git
 
-
 RUN touch .bash_profile && \
   curl https://nixos.org/nix/install | sh
 
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       stack install --fast -j12 --test
 
-COPY --chown=nix:nix deploy/ ./
+COPY --chown=nix:nix deploy deploy
 
-ENTRYPOINT ["/home/nix/init.sh"]
+ENTRYPOINT ["/home/nix/deploy/init.sh"]
