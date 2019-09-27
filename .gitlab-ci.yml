@@ -65,7 +65,10 @@ deploy-prod:
   script:
     - docker pull $IMAGE_TAG_LATEST
     - echo "IMAGE_TAG"="$IMAGE_TAG" > .env
-    - docker-compose up -d
+    - docker-compose stop server server-db
+	  - docker-compose rm -f -v server server-db
+	  - docker-compose create --force-recreate server server-db
+	  - docker-compose start server server-db
   environment:
     name: Production
     url: https://edgenode.org
