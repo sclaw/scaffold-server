@@ -7,12 +7,11 @@ services:
     ports:
       - '5433:5432'
     environment:
-      - DB_USER=${USER_VAR}
-      - DB_PASSWORD=${PWD_VAR}
-      - DB_DATABASE=${DB_VAR}
-      - DB_SCHEMA=${SCHEMA_VAR}
-      - POSTGRES_PASSWORD=${PG_PWD_VAR}
-      - POSTGRES_USER=${PG_USER_VAR}
+      - DB_USER=web
+      - DB_PASSWORD=this_is_web
+      - DB_DATABASE=web
+      - POSTGRES_PASSWORD=this_is_postgres
+      - POSTGRES_USER=postgres
     volumes:
       - ./deploy/db:/docker-entrypoint-initdb.d/
       - pg_data_db:/var/lib/postgresql/data
@@ -38,6 +37,5 @@ networks:
 
 volumes:
   pg_data_db: {}
-
 
 # vim: et:sw=2
