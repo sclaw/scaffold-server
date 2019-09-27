@@ -27,7 +27,7 @@ configKatip:
   katipEnv: production
 
 configEkg:
-  ekgHost: server
+  ekgHost: localhost
   ekgPort: 8000
 
 configAuth: 
