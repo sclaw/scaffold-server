@@ -1,6 +1,6 @@
 configDb:
-  dbHost: localhost
-  dbPort: 5433
+  dbHost: server-db
+  dbPort: 5432
   dbUser: web
   dbPass: this_is_web
   dbDatabase: web
