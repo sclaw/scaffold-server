@@ -4,6 +4,8 @@ services:
   server-db:
     container_name: "edge-node-server-db"
     restart: 'always'
+    expose:
+     - 5433
     ports:
       - '5433:5432'
     environment:
