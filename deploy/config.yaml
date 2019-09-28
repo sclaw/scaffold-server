@@ -1,5 +1,5 @@
 configDb:
-  dbHost: edge-node-server-db
+  dbHost: server-db
   dbPort: 5432
   dbUser: web
   dbPass: this_is_web
