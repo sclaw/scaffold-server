@@ -26,7 +26,6 @@ RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       stack install --fast -j12 --test
 
 COPY --chown=nix:nix deploy deploy
-
-RUN mkdir docker 
+COPY --chown=nix:nix docker docker
 
 ENTRYPOINT ["/home/nix/deploy/init.sh"]

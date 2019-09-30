@@ -53,6 +53,7 @@ data Cmd w =
      , isAuth :: w ::: Maybe Bool <?> "is auth turn on"
      , pathToKatip :: w ::: Maybe FilePath <?> "path to katip log"
      , pathToJwk :: w ::: Maybe FilePath <?> "path to jwk"
+     , swaggerHost :: w ::: Maybe FilePath <?> "swagger host"
      } deriving stock Generic
     
 instance ParseRecord (Cmd Wrapped)
@@ -71,6 +72,7 @@ main =
             & auth.isAuthEnabled %~ (`fromMaybe` isAuth)
             & katip.path %~ (\path -> maybe path (</> path) pathToKatip)
             & auth.EdgeNode.Config.jwk %~ (\path -> maybe path (</> path) pathToJwk)
+            & hosts %~ (`fromMaybe` fmap Hosts swaggerHost)
       pPrint cfg
 
       void $ forkServer (cfg^.ekg.host.stext.textbs) (cfg^.ekg.port)
