@@ -27,4 +27,6 @@ RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
 
 COPY --chown=nix:nix deploy deploy
 
+RUN mkdir docker 
+
 ENTRYPOINT ["/home/nix/deploy/init.sh"]
