@@ -64,7 +64,7 @@ deploy-prod:
   when: manual
   script:
     - docker pull $IMAGE_TAG_LATEST
-    - echo "IMAGE_TAG"="$IMAGE_TAG" > .env
+    - echo "PWD"="$(pwd)" > .env
     - docker-compose down
     - docker-compose up -d
   environment:
