@@ -64,6 +64,8 @@ deploy-prod:
   when: manual
   script:
     - docker pull $IMAGE_TAG_LATEST
+    - echo "current user -> $(whoami)"
+    - echo  "current dir -> $(pwd)"
     - echo "PWD"="$(pwd)" > .env
     - docker-compose down
     - docker-compose up -d
