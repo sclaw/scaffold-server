@@ -1,2 +1,0 @@
-alter table "edgeNode"."QualificationProvider" 
-         add column "qualificationProviderCategoryType" text;

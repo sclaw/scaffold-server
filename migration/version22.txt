@@ -1,4 +1,0 @@
-alter table "edgeNode"."Trajectory" 
-add constraint fk_trajectory_qualification_key 
-foreign key ("qualificationKey") 
-references "edgeNode"."QualificationProvider" (id);

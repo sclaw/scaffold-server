@@ -9,3 +9,4 @@ frontend/proto
 dist/
 stack.yaml.lock 
 /dist*
+.*

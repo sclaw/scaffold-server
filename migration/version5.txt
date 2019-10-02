@@ -1,15 +1,14 @@
-create table if not exists "edgeNode"."StateExam" 
+create table if not exists "edgeNode"."UserQualification"
          (id bigserial primary key, 
-          "stateExamTitle" text not null, 
-          "stateExamCountry" text not null);
-         create table if not exists "edgeNode"."HigherDegree" 
-         (id bigserial primary key, 
-          "higherDegreeCountry" text not null, 
-          "higherDegreeProvider" text not null);
-         create table if not exists "edgeNode"."InternationalDiploma" 
-         (id bigserial primary key, 
-          "internationalDiplomaTitle" text not null);
-         create table if not exists "edgeNode"."LanguageStandard" 
-         (id bigserial primary key, 
-          "languageStandardStandard" text not null, 
-          "languageStandardGrade" bytea not null);
+          "userId" int8 not null constraint "UserQualification_userId_fk"
+          references "edgeNode"."User"(id) ,
+          "categoryType" text not null,
+          "categoryKey" int8 not null, 
+          "providerKey" int8 not null 
+          constraint "UserQualification_providerKey_fk" 
+          references "edgeNode"."Provider"(id),
+          "qualificationKey" int8 not null 
+          constraint "UserQualification_qualificationKey_fk" 
+          references "edgeNode"."QualificationProvider"(id),
+          constraint "UserQualification_categoryType_categoryKey_providerKey_qualificationKey_uniq" 
+          unique ("categoryType", "categoryKey", "providerKey", "qualificationKey"));
