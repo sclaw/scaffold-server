@@ -2,6 +2,7 @@ version: '3.2'
 services:
 
   server-db:
+    image: postgres
     container_name: "edge-node-server-db"
     restart: 'always'
     expose:
@@ -15,9 +16,8 @@ services:
       - POSTGRES_PASSWORD=this_is_postgres
       - POSTGRES_USER=postgres
     volumes:
-      - ./deploy/db:/docker-entrypoint-initdb.d/
+      - ./deploy/db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
       - pg_data_db:/var/lib/postgresql/data
-    build: './deploy/db'
     networks:
       - edgeNode
 
