@@ -1,0 +1,2 @@
+
+alter table "edgeNode"."Provider" add column "providerCountry" text not null;
