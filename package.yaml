@@ -155,6 +155,8 @@ library:
     - hashing
     - strict
     - optparse-generic
+    - smtp-mail
+    - mime-mail
   source-dirs:
     - src/core
     - src/extended
