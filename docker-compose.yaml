@@ -30,7 +30,8 @@ services:
       - server-db
     ports:
       - "12000:12000"
-      - "8000:8000"    
+      - "8000:8000"
+      - "25:25" 
     networks:
       - edgeNode
   
