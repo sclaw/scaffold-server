@@ -28,6 +28,8 @@ services:
       - server-db
     depends_on:
       - server-db
+    expose:
+     - 25      
     ports:
       - "12000:12000"
       - "8000:8000"
