@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module EdgeNode.Controller.Http.SearchQualification (controller) where
 
 import EdgeNode.Search
@@ -8,4 +10,4 @@ import KatipController
 import qualified Data.Text as T
 
 controller :: SearchPiece -> Maybe T.Text -> KatipController (Alternative (Error T.Text) XQualificationFullInfo)
-controller _ _ = undefined
+controller _ _ = return $ Error $ ResponseError "not implemented yet, use instead SearchInit handle"
