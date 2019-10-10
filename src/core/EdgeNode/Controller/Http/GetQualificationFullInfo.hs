@@ -30,10 +30,10 @@ import qualified Hasql.Statement as HS
 import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
 import Data.String.Interpolate
-import Data.Typeable
 import Data.Aeson
 import Control.Applicative ((<|>))
 import Protobuf.Scalar
+import Control.Monad
 
 controller ::  Maybe UserQualificationId -> UserId -> KatipController (Alternative (Error T.Text) GetQualificationFullInfoResponse)
 controller qualId userId = 
@@ -52,32 +52,51 @@ action userId qualId  _ =
          [i|select
             id, 
             (select (case when "categoryType" = '#{fromType TypeStateExam}' then 
-              (select row(id, json_build_object('title', "stateExamTitle", 'country', "stateExamCountry")::jsonb) 
-               from "edgeNode"."#{show (typeOf (undefined :: StateExam))}" 
-               where id = "categoryKey")
+              (select row(s.id, json_build_object('title', s."stateExamTitle", 'country', p."providerCountry")::jsonb) 
+               from "edgeNode"."StateExam" as s
+               left join "edgeNode"."StateExamProvider" as sp
+               on s.id = sp.state_exam_id
+               left join "edgeNode"."Provider" as p
+               on sp.provider_id = p.id
+               where s.id = "categoryKey")
               when "categoryType" = '#{fromType TypeHigherDegree}' then  
-              (select row(id, json_build_object('country', "higherDegreeCountry", 
+              (select row(h.id, json_build_object('country', p."providerCountry", 
               'provider', "higherDegreeProvider")::jsonb) 
-               from "edgeNode"."#{show (typeOf (undefined :: HigherDegree))}" 
-               where id = "categoryKey")
+               from "edgeNode"."HigherDegree" as h
+               left join "edgeNode"."HigherDegreeProvider" as hp
+               on h.id = hp.higher_degree_id
+               left join "edgeNode"."Provider" as p
+               on hp.provider_id = p.id
+               where h.id = "categoryKey")
               when "categoryType" = '#{fromType TypeInternationalDiploma}' then
               (select row(id, json_build_object('title', "internationalDiplomaTitle")::jsonb) 
-               from "edgeNode"."#{show (typeOf (undefined :: InternationalDiploma))}" 
+               from "edgeNode"."InternationalDiploma" 
                where id = "categoryKey")
               else (select row(id, json_build_object('standard', 
               "languageStandardStandard", 'grade', "languageStandardGrade")::jsonb) 
-              from "edgeNode"."#{show (typeOf (undefined :: LanguageStandard))}" 
-              where id = "categoryKey") end )), 
-            (select row(id, "providerTitle", "providerCountry") 
-             from "edgeNode"."#{show (typeOf (undefined :: Provider))}"
-             where id = uq."providerKey"),
+              from "edgeNode"."LanguageStandard" 
+              where id = "categoryKey") end )),
+   
+            (select   
+               row(p.id, "providerTitle", "providerCountry", 
+                   array_agg(distinct "qualificationProviderDegreeType")) 
+             from "edgeNode"."Provider" as p
+             left join "edgeNode"."QualificationProvider" as qp
+             on p.id = qp."qualificationProviderKey"
+             where p.id = uq."providerKey"
+             group by p.id, "providerTitle", "providerCountry"),
+           
             (select row(id, "qualificationProviderDegreeType", 
              "qualificationProviderTitle", 
              "qualificationProviderGradeRange") 
-             from "edgeNode"."#{show (typeOf (undefined :: QualificationProvider))}"
-             where id = uq."providerKey")   
-            from "edgeNode"."#{show (typeOf (undefined :: UserQualification))}" as uq 
-            where (case when ($2 :: bigint) is not null then uq."userId" = $1 and uq.id = ($2 :: bigint) else uq."userId" = $1 end)|]
+             from "edgeNode"."QualificationProvider"
+             where id = uq."providerKey"),
+           
+            "qualificationSkillLevel" 
+            from "edgeNode"."UserQualification" as uq 
+            where (case when ($2 :: bigint) is not null 
+                        then uq."userId" = $1 and uq.id = ($2 :: bigint) 
+                        else uq."userId" = $1 end)|]
     let encoder = 
          (userId^._Wrapped' >$ HE.param HE.int8) <>
          (qualId^?_Just._Wrapped' >$ HE.nullableParam HE.int8)
@@ -95,7 +114,10 @@ fullInfoDecoder =
     let value = 
          XUserQualificationFullinfo 
          (Just id) 
-         (Just (UserQualificationFullinfo (Just category) provider qualification skill))
+         (Just (UserQualificationFullinfo 
+                (Just category) 
+                provider 
+                qualification skill))
     return value
   where
     categoryComp =
@@ -124,8 +146,11 @@ fullInfoDecoder =
         id <- fmap ProviderId (HD.field HD.int8)
         title <- HD.field HD.text
         country <- fmap (^.from Iso.country) (HD.field HD.text)
-        degrees <- undefined
-        return $ XProvider (Just id) (Just (Provider (title^.from lazytext) country)) degrees
+        degrees <- HD.field (HD.array (HD.dimension replicateM (HD.element HD.text)))
+        return $ XProvider 
+                 (Just id) 
+                 (Just (Provider (title^.from lazytext) country)) 
+                 ((degrees^..traversed.from lazytext)^.vector)
     qualComp =
       do 
         id <- fmap QualificationId (HD.field HD.int8)
