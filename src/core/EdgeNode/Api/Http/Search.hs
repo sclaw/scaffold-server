@@ -8,6 +8,7 @@
 module EdgeNode.Api.Http.Search (SearchApi (..)) where
 
 import EdgeNode.Search
+import EdgeNode.Search.Filter
 import EdgeNode.Provider.Qualification
 
 import Servant.API.Generic
@@ -33,4 +34,9 @@ data SearchApi route =
           (Alternative 
            (Error T.Text) 
            [XQualificationFullInfo])
+     , _searchApiFilter
+       :: route
+       :- Description "filter"
+       :> "filter"
+       :> Get '[JSON] (Alternative (Error T.Text) Filter)
      } deriving stock Generic

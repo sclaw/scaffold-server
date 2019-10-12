@@ -93,7 +93,7 @@ action uid = maybe (throwError (Request [val])) ok
                   on qd.dependency = qp.id
                 cross join "edgeNode"."UserQualification" as uq
                 where qd.key = ? and uq."userId" = ?;|]
-        streamGet <- queryRaw False sqlGet 
+        streamGet <- queryRaw False sqlGet
          [toPrimitivePersistValue ident, 
           toPrimitivePersistValue uid]
         deps <- liftIO $ streamToList streamGet

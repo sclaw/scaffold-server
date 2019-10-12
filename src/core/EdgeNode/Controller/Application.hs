@@ -21,9 +21,10 @@ import qualified EdgeNode.Controller.Http.GetCategories as User.GetCategories
 import qualified EdgeNode.Controller.Http.GetProviders as User.GetProviders
 import qualified EdgeNode.Controller.Http.GetQualififcations as User.GetQualififcations 
 import qualified EdgeNode.Controller.Http.SearchQualification as SearchQualification
-import qualified EdgeNode.Controller.Http.SearchInit as SearchInit
+import qualified EdgeNode.Controller.Http.SearchInit as Search.SearchInit
 import qualified EdgeNode.Controller.Http.GetTrajectories as User.GetTrajectories
 import qualified EdgeNode.Controller.Http.SaveTrajectory as User.SaveTrajectory
+import qualified EdgeNode.Controller.Http.SearchFilter as Search.SearchFilter
 
 import Katip
 import KatipController
@@ -144,5 +145,10 @@ search user =
      flip logExceptionM ErrorS $
       katipAddNamespace 
       (Namespace ["search", "init"])
-      (applyController (Just (SearchInit.controller Nothing)) user (SearchInit.controller . Just . jWTUserUserId)) 
+      (applyController (Just (Search.SearchInit.controller Nothing)) user (Search.SearchInit.controller . Just . jWTUserUserId))
+  , _searchApiFilter =
+     flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["search", "filter"])
+     (applyController (Just Search.SearchFilter.controller) user (const Search.SearchFilter.controller))
   }
