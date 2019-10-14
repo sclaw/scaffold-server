@@ -55,6 +55,6 @@ action = do
         countries <- HD.column (HD.array (HD.dimension replicateM (HD.element (HD.text <&> (^.from country)))))
         let filterCountries = Just $ Countries (countries^.vector)
         degrees <- HD.column (HD.array (HD.dimension replicateM (HD.element HD.text)))
-        let filterDegrees = Just $ Degrees ((areas^..traverse.from lazytext)^.vector)
+        let filterDegrees = Just $ Degrees ((degrees^..traverse.from lazytext)^.vector)
         return Filter {..}
   Hasql.Session.statement () (HS.Statement sql HE.unit decoder False)
