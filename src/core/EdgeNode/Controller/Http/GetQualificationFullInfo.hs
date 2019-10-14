@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module EdgeNode.Controller.Http.GetQualificationFullInfo (controller) where
 
@@ -164,13 +165,14 @@ fullInfoDecoder =
         degree <- fmap (fmap (Protobuf.Scalar.String . (^.from lazytext))) 
                   (HD.nullableField HD.text)
         title <- HD.field HD.text
-        grade <-  fmap fromJSON (HD.field HD.jsonb)
+        grade :: Result [ExGradeRange] <- fmap fromJSON (HD.field HD.jsonb)
+        let
         let mkQual = 
                XQualification (Just id) degree 
              . Just 
              . EdgeNode.Provider.Qualification.Qualification 
               (title^.from lazytext)
-        case fmap mkQual grade of 
+        case fmap (mkQual . (^.vector) . map (mkRange . exGradeRangeGrade)) grade of 
           Success x -> return x
           Data.Aeson.Error e -> 
             error $ "qualification decode error: " <> e
