@@ -39,4 +39,11 @@ data SearchApi route =
        :- Description "filter"
        :> "filter"
        :> Get '[JSON] (Alternative (Error T.Text) Filter)
+     , _searchApiApplyFilter
+       :: route
+       :- Description "filter"
+       :> "filter"
+       :> "apply"
+       :> ReqBody '[JSON] Filter
+       :> Post '[JSON] (Alternative (Error T.Text) [XQualificationFullInfo])  
      } deriving stock Generic
