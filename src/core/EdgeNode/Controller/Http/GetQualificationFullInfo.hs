@@ -92,7 +92,7 @@ action userId qualId  _ =
              "qualificationProviderTitle", 
              "qualificationProviderGradeRange") 
              from "edgeNode"."QualificationProvider"
-             where id = uq."providerKey"),
+             where id = uq."qualificationKey"),
            
             "qualificationSkillLevel" 
             from "edgeNode"."UserQualification" as uq 
