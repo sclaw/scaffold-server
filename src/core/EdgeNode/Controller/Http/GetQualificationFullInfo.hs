@@ -34,6 +34,8 @@ import Data.Aeson
 import Control.Applicative ((<|>))
 import Protobuf.Scalar
 import Control.Monad
+import qualified Data.HashMap.Strict as HashMap
+import Data.Char
 
 controller ::  Maybe UserQualificationId -> UserId -> KatipController (Alternative (Error T.Text) GetQualificationFullInfoResponse)
 controller qualId userId = 
@@ -51,7 +53,7 @@ action userId qualId  _ =
     let sql = 
          [i|select
             id, 
-            (select (case when "categoryType" = '#{fromType TypeStateExam}' then 
+            (select (case when "categoryType" = 'state_exam' then 
               (select row(s.id, json_build_object('title', s."stateExamTitle", 'country', p."providerCountry")::jsonb) 
                from "edgeNode"."StateExam" as s
                left join "edgeNode"."StateExamProvider" as sp
@@ -59,7 +61,7 @@ action userId qualId  _ =
                left join "edgeNode"."Provider" as p
                on sp.provider_id = p.id
                where s.id = "categoryKey")
-              when "categoryType" = '#{fromType TypeHigherDegree}' then  
+              when "categoryType" = 'higher_degree' then  
               (select row(h.id, json_build_object('country', p."providerCountry", 
               'provider', "higherDegreeProvider")::jsonb) 
                from "edgeNode"."HigherDegree" as h
@@ -68,7 +70,7 @@ action userId qualId  _ =
                left join "edgeNode"."Provider" as p
                on hp.provider_id = p.id
                where h.id = "categoryKey")
-              when "categoryType" = '#{fromType TypeInternationalDiploma}' then
+              when "categoryType" = 'international_diploma' then
               (select row(id, json_build_object('title', "internationalDiplomaTitle")::jsonb) 
                from "edgeNode"."InternationalDiploma" 
                where id = "categoryKey")
@@ -123,20 +125,24 @@ fullInfoDecoder =
     categoryComp =
       do
         id <- HD.field HD.int8
-        json <- HD.field HD.jsonb
+        object <- HD.field HD.jsonb
+
+        let mkUpper x = T.cons (toUpper (T.head x)) (T.tail x)
+        let adjustCountry (Data.Aeson.String s) = Data.Aeson.String (T.concat (map mkUpper (T.splitOn "_" s)))  
+        let modifyCountry (Object x) = Object $ HashMap.adjust adjustCountry "country" x 
         let value = 
              ((UserQualificationFullinfoCategoryStateExam 
              . XStateExam (Just (StateExamId id)) . Just) `fmap` 
-              (fromJSON json :: Result StateExam)) <|> 
+              (fromJSON (modifyCountry object) :: Result StateExam)) <|> 
              ((UserQualificationFullinfoCategoryHigherDegree 
              . XHigherDegree (Just (HigherDegreeId id)) . Just) `fmap` 
-              (fromJSON json :: Result HigherDegree)) <|> 
+              (fromJSON (modifyCountry object) :: Result HigherDegree)) <|> 
              ((UserQualificationFullinfoCategoryInternationalDiploma 
              . XInternationalDiploma (Just (InternationalDiplomaId id)) . Just) `fmap`              
-              (fromJSON json :: Result InternationalDiploma)) <|>
+              (fromJSON object :: Result InternationalDiploma)) <|>
              ((UserQualificationFullinfoCategoryLanguageStandard 
              . XLanguageStandard (Just (LanguageStandardId id)) . Just) `fmap` 
-              (fromJSON json :: Result LanguageStandard))
+              (fromJSON object :: Result LanguageStandard))
         case value of 
           Success x -> return x
           Data.Aeson.Error e -> 
