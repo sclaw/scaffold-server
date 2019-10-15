@@ -40,8 +40,6 @@ import Data.Validation
 import Data.Traversable
 import Data.Bifunctor
 
-import Debug.Trace
-
 controller :: SaveQualificationsRequest -> UserId  -> KatipController (Alternative (Error T.Text) SaveQualificationsResponse)
 controller req userId =
   do 
@@ -105,7 +103,6 @@ mkTpl x =
     qualm <- x^?field @"userQualificationQualificationIdent"
     let qual = fmap (^.field @"qualificationIdValue") qualm
     skill <- x^?field @"userQualificationSkill"
-    traceM (show (catType, catId, provider, qual, skill))
     return (catType, catId, provider, qual, skill)
 
 checkTypeWithGrade 
