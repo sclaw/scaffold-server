@@ -34,12 +34,13 @@ import Data.String.Interpolate
 import Data.List
 import Contravariant.Extras.Contrazip
 import Data.Int
-import Data.Typeable
 import Data.Maybe
 import Data.Aeson (Value, toJSON)
 import Data.Validation
 import Data.Traversable
 import Data.Bifunctor
+
+import Debug.Trace
 
 controller :: SaveQualificationsRequest -> UserId  -> KatipController (Alternative (Error T.Text) SaveQualificationsResponse)
 controller req userId =
@@ -50,29 +51,31 @@ controller req userId =
       let xsm = req^._Wrapped'.field @"requestValues".from vector
       let xs = mapMaybe mkTpl xsm
       let validator = foldr checkTypeWithGrade (Success []) xs
+
       for validator $ \xs -> do
         let sql = 
               [i|with real as (select 
                 case when t = '#{fromType TypeStateExam}' then 
-                (select id from "edgeNode"."#{show (typeOf (undefined :: StateExam))}" where id = i)
+                (select id from "edgeNode"."StateExam" where id = i)
                 when t = '#{fromType TypeHigherDegree}' then  
-                (select id from "edgeNode"."#{show (typeOf (undefined :: HigherDegree))}" where id = i)
+                (select id from "edgeNode"."HigherDegree" where id = i)
                 when t = '#{fromType TypeInternationalDiploma}' then
-                (select id from "edgeNode"."#{show (typeOf (undefined :: InternationalDiploma))}" where id = i)
-                else (select id from "edgeNode"."#{show (typeOf (undefined :: LanguageStandard))}" where id = i) end as ident
+                (select id from "edgeNode"."InternationalDiploma" where id = i)
+                else (select id from "edgeNode"."LanguageStandard" where id = i) end as ident
                 from unnest($1, $2) as u(t, i))
-                insert into "edgeNode"."#{show (typeOf (undefined :: UserQualification))}"
+                insert into "edgeNode"."UserQualification"
                 ("categoryType", "categoryKey", "providerKey", "qualificationKey", "qualificationSkillLevel", "userId") 
                 (select x.*, $6 from unnest($1, (select array_agg(ident) from real), $3, $4, $5) as x) returning id
               |]
         let vector v = HE.param (HE.array (HE.dimension foldl' (HE.element v)))
+        let nullvector v = HE.param (HE.array (HE.dimension foldl' (HE.nullableElement v)))
         let encoderXs = 
               unzip5 xs >$
               contrazip5 
               (vector HE.text) 
               (vector HE.int8) 
-              (vector HE.int8) 
-              (vector HE.int8)
+              (nullvector HE.int8) 
+              (nullvector HE.int8)
               (vector HE.jsonb)
         let encoder = encoderXs <> (userId^._Wrapped' >$ HE.param HE.int8)     
         let decoder = HD.rowList $ HD.column HD.int8 <&> UserQualificationId
@@ -83,9 +86,9 @@ controller req userId =
     let mkUserErr xs = ResponseError $ T.intercalate ", " xs 
     return $ either (Error . mkErr) (bimap mkUserErr mkResp . (^.from _Validation)) resp  
     
-mkTpl :: UserQualification -> Maybe (T.Text, Int64, Int64, Int64, UserQualificationSkill)
+mkTpl :: UserQualification -> Maybe (T.Text, Int64, Maybe Int64, Maybe Int64, Maybe UserQualificationSkill)
 mkTpl x = 
-  do  
+  do
     cat <- x^?field @"userQualificationCategory"._Just
     let (catType, catId) = 
           case cat of
@@ -97,24 +100,28 @@ mkTpl x =
              (fromType TypeInternationalDiploma^.stext, i)
             UserQualificationCategoryLanguageStandardId (LanguageStandardId i) -> 
              (fromType TypeLanguageStandard^.stext, i)
-    provider <- x^?field @"userQualificationProviderIdent"._Just.field @"providerIdValue"
-    qual <- x^?field @"userQualificationQualificationIdent"._Just.field @"qualificationIdValue"
-    skill <- x^?field @"userQualificationSkill"._Just
+    providerm <- x^?field @"userQualificationProviderIdent"
+    let provider = fmap (^.field @"providerIdValue") providerm
+    qualm <- x^?field @"userQualificationQualificationIdent"
+    let qual = fmap (^.field @"qualificationIdValue") qualm
+    skill <- x^?field @"userQualificationSkill"
+    traceM (show (catType, catId, provider, qual, skill))
     return (catType, catId, provider, qual, skill)
 
 checkTypeWithGrade 
-  :: (T.Text, Int64, Int64, Int64, UserQualificationSkill)
-  -> Validation [T.Text] [(T.Text, Int64, Int64, Int64, Value)] 
-  -> Validation [T.Text] [(T.Text, Int64, Int64, Int64, Value)]
+  :: (T.Text, Int64, Maybe Int64, Maybe Int64, Maybe UserQualificationSkill)
+  -> Validation [T.Text] [(T.Text, Int64, Maybe Int64, Maybe Int64, Value)] 
+  -> Validation [T.Text] [(T.Text, Int64, Maybe Int64, Maybe Int64, Value)]
 checkTypeWithGrade x validator =
   case x^._5 of 
-    UserQualificationSkillQualificatonSkillLevel {} ->
+    Just (UserQualificationSkillQualificatonSkillLevel {}) ->
      if x^._1.from stext.from isoType /= 
         TypeLanguageStandard
      then second ((:) (x & _5 %~ toJSON)) validator
      else validator *> _Failure # [[i|mismatch type and grade, type #{x^._1}, value #{x^._5}|]]
-    UserQualificationSkillLanguageSkillLevel {} ->
+    Just (UserQualificationSkillLanguageSkillLevel {}) ->
      if x^._1.from stext.from isoType == 
         TypeLanguageStandard 
       then second ((:) (x & _5 %~ toJSON)) validator
       else validator *> _Failure # [[i|mismatch type and grade, type #{x^._1}, value #{x^._5}|]]
+    Nothing -> validator *> _Failure # [[i|skill not found: type #{x^._1}, ident #{show (x^._2 :: Int64)}|]]
