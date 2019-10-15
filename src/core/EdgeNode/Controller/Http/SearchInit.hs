@@ -67,7 +67,7 @@ action ident filter =
             on pr.id = qp."qualificationProviderKey"
             left join "edgeNode"."QualificationProviderFeatures" as qpf 
             on qpf."qualificationKey" = qp.id
-            where (case when $2 is not null  
+            where (case when $2::text[] is not null  
                         then (select exists (select 1 from 
                               (select * from jsonb_array_elements_text(qpf."academicAreas"::jsonb) as t(v)
                                intersect
