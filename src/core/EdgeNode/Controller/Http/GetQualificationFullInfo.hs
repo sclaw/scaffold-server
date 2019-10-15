@@ -33,7 +33,6 @@ import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
 import Data.String.Interpolate
 import Data.Aeson
-import Control.Applicative ((<|>))
 import Protobuf.Scalar
 import Control.Monad
 import qualified Data.HashMap.Strict as HashMap
@@ -55,6 +54,7 @@ action userId qualId  _ =
     let sql = 
          [i|select
             id, 
+            "categoryType",
             (select (case when "categoryType" = 'state_exam' then 
               (select row(s.id, json_build_object('title', s."stateExamTitle", 'country', p."providerCountry")::jsonb) 
                from "edgeNode"."StateExam" as s
@@ -111,7 +111,8 @@ fullInfoDecoder :: HD.Row XUserQualificationFullinfo
 fullInfoDecoder =
   do
     id <- fmap UserQualificationId (HD.column HD.int8)
-    category <- HD.column $ HD.composite categoryComp
+    categoryType <- HD.column HD.text
+    category <- HD.column $ HD.composite (categoryComp categoryType)
     provider <- HD.nullableColumn $ HD.composite providerComp
     qualification <- HD.nullableColumn $ HD.composite qualComp
     skill <- fmap (^.from jsonb) <$> HD.nullableColumn HD.jsonb
@@ -124,7 +125,7 @@ fullInfoDecoder =
                 qualification skill))
     return value
   where
-    categoryComp =
+    categoryComp type_ =
       do
         id <- HD.field HD.int8
         object <- HD.field HD.jsonb
@@ -133,18 +134,23 @@ fullInfoDecoder =
         let adjustCountry (Data.Aeson.String s) = Data.Aeson.String (T.concat (map mkUpper (T.splitOn "_" s)))  
         let modifyCountry (Object x) = Object $ HashMap.adjust adjustCountry "country" x 
         let value = 
-             ((UserQualificationFullinfoCategoryStateExam 
-             . XStateExam (Just (StateExamId id)) . Just) `fmap` 
-              (fromJSON (modifyCountry object) :: Result StateExam)) <|> 
-             ((UserQualificationFullinfoCategoryHigherDegree 
-             . XHigherDegree (Just (HigherDegreeId id)) . Just) `fmap` 
-              (fromJSON (modifyCountry object) :: Result HigherDegree)) <|> 
-             ((UserQualificationFullinfoCategoryInternationalDiploma 
-             . XInternationalDiploma (Just (InternationalDiplomaId id)) . Just) `fmap`              
-              (fromJSON object :: Result InternationalDiploma)) <|>
-             ((UserQualificationFullinfoCategoryLanguageStandard 
-             . XLanguageStandard (Just (LanguageStandardId id)) . Just) `fmap` 
-              (fromJSON object :: Result LanguageStandard))
+             case type_ of 
+              "state_exam" ->
+                (UserQualificationFullinfoCategoryStateExam 
+               . XStateExam (Just (StateExamId id)) . Just) `fmap`
+                (fromJSON (modifyCountry object) :: Result StateExam)
+              "higher_degree" ->  
+                (UserQualificationFullinfoCategoryHigherDegree 
+               . XHigherDegree (Just (HigherDegreeId id)) . Just) `fmap` 
+                (fromJSON (modifyCountry object) :: Result HigherDegree)
+              "international_diploma" -> 
+                (UserQualificationFullinfoCategoryInternationalDiploma 
+               . XInternationalDiploma (Just (InternationalDiplomaId id)) . Just) `fmap`              
+                (fromJSON object :: Result InternationalDiploma)
+              _ ->  
+                (UserQualificationFullinfoCategoryLanguageStandard 
+               . XLanguageStandard (Just (LanguageStandardId id)) . Just) `fmap` 
+                (fromJSON object :: Result LanguageStandard)
         case value of 
           Success x -> return x
           Data.Aeson.Error e -> 
