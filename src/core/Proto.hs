@@ -20,6 +20,7 @@ import qualified EdgeNode.Api.Http.User.GetProviders as GetProviders
 import qualified EdgeNode.Api.Http.User.GetQualififcations as GetQualififcations
 import qualified EdgeNode.Api.Http.User.GetTrajectories as GetTrajectories
 import qualified EdgeNode.Api.Http.User.SaveTrajectory as SaveTrajectory
+import qualified EdgeNode.Api.Http.User.PatchQualifications as PatchQualifications
 import EdgeNode.Lang
 import EdgeNode.Category
 import EdgeNode.Country
@@ -57,6 +58,7 @@ mkRequestWrapper ''GetTrajectories.Request
 mkResponseWrapper ''GetTrajectories.Response
 mkRequestWrapper ''SaveTrajectory.Request
 mkResponseWrapper ''SaveTrajectory.Response
+mkRequestWrapper ''PatchQualifications.Request
 
 mkEnumConvertor ''Language
 mkEnumConvertor ''Type

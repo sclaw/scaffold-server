@@ -41,11 +41,18 @@ data UserApi route =
      :> Patch '[JSON] (Alternative (Error T.Text) Unit)
      , _userSaveQualifications
       :: route 
-      :- Description "save new qualification"
+      :- Description "save new qualifications"
       :> "qualification"
       :> "save"
       :> ReqBody '[JSON] SaveQualificationsRequest
       :> Put '[JSON] (Alternative (Error T.Text) SaveQualificationsResponse)
+    , _userPatchQualifications
+      :: route 
+      :- Description "patch qualifications"
+      :> "qualification"
+      :> "patch"
+      :> ReqBody '[JSON] PatchQualificationsRequest
+      :> Patch '[JSON] (Alternative (Error T.Text) Unit)      
      , _userGetFullInfoQualififcation
        :: route 
        :- Description "get qualification by given ids, if no ids passed all qualififcations got back"
