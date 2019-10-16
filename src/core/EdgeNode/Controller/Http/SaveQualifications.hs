@@ -121,4 +121,7 @@ checkTypeWithGrade x validator =
         TypeLanguageStandard 
       then second ((:) (x & _5 %~ toJSON)) validator
       else validator *> _Failure # [[i|mismatch type and grade, type #{x^._1}, value #{x^._5}|]]
-    Nothing -> validator *> _Failure # [[i|skill not found: type #{x^._1}, ident #{show (x^._2 :: Int64)}|]]
+    Nothing -> 
+      case x^._1 of  
+        "international_diploma" -> second ((:) (x & _5 %~ toJSON)) validator
+        _ -> validator *> _Failure # [[i|skill not found: type #{x^._1}, ident #{show (x^._2 :: Int64)}|]]
