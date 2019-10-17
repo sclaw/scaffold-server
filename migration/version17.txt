@@ -1,0 +1,5 @@
+alter table "edgeNode"."UserQualification" 
+add column "isDeleted" default false,
+add column "timeCreated" timestamptz default now(),
+add column "timeUpdated" timestamptz null,
+add column "timeDeleted" timestamptz null
