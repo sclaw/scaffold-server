@@ -10,7 +10,6 @@ module EdgeNode.Api.Http.User (UserApi (..)) where
 import EdgeNode.Model.User
 import EdgeNode.User.Qualification
 import EdgeNode.Model.User.Qualification ()
-import EdgeNode.Provider.Qualification
 import EdgeNode.Model.Provider
 
 import Proto
@@ -20,7 +19,6 @@ import Servant.API
 import Json
 import Data.Aeson.Unit
 import qualified Data.Text as T
-import Data.Aeson.WithField
 import Data.Int
 import Data.Word
 
@@ -102,5 +100,5 @@ data UserApi route =
        :> "add"
        :> ReqBody '[JSON] SaveTrajectoryRequest
        :> Put '[JSON] 
-          (Alternative (Error [WithField "qualificationId" (Maybe QualificationId) SaveTrajectoryError]) SaveTrajectoryResponse)                 
+          (Alternative (Error T.Text) SaveTrajectoryResponse)                 
      } deriving stock Generic

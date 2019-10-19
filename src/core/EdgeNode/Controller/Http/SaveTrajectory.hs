@@ -6,160 +6,96 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module EdgeNode.Controller.Http.SaveTrajectory (controller) where
 
 import EdgeNode.Model.User (UserId)
 import EdgeNode.Provider.Qualification
-import EdgeNode.Error
-import EdgeNode.Model.Qualification
-import EdgeNode.Api.Http.User.SaveTrajectory (Response (..))
+import EdgeNode.Error 
+import EdgeNode.Model.Qualification ()
 import EdgeNode.Model.User.Trajectory
+import EdgeNode.Api.Http.User.SaveTrajectory (Response (..))
 
 import Proto
 import KatipController
 import Json
-import Data.Aeson.WithField
 import Control.Lens
 import Database.Action
 import Katip
 import Control.Lens.Iso.Extended
-import Database.Exception
-import Data.Bifunctor
-import Control.Monad.Error.Class 
-       ( throwError
-       , catchError)
-import Control.Exception (fromException)
-import Data.Maybe
 import Data.Generics.Product
-import Database.Groundhog.Core
-import Database.Groundhog.Generic
-import Data.String.Interpolate
-import Control.Monad.IO.Class
+import qualified Data.Text as T
+import qualified Hasql.Session as Hasql.Session
+import Data.Either.Unwrap
 import Control.Monad
-import qualified Data.Sequence as Seq
 import Data.Traversable
-import qualified Data.Aeson as Aeson
-import Database.Groundhog.Instances ()
-import Orm.PersistField ()
-import Data.Monoid
-
-type RequestError = [WithField "qualificationId" (Maybe QualificationId) SaveTrajectoryError]
+import Data.Either.Combinators (maybeToRight)
+import Data.String.Interpolate
+import qualified Hasql.Statement as HS
+import qualified Hasql.Encoders as HE
+import qualified Hasql.Decoders as HD
+import Data.Aeson
 
 controller 
   :: SaveTrajectoryRequest
   -> UserId 
   -> KatipController 
-     (Alternative (Error RequestError) 
+     (Alternative (Error T.Text) 
       SaveTrajectoryResponse)    
 controller req uid  =
   do
     let ident = req^._Wrapped'.field @"requestIdent"
-    orm <- fmap (^.katipEnv.ormDB) ask
-    let logErr e = 
-          do $(logTM) ErrorS (logStr (show e))
-             throwError e   
-    let mkError e = 
-         maybe 
-         (ServerError (InternalServerError (show e^.stextl))) 
-         (fromMaybe (error "panic!!!!") . 
-          (^?_Request.to ResponseError)) 
-         (fromException e :: Maybe (Groundhog RequestError))
-    (^.eitherToAlt) . first mkError <$> 
-     runTryDbConnGH (action uid ident `catchError` logErr) orm
+    raw <- (^.katipEnv.rawDB) `fmap` ask
+    x <- runTryDbConnHasql (const (action uid ident)) raw
+    whenLeft x ($(logTM) ErrorS . logStr . show) 
+    let mkErr e = ServerError $ InternalServerError (show e^.stextl)     
+    case x of 
+      Left e -> return $ Json.Error $ mkErr e
+      Right (Left e) -> return $ Json.Error $ ResponseError e
+      Right (Right resp) -> return $ Fortune resp
 
-action :: UserId -> Maybe QualificationId -> EdgeNodeAction RequestError SaveTrajectoryResponse     
-action uid = maybe (throwError (Request [val])) ok
+action :: UserId -> Maybe QualificationId -> Hasql.Session.Session (Either T.Text SaveTrajectoryResponse)
+action uid qidm = fmap (join . maybeToRight "qualification request id empty") $ for qidm go
   where 
-    val :: 
-      WithField 
-      "qualificationId" 
-      (Maybe QualificationId) 
-      SaveTrajectoryError
-    val = WithField Nothing TrajectoryQualificationNotPassed
-    ok ident = 
+    go qid = 
       do
-        let sqlGet = 
-             [i|select distinct on 
-                 ( qp."qualificationProviderCategoryType"
-                 , qd."minRequiredGrade")
-                 qp."qualificationProviderCategoryType", 
-                 qd."minRequiredGrade",                        
-                 uq."qualificationSkillLevel",
-                 qp."qualificationProviderGradeRange"
-                from "edgeNode"."QualificationProvider" as qp
-                join "edgeNode"."QualificationDependency" as qd
-                  on qd.dependency = qp.id
-                cross join "edgeNode"."UserQualification" as uq
-                where qd.key = ? and uq."userId" = ?;|]
-        streamGet <- queryRaw False sqlGet
-         [toPrimitivePersistValue ident, 
-          toPrimitivePersistValue uid]
-        deps <- liftIO $ streamToList streamGet
-        $(logTM) DebugS (logStr ([i|raw data -> #{show deps}|] :: String))
-        let mkQDiff 0 _ = error [i|counter is zero|]
-            mkQDiff cnt score = QualificationDiff (getSum score / fromIntegral (getSum cnt))     
-        diff :: QualificationDiff <- uncurry mkQDiff <$> 
-         if null deps then return (Sum 1, Sum 100) else foldM accScore (Sum 0, Sum 0) deps
-
-        $(logTM) DebugS (logStr ([i|qualififcation diff: #{show diff}|] :: String)) 
-
-        let sqlPut = 
-              [i|insert into "edgeNode"."Trajectory" 
-                 ("user", "qualificationKey", "overlap") 
-                 values (?, ?, ?) returning id|]  
-        streamPut <- queryRaw False sqlPut
-          [toPrimitivePersistValue uid,
-           toPrimitivePersistValue ident,
-           toPrimitivePersistValue 
-           (ValueWrapper (Aeson.toJSON diff))]
-        row <- firstRow streamPut
-        trajectoryIdent <- for row (fromSinglePersistValue . head)
-        return $ SaveTrajectoryResponse $ Response trajectoryIdent 
-
-accScore :: (Sum Int, Sum Double) -> [PersistValue] -> EdgeNodeAction RequestError (Sum Int, Sum Double)  
-accScore score xs = 
-  do
-    let seq = xs^.seql
-    ty <- maybe (error "persist field category type not found") 
-          (fmap toWrapperType . fromSinglePersistValue) (seq Seq.!? 0)
-    qual :: ValueWrapper <- 
-      maybe (error "persist field required grade not found") 
-      fromSinglePersistValue (seq Seq.!? 1)
-    user :: Maybe ValueWrapper <- 
-      maybe (error "persist field user grade not found")
-      fromSinglePersistValue (seq Seq.!? 2)
-    range <- 
-      maybe (error "persist field grade range not found") 
-      (fmap Aeson.fromJSON . fromSinglePersistValue) (seq Seq.!? 3)
-    case range of 
-      Aeson.Error e -> throwError $ Action [i|range decode error: #{show range}|]
-      Aeson.Success xs -> return $ mkScore score ty (qual^.coerced) (user^?_Just.coerced) xs
-    
-mkScore :: (Sum Int, Sum Double) -> WrapperType -> Aeson.Value -> Maybe Aeson.Value -> [ExGradeRange] -> (Sum Int, Sum Double)
-mkScore score ty qualVal userVal xs = 
-  case result of 
-    Aeson.Success x -> x 
-    Aeson.Error e -> error [i|from json error: #{show ty}, #{show qualVal}, #{show userVal}|] 
-  where 
-    go lens = do 
-      qual <- Aeson.fromJSON qualVal 
-      userm <- traverse Aeson.fromJSON userVal
-      let xs' =
-           [( exGradeRangeRank
-            , exGradeRangeGrade^?lens) 
-            | ExGradeRange {..} <- xs]
-      return $ maybe (first (+ 1) score) (cmp xs' qual) userm
-    result = 
-      case ty of 
-        StateExam -> go _Right
-        HigherDegree -> go _Right
-        InternationalDiploma -> 
-          error [i|unsupported type: #{fromWrapperType InternationalDiploma}|]
-        LanguageStandard -> go _Left
-    cmp xs qual user 
-      | searchIdx user xs >= searchIdx qual xs = bimap (+ 1) (+ 1) score
-      | otherwise = bimap (+ 1) (fmap (+ 0.5)) score
-    searchIdx g [] = error [i|grade not found: #{show g}|]
-    searchIdx g ((i, g'):gs) = if g == g' then i else searchIdx g gs 
+        let sql = 
+             [i|
+              select sum(("minRequiredGrade"->0)::int8), 
+                     coalesce(sum(("qualificationSkillLevel"#>'{qualificatonSkillLevel, value, integral}')::int8), 0)
+              from (select 
+                      qd.key, 
+                      qd.dependency, 
+                      qd."minRequiredGrade", 
+                      qp."qualificationProviderTitle" 
+                    from "edgeNode"."QualificationDependency" as qd
+                    left join "edgeNode"."QualificationProvider" as qp
+                    on qd.dependency = qp.id) as qd
+              left join "edgeNode"."UserQualification" as uq
+              on qd.dependency = uq."qualificationKey" and "userId" = $2 
+              where qd."key" = $1
+              group by "qualificationProviderTitle"      
+             |] 
+        let encoder = 
+             (qid^._Wrapped' >$ HE.param HE.int8) <>
+             (uid^._Wrapped' >$ HE.param HE.int8)
+        let decoder = HD.singleRow $ do
+              min <- HD.column HD.int8
+              skill <- HD.column HD.int8
+              return (min, skill)
+        (min, skill) <- Hasql.Session.statement () (HS.Statement sql encoder decoder False)
+        let diff = QualificationDiff ((fromIntegral skill * 100) / fromIntegral min)
+        let sqlT = 
+              [i|
+                insert into "edgeNode"."Trajectory" 
+                ("user", "qualificationKey", "overlap") 
+                values ($2, $1, $3) returning id
+              |]
+        let encoder =
+             (qid^._Wrapped' >$ HE.param HE.int8) <>
+             (uid^._Wrapped' >$ HE.param HE.int8) <>
+             (toJSON diff >$ HE.param HE.jsonb)
+        let decoder = HD.singleRow $ HD.column HD.int8
+        ident <- Hasql.Session.statement () (HS.Statement sqlT encoder decoder False)
+        return $ Right $ SaveTrajectoryResponse $ Response (Just (TrajectoryId ident))
