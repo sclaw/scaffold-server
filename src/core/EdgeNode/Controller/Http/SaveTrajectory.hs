@@ -74,8 +74,7 @@ action uid qidm = fmap (join . maybeToRight "qualification request id empty") $ 
                     on qd.dependency = qp.id) as qd
               left join "edgeNode"."UserQualification" as uq
               on qd.dependency = uq."qualificationKey" and "userId" = $2 
-              where qd."key" = $1
-              group by "qualificationProviderTitle"      
+              where qd."key" = $1      
              |] 
         let encoder = 
              (qid^._Wrapped' >$ HE.param HE.int8) <>
