@@ -100,5 +100,12 @@ data UserApi route =
        :> "add"
        :> ReqBody '[JSON] SaveTrajectoryRequest
        :> Put '[JSON] 
-          (Alternative (Error T.Text) SaveTrajectoryResponse)                 
+          (Alternative (Error T.Text) SaveTrajectoryResponse)
+     , _userDeleteQualification
+       :: route 
+       :- Description "remove qualification"
+       :> "qualification"
+       :> "delete"
+       :> Capture "id" UserQualificationId
+       :> Delete '[JSON] (Alternative (Error T.Text) Unit)     
      } deriving stock Generic

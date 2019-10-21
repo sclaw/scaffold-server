@@ -27,6 +27,7 @@ import qualified EdgeNode.Controller.Http.SaveTrajectory as User.SaveTrajectory
 import qualified EdgeNode.Controller.Http.SearchFilter as Search.SearchFilter
 import qualified EdgeNode.Controller.Http.SearchApplyFilter as Search.SearchApplyFilter
 import qualified EdgeNode.Controller.Http.PatchQualifications as User.PatchQualifications
+import qualified EdgeNode.Controller.Http.DeleteQualification as User.DeleteQualification
 
 import Katip
 import KatipController
@@ -127,6 +128,11 @@ user user =
     . katipAddNamespace 
       (Namespace ["user", "patchQualifications"])
     . (\req -> applyController Nothing user (User.PatchQualifications.controller req . jWTUserUserId))
+  , _userDeleteQualification =   
+    flip logExceptionM ErrorS
+    . katipAddNamespace 
+    (Namespace ["user", "patchQualifications"])
+    . (\id -> applyController Nothing user (User.DeleteQualification.controller id . jWTUserUserId))  
   }
 
 service :: AuthResult JWTUser -> ServiceApi (AsServerT KatipController)
