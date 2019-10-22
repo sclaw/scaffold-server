@@ -15,6 +15,7 @@ import EdgeNode.Api.Http.User.PatchQualifications
 import EdgeNode.User.Qualification
 import EdgeNode.Model.User.Qualification (UserQualificationSkill (..))
 import EdgeNode.Model.Qualification
+import qualified EdgeNode.Controller.Http.SaveTrajectory as SaveTrajectory 
 
 import Data.Generics.Product
 import Control.Lens
@@ -45,7 +46,10 @@ controller req uid =
   do
     let Just Request_Value {..} = req^._Wrapped'.field @"requestValue" 
     raw <- (^.katipEnv.rawDB) `fmap` ask
-    x <- runTryDbConnHasql (const (action uid request_ValueIdent request_ValueSkill)) raw
+    let go = do
+          e <- action uid request_ValueIdent request_ValueSkill
+          traverse (SaveTrajectory.action uid . Just) e
+    x <- runTryDbConnHasql (const go) raw
     whenLeft x ($(logTM) ErrorS . logStr . show) 
     let mkErr e = ServerError $ InternalServerError (show e^.stextl)
     case x of 
@@ -53,7 +57,7 @@ controller req uid =
       Right (Left e) -> return $ Json.Error $ ResponseError e
       Right (Right _) -> return $ Fortune Unit
 
-action :: UserId ->  Maybe UserQualificationId -> Maybe Request_ValueSkill -> Hasql.Session.Session (Either T.Text Unit)
+action :: UserId ->  Maybe UserQualificationId -> Maybe Request_ValueSkill -> Hasql.Session.Session (Either T.Text QualificationId)
 action _ qidm skillm = fmap (join . maybeToRight "qualififcation or (and) skill are absent, or both") $ for ((,) <$> qidm <*> skillm) (uncurry go)
   where
     go ident skill = 
@@ -80,13 +84,14 @@ action _ qidm skillm = fmap (join . maybeToRight "qualififcation or (and) skill 
           Success xs -> do 
             let sql = 
                   [i|update "edgeNode"."UserQualification" 
-                     set "qualificationSkillLevel" = $2 
-                     where id = $1|]
+                     set "qualificationSkillLevel" = $2
+                     where id = $1
+                     returning "qualificationKey"|]
             let encoder = 
                   contramap (^._1._Wrapped') (HE.param HE.int8) <>  
                   contramap (^._2.to toJSON) (HE.param HE.jsonb)
-            let decoder = HD.unit
-            for (search skill xs) $ \new -> fmap (const Unit) $ Hasql.Session.statement (ident, new) (HS.Statement sql encoder decoder False)
+            let decoder = HD.singleRow $ HD.column HD.int8 <&> (^.from _Wrapped') 
+            for (search skill xs) $ \new -> Hasql.Session.statement (ident, new) (HS.Statement sql encoder decoder False)
     search :: Request_ValueSkill -> [ExGradeRange] -> Either T.Text UserQualificationSkill
     search skill xs =
       case skill of

@@ -8,7 +8,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module EdgeNode.Controller.Http.SaveTrajectory (controller) where
+module EdgeNode.Controller.Http.SaveTrajectory (controller, action) where
 
 import EdgeNode.Model.User (UserId)
 import EdgeNode.Provider.Qualification
