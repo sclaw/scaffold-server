@@ -41,11 +41,12 @@ controller uid =
          Error (ServerError (InternalServerError (show e^.stextl)))
     either mkErr (return . Fortune . GetTrajectoriesResponse . Response . (^.vector)) x
 
-action :: UserId -> KatipLoggerIO -> Hasql.Session.Session [Trajectory]
+action :: UserId -> KatipLoggerIO -> Hasql.Session.Session [Response_Value]
 action uid logger = 
   do 
     let sql = 
          [i|select 
+             id,
              qp."qualificationProviderTitle",
              qp."qualificationProviderDegreeType",
              qpf.language, pr."providerTitle",
@@ -60,7 +61,8 @@ action uid logger =
             where tr.user = $1|] 
     let encoder = uid^._Wrapped' >$ HE.param HE.int8
     let trajectoryDecoder = 
-         do trajectoryQualificationTitle <- 
+         do ident <- HD.column HD.int8 <&> (^.from _Wrapped')
+            trajectoryQualificationTitle <- 
               HD.column HD.text <&> (^.from lazytext)
             trajectoryQualificationDegreeType <- 
               HD.column HD.text <&> (^.from lazytext)
@@ -77,7 +79,7 @@ action uid logger =
               (HD.jsonbBytes 
               ( first (^.stext) 
               . Aeson.eitherDecodeStrict))
-            return Trajectory {..}
+            return $ Response_Value (Just ident) (Just (Trajectory {..}))
     let decoder = HD.rowList trajectoryDecoder
     liftIO $ logger DebugS (logStr (sql^.from textbs.from stext))
     Hasql.Session.statement () (HS.Statement sql encoder decoder False)
