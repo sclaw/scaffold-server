@@ -41,7 +41,7 @@ controller tid uid =
 action :: TrajectoryId -> UserId -> Hasql.Session.Session (Either T.Text ())
 action tid uid =
   do
-    let sql = [i|delete from "edgeNode"."Trajectory" where user = $2 and id = $1|]
+    let sql = [i|delete from "edgeNode"."Trajectory" where "user" = $2 and id = $1|]
     let encoder =
           (tid^._Wrapped' >$ HE.param HE.int8) <>
           (uid^._Wrapped' >$ HE.param HE.int8)
