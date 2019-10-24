@@ -11,6 +11,7 @@ import EdgeNode.Model.User
 import EdgeNode.User.Qualification
 import EdgeNode.Model.User.Qualification ()
 import EdgeNode.Model.Provider
+import EdgeNode.Model.User.Trajectory
 
 import Proto
 import Servant.API.Generic
@@ -107,5 +108,12 @@ data UserApi route =
        :> "qualification"
        :> "delete"
        :> Capture "id" UserQualificationId
-       :> Delete '[JSON] (Alternative (Error T.Text) Unit)     
+       :> Delete '[JSON] (Alternative (Error T.Text) Unit)
+     , _userDeleteTrajectory
+       :: route 
+       :- Description "remove qualification"
+       :> "trajectory"
+       :> "delete"
+       :> Capture "id" TrajectoryId
+       :> Delete '[JSON] (Alternative (Error T.Text) Unit)        
      } deriving stock Generic

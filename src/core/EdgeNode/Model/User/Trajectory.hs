@@ -23,6 +23,10 @@ import TH.Mk
 import Database.Groundhog.Generic 
        ( primToPersistValue
        , primFromPersistValue)
+import Data.Swagger.ParamSchema
+
+instance ToParamSchema TrajectoryId
 
 mkPrimitivePersistField ''QualificationDiff [| jsonb |]
 mkWrappedPrimitivePersistField ''TrajectoryId
+mkFromHttpApiDataIdent ''TrajectoryId
