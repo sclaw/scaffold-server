@@ -46,7 +46,7 @@ action uid logger =
   do 
     let sql = 
          [i|select 
-             id,
+             tr.id,
              qp."qualificationProviderTitle",
              qp."qualificationProviderDegreeType",
              qpf.language, pr."providerTitle",
