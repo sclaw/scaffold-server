@@ -17,6 +17,7 @@
 module EdgeNode.Model.User.Qualification 
        (EdgeNode.Model.User.Qualification.UserQualification
        , UserQualificationSkill (..)
+       , UserQualificationId (..)
        ) where
 
 import EdgeNode.User.Qualification
