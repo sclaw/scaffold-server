@@ -9,6 +9,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeFamilies       #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module EdgeNode.Model.User.Trajectory 
        (module EdgeNode.User.Trajectory
