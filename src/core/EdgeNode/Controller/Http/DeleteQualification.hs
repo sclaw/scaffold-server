@@ -49,11 +49,13 @@ action qid uid =
     let sql = 
           [i|with del as 
               (delete from "edgeNode"."UserQualification" 
-               where "qualificationKey" = $1 
-                      and "userId" = $2)
-              select "key" 
-              from "edgeNode"."QualificationDependency" 
-              where "dependency" = $1         
+               where id = $1 and "userId" = $2
+               returning "qualificationKey" as k)
+               select "key"
+               from "edgeNode"."Trajectory" as tr
+               left join "edgeNode"."QualificationDependency" as qd
+               on qd."key" = tr."qualificationKey" 
+               where tr."user" = $2 and qd."dependency" = (select k from del)         
           |]
     let encoder =
          (qid^._Wrapped' >$ HE.param HE.int8) <>

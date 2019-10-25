@@ -89,7 +89,11 @@ action uid qidm = fmap (join . maybeToRight "qualification request id empty") $ 
               [i|
                 insert into "edgeNode"."Trajectory" 
                 ("user", "qualificationKey", "overlap") 
-                values ($2, $1, $3) returning id
+                values ($2, $1, $3) 
+                on conflict ("qualificationKey", "user")
+                do update
+                set "overlap" = excluded."overlap"  
+                returning id
               |]
         let encoder =
              (qid^._Wrapped' >$ HE.param HE.int8) <>
