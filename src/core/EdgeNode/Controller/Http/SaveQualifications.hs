@@ -82,8 +82,16 @@ controller req userId =
         let decoder = HD.rowList $ HD.column HD.int8 <&> UserQualificationId
         ids <- Hasql.Session.statement () (HS.Statement sql encoder decoder False)
         for_ xs $ \x -> for_ (x^._4) $ \ident -> do
-          let sql = [i|select "key" from "edgeNode"."QualificationDependency" where "dependency" = $1|]
-          let encoder = ident >$ HE.param HE.int8
+          let sql = 
+               [i|select tr."qualificationKey" 
+                  from "edgeNode"."Trajectory" as tr 
+                  left join "edgeNode"."QualificationDependency" qd
+                  on tr."qualificationKey" = qd."key"   
+                  where "dependency" = $1 
+                        and tr."user" = $2|]
+          let encoder = 
+               (ident >$ HE.param HE.int8) <> 
+               (userId^._Wrapped' >$ HE.param HE.int8)
           let decoder = HD.rowList $ HD.column HD.int8 <&> (^.from _Wrapped')
           keys <- Hasql.Session.statement () (HS.Statement sql encoder decoder False)  
           for_ keys $ SaveTrajectory.action userId . Just
