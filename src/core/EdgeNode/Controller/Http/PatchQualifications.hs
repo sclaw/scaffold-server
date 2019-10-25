@@ -92,7 +92,7 @@ action _ qidm skillm = fmap (join . maybeToRight "qualififcation or (and) skill 
                       from "edgeNode"."Trajectory" as tr 
                       left join "edgeNode"."QualificationDependency" as qd
                       on tr."qualificationKey" = qd."key" 
-                      where dependency = "qualificationKey")|]
+                      where dependency = $1)|]
             let encoder = 
                   contramap (^._1._Wrapped') (HE.param HE.int8) <>  
                   contramap (^._2.to toJSON) (HE.param HE.jsonb)
