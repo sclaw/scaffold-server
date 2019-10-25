@@ -57,7 +57,6 @@ import qualified Hasql.Decoders as HD
 import Data.String.Interpolate
 import Data.Bifunctor
 import Json
-import Data.Maybe
 import Servant.Server
 
 data AppJwt
