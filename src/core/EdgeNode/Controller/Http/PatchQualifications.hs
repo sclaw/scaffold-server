@@ -39,6 +39,7 @@ import Data.Aeson
 import Control.Monad.Error.Class (throwError)
 import Data.Either
 import Control.Monad
+import Data.Foldable
 
 controller :: PatchQualificationsRequest -> UserId -> KatipController (Alternative (Error T.Text) Unit)
 controller (PatchQualificationsRequest (Request Nothing)) _ = return $ Json.Error $ ResponseError "empty request"
@@ -48,8 +49,8 @@ controller req uid =
     raw <- (^.katipEnv.rawDB) `fmap` ask
     let go = do
           e <- action uid request_ValueIdent request_ValueSkill
-          traverse (SaveTrajectory.action uid . Just) e
-    x <- runTryDbConnHasql (const go) raw
+          traverse (\xs -> for_ xs $ SaveTrajectory.action uid . Just) e
+    x <- runTryDbConnHasql   (const go) raw
     whenLeft x ($(logTM) ErrorS . logStr . show) 
     let mkErr e = ServerError $ InternalServerError (show e^.stextl)
     case x of 
@@ -57,7 +58,7 @@ controller req uid =
       Right (Left e) -> return $ Json.Error $ ResponseError e
       Right (Right _) -> return $ Fortune Unit
 
-action :: UserId ->  Maybe UserQualificationId -> Maybe Request_ValueSkill -> Hasql.Session.Session (Either T.Text QualificationId)
+action :: UserId ->  Maybe UserQualificationId -> Maybe Request_ValueSkill -> Hasql.Session.Session (Either T.Text [QualificationId])
 action _ qidm skillm = fmap (join . maybeToRight "qualififcation or (and) skill are absent, or both") $ for ((,) <$> qidm <*> skillm) (uncurry go)
   where
     go ident skill = 
@@ -86,11 +87,16 @@ action _ qidm skillm = fmap (join . maybeToRight "qualififcation or (and) skill 
                   [i|update "edgeNode"."UserQualification" 
                      set "qualificationSkillLevel" = $2
                      where id = $1
-                     returning "qualificationKey"|]
+                     returning 
+                     (select coalesce(array_agg("key"), array[]::int8[])
+                      from "edgeNode"."Trajectory" as tr 
+                      left join "edgeNode"."QualificationDependency" as qd
+                      on tr."qualificationKey" = qd."key" 
+                      where dependency = "qualificationKey")|]
             let encoder = 
                   contramap (^._1._Wrapped') (HE.param HE.int8) <>  
                   contramap (^._2.to toJSON) (HE.param HE.jsonb)
-            let decoder = HD.singleRow $ HD.column HD.int8 <&> (^.from _Wrapped') 
+            let decoder = HD.singleRow $ HD.column $ HD.array (HD.dimension replicateM (HD.element (HD.int8 <&> (^.from _Wrapped')))) 
             for (search skill xs) $ \new -> Hasql.Session.statement (ident, new) (HS.Statement sql encoder decoder False)
     search :: Request_ValueSkill -> [ExGradeRange] -> Either T.Text UserQualificationSkill
     search skill xs =
