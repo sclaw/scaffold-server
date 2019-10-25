@@ -58,6 +58,7 @@ import Data.String.Interpolate
 import Data.Bifunctor
 import Json
 import Data.Maybe
+import Servant.Server
 
 data AppJwt
 
@@ -104,7 +105,7 @@ applyController unauthorized user authorized =
     Authenticated u -> authorized u
     Indefinite -> do 
       out <- sequence unauthorized  
-      return $ fromMaybe (Json.Error (AuthError "jwt not valid or malformed")) out
+      maybe (throwAll err401) return out
     err -> return $ Json.Error (AuthError (show err^.stext))
 
 jwtAuthCheck :: JWTSettings -> KatipLoggerIO -> Hasql.Pool -> AuthCheck JWTUser
