@@ -14,6 +14,8 @@ import EdgeNode.User.Qualification
 import EdgeNode.Category
 import EdgeNode.Model.User
 import EdgeNode.Model.User.Qualification ()
+import qualified EdgeNode.Controller.Http.SaveTrajectory as SaveTrajectory 
+import EdgeNode.Model.Qualification ()
 
 import Proto
 import Katip
@@ -39,6 +41,7 @@ import Data.Aeson (Value, toJSON)
 import Data.Validation
 import Data.Traversable
 import Data.Bifunctor
+import Data.Foldable
 
 controller :: SaveQualificationsRequest -> UserId  -> KatipController (Alternative (Error T.Text) SaveQualificationsResponse)
 controller req userId =
@@ -69,7 +72,7 @@ controller req userId =
         let nullvector v = HE.param (HE.array (HE.dimension foldl' (HE.nullableElement v)))
         let encoderXs = 
               unzip5 xs >$
-              contrazip5 
+              contrazip5  
               (vector HE.text) 
               (vector HE.int8) 
               (nullvector HE.int8) 
@@ -77,7 +80,14 @@ controller req userId =
               (vector HE.jsonb)
         let encoder = encoderXs <> (userId^._Wrapped' >$ HE.param HE.int8)     
         let decoder = HD.rowList $ HD.column HD.int8 <&> UserQualificationId
-        Hasql.Session.statement () (HS.Statement sql encoder decoder False)) 
+        ids <- Hasql.Session.statement () (HS.Statement sql encoder decoder False)
+        for_ xs $ \x -> for_ (x^._4) $ \ident -> do
+          let sql = [i|select "key" from "edgeNode"."QualificationDependency" where "dependency" = $1|]
+          let encoder = ident >$ HE.param HE.int8
+          let decoder = HD.rowList $ HD.column HD.int8 <&> (^.from _Wrapped')
+          keys <- Hasql.Session.statement () (HS.Statement sql encoder decoder False)  
+          for_ keys $ SaveTrajectory.action userId . Just
+        return ids)
     whenLeft resp ($(logTM) ErrorS . logStr . show) 
     let mkErr e = ServerError $ InternalServerError (show e^.stextl)
     let mkResp = SaveQualificationsResponse . Response . (^.vector)
