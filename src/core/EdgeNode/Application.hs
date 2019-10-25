@@ -133,5 +133,5 @@ mkCors = cors (const (pure newCors))
       simpleCorsResourcePolicy
        { corsRequestHeaders = ["Authorization", "content-type"]
        , corsExposedHeaders = Just ["X-Set-Bearer"]
-       , corsMethods = simpleMethods ++ ["PUT", "PATCH"]
+       , corsMethods = simpleMethods ++ ["PUT", "PATCH", "DELETE"]
        }
