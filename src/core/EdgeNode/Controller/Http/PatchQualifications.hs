@@ -59,7 +59,7 @@ controller req uid =
       Right (Right _) -> return $ Fortune Unit
 
 action :: UserId ->  Maybe UserQualificationId -> Maybe Request_ValueSkill -> Hasql.Session.Session (Either T.Text [QualificationId])
-action _ qidm skillm = fmap (join . maybeToRight "qualififcation or (and) skill are absent, or both") $ for ((,) <$> qidm <*> skillm) (uncurry go)
+action uid qidm skillm = fmap (join . maybeToRight "qualififcation or (and) skill are absent, or both") $ for ((,) <$> qidm <*> skillm) (uncurry go)
   where
     go ident skill = 
       do
@@ -84,20 +84,24 @@ action _ qidm skillm = fmap (join . maybeToRight "qualififcation or (and) skill 
               (Hasql.Session.ClientError Nothing)
           Success xs -> do 
             let sql = 
-                  [i|update "edgeNode"."UserQualification" 
-                     set "qualificationSkillLevel" = $2
-                     where id = $1
-                     returning 
-                     (select coalesce(array_agg("key"), array[]::int8[])
-                      from "edgeNode"."Trajectory" as tr 
-                      left join "edgeNode"."QualificationDependency" as qd
-                      on tr."qualificationKey" = qd."key" 
-                      where dependency = $1)|]
+                  [i|
+                    with up as (
+                      update "edgeNode"."UserQualification" 
+                      set "qualificationSkillLevel" = $2
+                      where id = $1
+                      returning "qualificationKey" as k) 
+                    select coalesce(array_agg("key"), array[]::int8[])
+                    from "edgeNode"."Trajectory" as tr 
+                    left join "edgeNode"."QualificationDependency" as qd
+                    on tr."qualificationKey" = qd."key" 
+                    where dependency = (select k from up) and tr."user" = $3
+                  |]
             let encoder = 
                   contramap (^._1._Wrapped') (HE.param HE.int8) <>  
-                  contramap (^._2.to toJSON) (HE.param HE.jsonb)
+                  contramap (^._2.to toJSON) (HE.param HE.jsonb) <>
+                  contramap (^._3._Wrapped') (HE.param HE.int8) 
             let decoder = HD.singleRow $ HD.column $ HD.array (HD.dimension replicateM (HD.element (HD.int8 <&> (^.from _Wrapped')))) 
-            for (search skill xs) $ \new -> Hasql.Session.statement (ident, new) (HS.Statement sql encoder decoder False)
+            for (search skill xs) $ \new -> Hasql.Session.statement (ident, new, uid) (HS.Statement sql encoder decoder False)
     search :: Request_ValueSkill -> [ExGradeRange] -> Either T.Text UserQualificationSkill
     search skill xs =
       case skill of
