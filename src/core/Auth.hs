@@ -16,6 +16,7 @@ module Auth
       , mkAccessToken
       , mkRefreshToken
       , applyController
+      , verifyToken
       ) where
 
 import EdgeNode.Model.User

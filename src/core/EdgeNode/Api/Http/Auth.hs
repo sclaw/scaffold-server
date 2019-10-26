@@ -43,5 +43,12 @@ data AuthApi route =
        :- Description "signout"
        :> Auth '[AppJwt] JWTUser
        :> "signout"
-       :> Post '[JSON] (Alternative (Error T.Text) Unit)             
+       :> Post '[JSON] (Alternative (Error T.Text) Unit)
+    , _authApiCheckRefreshToken
+      :: route
+      :- Description "check refresh token for validity"
+      :> "refresh-token"
+      :> "validate"
+      :> ReqBody '[JSON] RefreshTokenValidatorRequest
+      :> Post '[JSON] (Alternative (Error T.Text) RefreshTokenValidatorResponse)
      } deriving stock Generic

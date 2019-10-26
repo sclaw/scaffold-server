@@ -12,6 +12,7 @@ module Proto where
 import qualified EdgeNode.Api.Http.Auth.Register as Reg
 import qualified EdgeNode.Api.Http.Auth.SignIn as SignIn
 import qualified EdgeNode.Api.Http.Auth.RefreshToken as RefreshToken
+import qualified EdgeNode.Api.Http.Auth.RefreshTokenValidator as RefreshTokenValidator
 import qualified EdgeNode.Service.Countries as Countries 
 import qualified EdgeNode.Api.Http.User.SaveQualifications as SaveQualifications 
 import qualified EdgeNode.Api.Http.User.GetQualificationFullInfo as GetQualificationFullInfo
@@ -59,10 +60,13 @@ mkResponseWrapper ''GetTrajectories.Response
 mkRequestWrapper ''SaveTrajectory.Request
 mkResponseWrapper ''SaveTrajectory.Response
 mkRequestWrapper ''PatchQualifications.Request
+mkRequestWrapper ''RefreshTokenValidator.Request
+mkResponseWrapper ''RefreshTokenValidator.Response
 
 mkEnumConvertor ''Language
 mkEnumConvertor ''Type
 mkEnumConvertor ''Country
+mkEnumConvertor ''RefreshTokenValidator.Status
 
 mkSRGEqEnum ''Country "Wrapper"
 mkEnumConvertor ''WrapperCountry

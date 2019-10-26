@@ -29,6 +29,7 @@ import qualified EdgeNode.Controller.Http.SearchApplyFilter as Search.SearchAppl
 import qualified EdgeNode.Controller.Http.PatchQualifications as User.PatchQualifications
 import qualified EdgeNode.Controller.Http.DeleteQualification as User.DeleteQualification
 import qualified EdgeNode.Controller.Http.DeleteTrajectory as User.DeleteTrajectory
+import qualified EdgeNode.Controller.Http.ValidateRefreshToken as Auth.ValidateRefreshToken 
 
 import Katip
 import KatipController
@@ -73,6 +74,11 @@ auth =
     . katipAddNamespace 
       (Namespace ["auth", "signOut"])  
     . (\u -> applyController Nothing u Auth.SignOut.controller)
+  , _authApiCheckRefreshToken = 
+    flip logExceptionM ErrorS
+    . katipAddNamespace 
+      (Namespace ["auth", "validateRefreshToken"])  
+    . Auth.ValidateRefreshToken.controller    
   }
 
 user :: AuthResult JWTUser -> UserApi (AsServerT KatipController)
