@@ -31,6 +31,7 @@ import Control.Lens.Iso.Extended
 import Control.Lens
 import Data.String.Interpolate
 import Data.Foldable
+import Control.Monad
 
 controller :: UserQualificationId -> UserId -> KatipController (Alternative (Error T.Text) Unit)
 controller qid uid = 
@@ -38,13 +39,13 @@ controller qid uid =
     raw <- (^.katipEnv.rawDB) `fmap` ask
     let go = do
           e <- action qid uid
-          traverse (\i -> for_ i $ SaveTrajectory.action uid . Just) e
+          traverse (\xs -> for_ xs $ SaveTrajectory.action uid . Just) e
     x <- runTryDbConnHasql (const go) raw
     whenLeft x ($(logTM) ErrorS . logStr . show)
     let mkErr e = ServerError $ InternalServerError (show e^.stextl)
     return $ either (Json.Error . mkErr) ((^.eitherToAlt) . bimap ResponseError (const Unit)) x
      
-action :: UserQualificationId -> UserId -> Hasql.Session.Session (Either T.Text (Maybe QualificationId))
+action :: UserQualificationId -> UserId -> Hasql.Session.Session (Either T.Text [QualificationId])
 action qid uid =
   do
     let sql = 
@@ -52,7 +53,7 @@ action qid uid =
               (delete from "edgeNode"."UserQualification" 
                where id = $1 and "userId" = $2
                returning "qualificationKey" as k)
-               select "key"
+               select coalesce(array_agg("key"), array[]::int8[])
                from "edgeNode"."Trajectory" as tr
                left join "edgeNode"."QualificationDependency" as qd
                on qd."key" = tr."qualificationKey" 
@@ -61,5 +62,5 @@ action qid uid =
     let encoder =
          (qid^._Wrapped' >$ HE.param HE.int8) <>
          (uid^._Wrapped' >$ HE.param HE.int8)
-    let decoder = HD.rowMaybe $ HD.column HD.int8 <&> (^.from _Wrapped') 
+    let decoder = HD.singleRow $ HD.column $ HD.array (HD.dimension replicateM (HD.element (HD.int8 <&> (^.from _Wrapped')))) 
     fmap Right $ Hasql.Session.statement () (HS.Statement sql encoder decoder False)
