@@ -1,9 +1,6 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module EdgeNode.Controller.Http.ValidateRefreshToken (controller) where
 
@@ -22,36 +19,27 @@ import Servant.Auth.Server
 import Proto3.Suite.Types
 import Crypto.JWT (JWTError (..))
 import Control.Lens.Iso.Extended
+import qualified Crypto.JWT as Jose
 
 controller :: RefreshTokenValidatorRequest -> KatipController (Alternative (Error T.Text) RefreshTokenValidatorResponse)
 controller req = do
   let token = req^._Wrapped'.field @"requestRefreshToken" 
   jw <- (^.katipEnv.jwk) `fmap` ask
   e <- liftIO $ runExceptT $ verifyToken (defaultJWTSettings jw) token
-  case e of 
-    Right _ -> 
-      return $ 
+  return $ handleValidation e
+
+handleValidation :: Either JWTError Jose.ClaimsSet -> (Alternative (Error T.Text) RefreshTokenValidatorResponse)
+handleValidation (Right _) = 
       Fortune $ 
       RefreshTokenValidatorResponse $ 
       Response $ 
       Enumerated $ 
       Right StatusOk
-    Left e -> 
-      case e of 
-        JWSError e -> 
-          return $ 
-          Error $ 
-          ResponseError $ 
-          show e^.stext
-        JWTClaimsSetDecodeError e -> 
-          return $ 
-          Error $ 
-          ResponseError $ 
-          e^.stext
-        _ -> 
-          return $ 
-          Fortune $ 
-          RefreshTokenValidatorResponse $ 
-          Response $ 
-          Enumerated $ 
-          Right StatusInvalid
+handleValidation (Left (JWSError e)) = Error $ ResponseError $ show e^.stext
+handleValidation (Left (JWTClaimsSetDecodeError e)) = Error $ ResponseError $ e^.stext
+handleValidation _ = 
+  Fortune $ 
+  RefreshTokenValidatorResponse $ 
+  Response $ 
+  Enumerated $ 
+  Right StatusInvalid
