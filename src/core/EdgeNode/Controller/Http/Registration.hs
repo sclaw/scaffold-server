@@ -90,8 +90,8 @@ persist req =
       let sql = 
            [i| 
              with 
-              cred as (insert into auth."AuthenticatedUser" 
-               ("authenticatedUserEmail", "authenticatedUserPassword") 
+              cred as (insert into auth."User" 
+               ("email", "password") 
                values ($1, $2) returning id),
               newUser as (insert into "edgeNode"."User"
                ("userName", "userMiddlename", "userSurname", 

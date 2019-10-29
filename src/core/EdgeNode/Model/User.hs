@@ -17,13 +17,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module EdgeNode.Model.User  
-       ( AuthenticatedUser (..)
-       , AuthenticatedUserConstructor (..)
-       , Field (..)
+       ( Field (..)
        , User (..)
        , UserId (..)
        , UserConstructor (..)
-       , UserTablesBonds
        , defUser
        , isoGender
        , fromGender
@@ -37,7 +34,6 @@ import EdgeNode.User
 import Database.AutoKey
 import Database.Groundhog.TH.Extended
 import Database.Groundhog.Core (Field (..))
-import Data.ByteString
 import TH.Mk
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import qualified Data.Text as T
@@ -51,39 +47,14 @@ import Control.Lens.Iso.Extended
 import Data.Aeson
 import Orphan ()
 
-data AuthenticatedUser =
-     AuthenticatedUser
-     { authenticatedUserEmail    :: !T.Text
-     , authenticatedUserPassword :: !ByteString
-     }
-
-data UserTablesBonds =
-     UserTablesBonds 
-     { userTablesBondsAuth     :: 
-       DefaultKey 
-       AuthenticatedUser
-     , userTablesBondsEdgeNode :: 
-       DefaultKey User
-     }
-
 instance Default Gender where
   def = toEnum 0   
   
 instance Default User
 instance ToParamSchema UserId 
 
-mkPersist_ [groundhog| 
- - entity: AuthenticatedUser
-   schema: auth
-   constructors:
-    - name: AuthenticatedUser
-      uniques: 
-       - name: authenticatedUser_email_uk
-         type: constraint
-         fields: [authenticatedUserEmail]
+mkPersist_ [groundhog|
  - entity: User
-   schema: edgeNode   
- - entity: UserTablesBonds
    schema: edgeNode         
  |]
  

@@ -3,7 +3,7 @@
 module Database.Table (mkTables, Database.Table.print) where
 
 import qualified EdgeNode.Application as App
-import EdgeNode.Model.User (AuthenticatedUser, User, UserTablesBonds)
+import EdgeNode.Model.User (User)
 import EdgeNode.Model.Token (Token)
 
 import Database.DbMeta  
@@ -33,8 +33,6 @@ migration :: Migration (TryAction (Exception.Groundhog ()) (KatipContextT App.Ap
 migration = 
   do 
     migrate (undefined :: DbMeta)
-    migrate (undefined :: AuthenticatedUser)
     migrate (undefined :: User)
-    migrate (undefined :: UserTablesBonds)
     migrate (undefined :: Token)
     migrate (undefined :: Token)

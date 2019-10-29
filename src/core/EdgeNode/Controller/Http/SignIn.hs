@@ -60,12 +60,12 @@ actionUser :: TL.Text -> KatipLoggerIO -> Hasql.Session.Session (Maybe (UserId, 
 actionUser email logger = 
   do
     let sql = 
-         [i|select b."userTablesBondsEdgeNode"
-            , u."authenticatedUserPassword" 
-            from "auth"."AuthenticatedUser" as u
-            join "edgeNode"."UserTablesBonds" as b
-            on u.id = b."userTablesBondsAuth"
-            where u."authenticatedUserEmail" = $1|]
+         [i|select b."edgeNode"
+            , u."password" 
+            from "auth"."User" as u
+            join "edgeNode"."AuthEdgeNodeUser" as b
+            on u.id = b."auth"
+            where u."email" = $1|]
     let log = (sql^.from textbs.from stext) <> ", loc: " <> show getLoc
     liftIO $ logger InfoS (logStr log)  
     let encoder = email^.lazytext >$ HE.param HE.text
