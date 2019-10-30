@@ -99,8 +99,8 @@ persist req =
                ) values
                ($3, $4, $5, $6, $7, $8, $9) 
                returning id)
-             insert into "edgeNode"."UserTablesBonds" 
-             ("userTablesBondsAuth", "userTablesBondsEdgeNode") 
+             insert into "edgeNode"."AuthEdgeNodeUser" 
+             ("auth", "edgeNode")
              values ((select id from cred), (select id from newUser))
              returning (select id from newUser)     
            |]
