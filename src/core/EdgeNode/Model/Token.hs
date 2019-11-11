@@ -13,12 +13,10 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 
-module EdgeNode.Model.Token (Token (..), TokenConstructor (..), Field (..)) where
+module EdgeNode.Model.Token (Token (..)) where
 
 import EdgeNode.Model.User (UserId)
 
-import Database.Groundhog.TH.Extended
-import Database.Groundhog.Core (Field (..))
 import Data.Time
 import qualified Data.ByteString as B
 import qualified Data.Text as T
@@ -30,14 +28,3 @@ data Token =
      , tokenUserId       :: !UserId
      , tokenUnique       :: !T.Text
      }
-
-mkPersist_ [groundhog| 
- - entity: Token
-   schema: auth
-   constructors:
-    - name: Token
-      uniques: 
-       - name: token_tokenUserId_tokenUnique_uk
-         type: constraint
-         fields: [tokenUserId, tokenUnique]   
- |]

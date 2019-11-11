@@ -4,7 +4,6 @@ module Database.Table (mkTables, Database.Table.print) where
 
 import qualified EdgeNode.Application as App
 import EdgeNode.Model.User (User)
-import EdgeNode.Model.Token (Token)
 
 import Database.DbMeta  
 import Database.Groundhog.Core
@@ -34,5 +33,3 @@ migration =
   do 
     migrate (undefined :: DbMeta)
     migrate (undefined :: User)
-    migrate (undefined :: Token)
-    migrate (undefined :: Token)
