@@ -3,7 +3,6 @@
 module Database.Table (mkTables, Database.Table.print) where
 
 import qualified EdgeNode.Application as App
-import EdgeNode.Model.User (User)
 
 import Database.DbMeta  
 import Database.Groundhog.Core
@@ -29,7 +28,4 @@ print = createMigration migration >>= print
         mapM_ ($(logTM) InfoS . logStr . ("\t" ++) . showSql) sqls
 
 migration :: Migration (TryAction (Exception.Groundhog ()) (KatipContextT App.AppMonad) Postgresql)
-migration = 
-  do 
-    migrate (undefined :: DbMeta)
-    migrate (undefined :: User)
+migration = migrate (undefined :: DbMeta)

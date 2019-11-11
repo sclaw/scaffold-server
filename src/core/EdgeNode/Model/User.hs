@@ -17,10 +17,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module EdgeNode.Model.User  
-       ( Field (..)
-       , User (..)
+       ( User (..)
        , UserId (..)
-       , UserConstructor (..)
        , defUser
        , isoGender
        , fromGender
@@ -31,9 +29,6 @@ module EdgeNode.Model.User
 
 import EdgeNode.User
 
-import Database.AutoKey
-import Database.Groundhog.TH.Extended
-import Database.Groundhog.Core (Field (..))
 import TH.Mk
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import qualified Data.Text as T
@@ -53,12 +48,6 @@ instance Default Gender where
 instance Default User
 instance ToParamSchema UserId 
 
-mkPersist_ [groundhog|
- - entity: User
-   schema: edgeNode         
- |]
- 
-deriveAutoKey ''User
 mkToSchemaAndJSONProtoIdent ''UserId
 mkWrappedPrimitivePersistField ''UserId
 mkFromHttpApiDataIdent ''UserId
