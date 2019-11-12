@@ -32,7 +32,7 @@ ghc-options:
   - -Wmissing-pattern-synonym-signatures
   - -XMonadFailDesugaring
   - -XOverloadedStrings
- # - -ddump-splices
+  # - -ddump-splices
 
 extra-source-files:
 - README.md
@@ -157,6 +157,8 @@ library:
     - optparse-generic
     - smtp-mail
     - mime-mail
+    - hspec-expectations-lifted
+    - split
   source-dirs:
     - src/core
     - src/extended

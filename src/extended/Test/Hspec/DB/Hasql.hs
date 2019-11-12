@@ -2,18 +2,20 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Test.Hspec.DB.Hasql (itHasql, describeHasql, session) where
+module Test.Hspec.DB.Hasql (TestDBHasql, itHasql, describeHasql, session) where
 
 import Control.Exception (bracketOnError, finally)
 import Control.Monad
 import qualified Data.ByteString.Char8  as Char8          
-import Data.Foldable
 import qualified Database.Postgres.Temp as Temp
 import qualified Hasql.Connection as Hasql
 import qualified Hasql.Session as Hasql
 import Test.Hspec as HSpec
 import Control.Lens
 import Control.Applicative ((<|>))
+import Data.Either
+import Control.Monad.IO.Class
+import Data.List
 
 data TestDBHasql = 
      TestDBHasql
@@ -25,11 +27,11 @@ data TestDBHasql =
 
 -- | Start a temporary postgres process and create a connections to it.
 setupDBHasql
-  :: Hasql.Session ()
+  :: [Hasql.Session ()]
   -> Maybe (Hasql.Session ())
      -- ^ Data population.
   -> IO TestDBHasql
-setupDBHasql migration mpopulate =
+setupDBHasql migrations mpopulate =
   bracketOnError
       (Temp.start [] >>= \case
         Left e -> error $ "Error during db initialization: " <> show e
@@ -38,20 +40,20 @@ setupDBHasql migration mpopulate =
       Temp.stop
     $ \tempDB -> do
         let connStr = Char8.pack (Temp.connectionString tempDB)
-        bracketOnError
-            (Hasql.acquire connStr >>= \case
-              Left e -> error $ "Error connecting to db" <> show e
-              Right conn -> pure conn
-            )
-            Hasql.release
-          $ \conn -> do
-              migr <- migration `Hasql.run` conn
+        Hasql.acquire connStr >>= \case
+          Left e -> error $ "Error connecting to db" <> show e
+          Right conn ->
+            do
+              es <- fmap lefts $ traverse (`Hasql.run` conn) migrations
+              let migr = 
+                    case es of 
+                      [] -> Right ()
+                      es -> Left $ intercalate "," $ map show es        
               pop <- traverse (`Hasql.run` conn) mpopulate
-              traverse_
-                (error . ("error while populating db: " <>) . show)
-                (Just migr ^? _Just . _Left <|> pop ^? _Just . _Left)
-              pure TestDBHasql {..}
-
+              case Just migr^?_Just._Left <|> pop^?_Just._Left.to show of 
+                Just e -> liftIO (print $ "error while setup db: " <> e) >> error mempty
+                Nothing -> pure TestDBHasql {..}
+             
 -- | Tear down DB Hasql.
 tearDownDBHasql :: TestDBHasql -> IO ()
 tearDownDBHasql TestDBHasql {..} = Hasql.release conn `finally` void (Temp.stop tempDB)
@@ -73,10 +75,10 @@ session name f = HSpec.it name (void . test)
 
 -- | Hasql test.
 describeHasql
-  :: Hasql.Session () -- ^ Database initialization.
+  :: [Hasql.Session ()] -- ^ Database initialization.
   -> Maybe (Hasql.Session ()) -- ^ Database population.
   -> String -- ^ Test name.
   -> SpecWith TestDBHasql -- ^ Test itself.
   -> Spec
-describeHasql migration mpopulate str =
-  beforeAll (setupDBHasql migration mpopulate) . afterAll tearDownDBHasql . HSpec.describe str
+describeHasql migrations mpopulate str =
+  beforeAll (setupDBHasql migrations mpopulate) . afterAll tearDownDBHasql . HSpec.describe str

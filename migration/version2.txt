@@ -1,3 +1,14 @@
+
+create table if not exists "edgeNode"."User"
+(id bigserial primary key);
+create table if not exists "auth"."AuthenticatedUser"
+(id bigserial primary key,
+ "authenticatedUserEmail" text,
+ "authenticatedUserPassword" bytea);
+create table if not exists "edgeNode"."UserTablesBonds"
+(id bigserial primary key,
+ "userTablesBondsAuth" int8,
+ "userTablesBondsEdgeNode" int8);
 create table if not exists "edgeNode"."StateExam" 
          (id bigserial primary key, 
           "stateExamTitle" text not null, 

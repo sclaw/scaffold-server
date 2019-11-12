@@ -31,10 +31,14 @@ import Control.Lens.Iso.Extended
 import Control.Lens
 import Data.Text.Read
 import Data.Aeson.Extended
+import Test.QuickCheck
 
 data UserQualification
 
 instance ToParamSchema UserQualificationId
+
+instance Arbitrary UserQualificationId where
+  arbitrary = UserQualificationId <$> arbitrary
 
 instance FromHttpApiData UserQualificationId where
   parseUrlPiece x = bimap (^.stext) (UserQualificationId . fst) (decimal x)

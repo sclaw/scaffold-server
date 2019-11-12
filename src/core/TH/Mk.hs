@@ -22,6 +22,7 @@ module TH.Mk
        , mkFromHttpApiDataEnum
        , mkParamSchemaEnum
        , mkMigrationSeq
+       , mkMigrationTest
        )
        where
 
@@ -49,6 +50,7 @@ import Data.List
 import System.IO
 import Control.Monad
 import qualified System.IO.Strict as IOS
+import Data.List.Split (splitOn)
 
 mkPrimitivePersistField :: Name -> ExpQ -> Q [Dec]
 mkPrimitivePersistField name iso = [d|
@@ -364,6 +366,42 @@ mkParamSchemaEnum name = do
        toParamSchema _ = mempty & type_ .~ SwaggerString & enum_ ?~ xs'
    |]
 
+loadMigrationList :: IO [(Integer, String)]
+loadMigrationList =
+  do
+    dir <- getCurrentDirectory
+    let migDir = dir </> "migration"
+    let mkTpl file = 
+         fmap 
+         (, migDir </> file) 
+         (Data.List.stripPrefix 
+          "version" 
+          (dropExtension file))           
+    fs <- fmap (mapMaybe mkTpl) (listDirectory migDir)
+    fmap (sortOn (^._1)) $ forM fs $ \x -> do 
+      hdl <- openFile (x^._2) ReadMode
+      content <- IOS.hGetContents hdl
+      hClose hdl
+      return (read (x^._1) :: Integer, content)
+
+loadMigrationList' :: IO [String]
+loadMigrationList' =
+  do
+    dir <- getCurrentDirectory
+    let migDir = dir </> "migration"
+    let mkTpl file = 
+          fmap 
+          (, migDir </> file) 
+          (Data.List.stripPrefix 
+          "version" 
+          (dropExtension file))           
+    fs <- fmap (mapMaybe mkTpl) (listDirectory migDir)
+    fmap (concat . map snd . sortOn (^._1)) $ forM fs $ \x -> do 
+      hdl <- openFile (x^._2) ReadMode
+      content <- IOS.hGetContents hdl
+      hClose hdl
+      return (read (x^._1) :: Integer, splitOn ";" content)
+
 mkMigrationSeq :: Q [Dec]
 mkMigrationSeq = do
   migrations <- liftIO loadMigrationList
@@ -382,20 +420,11 @@ mkMigrationSeq = do
           : mkVersion xs is
   let xs = if null migrations then [] else mkVersion [] migrations
   return [ValD (VarP list) (NormalB (ListE xs)) []]
-  where 
-    loadMigrationList =
-      do
-         dir <- getCurrentDirectory
-         let migDir = dir </> "migration"
-         let mkTpl file = 
-              fmap 
-              (, migDir </> file) 
-              (Data.List.stripPrefix 
-               "version" 
-               (dropExtension file))           
-         fs <- fmap (mapMaybe mkTpl) (listDirectory migDir)
-         fmap (sortOn (^._1)) $ forM fs $ \x -> do 
-          hdl <- openFile (x^._2) ReadMode
-          content <- IOS.hGetContents hdl
-          hClose hdl
-          return (read (x^._1) :: Integer, content)
+
+mkMigrationTest :: Q [Dec]
+mkMigrationTest = do 
+  xs <- liftIO loadMigrationList'
+  let list = mkName "list"
+  let mkSql str = LitE (StringL str)
+  let xs' = if null xs then [] else map mkSql xs
+  return [ValD (VarP list) (NormalB (ListE xs')) []]

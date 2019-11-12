@@ -41,12 +41,16 @@ import Data.Either
 import Control.Lens.Iso.Extended
 import Data.Aeson
 import Orphan ()
+import Test.QuickCheck
 
 instance Default Gender where
   def = toEnum 0   
   
 instance Default User
 instance ToParamSchema UserId 
+
+instance Arbitrary UserId where
+  arbitrary = UserId <$> arbitrary
 
 mkToSchemaAndJSONProtoIdent ''UserId
 mkWrappedPrimitivePersistField ''UserId
