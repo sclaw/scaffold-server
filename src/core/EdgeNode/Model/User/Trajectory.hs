@@ -25,8 +25,12 @@ import Database.Groundhog.Generic
        ( primToPersistValue
        , primFromPersistValue)
 import Data.Swagger.ParamSchema
+import Test.QuickCheck
 
 instance ToParamSchema TrajectoryId
+
+instance Arbitrary TrajectoryId where
+  arbitrary = TrajectoryId <$> arbitrary
 
 mkPrimitivePersistField ''QualificationDiff [| jsonb |]
 mkWrappedPrimitivePersistField ''TrajectoryId

@@ -1,10 +1,14 @@
 {-# LANGUAGE QuasiQuotes #-}
 
-module EdgeNode.Statement.User (deleteQualification) where
+module EdgeNode.Statement.User 
+       (deleteQualification
+       , deleteTrajectory
+       ) where
 
 import EdgeNode.Model.User
 import EdgeNode.Model.Qualification
 import EdgeNode.Model.User.Qualification
+import EdgeNode.Model.User.Trajectory
 
 import qualified Hasql.Statement as HS
 import qualified Hasql.Encoders as HE
@@ -30,3 +34,11 @@ deleteQualification = HS.Statement sql encoder decoder False
       contramap (^._1._Wrapped') (HE.param HE.int8) <>
       contramap (^._1._Wrapped') (HE.param HE.int8)
     decoder = HD.singleRow $ HD.column $ HD.array (HD.dimension replicateM (HD.element (HD.int8 <&> (^.from _Wrapped'))))
+
+deleteTrajectory :: HS.Statement (TrajectoryId, UserId) ()
+deleteTrajectory = HS.Statement sql encoder HD.unit False
+  where
+    sql = [i|delete from "edgeNode"."Trajectory" where "user" = $2 and id = $1|]
+    encoder =
+      contramap (^._1._Wrapped') (HE.param HE.int8) <>
+      contramap (^._1._Wrapped') (HE.param HE.int8)

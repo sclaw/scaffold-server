@@ -39,7 +39,8 @@ data SomeQuery = forall a b . Arbitrary a => SomeQuery (Statement a b)
 explainTests :: [(String, [(String, SomeQuery)])]
 explainTests = 
   [ "EdgeNode.Model.User"
-    ==> [ "deleteQualification" =>> User.deleteQualification]
+    ==> [ "deleteQualification" =>> User.deleteQualification
+        , "deleteTrajectory" =>> User.deleteTrajectory]
   ]
   where
     (==>) a b = (a, b)
