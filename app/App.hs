@@ -43,6 +43,8 @@ import GHC.Generics (Generic)
 import Options.Generic
 import Data.Maybe
 import System.FilePath.Posix
+import qualified Network.AWS.Env as AWS 
+import qualified Network.AWS.Auth as AWS 
 
 data Cmd w = 
      Cmd 
@@ -115,8 +117,17 @@ main =
                let err e = error $ "migration failure, error: " <> show e
                either err (const (App.run appCfg)) e
       manager <- Http.newTlsManagerWith Http.tlsManagerSettings { managerConnCount = 1 }
-      let katipEnv = KatipEnv term orm raw manager (cfg^.service.coerced) (fromRight' jwke)
-      bracket env' closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)       
+
+      awsEnv <- AWS.newEnvWith 
+                (AWS.FromKeys 
+                 (cfg^.EdgeNode.Config.amazon.accessKey) 
+                 (cfg^.EdgeNode.Config.amazon.secretKey)) 
+                 Nothing 
+                 manager
+
+      let katipAmazon = Amazon awsEnv (cfg^.EdgeNode.Config.amazon.EdgeNode.Config.bucketPrefix)  
+      let katipEnv = KatipEnv term orm raw manager (cfg^.service.coerced) (fromRight' jwke) katipAmazon
+      bracket env' closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)     
       
 mkOrmConn :: Db -> String
 mkOrmConn x = 

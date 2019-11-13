@@ -18,6 +18,7 @@ module KatipController
        , KatipState (..)
        , KatipLoggerIO
        , KatipControllerState (..)
+       , Amazon (..)
          -- * lens
        , nm
        , ctx
@@ -29,6 +30,8 @@ module KatipController
        , httpReqManager
        , apiKeys
        , jwk
+       , amazon
+       , bucketPrefix
          -- * run
        , runKatipController
          -- * re-export
@@ -63,6 +66,8 @@ import Control.Monad.Time
 import Data.Time
 import qualified Control.Monad.RWS.Strict as RWS 
 import Control.Monad.RWS.Class
+import qualified Network.AWS.Env as AWS
+import qualified Data.Text as T
 
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 
@@ -78,8 +83,11 @@ data KatipEnv =
        :: !Manager
      , katipEnvApiKeys
        :: ![(String, String)]
-     , katipEnvJwk :: !JWK     
+     , katipEnvJwk :: !JWK
+     , katipEnvAmazon :: !Amazon
      }
+
+data Amazon = Amazon { amazonEnv :: !AWS.Env, amazonBucketPrefix :: !T.Text }
 
 newtype KatipLogger = KatipWriter [String] 
   deriving newtype Monoid
@@ -133,6 +141,7 @@ newtype KatipController a =
   
 makeFields ''Config
 makeFields ''KatipEnv
+makeFields ''Amazon
 
 -- These instances get even easier with lenses!
 instance Katip KatipController where
