@@ -384,8 +384,8 @@ loadMigrationList =
       hClose hdl
       return (read (x^._1) :: Integer, content)
 
-loadMigrationList' :: IO [String]
-loadMigrationList' =
+loadMigrationListTest :: IO [String]
+loadMigrationListTest =
   do
     dir <- getCurrentDirectory
     let migDir = dir </> "migration"
@@ -396,11 +396,15 @@ loadMigrationList' =
           "version" 
           (dropExtension file))           
     fs <- fmap (mapMaybe mkTpl) (listDirectory migDir)
-    fmap (concat . map snd . sortOn (^._1)) $ forM fs $ \x -> do 
+    fmap (concatMap snd . sortOn (^._1)) $ forM fs $ \x -> do 
       hdl <- openFile (x^._2) ReadMode
       content <- IOS.hGetContents hdl
       hClose hdl
-      return (read (x^._1) :: Integer, splitOn ";" content)
+      let xs = 
+            filter (not . null ) $ 
+            map (^.stext.to T.strip.from stext) $ 
+            splitOn ";" content
+      return (read (x^._1) :: Integer, xs)
 
 mkMigrationSeq :: Q [Dec]
 mkMigrationSeq = do
@@ -423,7 +427,7 @@ mkMigrationSeq = do
 
 mkMigrationTest :: Q [Dec]
 mkMigrationTest = do 
-  xs <- liftIO loadMigrationList'
+  xs <- liftIO loadMigrationListTest
   let list = mkName "list"
   let mkSql str = LitE (StringL str)
   let xs' = if null xs then [] else map mkSql xs
