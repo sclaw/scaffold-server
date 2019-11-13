@@ -401,7 +401,7 @@ loadMigrationListTest =
       content <- IOS.hGetContents hdl
       hClose hdl
       let xs = 
-            filter (not . null ) $ 
+            filter (not . null) $ 
             map (^.stext.to T.strip.from stext) $ 
             splitOn ";" content
       return (read (x^._1) :: Integer, xs)

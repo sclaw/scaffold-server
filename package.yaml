@@ -159,6 +159,7 @@ library:
     - mime-mail
     - hspec-expectations-lifted
     - split
+    - amazonka
   source-dirs:
     - src/core
     - src/extended

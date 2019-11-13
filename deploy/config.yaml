@@ -38,3 +38,8 @@ configAuth:
 configService:
   serviceApiKeys: 
    - [google, AIzaSyCBwZWJtSwz4dN8suya3YLZMJJjodr3zVM]
+
+configAmazon:
+  amazonAccessKey: AKIAIO6CIF4TOM242LTA
+  amazonSecretKey: 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
+  amazonBucketPrefix: edgenode

@@ -3,7 +3,8 @@
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE DerivingStrategies     #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving  #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module EdgeNode.Config 
        ( Config
@@ -43,6 +44,10 @@ module EdgeNode.Config
        , service
        , hosts
        , userId
+       , accessKey
+       , secretKey
+       , amazon
+       , bucketPrefix
        ) 
        where
 
@@ -53,6 +58,8 @@ import Control.Exception
 import Data.Yaml
 import Data.Time.Clock
 import Data.Int
+import qualified Network.AWS as AWS
+import qualified Data.Text as T
 
 data Db = Db 
      { dbHost :: !String
@@ -109,6 +116,16 @@ newtype ApiKeys = ApiKeys [(String, String)]
 newtype Service = Service { serviceApiKeys :: ApiKeys }
   deriving Show
 
+deriving instance Show AWS.SecretKey
+
+data Amazon = 
+     Amazon 
+     { amazonAccessKey :: !AWS.AccessKey
+     , amazonSecretKey :: !AWS.SecretKey
+     , amazonBucketPrefix :: !T.Text 
+     }
+  deriving Show
+
 data Config = 
      Config 
      { configDb :: !Db 
@@ -120,7 +137,8 @@ data Config =
      , configEkg :: !Ekg
      , configAuth :: !Auth
      , configService :: !Service
-     , configHosts :: !Hosts 
+     , configHosts :: !Hosts
+     , configAmazon :: !Amazon
      } deriving Show
 
 makeFields ''Config
@@ -131,6 +149,7 @@ makeFields ''PoolSettings
 makeFields ''Ekg
 makeFields ''Katip
 makeFields ''Auth
+makeFields ''Amazon
 
 -- Load program configuration from file (server.yaml), or
 -- raise YamlException and terminate program.
@@ -146,3 +165,4 @@ deriveFromJSON defaultOptions ''Katip
 deriveFromJSON defaultOptions ''Auth
 deriveFromJSON defaultOptions ''ApiKeys
 deriveFromJSON defaultOptions ''Service
+deriveFromJSON defaultOptions ''Amazon
