@@ -13,6 +13,8 @@ module EdgeNode.Api
        , UserApi (..)
        , SearchApi (..)
        , ServiceApi (..)
+       , WebApi (..)
+       , GoogleApi (..)
      --  , WebsocketApi (..)
        , api
        , swaggerHttpApi

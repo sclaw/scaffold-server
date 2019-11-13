@@ -148,16 +148,21 @@ user user =
   }
 
 service :: AuthResult JWTUser -> ServiceApi (AsServerT KatipController)
-service user =
-  ServiceApi
-  { _serviceApiLoadCountries =
-    flip logExceptionM ErrorS 
-    . katipAddNamespace 
-      (Namespace ["service", "loadContries"])
-    . applyController Nothing user 
-    . const . Service.LoadCountries.controller
-  }
-
+service user = ServiceApi { _serviceApiWeb = toServant webApi }
+  where
+    webApi ::WebApi (AsServerT KatipController)
+    webApi = WebApi { _webApiGoogle = toServant googleApi }
+    googleApi ::GoogleApi (AsServerT KatipController)
+    googleApi =
+      GoogleApi
+      { _googleApiLoadCountries =
+        flip logExceptionM ErrorS 
+        . katipAddNamespace 
+          (Namespace ["service", "web", "google", "loadContries"])
+        . applyController Nothing user 
+        . const . Service.LoadCountries.controller
+      }
+      
 search :: AuthResult JWTUser -> SearchApi (AsServerT KatipController)
 search user = 
   SearchApi 

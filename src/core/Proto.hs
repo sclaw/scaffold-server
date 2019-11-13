@@ -13,7 +13,7 @@ import qualified EdgeNode.Api.Http.Auth.Register as Reg
 import qualified EdgeNode.Api.Http.Auth.SignIn as SignIn
 import qualified EdgeNode.Api.Http.Auth.RefreshToken as RefreshToken
 import qualified EdgeNode.Api.Http.Auth.RefreshTokenValidator as RefreshTokenValidator
-import qualified EdgeNode.Service.Countries as Countries 
+import qualified Web.Google.Translator.Country as GoogleCountries 
 import qualified EdgeNode.Api.Http.User.SaveQualifications as SaveQualifications 
 import qualified EdgeNode.Api.Http.User.GetQualificationFullInfo as GetQualificationFullInfo
 import qualified EdgeNode.Api.Http.User.GetCategories as GetCategories 
@@ -47,8 +47,8 @@ mkRequestWrapper ''SignIn.Request
 mkResponseWrapper ''SignIn.Response
 mkRequestWrapper ''Reg.Request
 mkResponseWrapper ''Reg.Response
-mkRequestWrapper ''Countries.Request
-mkResponseWrapper ''Countries.Response
+mkRequestWrapper ''GoogleCountries.Request
+mkResponseWrapper ''GoogleCountries.Response
 mkRequestWrapper ''SaveQualifications.Request
 mkResponseWrapper ''SaveQualifications.Response
 mkResponseWrapper ''GetQualificationFullInfo.Response
