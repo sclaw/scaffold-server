@@ -106,12 +106,12 @@ generateNewTokens key uid old logger =
                    where "tokenUserId" = $1 and 
                          "tokenRefreshToken" = $3|]
            let encoder =
-                (uid^._Wrapped' >$ HE.param HE.int8) <>
-                (unique^.stext >$ HE.param HE.text) <>
-                (old >$ HE.param HE.bytea) <>
-                (new >$ HE.param HE.bytea) <>
-                (utc >$ HE.param HE.timestamptz)
-           let decoder = HD.unit
+                (uid^._Wrapped' >$ HE.param (HE.nonNullable HE.int8)) <>
+                (unique^.stext >$ HE.param (HE.nonNullable HE.text)) <>
+                (old >$ HE.param (HE.nonNullable HE.bytea)) <>
+                (new >$ HE.param (HE.nonNullable HE.bytea)) <>
+                (utc >$ HE.param (HE.nonNullable HE.timestamptz))
+           let decoder = HD.noResult
            Hasql.Session.statement () (HS.Statement sql encoder decoder False)
            return $ Right $  
              RefreshTokenResponse 

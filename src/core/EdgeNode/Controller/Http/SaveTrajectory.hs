@@ -77,11 +77,11 @@ action uid qidm = fmap (join . maybeToRight "qualification request id empty") $ 
               where qd."key" = $1      
              |] 
         let encoder = 
-             (qid^._Wrapped' >$ HE.param HE.int8) <>
-             (uid^._Wrapped' >$ HE.param HE.int8)
+             (qid^._Wrapped' >$ HE.param (HE.nonNullable HE.int8)) <>
+             (uid^._Wrapped' >$ HE.param (HE.nonNullable HE.int8))
         let decoder = HD.singleRow $ do
-              min <- HD.column HD.int8
-              skill <- HD.column HD.int8
+              min <- HD.column (HD.nonNullable HD.int8)
+              skill <- HD.column (HD.nonNullable HD.int8)
               return (min, skill)
         (min, skill) <- Hasql.Session.statement () (HS.Statement sql encoder decoder False)
         let diff = QualificationDiff ((fromIntegral skill * 100) / fromIntegral min)
@@ -96,9 +96,9 @@ action uid qidm = fmap (join . maybeToRight "qualification request id empty") $ 
                 returning id
               |]
         let encoder =
-             (qid^._Wrapped' >$ HE.param HE.int8) <>
-             (uid^._Wrapped' >$ HE.param HE.int8) <>
-             (toJSON diff >$ HE.param HE.jsonb)
-        let decoder = HD.singleRow $ HD.column HD.int8
+             (qid^._Wrapped' >$ HE.param (HE.nonNullable HE.int8)) <>
+             (uid^._Wrapped' >$ HE.param (HE.nonNullable HE.int8)) <>
+             (toJSON diff >$ HE.param (HE.nonNullable HE.jsonb))
+        let decoder = HD.singleRow $ HD.column (HD.nonNullable HD.int8)
         ident <- Hasql.Session.statement () (HS.Statement sqlT encoder decoder False)
         return $ Right $ SaveTrajectoryResponse $ Response (Just (TrajectoryId ident))

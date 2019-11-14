@@ -59,26 +59,26 @@ action uid logger =
             left join "edgeNode"."Provider" as pr 
               on qp."qualificationProviderKey" = pr.id 
             where tr.user = $1|] 
-    let encoder = uid^._Wrapped' >$ HE.param HE.int8
+    let encoder = uid^._Wrapped' >$ HE.param (HE.nonNullable HE.int8)
     let trajectoryDecoder = 
-         do ident <- HD.column HD.int8 <&> (^.from _Wrapped')
+         do ident <- HD.column (HD.nonNullable HD.int8) <&> (^.from _Wrapped')
             trajectoryQualificationTitle <- 
-              HD.column HD.text <&> (^.from lazytext)
+              HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
             trajectoryQualificationDegreeType <- 
-              HD.column HD.text <&> (^.from lazytext)
+              HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
             trajectoryTuitionLanguage <- 
-              HD.nullableColumn HD.text <&> 
+              HD.column (HD.nullable HD.text) <&> 
               fmap (Trajectory_LanguageValue . Enumerated . Right . (^.from stext.from isoLanguage))
             trajectoryProviderTitle <- 
-              HD.column HD.text  <&> (^.from lazytext)
+              HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
             trajectoryAdmissionDeadline <- 
-              HD.nullableColumn HD.timestamptz <&>
+              HD.column (HD.nullable HD.timestamptz) <&>
               fmap ((`Time` 0) . fromIntegral . round . utcTimeToPOSIXSeconds)
             trajectoryMatch <- 
-              HD.column 
+              HD.column (HD.nonNullable
               (HD.jsonbBytes 
               ( first (^.stext) 
-              . Aeson.eitherDecodeStrict))
+              . Aeson.eitherDecodeStrict)))
             return $ Response_Value (Just ident) (Just (Trajectory {..}))
     let decoder = HD.rowList trajectoryDecoder
     liftIO $ logger DebugS (logStr (sql^.from textbs.from stext))

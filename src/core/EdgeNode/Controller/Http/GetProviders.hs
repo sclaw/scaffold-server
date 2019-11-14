@@ -73,13 +73,13 @@ action country ty ident cursor logger =
                  order by p."providerTitle" asc 
                  limit 10 offset coalesce($3, 0)|]
         let encoder =
-              (ident >$ HE.param HE.int8) <>
-              (country^.isoWrapperCountry.stext >$ HE.param HE.text) <>
-              (cursor^?_Just.integral >$ HE.nullableParam HE.int4)
+              (ident >$ HE.param (HE.nonNullable HE.int8)) <>
+              (country^.isoWrapperCountry.stext >$ HE.param (HE.nonNullable HE.text)) <>
+              (cursor^?_Just.integral >$ HE.param (HE.nullable HE.int4))
         let examDecoder = do
-              ident <- HD.column HD.int8 <&> (^._Unwrapped')
-              title <- HD.column HD.text <&> (^.from lazytext)
-              ctry <- HD.column (HD.enum (Just . (^.from stext.to toCountry))) 
+              ident <- HD.column (HD.nonNullable HD.int8) <&> (^._Unwrapped')
+              title <- HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
+              ctry <- HD.column (HD.nonNullable (HD.enum (Just . (^.from stext.to toCountry)))) 
               let value = Provider title (Enumerated (Right ctry))
               return $ XProvider (Just ident) (Just value) []
         let decoder = HD.rowList examDecoder
@@ -101,15 +101,15 @@ action country ty ident cursor logger =
                  order by p."providerTitle" asc 
                  limit 10 offset coalesce($3, 0)|]
         let encoder =
-              (ident >$ HE.param HE.int8) <>
-              (country^.isoWrapperCountry.stext >$ HE.param HE.text) <>
-              (cursor^?_Just.integral >$ HE.nullableParam HE.int4)        
+              (ident >$ HE.param (HE.nonNullable HE.int8)) <>
+              (country^.isoWrapperCountry.stext >$ HE.param (HE.nonNullable HE.text)) <>
+              (cursor^?_Just.integral >$ HE.param (HE.nullable HE.int4))        
         let params = (ident, country^.isoWrapperCountry, cursor)
         let degreeDecoder = do 
-             ident <- HD.column HD.int8 <&> (^._Unwrapped')  
-             title <- HD.column HD.text <&> (^.from lazytext)
-             ctry <- HD.column (HD.enum (Just . (^.from stext.to toCountry)))
-             degrees <- HD.column (HD.array (HD.dimension replicateM (HD.element HD.text)))
+             ident <- HD.column (HD.nonNullable HD.int8) <&> (^._Unwrapped')  
+             title <- HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
+             ctry <- HD.column (HD.nonNullable (HD.enum (Just . (^.from stext.to toCountry))))
+             degrees <- HD.column (HD.nonNullable (HD.array (HD.dimension replicateM (HD.element (HD.nonNullable HD.text)))))
              let value = Provider title (Enumerated (Right ctry))
              return $ XProvider (Just ident) (Just value) ((degrees^..traversed.from lazytext)^.vector)          
         let decoder = HD.rowList degreeDecoder      

@@ -102,20 +102,20 @@ action userId qualId  _ =
                         then uq."userId" = $1 and uq.id = ($2 :: bigint) 
                         else uq."userId" = $1 end)|]
     let encoder = 
-         (userId^._Wrapped' >$ HE.param HE.int8) <>
-         (qualId^?_Just._Wrapped' >$ HE.nullableParam HE.int8)
+         (userId^._Wrapped' >$ HE.param (HE.nonNullable HE.int8)) <>
+         (qualId^?_Just._Wrapped' >$ HE.param (HE.nullable HE.int8))
     let decoder = HD.rowList fullInfoDecoder 
     Hasql.Session.statement () (HS.Statement sql encoder decoder False)
 
 fullInfoDecoder :: HD.Row XUserQualificationFullinfo
 fullInfoDecoder =
   do
-    id <- fmap UserQualificationId (HD.column HD.int8)
-    categoryType <- HD.column HD.text
-    category <- HD.column $ HD.composite (categoryComp categoryType)
-    provider <- HD.nullableColumn $ HD.composite providerComp
-    qualification <- HD.nullableColumn $ HD.composite qualComp
-    skill <- fmap (^.from jsonb) <$> HD.nullableColumn HD.jsonb
+    id <- fmap UserQualificationId (HD.column (HD.nonNullable HD.int8))
+    categoryType <- HD.column (HD.nonNullable HD.text)
+    category <- HD.column $ HD.nonNullable $ HD.composite (categoryComp categoryType)
+    provider <- HD.column $ HD.nullable $ HD.composite providerComp
+    qualification <- HD.column $ HD.nullable $ HD.composite qualComp
+    skill <- fmap (^.from jsonb) <$> HD.column (HD.nullable HD.jsonb)
     let value = 
          XUserQualificationFullinfo 
          (Just id) 
@@ -127,8 +127,8 @@ fullInfoDecoder =
   where
     categoryComp type_ =
       do
-        id <- HD.field HD.int8
-        object <- HD.field HD.jsonb
+        id <- HD.field (HD.nonNullable HD.int8)
+        object <- HD.field (HD.nonNullable HD.jsonb)
 
         let mkUpper x = T.cons (toUpper (T.head x)) (T.tail x)
         let adjustCountry (Data.Aeson.String s) = Data.Aeson.String (T.concat (map mkUpper (T.splitOn "_" s)))  
@@ -157,21 +157,21 @@ fullInfoDecoder =
             error $ "category decode error: " <> e        
     providerComp = 
       do 
-        id <- fmap ProviderId (HD.field HD.int8)
-        title <- HD.field HD.text
-        country <- fmap (^.from Iso.country) (HD.field HD.text)
-        degrees <- HD.field (HD.array (HD.dimension replicateM (HD.element HD.text)))
+        id <- fmap ProviderId (HD.field (HD.nonNullable HD.int8))
+        title <- HD.field (HD.nonNullable HD.text)
+        country <- fmap (^.from Iso.country) (HD.field (HD.nonNullable HD.text))
+        degrees <- HD.field (HD.nonNullable (HD.array (HD.dimension replicateM (HD.element (HD.nonNullable HD.text)))))
         return $ XProvider 
                  (Just id) 
                  (Just (Provider (title^.from lazytext) country)) 
                  ((degrees^..traversed.from lazytext)^.vector)
     qualComp =
       do 
-        id <- fmap QualificationId (HD.field HD.int8)
+        id <- fmap QualificationId (HD.field (HD.nonNullable HD.int8))
         degree <- fmap (fmap (Protobuf.Scalar.String . (^.from lazytext))) 
-                  (HD.nullableField HD.text)
-        title <- HD.field HD.text
-        grade :: Result [ExGradeRange] <- fmap fromJSON (HD.field HD.jsonb)
+                  (HD.field (HD.nullable HD.text))
+        title <- HD.field (HD.nonNullable HD.text)
+        grade :: Result [ExGradeRange] <- fmap fromJSON (HD.field (HD.nonNullable HD.jsonb))
         let
         let mkQual = 
                XQualification (Just id) degree 

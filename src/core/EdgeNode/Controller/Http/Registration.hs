@@ -110,23 +110,23 @@ persist req =
       let mkPass = makePasswordSaltWith pbkdf2 id pass mkSalt 2000 
       let encoder = 
            (req^._Wrapped'.field @"requestEmail".lazytext) >$ 
-           HE.param HE.text <>
-           (mkPass >$ HE.param HE.bytea) <>
+           HE.param (HE.nonNullable HE.text) <>
+           (mkPass >$ HE.param (HE.nonNullable HE.bytea)) <>
            ((defu^.field @"userName".lazytext) >$ 
-            HE.param HE.text) <>
+            HE.param (HE.nonNullable HE.text)) <>
            ((defu^.field @"userMiddlename".lazytext) >$ 
-            HE.param HE.text) <>
+            HE.param (HE.nonNullable HE.text)) <>
            ((defu^.field @"userSurname".lazytext) >$ 
-            HE.param HE.text) <> 
+            HE.param (HE.nonNullable HE.text)) <> 
            ((defu^?field @"userDayOfBirth"._Just.to encode.bytesLazy) >$ 
-            HE.nullableParam HE.bytea) <>
-           ((defu^.field @"userAllegiance".lazytext) >$ HE.param HE.text) <>
-           ((defu^.field @"userAvatar") >$ HE.param HE.bytea) <>
+             HE.param (HE.nullable HE.bytea)) <>
+           ((defu^.field @"userAllegiance".lazytext) >$ HE.param (HE.nonNullable HE.text)) <>
+           ((defu^.field @"userAvatar") >$ HE.param (HE.nonNullable HE.bytea)) <>
            ((defu^.field @"userGender".to User.coercedUserGender) >$ 
-            HE.param (HE.enum ((^.stext) . User.fromGender)))
+            HE.param (HE.nonNullable (HE.enum ((^.stext) . User.fromGender))))
       let decoder = 
            HD.singleRow $ 
-           HD.column HD.int8 <&> 
+           HD.column (HD.nonNullable HD.int8) <&> 
            ((^._Unwrapped') . Reg.Response . Just . User.UserId)
       let log = (sql^.from textbs.from stext) <> ", loc: " <> show getLoc
       liftIO $ logger InfoS (logStr log)

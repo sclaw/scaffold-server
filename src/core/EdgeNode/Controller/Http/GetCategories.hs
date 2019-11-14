@@ -65,7 +65,7 @@ action =
     return $ GetCategoriesResponse resp
 
 getStateExams :: HS.Statement () [XStateExam]
-getStateExams = HS.Statement sql HE.unit decoder False
+getStateExams = HS.Statement sql HE.noParams decoder False
   where sql =
           [i|select s.id, s."stateExamTitle", p."providerCountry"  
           from "edgeNode"."StateExam" as s 
@@ -75,15 +75,15 @@ getStateExams = HS.Statement sql HE.unit decoder False
           on sp.provider_id = p.id|]     
         decoder = 
           HD.rowList $ do
-            ident <- HD.column HD.int8 <&> (^._Unwrapped')
-            stateExamTitle <- HD.column HD.text <&> (^.from lazytext)
-            ctry <- HD.column (HD.enum (Just . (^.from stext.to toCountry)))
+            ident <- HD.column (HD.nonNullable HD.int8) <&> (^._Unwrapped')
+            stateExamTitle <- HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
+            ctry <- HD.column (HD.nonNullable (HD.enum (Just . (^.from stext.to toCountry))))
             let stateExamCountry = Enumerated (Right ctry)
             let value = EdgeNode.Model.Category.StateExam {..}
             return $ XStateExam (Just ident) (Just value)
 
 getHigherDegrees :: HS.Statement () [XHigherDegree]
-getHigherDegrees = HS.Statement sql HE.unit decoder False
+getHigherDegrees = HS.Statement sql HE.noParams decoder False
   where sql = 
           [i|select h.id, p."providerTitle", p."providerCountry"  
              from "edgeNode"."HigherDegree" as h 
@@ -93,32 +93,32 @@ getHigherDegrees = HS.Statement sql HE.unit decoder False
              on hp.provider_id = p.id|]
         decoder = 
           HD.rowList $ do
-            ident <- HD.column HD.int8 <&> (^._Unwrapped')
-            higherDegreeProvider <- HD.column HD.text <&> (^.from lazytext)
-            ctry <- HD.column (HD.enum (Just . (^.from stext.to toCountry)))
+            ident <- HD.column (HD.nonNullable HD.int8) <&> (^._Unwrapped')
+            higherDegreeProvider <- HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
+            ctry <- HD.column (HD.nonNullable (HD.enum (Just . (^.from stext.to toCountry))))
             let higherDegreeCountry = Enumerated (Right ctry)
             let value = EdgeNode.Model.Category.HigherDegree {..}
             return $ XHigherDegree (Just ident) (Just value)    
 
 getInternationalDiplomas :: HS.Statement () [XInternationalDiploma]
-getInternationalDiplomas = HS.Statement sql HE.unit decoder False
+getInternationalDiplomas = HS.Statement sql HE.noParams decoder False
   where sql = [i|select * from "edgeNode"."InternationalDiploma"|]
         decoder = 
           HD.rowList $ do
-            ident <- HD.column HD.int8 <&> (^._Unwrapped')
-            internationalDiplomaTitle <- HD.column HD.text <&> (^.from lazytext)
+            ident <- HD.column (HD.nonNullable HD.int8) <&> (^._Unwrapped')
+            internationalDiplomaTitle <- HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
             let value = EdgeNode.Model.Category.InternationalDiploma {..}
             return $ XInternationalDiploma (Just ident) (Just value)
 
 getLanguageStandards :: HS.Statement () [XLanguageStandard]
-getLanguageStandards = HS.Statement sql HE.unit decoder False
+getLanguageStandards = HS.Statement sql HE.noParams decoder False
   where sql = [i|select * from "edgeNode"."LanguageStandard"|]
         decoder = 
           HD.rowList $ do
-            ident <- HD.column HD.int8 <&> (^._Unwrapped')
-            languageStandardStandard <- HD.column HD.text <&> (^.from lazytext)
+            ident <- HD.column (HD.nonNullable HD.int8) <&> (^._Unwrapped')
+            languageStandardStandard <- HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
             languageStandardGrade <- 
-              HD.column 
+              HD.column $ HD.nonNullable
               (HD.jsonbBytes 
                ( first (^.stext) 
                . eitherDecode 

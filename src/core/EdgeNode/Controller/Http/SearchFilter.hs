@@ -48,13 +48,13 @@ action = do
              from "edgeNode"."QualificationProvider")
         |]
   let decoder = HD.singleRow $ do 
-        areas <- HD.column (HD.array (HD.dimension replicateM (HD.element HD.text)))
+        areas <- HD.column (HD.nonNullable (HD.array (HD.dimension replicateM (HD.element (HD.nonNullable HD.text)))))
         let filterAcademicAreas = Just $ AcademicAreas ((areas^..traverse.from lazytext)^.vector)
-        langs <- HD.column (HD.array (HD.dimension replicateM (HD.element (HD.text <&> (^.from language)))))   
+        langs <- HD.column (HD.nonNullable (HD.array (HD.dimension replicateM (HD.element (HD.nonNullable HD.text) <&> (^.from language)))))   
         let filterLanguages = Just $ Languages (langs^.vector) 
-        countries <- HD.column (HD.array (HD.dimension replicateM (HD.element (HD.text <&> (^.from country)))))
+        countries <- HD.column (HD.nonNullable (HD.array (HD.dimension replicateM (HD.element (HD.nonNullable HD.text) <&> (^.from country)))))
         let filterCountries = Just $ Countries (countries^.vector)
-        degrees <- HD.column (HD.array (HD.dimension replicateM (HD.element HD.text)))
+        degrees <- HD.column (HD.nonNullable (HD.array (HD.dimension replicateM (HD.element (HD.nonNullable HD.text)))))
         let filterDegrees = Just $ Degrees ((degrees^..traverse.from lazytext)^.vector)
         return Filter {..}
-  Hasql.Session.statement () (HS.Statement sql HE.unit decoder False)
+  Hasql.Session.statement () (HS.Statement sql HE.noParams decoder False)

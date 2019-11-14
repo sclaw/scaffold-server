@@ -31,14 +31,23 @@ deleteQualification = HS.Statement sql encoder decoder False
          on qd."key" = tr."qualificationKey" 
          where tr."user" = $2 and qd."dependency" = (select k from del)|]
     encoder =
-      contramap (^._1._Wrapped') (HE.param HE.int8) <>
-      contramap (^._1._Wrapped') (HE.param HE.int8)
-    decoder = HD.singleRow $ HD.column $ HD.array (HD.dimension replicateM (HD.element (HD.int8 <&> (^.from _Wrapped'))))
+      contramap 
+      (^._1._Wrapped') 
+      (HE.param (HE.nonNullable HE.int8)) <>
+      contramap 
+      (^._1._Wrapped') 
+      (HE.param (HE.nonNullable HE.int8))
+    array = HD.dimension replicateM (HD.element (HD.nonNullable (HD.int8 <&> (^.from _Wrapped'))))
+    decoder = HD.singleRow $ HD.column $ HD.nonNullable $ HD.array array
 
 deleteTrajectory :: HS.Statement (TrajectoryId, UserId) ()
-deleteTrajectory = HS.Statement sql encoder HD.unit False
+deleteTrajectory = HS.Statement sql encoder HD.noResult False
   where
     sql = [i|delete from "edgeNode"."Trajectory" where "user" = $2 and id = $1|]
     encoder =
-      contramap (^._1._Wrapped') (HE.param HE.int8) <>
-      contramap (^._1._Wrapped') (HE.param HE.int8)
+      contramap 
+      (^._1._Wrapped') 
+      (HE.param (HE.nonNullable HE.int8)) <>
+      contramap 
+      (^._1._Wrapped') 
+      (HE.param (HE.nonNullable HE.int8))

@@ -152,10 +152,10 @@ actionCheckToken (Just user) =
              and "tokenUnique" = $2)|]
      let encoder = 
           (jWTUserUserId user^._Wrapped' >$ 
-           HE.param HE.int8) <> 
+           HE.param (HE.nonNullable HE.int8)) <> 
           (jWTUserUnique user^.stext >$ 
-           HE.param HE.text)
-     let decoder = HD.singleRow $ HD.column HD.bool    
+           HE.param (HE.nonNullable HE.text))
+     let decoder = HD.singleRow $ HD.column (HD.nonNullable HD.bool)    
      exists <- Hasql.statement () (HS.Statement sql encoder decoder False)
      return $ if exists then Right user else Left "token not found"
 

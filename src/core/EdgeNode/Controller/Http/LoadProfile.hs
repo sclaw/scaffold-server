@@ -51,7 +51,7 @@ action uid logger =
               "userGender" 
             from "edgeNode"."User"
             where id = $1|]
-    let encoder = uid^._Wrapped' >$ HE.param HE.int8
+    let encoder = uid^._Wrapped' >$ HE.param (HE.nonNullable HE.int8)
     let decoder = HD.rowMaybe userDecoder
     liftIO $ logger DebugS (logStr (sql^.from textbs.from stext))
     Hasql.Session.statement () (HS.Statement sql encoder decoder False)
@@ -59,13 +59,13 @@ action uid logger =
 userDecoder :: HD.Row User
 userDecoder =
   do 
-    userName <- HD.column HD.text <&> (^.from lazytext)
-    userMiddlename <- HD.column HD.text <&> (^.from lazytext)
-    userSurname <- HD.column HD.text <&> (^.from lazytext)
-    day <- HD.column HD.bytea <&> Aeson.eitherDecodeStrict'  
-    userAllegiance <- HD.column HD.text <&> (^.from lazytext)
-    userAvatar <- HD.column HD.bytea
-    userGender <- HD.column (HD.enum hasqlEnumUserGender) <&> (Enumerated . Right)
+    userName <- HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
+    userMiddlename <- HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
+    userSurname <- HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
+    day <- HD.column (HD.nonNullable HD.bytea) <&> Aeson.eitherDecodeStrict'  
+    userAllegiance <- HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
+    userAvatar <- HD.column (HD.nonNullable HD.bytea)
+    userGender <- HD.column (HD.nonNullable (HD.enum hasqlEnumUserGender)) <&> (Enumerated . Right)
     case day of 
       Right userDayOfBirth -> return User {..}
       Left e -> error $ "json decode error: " <> e

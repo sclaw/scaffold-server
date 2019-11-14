@@ -28,7 +28,7 @@ spec_explain =
         $ for_ tests
         $ \(name, SomeQuery (Statement sql encoder _ _)) -> 
             itHasql name $ do 
-              let st = Statement ("explain " <> sql) encoder unit False
+              let st = Statement ("explain " <> sql) encoder noResult False
               input <- liftIO $ generate arbitrary
               r <- statement input st
               r `shouldBe` ()
@@ -40,9 +40,11 @@ data SomeQuery = forall a b . Arbitrary a => SomeQuery (Statement a b)
 explainTests :: [(String, [(String, SomeQuery)])]
 explainTests = 
   [ "EdgeNode.Model.User"
-    ==> [ "deleteQualification" =>> User.deleteQualification
-        , "deleteTrajectory" =>> User.deleteTrajectory]
+    ==> [ "deleteQualification" =>> 
+          User.deleteQualification
+        , "deleteTrajectory" =>> 
+          User.deleteTrajectory]
   ]
-  where
-    (==>) a b = (a, b)
-    (=>>) a b = (a, SomeQuery b)
+  
+(==>) a b = (a, b)
+(=>>) a b = (a, SomeQuery b)

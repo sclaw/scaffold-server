@@ -68,8 +68,8 @@ controller req userId =
                 ("categoryType", "categoryKey", "providerKey", "qualificationKey", "qualificationSkillLevel", "userId") 
                 (select x.*, $6 from unnest($1, (select array_agg(ident) from real), $3, $4, $5) as x) returning id
               |]
-        let vector v = HE.param (HE.array (HE.dimension foldl' (HE.element v)))
-        let nullvector v = HE.param (HE.array (HE.dimension foldl' (HE.nullableElement v)))
+        let vector v = HE.param (HE.nonNullable (HE.array (HE.dimension foldl' (HE.element (HE.nonNullable v)))))
+        let nullvector v = HE.param (HE.nonNullable (HE.array (HE.dimension foldl' (HE.element (HE.nullable v)))))
         let encoderXs = 
               unzip5 xs >$
               contrazip5  
@@ -78,8 +78,8 @@ controller req userId =
               (nullvector HE.int8) 
               (nullvector HE.int8)
               (vector HE.jsonb)
-        let encoder = encoderXs <> (userId^._Wrapped' >$ HE.param HE.int8)     
-        let decoder = HD.rowList $ HD.column HD.int8 <&> UserQualificationId
+        let encoder = encoderXs <> (userId^._Wrapped' >$ HE.param (HE.nonNullable HE.int8))     
+        let decoder = HD.rowList $ HD.column (HD.nonNullable HD.int8) <&> UserQualificationId
         ids <- Hasql.Session.statement () (HS.Statement sql encoder decoder False)
         for_ xs $ \x -> for_ (x^._4) $ \ident -> do
           let sql = 
@@ -90,9 +90,9 @@ controller req userId =
                   where "dependency" = $1 
                         and tr."user" = $2|]
           let encoder = 
-               (ident >$ HE.param HE.int8) <> 
-               (userId^._Wrapped' >$ HE.param HE.int8)
-          let decoder = HD.rowList $ HD.column HD.int8 <&> (^.from _Wrapped')
+               (ident >$ HE.param (HE.nonNullable HE.int8)) <> 
+               (userId^._Wrapped' >$ HE.param (HE.nonNullable HE.int8))
+          let decoder = HD.rowList $ HD.column (HD.nonNullable HD.int8) <&> (^.from _Wrapped')
           keys <- Hasql.Session.statement () (HS.Statement sql encoder decoder False)  
           for_ keys $ SaveTrajectory.action userId . Just
         return ids)

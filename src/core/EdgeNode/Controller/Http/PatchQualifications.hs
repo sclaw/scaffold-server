@@ -71,8 +71,8 @@ action uid qidm skillm = fmap (join . maybeToRight "qualififcation or (and) skil
                 on uq."qualificationKey" = qp.id
                 where uq.id = $1
               |]
-        let encoderXs = (ident^._Wrapped' >$ HE.param HE.int8)      
-        let decoderXs = HD.singleRow $ HD.column HD.jsonb
+        let encoderXs = (ident^._Wrapped' >$ HE.param (HE.nonNullable HE.int8))      
+        let decoderXs = HD.singleRow $ HD.column (HD.nonNullable HD.jsonb)
         json <- Hasql.Session.statement () (HS.Statement sqlXs encoderXs decoderXs False)
         let xse :: Result [ExGradeRange] = fromJSON json
         case xse of 
@@ -97,10 +97,20 @@ action uid qidm skillm = fmap (join . maybeToRight "qualififcation or (and) skil
                     where dependency = (select k from up) and tr."user" = $3
                   |]
             let encoder = 
-                  contramap (^._1._Wrapped') (HE.param HE.int8) <>  
-                  contramap (^._2.to toJSON) (HE.param HE.jsonb) <>
-                  contramap (^._3._Wrapped') (HE.param HE.int8) 
-            let decoder = HD.singleRow $ HD.column $ HD.array (HD.dimension replicateM (HD.element (HD.int8 <&> (^.from _Wrapped')))) 
+                  contramap (^._1._Wrapped') (HE.param (HE.nonNullable HE.int8)) <>  
+                  contramap (^._2.to toJSON) (HE.param (HE.nonNullable HE.jsonb)) <>
+                  contramap (^._3._Wrapped') (HE.param (HE.nonNullable HE.int8)) 
+            let decoder = 
+                  HD.singleRow $ 
+                  HD.column $ 
+                  HD.nonNullable $ 
+                  HD.array 
+                  (HD.dimension 
+                   replicateM 
+                   (HD.element 
+                    (HD.nonNullable 
+                     HD.int8) <&> 
+                     (^.from _Wrapped'))) 
             for (search skill xs) $ \new -> Hasql.Session.statement (ident, new, uid) (HS.Statement sql encoder decoder False)
     search :: Request_ValueSkill -> [ExGradeRange] -> Either T.Text UserQualificationSkill
     search skill xs =

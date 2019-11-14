@@ -68,11 +68,11 @@ actionUser email logger =
             where u."email" = $1|]
     let log = (sql^.from textbs.from stext) <> ", loc: " <> show getLoc
     liftIO $ logger InfoS (logStr log)  
-    let encoder = email^.lazytext >$ HE.param HE.text
+    let encoder = email^.lazytext >$ HE.param (HE.nonNullable HE.text)
     let decoder = 
          HD.rowMaybe $ 
-          (,) <$> (HD.column HD.int8 <&> (^.from _Wrapped'))
-          <*> HD.column HD.bytea 
+          (,) <$> (HD.column (HD.nonNullable HD.int8) <&> (^.from _Wrapped'))
+          <*> HD.column (HD.nonNullable HD.bytea) 
     Hasql.Session.statement () (HS.Statement sql encoder decoder False)
 
 ok :: B.ByteString 
@@ -131,8 +131,8 @@ actionToken token uid unique logger =
     let log = (sql^.from textbs.from stext) <> ", loc: " <> show getLoc
     liftIO $ logger InfoS (logStr log)     
     let encoder = 
-         (token >$ HE.param HE.bytea) <>
-         (uid^._Wrapped' >$ HE.param HE.int8) <>
-         (unique^.stext >$ HE.param HE.text)
-    let decoder = HD.rowMaybe $ HD.column HD.bool
+         (token >$ HE.param (HE.nonNullable HE.bytea)) <>
+         (uid^._Wrapped' >$ HE.param (HE.nonNullable HE.int8)) <>
+         (unique^.stext >$ HE.param (HE.nonNullable HE.text))
+    let decoder = HD.rowMaybe $ HD.column (HD.nonNullable HD.bool)
     Hasql.Session.statement () (HS.Statement sql encoder decoder False)

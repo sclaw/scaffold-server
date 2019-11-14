@@ -54,7 +54,7 @@ action uid user logger =
               "userGender" = $8 
              where id = $1|]
     let encoder = 
-         (uid^._Wrapped' >$ HE.param HE.int8) <>
+         (uid^._Wrapped' >$ HE.param (HE.nonNullable HE.int8)) <>
          encoderUser user
     let decoder = HD.rowsAffected
     liftIO $ logger DebugS (logStr (sql^.from textbs.from stext))
@@ -62,10 +62,10 @@ action uid user logger =
 
 encoderUser :: User -> HE.Params ()
 encoderUser user = 
-  ((userName user^.lazytext) >$ HE.param HE.text) <>
-  ((userMiddlename user^.lazytext) >$ HE.param HE.text) <>
-  ((userSurname user^.lazytext) >$ HE.param HE.text) <>
-  (Aeson.encode (userDayOfBirth user)^.bytesLazy >$ HE.param HE.bytea) <>
-  (userAllegiance user^.lazytext >$ HE.param HE.text) <>
-  (userAvatar user >$ HE.param HE.bytea) <>
-  (coercedUserGender (userGender user) >$ HE.param (HE.enum (^.isoGender.stext)))
+  ((userName user^.lazytext) >$ HE.param (HE.nonNullable HE.text)) <>
+  ((userMiddlename user^.lazytext) >$ HE.param (HE.nonNullable HE.text)) <>
+  ((userSurname user^.lazytext) >$ HE.param (HE.nonNullable HE.text)) <>
+  (Aeson.encode (userDayOfBirth user)^.bytesLazy >$ HE.param (HE.nonNullable HE.bytea)) <>
+  (userAllegiance user^.lazytext >$ HE.param (HE.nonNullable HE.text)) <>
+  (userAvatar user >$ HE.param (HE.nonNullable HE.bytea)) <>
+  (coercedUserGender (userGender user) >$ HE.param (HE.nonNullable (HE.enum (^.isoGender.stext))))

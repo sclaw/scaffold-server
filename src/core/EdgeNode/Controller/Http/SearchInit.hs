@@ -94,27 +94,27 @@ action ident filter =
           , fmap mkdDegrees filterDegrees)  
         mkTpl Nothing = (Nothing, Nothing, Nothing, Nothing)        
     let encoder = 
-         (ident^?_Just._Wrapped' >$ HE.nullableParam HE.int8) <>
+         (ident^?_Just._Wrapped' >$ HE.param (HE.nullable HE.int8)) <>
          (mkTpl filter >$ 
           (contrazip4 
-           (HE.nullableParam (HE.array (HE.dimension foldl' (HE.element HE.text))))
-           (HE.nullableParam (HE.array (HE.dimension foldl' (HE.element HE.text))))
-           (HE.nullableParam (HE.array (HE.dimension foldl' (HE.element HE.text))))
-           (HE.nullableParam (HE.array (HE.dimension foldl' (HE.element HE.text))))))      
+           (HE.param (HE.nullable (HE.array (HE.dimension foldl' (HE.element (HE.nonNullable HE.text))))))
+           (HE.param (HE.nullable (HE.array (HE.dimension foldl' (HE.element (HE.nonNullable HE.text))))))
+           (HE.param (HE.nullable (HE.array (HE.dimension foldl' (HE.element (HE.nonNullable HE.text))))))
+           (HE.param (HE.nullable (HE.array (HE.dimension foldl' (HE.element (HE.nonNullable HE.text))))))))      
     let qualificationDecoder = 
           do
-            ident <- HD.column HD.int8 <&> (^._Unwrapped')
-            qualificationFullInfoTitle <- HD.column HD.text <&> (^.from lazytext)
-            qualificationFullInfoDegreeType <- HD.nullableColumn HD.text <&> fmap (^.from lazytext.to String)
-            qualificationFullInfoProvider <- HD.column HD.text <&> (^.from lazytext)
+            ident <- HD.column (HD.nonNullable HD.int8) <&> (^._Unwrapped')
+            qualificationFullInfoTitle <- HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
+            qualificationFullInfoDegreeType <- HD.column (HD.nullable HD.text) <&> fmap (^.from lazytext.to String)
+            qualificationFullInfoProvider <- HD.column (HD.nonNullable HD.text) <&> (^.from lazytext)
             qualificationFullInfoProviderCountry <- 
-              HD.column (HD.enum (Just . (^.from stext.to (Enumerated . Right . toCountry))))
-            qualificationFullInfoDuration <- HD.nullableColumn HD.int4 <&> fmap Int32
-            qualificationFullInfoTuitionFees <- HD.nullableColumn HD.int4 <&> fmap Int32
+              HD.column (HD.nonNullable (HD.enum (Just . (^.from stext.to (Enumerated . Right . toCountry)))))
+            qualificationFullInfoDuration <- HD.column (HD.nullable HD.int4) <&> fmap Int32
+            qualificationFullInfoTuitionFees <- HD.column (HD.nullable HD.int4) <&> fmap Int32
             let mkTime day = Time ((fromInteger . round . utcTimeToPOSIXSeconds . (`UTCTime` 0)) day) 0
-            qualificationFullInfoAdmissionDeadline <- HD.nullableColumn HD.date <&> fmap mkTime
-            qualificationFullInfoStudyMode <- HD.nullableColumn HD.text <&> fmap (^.from lazytext.to String)
-            isTrajectory <- HD.column HD.bool
+            qualificationFullInfoAdmissionDeadline <- HD.column (HD.nullable HD.date) <&> fmap mkTime
+            qualificationFullInfoStudyMode <- HD.column (HD.nullable HD.text) <&> fmap (^.from lazytext.to String)
+            isTrajectory <- HD.column (HD.nonNullable HD.bool)
             let value = QualificationFullInfo {..}
             return $ XQualificationFullInfo (Just ident) (Just value) isTrajectory
     let decoder = HD.rowList qualificationDecoder

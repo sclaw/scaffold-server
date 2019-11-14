@@ -49,8 +49,8 @@ action user logger =
             where "tokenUserId" = $1 and 
                   "tokenUnique" = $2|]
     let encoder = 
-         (jWTUserUserId user^._Wrapped' >$ HE.param HE.int8) <>
-         (jWTUserUnique user^.stext >$ HE.param HE.text)
+         (jWTUserUserId user^._Wrapped' >$ HE.param (HE.nonNullable HE.int8)) <>
+         (jWTUserUnique user^.stext >$ HE.param (HE.nonNullable HE.text))
     let decoder = HD.rowsAffected
     liftIO $ logger DebugS (logStr (sql^.from textbs.from stext))
     Hasql.Session.statement () (HS.Statement sql encoder decoder False)

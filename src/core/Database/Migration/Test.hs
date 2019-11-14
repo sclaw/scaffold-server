@@ -11,11 +11,11 @@ import qualified Hasql.Decoders as HD
 $mkMigrationTest
 
 migrate :: [Statement () ()]
-migrate = exts ++ map (\sql -> Statement sql HE.unit HD.unit False) list
+migrate = exts ++ map (\sql -> Statement sql HE.noParams HD.noResult False) list
   where 
     exts =
-      [ Statement "create extension postgres_fdw" HE.unit HD.unit False
-      , Statement "create extension hstore" HE.unit HD.unit False
-      , Statement "create extension ltree" HE.unit HD.unit False
-      , Statement "create extension pg_trgm" HE.unit HD.unit False
+      [ Statement "create extension postgres_fdw" HE.noParams HD.noResult False
+      , Statement "create extension hstore" HE.noParams HD.noResult False
+      , Statement "create extension ltree" HE.noParams HD.noResult False
+      , Statement "create extension pg_trgm" HE.noParams HD.noResult False
       ]

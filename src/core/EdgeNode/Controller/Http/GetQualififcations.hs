@@ -86,12 +86,12 @@ action ident logger =
             where "qualificationProviderKey" = $1 
             group by root, "qualificationProviderDegreeType"           
          |]
-    let encoder = ident >$ HE.param HE.int8
+    let encoder = ident >$ HE.param (HE.nonNullable HE.int8)
     let qualComposite = do 
-          i <- HD.field HD.int8
-          title <- HD.field HD.text
-          grade <- fmap (^.from jsonb) <$> HD.nullableField HD.jsonb 
-          path <- HD.field HD.text
+          i <- HD.field (HD.nonNullable HD.int8)
+          title <- HD.field (HD.nonNullable HD.text)
+          grade <- fmap (^.from jsonb) <$> HD.field (HD.nullable HD.jsonb) 
+          path <- HD.field (HD.nonNullable HD.text)
           let mkRange xs = V.fromList 
                [EdgeNode.Model.Qualification.mkRange 
                 exGradeRangeGrade 
@@ -103,14 +103,15 @@ action ident logger =
           return (path, Node (Just (QualificationId i)) (Just qual)) 
     let decoder = HD.rowList $ do
           degree <- (fmap (^.from lazytext.to Proto.String)) <$> 
-                    HD.nullableColumn HD.text
-          _ <- HD.column HD.text 
-          xs <- HD.column 
+                    HD.column (HD.nullable HD.text)
+          _ <- HD.column (HD.nonNullable HD.text) 
+          xs <- HD.column $ HD.nonNullable
            (HD.array 
             (HD.dimension replicateM 
              (HD.element 
+              (HD.nonNullable
               (HD.composite 
-               qualComposite))))
+               qualComposite)))))
           return (degree, xs)                 
     Hasql.Session.statement () (HS.Statement sql encoder decoder False)
     
