@@ -1,9 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE LambdaCase #-}
 
-module EdgeNode.Controller.Application (application) where
+module EdgeNode.Controller.Controller (controller) where
 
 import Auth
 import EdgeNode.Api
@@ -38,8 +37,8 @@ import Servant.API.Generic
 import Servant.Auth.Server
 
 
-application :: ApplicationApi (AsServerT KatipController)
-application = ApplicationApi { _applicationApiHttp = toServant httpApi }
+controller :: ApplicationApi (AsServerT KatipController)
+controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
 
 httpApi :: HttpApi (AsServerT KatipController)
 httpApi = 

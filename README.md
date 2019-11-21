@@ -37,8 +37,26 @@
      > **authorize :: Login -> Permission -> Controller**
 
     Permission - операции доступные для данной роли 
-    Callback - в случае успеха проваливаемся сюда (controller)
+    Controller - в случае успеха проваливаемся сюда (controller)
     401 - в случае если права отсутствуют или не достаточны
+    таблицы:
+  >  
+     edgeNode.Role 
+       id: int8, serial
+       title: text not null
+       parent: int8 null refer to edgeNode.Role (id)
+       unique: title 
+       
+     edgeNode.Permission 
+       id: int8, serial
+       title: text not null
+       parent: int8 null refer to edgeNode.Permission (id)
+       unique: title
+
+     edgeNode.UserRole
+       userFK: int8, not null, refer to edgeNode.User (id)
+       roleFK: int8, not null, refer to edgeNode.ROle (id)
+       unique: (userFK, roleFK)
 
  3. **Первичный пользователь (user)**
   таблицы:
@@ -47,6 +65,9 @@
       id: int8, serial
       email: text, not null
       password: bytea, not null
+      created: time, not null
+      modified: time, nullable
+      index: email     
       unique: email
 
     edgeNode.User
@@ -77,14 +98,18 @@
         id: int8, serial
         login: text, not null
         email: text, not null
+        status: text, not null, -> enum type (haskell) 
         providerFK: int8, not null, refer to edgeNode.Provider
         providerUserFK: int8, not null, refer to auth.ProviderUser
         created: time, not null
+        modified: time, nullable
         unique: (login, providerFK)
 
       auth.ProviderUser
         id: int8, serial
         pass: text, not null
+        created: time, not null
+        modified: time, nullable
 
       edgeNode.ProviderBranch
         id: int8, serial 
@@ -191,6 +216,10 @@
      Администратор отправляет в edgeNode запрос на добавление нового пользователя.
      req: login, email - куда будет отправлен временный пароль
      > PUT provider/settings/user, permission: providerAdmin
+       PUT provider/settings/user/password/resend, permission: providerAdmin
+
+   - Получение всех пользователей
+     > GET provider/settings/user, permission: providerAdmin    
 
    - удаление пользователей
      Администатор может удалять пользователей

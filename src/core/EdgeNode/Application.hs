@@ -17,7 +17,7 @@
 module EdgeNode.Application (Cfg (..), AppMonad (..), run) where
 
 import EdgeNode.Api
-import qualified EdgeNode.Controller.Application as App
+import qualified EdgeNode.Controller.Controller as Controller
 import EdgeNode.Model.User (UserId)
 
 import Katip.Monadic                 (askLoggerIO)
@@ -101,7 +101,7 @@ run Cfg {..} =
            (withSwagger api)
            context
            (runKatipController cfg (KatipControllerState 0)) 
-           (toServant App.application :<|> 
+           (toServant Controller.controller :<|> 
             swaggerSchemaUIServerT (swaggerHttpApi cfgHost cfgPort))
       excep <-katipAddNamespace (Namespace ["exception"]) askLoggerIO
       ctxlog <-katipAddNamespace (Namespace ["context"]) askLoggerIO

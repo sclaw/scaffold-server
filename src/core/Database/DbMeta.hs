@@ -24,6 +24,10 @@ import Database.Groundhog.Core
 import Data.Time.Clock
 import Data.Word
 
-data DbMeta = DbMeta { dbMetaMigrationVersion :: Word32, dbMetaModificationTime :: UTCTime }
+data DbMeta = 
+     DbMeta 
+     { dbMetaMigrationVersion :: Word32
+     , dbMetaModificationTime :: UTCTime 
+     }
 
 mkPersist_ [groundhog| - entity: DbMeta |]

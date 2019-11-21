@@ -38,7 +38,7 @@ runTryDbConnGH
   => TryAction (Exception.Groundhog e) m Postgresql a 
   -> Pool Postgresql 
   -> m (Either SomeException a)
-runTryDbConnGH action = katipAddNamespace (Namespace ["orm"]) . runTryDbConn action
+runTryDbConnGH action = katipAddNamespace (Namespace ["db", "groundhog"]) . runTryDbConn action
 
 runTryDbConnHasql 
   :: Show a 
@@ -47,7 +47,7 @@ runTryDbConnHasql
   -> KatipController (Either Exception.Hasql a)
 runTryDbConnHasql action pool = 
   do 
-    logger <- katipAddNamespace (Namespace ["raw"]) askLoggerIO
+    logger <- katipAddNamespace (Namespace ["db", "hasql"]) askLoggerIO
     dbRes <- liftIO $ Hasql.use pool (action logger)
     for_ dbRes (liftIO . logger InfoS . logStr . show)
     return $ first fromHasqlToServerExcep dbRes
