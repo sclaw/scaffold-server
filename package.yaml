@@ -1,4 +1,4 @@
-name:                edgeNode-server
+name:                edgenode
 version:             0.1.0.0
 license:             BSD3
 author:              "edgeNode"
@@ -172,17 +172,17 @@ executables:
     main:                app.hs
     source-dirs:         prog
     dependencies:
-    - edgeNode-server
+    - edgenode
 
 tests:
   tasty:
     main:                test.hs
     source-dirs:         prog
     dependencies:
-    - edgeNode-server
+    - edgenode
   doctest:
     main:             doctest.hs
     source-dirs:      prog
     dependencies:
-    - edgeNode-server
+    - edgenode
     - doctest-discover

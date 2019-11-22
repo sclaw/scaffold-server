@@ -1,0 +1,297 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 2b0818299bc9b3f4417cf70598d95b7741f96cf7297a0ddb9b9aed756e4fbed1
+
+name:           edgenode
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/web#readme>
+author:         edgeNode
+maintainer:     Sergey Yakovlev<fclaw007@gmail.com>
+copyright:      2019 edgeNode
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+library
+  exposed-modules:
+      Auth
+      BuildInfo
+      Database.Action
+      Database.AutoKey
+      Database.DbMeta
+      Database.Exception
+      Database.FullText.Index
+      Database.FullText.Search
+      Database.Migration
+      Database.Migration.Batch
+      Database.Migration.Test
+      Database.Render
+      Database.Table
+      EdgeNode.Api
+      EdgeNode.Api.Http.Admin
+      EdgeNode.Api.Http.Api
+      EdgeNode.Api.Http.Auth
+      EdgeNode.Api.Http.Provider
+      EdgeNode.Api.Http.Search
+      EdgeNode.Api.Http.Service
+      EdgeNode.Api.Http.User
+      EdgeNode.Application
+      EdgeNode.Config
+      EdgeNode.Controller.Controller
+      EdgeNode.Controller.Http.DeleteQualification
+      EdgeNode.Controller.Http.DeleteTrajectory
+      EdgeNode.Controller.Http.GetCategories
+      EdgeNode.Controller.Http.GetProviders
+      EdgeNode.Controller.Http.GetQualificationFullInfo
+      EdgeNode.Controller.Http.GetQualififcations
+      EdgeNode.Controller.Http.GetTrajectories
+      EdgeNode.Controller.Http.LoadCountries
+      EdgeNode.Controller.Http.LoadProfile
+      EdgeNode.Controller.Http.PatchProfile
+      EdgeNode.Controller.Http.PatchQualifications
+      EdgeNode.Controller.Http.RefreshToken
+      EdgeNode.Controller.Http.Registration
+      EdgeNode.Controller.Http.SaveQualifications
+      EdgeNode.Controller.Http.SaveTrajectory
+      EdgeNode.Controller.Http.SearchApplyFilter
+      EdgeNode.Controller.Http.SearchFilter
+      EdgeNode.Controller.Http.SearchInit
+      EdgeNode.Controller.Http.SearchQualification
+      EdgeNode.Controller.Http.SignIn
+      EdgeNode.Controller.Http.SignOut
+      EdgeNode.Controller.Http.ValidateRefreshToken
+      EdgeNode.Iso
+      EdgeNode.Model.Category
+      EdgeNode.Model.Provider
+      EdgeNode.Model.Qualification
+      EdgeNode.Model.Rbac
+      EdgeNode.Model.Token
+      EdgeNode.Model.Tree
+      EdgeNode.Model.User
+      EdgeNode.Model.User.Qualification
+      EdgeNode.Model.User.Trajectory
+      EdgeNode.Search
+      EdgeNode.Statement.User
+      Hash
+      Json
+      KatipController
+      Middleware
+      Orm.PersistField
+      Orm.PersistField.Enumerated
+      Orphan
+      Pretty
+      Proto
+      Servant.Swagger.KatipController
+      Swagger.ToSchema
+      TH.Mk
+      Web.Google.Translator
+      Control.Lens.Extended
+      Control.Lens.Iso.Extended
+      Data.Aeson.Extended
+      Data.Aeson.TH.Extended
+      Data.Aeson.WithField.Extended
+      Data.Default.Class.Extended
+      Data.Swagger.Schema.Extended
+      Data.Tree.Extended
+      Database.Groundhog.Extended
+      Database.Groundhog.Postgresql.Array.Extended
+      Database.Groundhog.TH.Extended
+      Test.Hspec.DB.Extended
+      Test.Hspec.DB.Groundhog
+      Test.Hspec.DB.Hasql
+      EdgeNode.Api.Http.Auth.RefreshToken
+      EdgeNode.Api.Http.Auth.RefreshTokenValidator
+      EdgeNode.Api.Http.Auth.Register
+      EdgeNode.Api.Http.Auth.SignIn
+      EdgeNode.Api.Http.User.GetCategories
+      EdgeNode.Api.Http.User.GetCourse
+      EdgeNode.Api.Http.User.GetProviders
+      EdgeNode.Api.Http.User.GetQualificationFullInfo
+      EdgeNode.Api.Http.User.GetQualififcations
+      EdgeNode.Api.Http.User.GetTrajectories
+      EdgeNode.Api.Http.User.PatchQualifications
+      EdgeNode.Api.Http.User.SaveQualifications
+      EdgeNode.Api.Http.User.SaveTrajectory
+      EdgeNode.Category
+      EdgeNode.Country
+      EdgeNode.Error
+      EdgeNode.Lang
+      EdgeNode.Provider
+      EdgeNode.Provider.Qualification
+      EdgeNode.Rbac
+      EdgeNode.Search.Filter
+      EdgeNode.User
+      EdgeNode.User.Qualification
+      EdgeNode.User.Trajectory
+      Protobuf.Scalar
+      Time.Time
+      Web.Google.Translator.Country
+      DoctestDriver
+      EdgeNode.Explain
+      EdgeNode.Statement.Rbac
+      TestDriver
+      App
+  other-modules:
+      Paths_edgenode
+  hs-source-dirs:
+      src/core
+      src/extended
+      src/proto
+      test
+      app
+  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -XMonadFailDesugaring -XOverloadedStrings
+  build-depends:
+      QuickCheck
+    , aeson
+    , aeson-injector
+    , amazonka
+    , async
+    , base >=4.7 && <5
+    , brick
+    , bytestring
+    , casing
+    , colorful-monoids
+    , containers
+    , contravariant-extras
+    , data-default-class
+    , deepseq
+    , directory
+    , doctest
+    , doctest-discover
+    , either
+    , either-unwrap
+    , ekg
+    , exception-hierarchy
+    , exceptions
+    , extra
+    , filepath
+    , generic-lens
+    , ginger
+    , groundhog
+    , groundhog-postgresql
+    , groundhog-th
+    , hashing
+    , hasql
+    , hasql-pool
+    , hslogger
+    , hspec
+    , hspec-expectations-lifted
+    , hspec-pg-transact
+    , http-client
+    , http-client-tls
+    , http-types
+    , jose
+    , katip
+    , lens
+    , lens-aeson
+    , lifted-async
+    , lifted-base
+    , memory
+    , mime-mail
+    , monad-control
+    , monad-loops
+    , monad-time
+    , mtl
+    , optparse-generic
+    , pcg-random
+    , postgresql-error-codes
+    , pretty-simple
+    , pretty-tree
+    , process
+    , proto3-suite
+    , proto3-wire
+    , pwstore-fast
+    , random
+    , regex-with-pcre
+    , resource-pool
+    , resourcet
+    , rosezipper
+    , rotating-log
+    , safe-exceptions
+    , scientific
+    , servant
+    , servant-auth
+    , servant-auth-server
+    , servant-auth-swagger
+    , servant-server
+    , servant-swagger
+    , servant-swagger-ui
+    , servant-swagger-ui-core
+    , servant-websockets
+    , smtp-mail
+    , sort
+    , split
+    , strict
+    , string-interpolate
+    , swagger2
+    , tagged
+    , tasty
+    , tasty-discover
+    , tasty-hspec
+    , tasty-html
+    , tasty-hunit
+    , template-haskell
+    , text
+    , th-printf
+    , thyme
+    , time
+    , tmp-postgres
+    , transformers
+    , transformers-base
+    , unordered-containers
+    , utf8-string
+    , validation
+    , vector
+    , wai
+    , wai-app-static
+    , wai-cors
+    , warp
+    , websockets
+    , yaml
+  default-language: Haskell2010
+
+executable edge-node-server
+  main-is: app.hs
+  other-modules:
+      Paths_edgenode
+  hs-source-dirs:
+      prog
+  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -XMonadFailDesugaring -XOverloadedStrings
+  build-depends:
+      base >=4.7 && <5
+    , edgenode
+  default-language: Haskell2010
+
+test-suite doctest
+  type: exitcode-stdio-1.0
+  main-is: doctest.hs
+  other-modules:
+      Paths_edgenode
+  hs-source-dirs:
+      prog
+  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -XMonadFailDesugaring -XOverloadedStrings
+  build-depends:
+      base >=4.7 && <5
+    , doctest-discover
+    , edgenode
+  default-language: Haskell2010
+
+test-suite tasty
+  type: exitcode-stdio-1.0
+  main-is: test.hs
+  other-modules:
+      Paths_edgenode
+  hs-source-dirs:
+      prog
+  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -XMonadFailDesugaring -XOverloadedStrings
+  build-depends:
+      base >=4.7 && <5
+    , edgenode
+  default-language: Haskell2010
