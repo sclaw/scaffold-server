@@ -50,7 +50,6 @@ import Data.List
 import System.IO
 import Control.Monad
 import qualified System.IO.Strict as IOS
-import Data.List.Split (splitOn)
 
 mkPrimitivePersistField :: Name -> ExpQ -> Q [Dec]
 mkPrimitivePersistField name iso = [d|
@@ -396,15 +395,11 @@ loadMigrationListTest =
           "version" 
           (dropExtension file))           
     fs <- fmap (mapMaybe mkTpl) (listDirectory migDir)
-    fmap (concatMap snd . sortOn (^._1)) $ forM fs $ \x -> do 
+    fmap (map snd . sortOn (^._1)) $ forM fs $ \x -> do 
       hdl <- openFile (x^._2) ReadMode
       content <- IOS.hGetContents hdl
       hClose hdl
-      let xs = 
-            filter (not . null) $ 
-            map (^.stext.to T.strip.from stext) $ 
-            splitOn ";" content
-      return (read (x^._1) :: Integer, xs)
+      return (read (x^._1) :: Integer, content)
 
 mkMigrationSeq :: Q [Dec]
 mkMigrationSeq = do

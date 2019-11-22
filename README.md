@@ -1,5 +1,5 @@
 # Платформа EdgeNode
- > https://www.markdownguide.org/ описание языка разметки markdown 
+ > [описание языка разметки markdown](https://www.markdownguide.org/) 
 
  Описание элементов и их связей в контексте серверной части 
  Удаление в edgeNode является логическим, т.е.запись сохранятся в бд, но помечается как удаленная.
@@ -12,6 +12,7 @@
     WhoAmI: user, provider (enum type (haskell)).
 
  2. **Cистема разграничения доступа**
+    [в основу положен черновик rbac модели](https://csrc.nist.gov/CSRC/media/Projects/Role-Based-Access-Control/documents/sandhu96.pdf)
     корневая роль: root,
     первичный пользователь: user
     вторичный пользователь: provider, guest  
@@ -34,7 +35,7 @@
                             providerGuest        
 
     авторизация: 
-     > **authorize :: Login -> Permission -> Controller**
+     > **checkAccess :: UserId -> Permission -> Controller**
 
     Permission - операции доступные для данной роли 
     Controller - в случае успеха проваливаемся сюда (controller)

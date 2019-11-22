@@ -19,7 +19,7 @@ import Test.Hspec.Expectations.Lifted
 spec_explain :: Spec
 spec_explain = 
   describeHasql 
-  (map (statement ()) migrate) 
+  [migrate]
   Nothing 
   "explain" $
     for_ explainTests

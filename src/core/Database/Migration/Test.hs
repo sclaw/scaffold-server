@@ -1,21 +1,21 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Database.Migration.Test (migrate) where
 
-import Hasql.Statement
+import Hasql.Session
 import TH.Mk
-import qualified Hasql.Encoders as HE
-import qualified Hasql.Decoders as HD
+import Data.String.Interpolate
+import Data.Foldable
 
 $mkMigrationTest
 
-migrate :: [Statement () ()]
-migrate = exts ++ map (\sql -> Statement sql HE.noParams HD.noResult False) list
+migrate :: Session ()
+migrate = sql $ exts <> fold list
   where 
     exts =
-      [ Statement "create extension postgres_fdw" HE.noParams HD.noResult False
-      , Statement "create extension hstore" HE.noParams HD.noResult False
-      , Statement "create extension ltree" HE.noParams HD.noResult False
-      , Statement "create extension pg_trgm" HE.noParams HD.noResult False
-      ]
+     [i|create extension postgres_fdw;
+        create extension hstore;
+        create extension ltree;
+        create extension pg_trgm;|]
