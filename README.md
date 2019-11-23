@@ -3,8 +3,44 @@
 
  Описание элементов и их связей в контексте серверной части 
  Удаление в edgeNode является логическим, т.е.запись сохранятся в бд, но помечается как удаленная.
+
+ enum типы:
+ `data QuaififcationDegree = 
+         BSc
+       | BA
+       | MSc
+       | MA
+       | MRes
+       | Bakalavr
+       | Magistr
+       | AdvancedLevelGCE
+       | UnifiedStateExam` (equates to type)
+  `data StudyTime = PartTime | FullTime | Sandwich`
+  `data AcademicArea = 
+          Mathematics
+        | Physics
+        | History
+        | Economics
+        | Finance
+        | Biology
+        | Physiology
+        | FineArts`
+  `data Per = Annum | Month | Day`
+  `data Country = Russia | UnitedKingdom`
+  `data Language = Ru | En`
+  `data Gender = Male | Female`
+  `data Currency = RUB | USD | EUR`
+  `data QuaififcationCategory =
+          StateExam 
+        | HigherDegree 
+        | LanguageStandard 
+        | InternationalDiploma` 
+   `data WhoIAm = User | Provider`
+   `data RegistrationStatus = Active | Wait | TimeOut | Banned`
+   `data TemplateSource = Degree | Qualification`
+    
  1. **Cистема аутентификации**
-    предсталена двумя типами (формами в рамках front) для первичного (user) и вторичного (provider) пользователя.
+    представлена двумя типами (формами в рамках front) для первичного (user) и вторичного (provider) пользователя.
     первичный пользователь: email (уникальный в edgeNode, пароль).
     вторичный пользователь: provider uid в edgeNode, login уникальный в рамках provider, пароль.
     После аутентификации клиент получает информацию кто 
@@ -45,18 +81,25 @@
      edgeNode.Role 
        id: int8, serial
        title: text not null
+       description: text, nullable
        parent: int8 null refer to edgeNode.Role (id)
        unique: title 
        
      edgeNode.Permission 
        id: int8, serial
        title: text not null
+       description: text, nullable
        parent: int8 null refer to edgeNode.Permission (id)
        unique: title
 
      edgeNode.UserRole
        userFK: int8, not null, refer to edgeNode.User (id)
-       roleFK: int8, not null, refer to edgeNode.ROle (id)
+       roleFK: int8, not null, refer to edgeNode.Role (id)
+       unique: (userFK, roleFK)
+
+     edgeNode.PermissionRole
+       permissionFK: int8, not null, refer to edgeNode.Permission (id)
+       roleFK: int8, not null, refer to edgeNode.Role (id)
        unique: (userFK, roleFK)
 
  3. **Первичный пользователь (user)**
@@ -281,5 +324,5 @@
   > 
     edgeNode.Template
       id: int8, serial
-      type: text, not null -> enum type (haskell)
+      source: text, not null -> enum type (haskell)
       template: text, not null
