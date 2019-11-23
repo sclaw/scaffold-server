@@ -89,7 +89,6 @@ extra-deps:
  
  - hasql-1.4.0.1@sha256:c6340403351d038a85632cd7f591f1b526b208d83757f0506371f7ce31934fd7,6586
 
-
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a

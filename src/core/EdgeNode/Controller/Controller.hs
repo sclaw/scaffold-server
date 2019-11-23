@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module EdgeNode.Controller.Controller (controller) where
 
@@ -8,6 +9,7 @@ import Auth
 import EdgeNode.Api
 import EdgeNode.Model.User
 import qualified EdgeNode.Model.Rbac as Rbac
+import qualified EdgeNode.Statement.Rbac as Rbac
 -- controllers
 import qualified EdgeNode.Controller.Http.Registration as Auth.Registration
 import qualified EdgeNode.Controller.Http.SignIn as Auth.SignIn
@@ -40,16 +42,23 @@ import Servant.Auth.Server
 import Network.IP.Addr
 import Control.Lens
 import Servant.Server
+import qualified Hasql.Session as Hasql.Session
+import Database.Action
+import Control.Monad
 
 controller :: ApplicationApi (AsServerT KatipController)
 controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
 
 verifyAuthorization :: UserId -> Rbac.Permission -> KatipController a -> KatipController a
-verifyAuthorization _ _ controller = 
+verifyAuthorization uid perm controller = 
   do
     hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    throwAll err403
-
+    let action = Hasql.Session.statement (uid, perm) Rbac.check 
+    x <- runTryDbConnHasql (const action) hasql
+    let err e = do $(logTM) ErrorS (logStr (show e)); throwAll err500
+    let ok isOk = do unless isOk (throwAll err403); controller
+    either err ok x
+ 
 httpApi :: HttpApi (AsServerT KatipController)
 httpApi = 
   HttpApi 
