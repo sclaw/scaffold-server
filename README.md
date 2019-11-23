@@ -148,10 +148,38 @@
         per: text, not null, -> enum type (haskell)
         country: text, not null -> enum type (haskell)
         providerQualificationFK: int8, not null, refer to edgeNode.ProviderQualification
+
+      https://blog.typeable.io/posts/2019-11-21-sql-sum-types.html
+      create type unit as enum ('()');
       edgeNode.ProviderBranchQualificationDependency
         id: int8, serial
+        providerBranchQualificationFK: int8, not null, refer to edgeNode.ProviderBranchQualification 
+        created: time, not null
+        modified: time, nullable
+        deleted: time, nullable
+        isDeleted: bool, not null, default false
+        Degree unit,
+        Qualification,
+        check((Degree is not null and Qualification is null) or 
+              (Degree is null and Qualification is not null))
+        constraint providerBranchQualificationDependency__degree foreign key (id, Degree) references Degree (id,tag),
+        constraint providerBranchQualificationDependency__qualification foreign key (id, Qualification) references Qualification (id, tag),
 
-      edgeNode.CountryQualificationType
+      edgeNode.Degree
+        id: int8, not null
+        tag: unit not null default '()',
+        type: text, not null -> enum type (haskell)
+        grade: jsonb, nullable (value)
+        primary key (id,tag)
+
+      edgeNode.Qualification
+        id: int8, not null
+        tag: unit not null default '()',
+        providerBranchQualificationFK: int8, not null, refer to edgeNode.ProviderBranchQualification
+        grade: jsonb, not null (value)
+        primary key (id,tag)
+
+      edgeNode.QualificationTypeCountry
         id: int8, serial
         country: list of text, not null -> enum type (haskell)
         qualififcationType: text, not null, -> enum type (haskell)
@@ -230,4 +258,28 @@
      Данные: старый пароль, новый пароль, подтверждение нового пароля.
      > PUT provider/settings/password/change, permission: providerGuest
 
- 10. **файлы**
+ 10. **квалификация (provider)**
+     Добавление:
+      .......
+    Удаление:
+      .......
+     ручки: 
+     >  GET provider/qualififcation/{qid}
+        PUT provider/qualififcation
+        PATCH provider/qualififcation/{qid}
+        DELETE provider/qualififcation/{qid}
+
+ 11. **файлы**
+     ........
+   
+ 12. **правила при добавлении требований для квалификации**
+     - каждому типу в квалификации (type) сопоставляется набор из академичесикх областей (academic area): type -> [academic area]
+     - каждому типу (type) сопоставляется квалификация.
+  
+ 13. **шаблоны**
+     таблица:
+  > 
+    edgeNode.Template
+      id: int8, serial
+      type: text, not null -> enum type (haskell)
+      template: text, not null
