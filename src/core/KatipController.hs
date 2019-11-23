@@ -25,8 +25,8 @@ module KatipController
        , env
        , katipEnv
        , terminal
-       , ormDB
-       , rawDB
+       , groundhogDb
+       , hasqlDb
        , httpReqManager
        , apiKeys
        , jwk
@@ -37,9 +37,6 @@ module KatipController
          -- * re-export
        , module R  
        ) where
-
--- import EdgeNode.Rbac
--- import EdgeNode.Model.Tree
 
 import Control.Lens
 import Control.Lens.TH (makeFields)
@@ -75,9 +72,9 @@ data KatipEnv =
      KatipEnv 
      { katipEnvTerminal 
        :: !Term
-     , katipEnvOrmDB    
+     , katipEnvGroundhogDb    
        :: !(Pool.Pool Postgresql)
-     , katipEnvRawDB    
+     , katipEnvHasqlDb    
        :: !Hasql.Pool
      , katipEnvHttpReqManager 
        :: !Manager
@@ -121,7 +118,7 @@ newtype KatipController a =
           :: RWS.RWST Config 
              KatipControllerWriter
              KatipControllerState 
-             Handler a 
+             Handler a
         }
   deriving newtype Functor
   deriving newtype Applicative

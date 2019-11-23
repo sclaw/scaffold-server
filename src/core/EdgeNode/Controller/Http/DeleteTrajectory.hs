@@ -29,7 +29,7 @@ import Control.Lens
 controller :: TrajectoryId -> UserId -> KatipController (Alternative (Error T.Text) Unit)
 controller tid uid = 
   do
-    raw <- (^.katipEnv.rawDB) `fmap` ask
+    raw <- (^.katipEnv.hasqlDb) `fmap` ask
     x <- runTryDbConnHasql (const (action tid uid)) raw
     whenLeft x ($(logTM) ErrorS . logStr . show)
     let mkErr e = ServerError $ InternalServerError (show e^.stextl)

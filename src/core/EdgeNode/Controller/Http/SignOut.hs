@@ -26,7 +26,7 @@ import Data.Int
 controller :: JWTUser -> KatipController (Alternative (Error T.Text) Unit)
 controller user =  
   do 
-    raw <- (^.katipEnv.rawDB) `fmap` ask
+    raw <- (^.katipEnv.hasqlDb) `fmap` ask
     x <- runTryDbConnHasql (action user) raw
     let mkErr e = 
          $(logTM) ErrorS (logStr (show e)) $> 

@@ -30,12 +30,12 @@
                       root
              _________ |_________ 
              |                   |
-            user            provoderAdmin
+            user            providerAdmin
                                  |
                             providerGuest        
 
     авторизация: 
-     > **checkAccess :: UserId -> Permission -> Controller**
+     > **verifyAuthorization :: UserId -> Permission -> Controller -> Controller**
 
     Permission - операции доступные для данной роли 
     Controller - в случае успеха проваливаемся сюда (controller)

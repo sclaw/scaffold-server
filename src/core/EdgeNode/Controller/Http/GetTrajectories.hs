@@ -34,7 +34,7 @@ import Data.String.Interpolate
 controller :: UserId -> KatipController (Alternative (Error T.Text) GetTrajectoriesResponse)    
 controller uid =
   do 
-    raw <- (^.katipEnv.rawDB) `fmap` ask
+    raw <- (^.katipEnv.hasqlDb) `fmap` ask
     x <- runTryDbConnHasql (action uid) raw
     let mkErr e = 
          $(logTM) ErrorS (logStr (show e)) $> 

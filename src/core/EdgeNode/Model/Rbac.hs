@@ -22,14 +22,24 @@
 module EdgeNode.Model.Rbac
        ( RoleId
        , RoleIdWrapper (..)
+       , Permission (..)
        )
        where
 
 import EdgeNode.Rbac 
 
-import Orm.PersistField ()
 import TH.Mk
-import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
- 
-mkWrappedPrimitivePersistField ''RoleId
+import Control.Lens 
+import Data.String
+
+data Permission = 
+       Root
+     | ProviderAdmin
+     | ProviderGuest
+     | User 
+
+mkEnumConvertor ''Permission
 mkToSchemaAndJSONProtoIdent ''RoleId
+
+instance IsString Permission where
+  fromString = toPermission

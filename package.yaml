@@ -160,6 +160,9 @@ library:
     - hspec-expectations-lifted
     - split
     - amazonka
+    - network-ip
+    - data-textual
+    - servant-client-core
   source-dirs:
     - src/core
     - src/extended

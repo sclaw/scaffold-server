@@ -111,7 +111,7 @@ run Cfg {..} =
            & Warp.setOnException (logUncaughtException excep)
       let mkCtx = jwtCfg :. defaultCookieSettings 
                   :. ctxlog :. cfgIsAuthEnabled 
-                  :. cfgUserId :. (cfg^.katipEnv.rawDB)
+                  :. cfgUserId :. (cfg^.katipEnv.hasqlDb)
                   :. EmptyContext      
       let runServer = serveWithContext (withSwagger api) mkCtx server
       mware <-katipAddNamespace (Namespace ["middleware"]) askLoggerIO

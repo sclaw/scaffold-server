@@ -34,7 +34,7 @@ import Data.Bifunctor
 controller :: KatipController (Alternative (Error Unit) GetCategoriesResponse)
 controller =
   do
-    raw <- (^.katipEnv.rawDB) `fmap` ask
+    raw <- (^.katipEnv.hasqlDb) `fmap` ask
     x <- runTryDbConnHasql (const action) raw
     let mkErr e = 
          $(logTM) ErrorS (logStr (show e)) $> 

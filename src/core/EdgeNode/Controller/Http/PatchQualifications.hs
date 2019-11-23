@@ -46,7 +46,7 @@ controller (PatchQualificationsRequest (Request Nothing)) _ = return $ Json.Erro
 controller req uid =
   do
     let Just Request_Value {..} = req^._Wrapped'.field @"requestValue" 
-    raw <- (^.katipEnv.rawDB) `fmap` ask
+    raw <- (^.katipEnv.hasqlDb) `fmap` ask
     let go = do
           e <- action uid request_ValueIdent request_ValueSkill
           traverse (\xs -> for_ xs $ SaveTrajectory.action uid . Just) e

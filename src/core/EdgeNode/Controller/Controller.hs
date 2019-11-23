@@ -6,6 +6,8 @@ module EdgeNode.Controller.Controller (controller) where
 
 import Auth
 import EdgeNode.Api
+import EdgeNode.Model.User
+import qualified EdgeNode.Model.Rbac as Rbac
 -- controllers
 import qualified EdgeNode.Controller.Http.Registration as Auth.Registration
 import qualified EdgeNode.Controller.Http.SignIn as Auth.SignIn
@@ -35,22 +37,29 @@ import KatipController
 import Servant.Server.Generic
 import Servant.API.Generic
 import Servant.Auth.Server
-
+import Network.IP.Addr
+import Control.Lens
 
 controller :: ApplicationApi (AsServerT KatipController)
 controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
 
+verifyAuthorization :: UserId -> Rbac.Permission -> KatipController a -> KatipController a
+verifyAuthorization _ _ _ = 
+  do
+    _ <- (^.katipEnv.hasqlDb) `fmap` ask
+    undefined
+
 httpApi :: HttpApi (AsServerT KatipController)
 httpApi = 
   HttpApi 
-  { _httpApiAuth    = toServant auth
-  , _httpApiUser    = (`authGateway` (toServant . user))
-  , _httpApiService = (`authGateway` (toServant . service))
-  , _httpApiSearch  = (`authGateway` (toServant . search))
+  { _httpApiAuth    = toServant . auth
+  , _httpApiUser    = \ip -> (`authGateway` (toServant . user ip))
+  , _httpApiService = \ip -> (`authGateway` (toServant . service ip))
+  , _httpApiSearch  = \ip -> (`authGateway` (toServant . search ip))
   }
 
-auth :: AuthApi (AsServerT KatipController)
-auth = 
+auth :: Maybe IP4 ->  AuthApi (AsServerT KatipController)
+auth _ = 
   AuthApi 
   { _authApiRegistration = 
     flip logExceptionM ErrorS 
@@ -80,39 +89,63 @@ auth =
     . Auth.ValidateRefreshToken.controller    
   }
 
-user :: AuthResult JWTUser -> UserApi (AsServerT KatipController)
-user user = 
+user :: Maybe IP4 -> AuthResult JWTUser -> UserApi (AsServerT KatipController)
+user _ user = 
   UserApi 
   { _userApiLoadProfile =
     flip logExceptionM ErrorS $
     katipAddNamespace 
     (Namespace ["user", "loadProfile"])
-    (applyController Nothing user (User.LoadProfile.controller . jWTUserUserId))
+    (applyController Nothing user (\u -> 
+     verifyAuthorization 
+     (jWTUserUserId u) 
+     Rbac.User 
+     (User.LoadProfile.controller (jWTUserUserId u))))
   , _userPatchProfile =
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["user", "patchProfile"])
-    . (\patch -> applyController Nothing user (User.PatchProfile.controller patch . jWTUserUserId))
+    . (\patch -> applyController Nothing user (\u -> 
+        verifyAuthorization 
+        (jWTUserUserId u) 
+        Rbac.User 
+        (User.PatchProfile.controller patch (jWTUserUserId u))))
   , _userSaveQualifications =
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["user", "saveQualifications"])
-    . (\req -> applyController Nothing user (User.SaveQualifications.controller req . jWTUserUserId))
+    . (\req -> applyController Nothing user (\u -> 
+        verifyAuthorization 
+        (jWTUserUserId u) 
+        Rbac.User 
+        (User.SaveQualifications.controller req (jWTUserUserId u))))
   , _userGetFullInfoQualififcation =
     flip logExceptionM ErrorS 
     . katipAddNamespace 
       (Namespace ["user", "getQualififcationFullInfo"])
-    . (\qid -> applyController Nothing user (User.GetQualificationFullInfo.controller qid . jWTUserUserId))
+    . (\qid -> applyController Nothing user (\u -> 
+        verifyAuthorization 
+        (jWTUserUserId u) 
+        Rbac.User 
+        (User.GetQualificationFullInfo.controller qid (jWTUserUserId u))))
   , _userGetCategories =
     flip logExceptionM ErrorS $
     katipAddNamespace 
     (Namespace ["user", "getCategories"])
-    (applyController Nothing user (const User.GetCategories.controller))
+    (applyController Nothing user (\u -> 
+     verifyAuthorization 
+     (jWTUserUserId  u) 
+     Rbac.User 
+     User.GetCategories.controller))
   , _userGetProvider = \cntry catType catId cursor ->
     flip logExceptionM ErrorS $
       katipAddNamespace 
       (Namespace ["user", "getProviders"])
-      (applyController Nothing user (const (User.GetProviders.controller cntry catType catId cursor)))
+      (applyController Nothing user (\u ->  
+       verifyAuthorization 
+       (jWTUserUserId u) 
+       Rbac.User 
+       (User.GetProviders.controller cntry catType catId cursor)))
   , _userGetQualififcations =
     flip logExceptionM ErrorS
     . katipAddNamespace 
@@ -123,31 +156,51 @@ user user =
     flip logExceptionM ErrorS $
      katipAddNamespace 
      (Namespace ["user", "getTrajectories"])
-     (applyController Nothing user (User.GetTrajectories.controller . jWTUserUserId))
+     (applyController Nothing user (\u -> 
+      verifyAuthorization 
+      (jWTUserUserId u) 
+      Rbac.User 
+      (User.GetTrajectories.controller (jWTUserUserId u))))
   , _userSaveTrajectory =
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["user", "saveTrajectory"])
-    . (\req -> applyController Nothing user (User.SaveTrajectory.controller req . jWTUserUserId))
+    . (\req -> applyController Nothing user (\u -> 
+        verifyAuthorization 
+        (jWTUserUserId u) 
+        Rbac.User 
+        (User.SaveTrajectory.controller req (jWTUserUserId u))))
   , _userPatchQualifications = 
     flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["user", "patchQualifications"])
-    . (\req -> applyController Nothing user (User.PatchQualifications.controller req . jWTUserUserId))
+    . (\req -> applyController Nothing user (\u -> 
+        verifyAuthorization 
+        (jWTUserUserId u) 
+        Rbac.User 
+        (User.PatchQualifications.controller req (jWTUserUserId u))))
   , _userDeleteQualification =   
     flip logExceptionM ErrorS
     . katipAddNamespace 
     (Namespace ["user", "deleteQualifications"])
-    . (\id -> applyController Nothing user (User.DeleteQualification.controller id . jWTUserUserId))
+    . (\id -> applyController Nothing user (\u -> 
+        verifyAuthorization 
+        (jWTUserUserId u) 
+        Rbac.User 
+        (User.DeleteQualification.controller id (jWTUserUserId u))))
   , _userDeleteTrajectory =
     flip logExceptionM ErrorS
     . katipAddNamespace 
     (Namespace ["user", "deleteTrajectory"])
-    . (\id -> applyController Nothing user (User.DeleteTrajectory.controller id . jWTUserUserId))    
+    . (\id -> applyController Nothing user (\u -> 
+        verifyAuthorization 
+        (jWTUserUserId u) 
+        Rbac.User 
+        (User.DeleteTrajectory.controller id (jWTUserUserId u))))    
   }
 
-service :: AuthResult JWTUser -> ServiceApi (AsServerT KatipController)
-service user = ServiceApi { _serviceApiWeb = toServant webApi }
+service :: Maybe IP4 -> AuthResult JWTUser -> ServiceApi (AsServerT KatipController)
+service _ user = ServiceApi { _serviceApiWeb = toServant webApi }
   where
     webApi ::WebApi (AsServerT KatipController)
     webApi = WebApi { _webApiGoogle = toServant googleApi }
@@ -162,8 +215,8 @@ service user = ServiceApi { _serviceApiWeb = toServant webApi }
         . const . Service.LoadCountries.controller
       }
       
-search :: AuthResult JWTUser -> SearchApi (AsServerT KatipController)
-search user = 
+search :: Maybe IP4 -> AuthResult JWTUser -> SearchApi (AsServerT KatipController)
+search _ user = 
   SearchApi 
   { _searchApiSearch = \piece query ->
     flip logExceptionM ErrorS $

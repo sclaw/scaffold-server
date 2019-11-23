@@ -41,7 +41,7 @@ import Data.Char
 controller ::  Maybe UserQualificationId -> UserId -> KatipController (Alternative (Error T.Text) GetQualificationFullInfoResponse)
 controller qualId userId = 
   do
-    raw <- (^.katipEnv.rawDB) `fmap` ask
+    raw <- (^.katipEnv.hasqlDb) `fmap` ask
     x <- runTryDbConnHasql (action userId qualId) raw
     whenLeft x ($(logTM) ErrorS . logStr . show) 
     let mkErr e = ServerError $ InternalServerError (show e^.stextl)

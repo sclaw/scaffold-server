@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2b0818299bc9b3f4417cf70598d95b7741f96cf7297a0ddb9b9aed756e4fbed1
+-- hash: 7245df5890718d4bf0ada9717c77a3b1ba3d26f51cccec0c2a7f59582a53970f
 
 name:           edgenode
 version:        0.1.0.0
@@ -78,6 +78,7 @@ library
       EdgeNode.Model.User.Qualification
       EdgeNode.Model.User.Trajectory
       EdgeNode.Search
+      EdgeNode.Statement.Rbac
       EdgeNode.Statement.User
       Hash
       Json
@@ -88,6 +89,7 @@ library
       Orphan
       Pretty
       Proto
+      Servant.Ip
       Servant.Swagger.KatipController
       Swagger.ToSchema
       TH.Mk
@@ -135,7 +137,7 @@ library
       Web.Google.Translator.Country
       DoctestDriver
       EdgeNode.Explain
-      EdgeNode.Statement.Rbac
+      EdgeNode.Statement.Rbac.Test
       TestDriver
       App
   other-modules:
@@ -161,6 +163,7 @@ library
     , containers
     , contravariant-extras
     , data-default-class
+    , data-textual
     , deepseq
     , directory
     , doctest
@@ -199,6 +202,7 @@ library
     , monad-loops
     , monad-time
     , mtl
+    , network-ip
     , optparse-generic
     , pcg-random
     , postgresql-error-codes
@@ -220,6 +224,7 @@ library
     , servant-auth
     , servant-auth-server
     , servant-auth-swagger
+    , servant-client-core
     , servant-server
     , servant-swagger
     , servant-swagger-ui

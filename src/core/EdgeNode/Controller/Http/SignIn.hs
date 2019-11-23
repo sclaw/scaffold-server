@@ -49,7 +49,7 @@ controller req =
     let email = req^._Wrapped'.field @"requestEmail"
     let pass = req^._Wrapped'.field @"requestPassword"
     $(logTM) DebugS (logStr (email <> ", " <> pass))
-    raw <- (^.katipEnv.rawDB) `fmap` ask
+    raw <- (^.katipEnv.hasqlDb) `fmap` ask
     x <- runTryDbConnHasql (actionUser email) raw
     let mkErr e = 
          $(logTM) ErrorS (logStr (show e)) $> 
@@ -106,7 +106,7 @@ ok _ (Just (uid, _)) =
          Error (ServerError (InternalServerError (show e^.stextl)))
     case (,) <$> acccesse <*> refreshe of  
      Right ((accessToken, lt), refreshToken) -> do
-      x <- runTryDbConnHasql (actionToken refreshToken uid unique) (env^.rawDB)
+      x <- runTryDbConnHasql (actionToken refreshToken uid unique) (env^.hasqlDb)
       let resp (Just _) = Fortune $ SignInResponse (Response accessToken refreshToken lt)
           resp Nothing = Error (ResponseError AlreadySignedIn)      
       either mkErr (return . resp) x

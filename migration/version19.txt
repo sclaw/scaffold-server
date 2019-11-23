@@ -1,0 +1,3 @@
+create table "edgeNode"."Role" ();
+create table "edgeNode"."Permission" ();
+create table "edgeNode"."UserRole" ();

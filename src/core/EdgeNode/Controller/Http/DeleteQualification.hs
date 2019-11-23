@@ -32,7 +32,7 @@ import Data.Foldable
 controller :: UserQualificationId -> UserId -> KatipController (Alternative (Error T.Text) Unit)
 controller qid uid = 
   do
-    raw <- (^.katipEnv.rawDB) `fmap` ask
+    raw <- (^.katipEnv.hasqlDb) `fmap` ask
     let go = do
           e <- action qid uid
           traverse (\xs -> for_ xs $ SaveTrajectory.action uid . Just) e

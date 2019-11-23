@@ -24,7 +24,7 @@ import Data.Bifunctor
 controller :: Filter -> Maybe UserId -> KatipController (Alternative (Error T.Text) [XQualificationFullInfo])
 controller filter ident = 
   do
-    raw <- (^.katipEnv.rawDB) `fmap` ask
+    raw <- (^.katipEnv.hasqlDb) `fmap` ask
     x <- runTryDbConnHasql (const (action ident (Just filter))) raw
     whenLeft x ($(logTM) ErrorS . logStr . show) 
     let mkErr e = ServerError $ InternalServerError (show e^.stextl)     
