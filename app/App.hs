@@ -82,8 +82,8 @@ main =
       term <- hGetTerm stdout
       hSetBuffering stdout NoBuffering 
 
-      orm <- createPostgresqlPool (mkOrmConn (cfg^.db)) (cfg^.orm.coerced)
-      raw <- Hasql.acquire (cfg^.raw.poolN, cfg^.raw.tm, mkRawConn (cfg^.db))
+      groundhog <- createPostgresqlPool (mkOrmConn (cfg^.db)) (cfg^.groundhog.coerced)
+      hasql <- Hasql.acquire (cfg^.hasql.poolN, cfg^.hasql.tm, mkRawConn (cfg^.db))
       std <- mkHandleScribeWithFormatter 
              jsonFormat 
              ColorIfTerminal 
@@ -113,7 +113,7 @@ main =
 
       let runApp le = 
            runKatipContextT le (mempty :: LogContexts) mempty $  
-            do e <- Migration.run orm 
+            do e <- Migration.run groundhog 
                let err e = error $ "migration failure, error: " <> show e
                either err (const (App.run appCfg)) e
       manager <- Http.newTlsManagerWith Http.tlsManagerSettings { managerConnCount = 1 }
@@ -126,7 +126,7 @@ main =
                  manager
 
       let katipAmazon = Amazon awsEnv (cfg^.EdgeNode.Config.amazon.EdgeNode.Config.bucketPrefix)  
-      let katipEnv = KatipEnv term orm raw manager (cfg^.service.coerced) (fromRight' jwke) katipAmazon
+      let katipEnv = KatipEnv term groundhog hasql manager (cfg^.service.coerced) (fromRight' jwke) katipAmazon
       bracket env' closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)     
       
 mkOrmConn :: Db -> String

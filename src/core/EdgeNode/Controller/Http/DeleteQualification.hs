@@ -32,11 +32,11 @@ import Data.Foldable
 controller :: UserQualificationId -> UserId -> KatipController (Alternative (Error T.Text) Unit)
 controller qid uid = 
   do
-    raw <- (^.katipEnv.hasqlDb) `fmap` ask
+    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
     let go = do
           e <- action qid uid
           traverse (\xs -> for_ xs $ SaveTrajectory.action uid . Just) e
-    x <- runTryDbConnHasql (const go) raw
+    x <- runTryDbConnHasql (const go) hasql
     whenLeft x ($(logTM) ErrorS . logStr . show)
     let mkErr e = ServerError $ InternalServerError (show e^.stextl)
     return $ either (Json.Error . mkErr) ((^.eitherToAlt) . bimap ResponseError (const Unit)) x

@@ -54,9 +54,9 @@ controller provider = maybe (return err) ok (provider^?field @"providerIdValue")
     ok ident = 
       do
         $(logTM) DebugS (logStr ([i|provider id: #{show ident}|] :: String))
-        raw <- fmap (^.katipEnv.hasqlDb) ask
+        hasql <- fmap (^.katipEnv.hasqlDb) ask
         logtree <- katipAddNamespace (Namespace ["tree"]) askLoggerIO 
-        x <- runTryDbConnHasql (action ident) raw
+        x <- runTryDbConnHasql (action ident) hasql
         whenLeft x ($(logTM) ErrorS . logStr . show) 
         let mkErr e = 
              ServerError $ 

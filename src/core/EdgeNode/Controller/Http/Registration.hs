@@ -82,8 +82,8 @@ validateInfo info  = validateEmail *> validatePassword
 persist :: RegisterRequest -> KatipController (Either Exception.Hasql RegisterResponse)
 persist req =
   do 
-    raw <- (^.katipEnv.hasqlDb) `fmap` ask
-    runTryDbConnHasql action raw
+    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
+    runTryDbConnHasql action hasql
   where 
    action logger = 
     do

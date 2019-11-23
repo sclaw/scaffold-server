@@ -53,9 +53,9 @@ controller :: RefreshTokenRequest -> KatipController (Alternative (Error Refresh
 controller req = 
   do 
     let bs = req^._Wrapped'.field @"requestRefreshToken"
-    raw <- (^.katipEnv.hasqlDb) `fmap` ask
+    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
     key <- fmap (^.katipEnv.jwk) ask
-    x <- runTryDbConnHasql (action bs key) raw
+    x <- runTryDbConnHasql (action bs key) hasql
     let mkError e =
          $(logTM) ErrorS (logStr (show e)) $> 
          Json.Error (ServerError (InternalServerError (show e^.stextl)))

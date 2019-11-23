@@ -49,8 +49,8 @@ controller req =
     let email = req^._Wrapped'.field @"requestEmail"
     let pass = req^._Wrapped'.field @"requestPassword"
     $(logTM) DebugS (logStr (email <> ", " <> pass))
-    raw <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (actionUser email) raw
+    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
+    x <- runTryDbConnHasql (actionUser email) hasql
     let mkErr e = 
          $(logTM) ErrorS (logStr (show e)) $> 
          Error (ServerError (InternalServerError (show e^.stextl)))

@@ -40,8 +40,8 @@ import Control.Monad
 controller :: WrapperCountry -> WrapperType -> Int64 -> Maybe Word32 -> KatipController (Alternative (Error T.Text) GetProvidersResponse)
 controller country ty ident cursor =
   do
-    raw <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (action country ty ident cursor) raw
+    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
+    x <- runTryDbConnHasql (action country ty ident cursor) hasql
     let mkErr e = 
          $(logTM) ErrorS (logStr (show e)) $> 
          Error (ServerError (InternalServerError (show e^.stextl)))

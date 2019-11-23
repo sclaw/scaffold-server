@@ -28,8 +28,8 @@ import Proto3.Suite.Types
 controller :: UserId -> KatipController (Alternative (Error T.Text) User)
 controller uid =
   do
-    raw <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (action uid) raw
+    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
+    x <- runTryDbConnHasql (action uid) hasql
     let mkErr e = 
           $(logTM) ErrorS (logStr (show e)) $> 
           Error (ServerError (InternalServerError (show e^.stextl)))

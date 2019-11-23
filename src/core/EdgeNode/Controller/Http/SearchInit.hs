@@ -37,8 +37,8 @@ import Data.Foldable
 controller :: Maybe UserId -> KatipController (Alternative (Error T.Text) [XQualificationFullInfo])
 controller ident = 
   do
-    raw <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (const (action ident Nothing)) raw
+    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
+    x <- runTryDbConnHasql (const (action ident Nothing)) hasql
     whenLeft x ($(logTM) ErrorS . logStr . show) 
     let mkErr e = ServerError $ InternalServerError (show e^.stextl)     
     return $ first mkErr x^.eitherToAlt

@@ -39,15 +39,16 @@ import Servant.API.Generic
 import Servant.Auth.Server
 import Network.IP.Addr
 import Control.Lens
+import Servant.Server
 
 controller :: ApplicationApi (AsServerT KatipController)
 controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
 
 verifyAuthorization :: UserId -> Rbac.Permission -> KatipController a -> KatipController a
-verifyAuthorization _ _ _ = 
+verifyAuthorization _ _ controller = 
   do
-    _ <- (^.katipEnv.hasqlDb) `fmap` ask
-    undefined
+    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
+    throwAll err403
 
 httpApi :: HttpApi (AsServerT KatipController)
 httpApi = 
@@ -63,6 +64,7 @@ auth _ =
   AuthApi 
   { _authApiRegistration = 
     flip logExceptionM ErrorS 
+
     . katipAddNamespace 
       (Namespace ["auth", "registration"])  
     . Auth.Registration.controller

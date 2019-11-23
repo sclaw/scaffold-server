@@ -46,8 +46,8 @@ controller
 controller req uid  =
   do
     let ident = req^._Wrapped'.field @"requestIdent"
-    raw <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (const (action uid ident)) raw
+    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
+    x <- runTryDbConnHasql (const (action uid ident)) hasql
     whenLeft x ($(logTM) ErrorS . logStr . show) 
     let mkErr e = ServerError $ InternalServerError (show e^.stextl)     
     case x of 

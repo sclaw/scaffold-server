@@ -47,8 +47,8 @@ controller :: SaveQualificationsRequest -> UserId  -> KatipController (Alternati
 controller req userId =
   do 
     $(logTM) DebugS (logStr (show req))
-    raw <- (^.katipEnv.hasqlDb) `fmap` ask
-    resp <- flip runTryDbConnHasql raw $ const (do 
+    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
+    resp <- flip runTryDbConnHasql hasql $ const (do 
       let xsm = req^._Wrapped'.field @"requestValues".from vector
       let xs = mapMaybe mkTpl xsm
       let validator = foldr checkTypeWithGrade (Success []) xs

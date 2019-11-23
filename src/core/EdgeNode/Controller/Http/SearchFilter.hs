@@ -28,8 +28,8 @@ import Data.Vector.Lens
 controller :: KatipController (Alternative (Error T.Text) Filter)
 controller = 
   do
-    raw <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (const action) raw
+    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
+    x <- runTryDbConnHasql (const action) hasql
     whenLeft x ($(logTM) ErrorS . logStr . show) 
     let mkErr e = ServerError $ InternalServerError (show e^.stextl)     
     return $ first mkErr x^.eitherToAlt

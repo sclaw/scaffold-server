@@ -30,8 +30,8 @@ import qualified Data.Aeson as  Aeson
 controller :: User -> UserId -> KatipController (Alternative (Error T.Text) Unit)
 controller new uid =
   do
-    raw <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (action uid new) raw
+    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
+    x <- runTryDbConnHasql (action uid new) hasql
     let mkErr e = 
           $(logTM) ErrorS (logStr (show e)) $> 
           Error (ServerError (InternalServerError (show e^.stextl)))

@@ -22,10 +22,10 @@ module EdgeNode.Config
        , database
        , host
        , user
-       , orm
+       , groundhog
        , poolN
        , tm
-       , raw
+       , hasql
        , pool
        , stripesN
        , timeToOpen
@@ -130,8 +130,8 @@ data Config =
      Config 
      { configDb :: !Db 
      , configPorts :: !Ports
-     , configOrm :: !GroundhogSettings
-     , configRaw :: !HasqlSettings
+     , configGroundhog :: !GroundhogSettings
+     , configHasql :: !HasqlSettings
      , configPool :: !PoolSettings
      , configKatip :: !Katip
      , configEkg :: !Ekg
