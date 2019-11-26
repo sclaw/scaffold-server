@@ -1,7 +1,15 @@
 create schema auth;
 create schema "edgeNode";
 create table if not exists "edgeNode"."User"
-(id bigserial primary key);
+(id bigserial primary key,
+ "userName" text,
+ "userMiddlename" text,
+ "userSurname" text,
+ "userDayOfBirth" bytea,
+ "userAllegiance" text,
+ "userAvatar" bytea,
+ "userGender" text not null
+ );
 create table if not exists "auth"."AuthenticatedUser"
 (id bigserial primary key,
  "authenticatedUserEmail" text,

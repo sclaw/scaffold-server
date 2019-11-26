@@ -53,10 +53,13 @@ verifyAuthorization :: UserId -> Rbac.Permission -> KatipController a -> KatipCo
 verifyAuthorization uid perm controller = 
   do
     hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    let action = Hasql.Session.statement (uid, perm) Rbac.check 
-    x <- runTryDbConnHasql (const action) hasql
+    let action logger = 
+          do xs <- Hasql.Session.statement (uid, perm) Rbac.getTopLevelRoles
+             Hasql.Session.statement (xs, perm) Rbac.elem
+    x <- runTryDbConnHasql action hasql
     let err e = do $(logTM) ErrorS (logStr (show e)); throwAll err500
-    let ok isOk = do unless isOk (throwAll err403); controller
+    let ok (Just isOk) = do unless isOk (throwAll err403); controller
+        ok Nothing = throwAll err403
     either err ok x
  
 httpApi :: HttpApi (AsServerT KatipController)
@@ -72,8 +75,7 @@ auth :: Maybe IP4 ->  AuthApi (AsServerT KatipController)
 auth _ = 
   AuthApi 
   { _authApiRegistration = 
-    flip logExceptionM ErrorS 
-
+    flip logExceptionM ErrorS
     . katipAddNamespace 
       (Namespace ["auth", "registration"])  
     . Auth.Registration.controller

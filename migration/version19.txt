@@ -1,3 +1,36 @@
-create table "edgeNode"."Role" ();
-create table "edgeNode"."Permission" ();
-create table "edgeNode"."UserRole" ();
+create table "edgeNode"."Role" 
+(id bigserial primary key, 
+ title text not null,
+ description text,
+ parent int8 null 
+ constraint "role_id_fk" 
+ references "edgeNode"."Role"(id),
+ constraint "role_title_uniq" unique ("title"));
+create table "edgeNode"."Permission" 
+(id bigserial primary key, 
+ title text not null,
+ description text,
+ parent int8 null 
+ constraint "permission_id_fk" 
+ references "edgeNode"."Permission"(id),
+ constraint "permission_title_uniq" unique ("title"));
+create table "edgeNode"."UserRole" 
+(userfk int8 not null constraint "user_role_user_id_fk" references "edgeNode"."User"(id),
+ rolefk int8 not null constraint "user_role_role_id_fk" references "edgeNode"."Role"(id));
+create table "edgeNode"."RolePermission" 
+(rolefk int8 not null constraint "role_permission_role_id_fk" references "edgeNode"."Role"(id),
+ permissionfk int8 not null constraint "role_permission_permission_id_fk" references "edgeNode"."Permission"(id));
+
+insert into "edgeNode"."Role" (title) values ('root');
+insert into "edgeNode"."Role" (title, parent) values ('user', 1);
+insert into "edgeNode"."Role" (title, parent) values ('provider', 1);
+insert into "edgeNode"."Role" (title, parent) values ('guest', 3);
+
+insert into "edgeNode"."Permission" (title) values ('root');
+insert into "edgeNode"."Permission" (title, parent) values ('user', 1);
+insert into "edgeNode"."Permission" (title, parent) values ('provider_admin', 1);
+insert into "edgeNode"."Permission" (title, parent) values ('provider_guest', 2);
+
+insert into "edgeNode"."RolePermission" (rolefk, permissionfk) values (2, 2);
+
+insert into "edgeNode"."UserRole" (userfk, rolefk) select id, 2 from "edgeNode"."User";

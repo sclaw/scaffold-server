@@ -73,6 +73,8 @@
     авторизация: 
      > **verifyAuthorization :: UserId -> Permission -> Controller -> Controller**
 
+     *verifyAuthorization
+     
     Permission - операции доступные для данной роли 
     Controller - в случае успеха проваливаемся сюда (controller)
     401 - в случае если права отсутствуют или не достаточны
@@ -101,7 +103,7 @@
        permissionFK: int8, not null, refer to edgeNode.Permission (id)
        roleFK: int8, not null, refer to edgeNode.Role (id)
        unique: (userFK, roleFK)
-
+    
  3. **Первичный пользователь (user)**
   таблицы:
   >

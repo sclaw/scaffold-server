@@ -1,6 +1,6 @@
 configDb:
-  dbHost: server-db
-  dbPort: 5432
+  dbHost: localhost
+  dbPort: 2223
   dbUser: web
   dbPass: this_is_web
   dbDatabase: web
@@ -9,9 +9,9 @@ configPorts: 12000
 
 configHosts: localhost
 
-configOrm: 50
+configGroundhog: 50
 
-configRaw:
+configHasql:
   hasqlSettingsPoolN: 50
   hasqlSettingsTm: 0.5
 
@@ -32,7 +32,7 @@ configEkg:
 
 configAuth: 
   authJwk: symmetric.jwk
-  authIsAuthEnabled: true
+  authIsAuthEnabled: false
   authUserId: 1 
 
 configService:

@@ -20,9 +20,10 @@
 {-# LANGUAGE DerivingStrategies     #-}
 
 module EdgeNode.Model.Rbac
-       ( RoleId
+       ( RoleId (..)
        , RoleIdWrapper (..)
        , Permission (..)
+       , isoPermission
        )
        where
 
@@ -31,15 +32,20 @@ import EdgeNode.Rbac
 import TH.Mk
 import Control.Lens 
 import Data.String
+import Orm.PersistField ()
+import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 
 data Permission = 
        Root
      | ProviderAdmin
      | ProviderGuest
      | User 
+     deriving stock Eq
+     deriving stock Show
 
 mkEnumConvertor ''Permission
 mkToSchemaAndJSONProtoIdent ''RoleId
+mkWrappedPrimitivePersistField ''RoleId
 
 instance IsString Permission where
   fromString = toPermission
