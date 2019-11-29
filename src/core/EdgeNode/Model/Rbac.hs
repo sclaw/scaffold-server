@@ -34,6 +34,10 @@ import Control.Lens
 import Data.String
 import Orm.PersistField ()
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
+import Test.QuickCheck
+
+instance Arbitrary RoleId where
+  arbitrary = RoleId <$> arbitrary
 
 data Permission = 
        Root
@@ -42,6 +46,9 @@ data Permission =
      | User 
      deriving stock Eq
      deriving stock Show
+
+instance Arbitrary Permission where
+  arbitrary = oneof [pure Root, pure ProviderAdmin, pure ProviderGuest, pure User]
 
 mkEnumConvertor ''Permission
 mkToSchemaAndJSONProtoIdent ''RoleId

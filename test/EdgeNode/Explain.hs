@@ -1,9 +1,18 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE AllowAmbiguousTypes       #-}
+{-# LANGUAGE DataKinds                 #-}
+{-# LANGUAGE DeriveGeneric             #-}
+{-# LANGUAGE DuplicateRecordFields     #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE TypeApplications          #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module EdgeNode.Explain (spec_explain) where
 
 import qualified EdgeNode.Statement.User as User
+import qualified EdgeNode.Statement.Rbac as Rbac 
 
 import Database.Migration.Test
 import Test.Hspec hiding (shouldBe)
@@ -15,6 +24,9 @@ import Data.Foldable
 import Test.QuickCheck (Arbitrary (arbitrary), generate)
 import Control.Monad.IO.Class
 import Test.Hspec.Expectations.Lifted 
+import Data.Generics.Product.Positions
+import Control.Lens
+import GHC.Generics
 
 spec_explain :: Spec
 spec_explain = 
@@ -26,24 +38,31 @@ spec_explain =
     $ \(modl, tests) ->
         context modl
         $ for_ tests
-        $ \(name, SomeQuery (Statement sql encoder _ _)) -> 
+        $ \(name, SomeQuery st) -> 
             itHasql name $ do 
-              let st = Statement ("explain " <> sql) encoder noResult False
+              let st' = 
+                    st & position @1 %~ ("explain " <>) 
+                       & position @3 .~ noResult
               input <- liftIO $ generate arbitrary
-              r <- statement input st
-              r `shouldBe` ()
+              statement input st' >>= (`shouldBe` ())
   
--- | Existential wrapper for the query
-data SomeQuery = forall a b . Arbitrary a => SomeQuery (Statement a b)
+deriving instance Generic (Statement a b)
 
+-- | Existential wrapper for the query
+data SomeQuery = forall a b . Arbitrary a => SomeQuery (Statement a b) 
+     
 -- | List of all database queries.
 explainTests :: [(String, [(String, SomeQuery)])]
 explainTests = 
-  [ "EdgeNode.Model.User"
+  [ "EdgeNode.Statement.User"
     ==> [ "deleteQualification" =>> 
           User.deleteQualification
         , "deleteTrajectory" =>> 
           User.deleteTrajectory]
+  , "EdgeNode.Statement.Rbac"
+    ==> [ "getTopLevelRoles" =>> 
+          Rbac.getTopLevelRoles
+        , "elem" =>> Rbac.elem]
   ]
   
 (==>) a b = (a, b)

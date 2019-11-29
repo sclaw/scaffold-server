@@ -52,6 +52,7 @@ spec_rbac = describeHasql [migrate] (pure fill) "rbac" $
      itHasql "test2" test2
      itHasql "test3" test3
      itHasql "test4" test4
+     itHasql "test5" test5
 
 fill :: Session ()
 fill = sql 
@@ -75,6 +76,7 @@ fill = sql
      insert into "edgeNode"."User" ("userGender") values ('male');
      insert into "edgeNode"."User" ("userGender") values ('male');
      insert into "edgeNode"."User" ("userGender") values ('male');
+     insert into "edgeNode"."User" ("userGender") values ('male');
      insert into "edgeNode"."UserRole" (userfk, rolefk) values (1, 3);
      insert into "edgeNode"."UserRole" (userfk, rolefk) values (2, 3);
      insert into "edgeNode"."UserRole" (userfk, rolefk) values (3, 2);
@@ -84,23 +86,49 @@ fill = sql
 test1 :: Session ()
 test1 = 
   do 
-    xs <- statement (UserId 1, Root) Rbac.getTopLevelRoles
-    statement (xs, Root) Rbac.elem >>= (`shouldBe`Just True)
+    xs <- 
+      statement 
+      (UserId 1, Root) 
+      Rbac.getTopLevelRoles
+    r <- statement (xs, Root) Rbac.elem
+    r `shouldBe`Just True
 
 test2 :: Session ()
 test2 = 
   do 
-    xs <- statement (UserId 1, ProviderAdmin) Rbac.getTopLevelRoles
-    statement (xs, ProviderAdmin) Rbac.elem >>= (`shouldBe`Just True)
+    xs <- 
+      statement 
+      (UserId 1, ProviderAdmin) 
+      Rbac.getTopLevelRoles
+    r <- statement (xs, ProviderAdmin) Rbac.elem 
+    r `shouldBe`Just True
 
 test3 :: Session ()
 test3 = 
   do 
-    xs <- statement (UserId 3, ProviderGuest) Rbac.getTopLevelRoles
-    statement (xs, ProviderGuest) Rbac.elem >>= (`shouldBe`Just True)
+    xs <- 
+      statement 
+      (UserId 3, ProviderGuest) 
+      Rbac.getTopLevelRoles
+    r <- statement (xs, ProviderGuest) Rbac.elem
+    r `shouldBe`Just True
     
 test4 :: Session ()
 test4 = 
   do 
-    xs <- statement (UserId 4, ProviderGuest) Rbac.getTopLevelRoles
-    statement (xs, ProviderGuest) Rbac.elem >>= (`shouldBe`Just False)
+    xs <- 
+      statement 
+      (UserId 4, ProviderGuest) 
+      Rbac.getTopLevelRoles
+    r <- statement (xs, ProviderGuest) Rbac.elem 
+    r `shouldBe`Just False
+
+test5 :: Session ()
+test5 = 
+  do 
+    xs <- 
+      statement 
+      (UserId 5, ProviderGuest) 
+      Rbac.getTopLevelRoles
+    r <- statement (xs, ProviderGuest) Rbac.elem
+    r `shouldBe` (Just False)
