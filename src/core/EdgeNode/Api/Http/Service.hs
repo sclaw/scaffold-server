@@ -12,7 +12,7 @@ import Web.Google.Translator
 import Servant.API.Generic
 import Servant.API
 import Json
-import Proto
+import TH.Proto
 import qualified Data.Text as T
 
 newtype ServiceApi route = 

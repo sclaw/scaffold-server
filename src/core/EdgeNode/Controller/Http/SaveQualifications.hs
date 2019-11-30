@@ -17,7 +17,7 @@ import EdgeNode.Model.User.Qualification ()
 import qualified EdgeNode.Controller.Http.SaveTrajectory as SaveTrajectory 
 import EdgeNode.Model.Qualification ()
 
-import Proto
+import TH.Proto
 import Katip
 import KatipController
 import Json

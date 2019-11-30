@@ -17,7 +17,7 @@ import EdgeNode.Error
 import EdgeNode.Api.Http.Auth.RefreshToken (Response (..))
 
 import Auth
-import Proto
+import TH.Proto
 import Json
 import Katip
 import KatipController

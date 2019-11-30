@@ -5,7 +5,7 @@ module EdgeNode.Iso (country, language) where
 import EdgeNode.Country
 import EdgeNode.Lang
 
-import Proto
+import TH.Proto
 import Control.Lens
 import qualified Data.Text as T
 import Proto3.Suite.Types

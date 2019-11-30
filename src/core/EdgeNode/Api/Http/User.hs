@@ -13,7 +13,7 @@ import EdgeNode.Model.User.Qualification ()
 import EdgeNode.Model.Provider
 import EdgeNode.Model.User.Trajectory
 
-import Proto
+import TH.Proto
 import Servant.API.Generic
 import Servant.API.WebSocket ()
 import Servant.API

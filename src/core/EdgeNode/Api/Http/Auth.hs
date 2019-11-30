@@ -13,7 +13,7 @@ import Servant.API.Generic
 import Servant.API.WebSocket ()
 import Servant.API
 import Json
-import Proto
+import TH.Proto
 import Data.Aeson.Unit
 import Servant.Auth.Server    
 import qualified Data.Text as T

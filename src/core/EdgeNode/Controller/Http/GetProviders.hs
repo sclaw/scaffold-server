@@ -15,7 +15,7 @@ import EdgeNode.Api.Http.User.GetProviders
 import EdgeNode.Error
 import EdgeNode.Model.Provider
 
-import Proto
+import TH.Proto
 import KatipController
 import Json
 import Control.Lens

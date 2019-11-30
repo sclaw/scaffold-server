@@ -88,7 +88,7 @@ library
       Orm.PersistField.Enumerated
       Orphan
       Pretty
-      Proto
+      TH.Proto
       Servant.Ip
       Servant.Swagger.KatipController
       Swagger.ToSchema

@@ -6,7 +6,7 @@ module EdgeNode.Controller.Http.ValidateRefreshToken (controller) where
 
 import EdgeNode.Api.Http.Auth.RefreshTokenValidator
 
-import Proto
+import TH.Proto
 import Auth
 import Json
 import KatipController

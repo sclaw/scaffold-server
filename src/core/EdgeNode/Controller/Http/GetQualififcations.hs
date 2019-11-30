@@ -18,7 +18,7 @@ import EdgeNode.Model.Provider
 import EdgeNode.Model.Qualification
 import EdgeNode.Api.Http.User.GetQualififcations
 
-import Proto
+import TH.Proto
 import KatipController
 import Json
 import qualified Data.Text as T
@@ -38,7 +38,7 @@ import qualified Hasql.Decoders as HD
 import Data.Int
 import Data.String.Interpolate
 import Control.Monad
-import qualified Protobuf.Scalar as Proto
+import qualified Protobuf.Scalar as TH.Proto
 import GHC.Exts
 import qualified Data.Vector as V
 import qualified Data.Tree.Extended as Tree
@@ -69,7 +69,7 @@ controller provider = maybe (return err) ok (provider^?field @"providerIdValue")
                   . second ((^.vector) . mkTrees logtree))     
         return $ bimap mkErr mkResp x^.eitherToAlt
 
-type DegreeType = Proto.String
+type DegreeType = TH.Proto.String
 type Path = T.Text
 
 action :: Int64 -> KatipLoggerIO -> Hasql.Session.Session [(Maybe DegreeType, [(Path, Node)])]
@@ -102,7 +102,7 @@ action ident logger =
                      (maybe V.empty mkRange grade)
           return (path, Node (Just (QualificationId i)) (Just qual)) 
     let decoder = HD.rowList $ do
-          degree <- (fmap (^.from lazytext.to Proto.String)) <$> 
+          degree <- (fmap (^.from lazytext.to TH.Proto.String)) <$> 
                     HD.column (HD.nullable HD.text)
           _ <- HD.column (HD.nonNullable HD.text) 
           xs <- HD.column $ HD.nonNullable

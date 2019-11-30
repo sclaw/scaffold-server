@@ -11,7 +11,7 @@ import EdgeNode.Error
 
 import Json
 import KatipController
-import Proto
+import TH.Proto
 import qualified Data.Text as T
 import Network.HTTP.Client
 import Data.String.Interpolate

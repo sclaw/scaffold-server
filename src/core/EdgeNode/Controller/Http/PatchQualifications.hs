@@ -19,7 +19,7 @@ import qualified EdgeNode.Controller.Http.SaveTrajectory as SaveTrajectory
 
 import Data.Generics.Product
 import Control.Lens
-import Proto
+import TH.Proto
 import Json
 import KatipController
 import Data.Aeson.Unit

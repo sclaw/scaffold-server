@@ -21,7 +21,7 @@ module Database.FullText.Index
 import EdgeNode.Lang
 import EdgeNode.Provider
 
-import Proto (fromLanguage)
+import TH.Proto (fromLanguage)
 import Data.Char
 import Data.Coerce
 import Data.List

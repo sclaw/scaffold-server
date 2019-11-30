@@ -17,7 +17,7 @@ import EdgeNode.Provider.Qualification
 import qualified EdgeNode.Iso as Iso
 import EdgeNode.Model.User.Qualification ()
 
-import Proto
+import TH.Proto
 import Katip
 import KatipController
 import Json

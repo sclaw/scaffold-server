@@ -29,7 +29,7 @@ import TH.Mk
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import GHC.Float
 import Data.Aeson
-import Proto
+import TH.Proto
 import Json
 import Data.Bifunctor
 import qualified Data.Aeson as Aeson

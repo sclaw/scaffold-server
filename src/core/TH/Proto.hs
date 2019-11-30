@@ -7,7 +7,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Proto where
+module TH.Proto where
 
 import qualified EdgeNode.Api.Http.Auth.Register as Reg
 import qualified EdgeNode.Api.Http.Auth.SignIn as SignIn

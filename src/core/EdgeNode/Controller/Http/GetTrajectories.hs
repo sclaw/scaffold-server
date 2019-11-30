@@ -10,7 +10,7 @@ import EdgeNode.Api.Http.User.GetTrajectories
 import EdgeNode.Model.User.Trajectory
 import Time.Time
 
-import Proto
+import TH.Proto
 import Katip
 import KatipController
 import Json

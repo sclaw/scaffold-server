@@ -12,7 +12,7 @@ import EdgeNode.Error
 import EdgeNode.Model.Category
 import EdgeNode.Api.Http.User.GetCategories
 
-import Proto
+import TH.Proto
 import KatipController
 import Json
 import Data.Aeson.Unit
@@ -51,16 +51,16 @@ action =
     let resp = 
          Response 
          (Just (Response_XStateExamValue 
-                (show Proto.StateExam^.stext.from lazytext) 
+                (show TH.Proto.StateExam^.stext.from lazytext) 
                 (exams^.vector))) 
          (Just (Response_XHigherDegreeValue 
-                (show Proto.HigherDegree^.stext.from lazytext) 
+                (show TH.Proto.HigherDegree^.stext.from lazytext) 
                 (degrees^.vector))) 
          (Just (Response_XInternationalDiplomaValue 
-                (show Proto.InternationalDiploma^.stext.from lazytext) 
+                (show TH.Proto.InternationalDiploma^.stext.from lazytext) 
                 (diplomas^.vector))) 
          (Just (Response_XLanguageStandardValue 
-                (show Proto.LanguageStandard^.stext.from lazytext) 
+                (show TH.Proto.LanguageStandard^.stext.from lazytext) 
                 (langs^.vector)))
     return $ GetCategoriesResponse resp
 

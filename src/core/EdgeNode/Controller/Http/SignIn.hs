@@ -12,7 +12,7 @@ import EdgeNode.Error
 import EdgeNode.Api.Http.Auth.SignIn (Response (..))
 
 import qualified Auth as Auth
-import Proto
+import TH.Proto
 import Json
 import KatipController
 import Control.Lens (_Wrapped', from, (>$), (<&>), to)

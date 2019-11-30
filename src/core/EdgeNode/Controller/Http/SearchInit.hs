@@ -30,7 +30,7 @@ import Data.Time.Clock.POSIX
 import Time.Time
 import Protobuf.Scalar
 import Proto3.Suite.Types
-import Proto
+import TH.Proto
 import Contravariant.Extras.Contrazip
 import Data.Foldable
 
