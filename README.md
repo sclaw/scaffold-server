@@ -35,23 +35,30 @@
         | HigherDegree 
         | LanguageStandard 
         | InternationalDiploma` 
-   `data WhoIAm = User | Provider`
    `data RegistrationStatus = Active | Wait | TimeOut | Banned`
    `data TemplateSource = Degree | Qualification`
+   `data AuthUserType = User | Provider` 
     
  1. **Cистема аутентификации**
     представлена двумя типами (формами в рамках front) для первичного (user) и вторичного (provider) пользователя.
     первичный пользователь: email (уникальный в edgeNode, пароль).
     вторичный пользователь: provider uid в edgeNode, login уникальный в рамках provider, пароль.
+    Аутентификации проходит в рамках таблицы auth.user:
+     - перввичный пользователь: login(field) ~ email
+     - вторичный пользовталь: login(field) ~ providerId#login
+
     После аутентификации клиент получает информацию кто 
     он для правильного отображения на стороне front
-    WhoAmI: user, provider (enum type (haskell)).
+    WhoAmI: AuthUserType (enum type (haskell)).
 
- 2. **Cистема разграничения доступа**
+ 2. **Auth**
     [в основу положен черновик rbac модели](https://csrc.nist.gov/CSRC/media/Projects/Role-Based-Access-Control/documents/sandhu96.pdf)
     корневая роль: root,
     первичный пользователь: user
-    вторичный пользователь: provider, guest  
+    вторичный пользователь: provider, guest 
+
+    UserId -> auth.user(id)
+
     схема:
     роли
     >
@@ -80,43 +87,48 @@
     401 - в случае если права отсутствуют или не достаточны
     таблицы:
   >  
-     edgeNode.Role 
+     auth.role 
        id: int8, serial
        title: text not null
        description: text, nullable
-       parent: int8 null refer to edgeNode.Role (id)
+       parent: int8 null refer to auth.role (id)
+       created: time, not null
+       modified: time, nullable       
        unique: title 
        
-     edgeNode.Permission 
+     auth.permission 
        id: int8, serial
        title: text not null
        description: text, nullable
-       parent: int8 null refer to edgeNode.Permission (id)
+       parent: int8 null refer to auth.permission (id)
+       created: time, not null
+       modified: time, nullable  
        unique: title
 
-     edgeNode.UserRole
-       userFK: int8, not null, refer to edgeNode.User (id)
-       roleFK: int8, not null, refer to edgeNode.Role (id)
-       unique: (userFK, roleFK)
+     auth.user_role
+       user_fk: int8, not null, refer to auth.user (id)
+       role_fk: int8, not null, refer to auth.role (id)
+       unique: (user_fk, role_fk)
 
-     edgeNode.PermissionRole
-       permissionFK: int8, not null, refer to edgeNode.Permission (id)
-       roleFK: int8, not null, refer to edgeNode.Role (id)
-       unique: (userFK, roleFK)
-    
+     auth.role_permission
+       permission_fk: int8, not null, refer to auth.ermission (id)
+       role_fk: int8, not null, refer to auth.role (id)
+       unique: (user_fk, role_fk)
+
+     auth.user 
+       id: int8, serial
+       login: text, not null
+       password: bytea, not null
+       created: time, not null
+       modified: time, nullable
+       user_type: text not null, -> enum type (haskell) 
+       index: login     
+       unique: login
+
  3. **Первичный пользователь (user)**
   таблицы:
   >
-    auth.User 
-      id: int8, serial
-      email: text, not null
-      password: bytea, not null
-      created: time, not null
-      modified: time, nullable
-      index: email     
-      unique: email
-
-    edgeNode.User
+    edgenode.user
       id: int8, serial
       name: text, nullable
       surname: text, nullable
@@ -128,113 +140,106 @@
       status: text, not null, -> enum type (haskell)
       created: time, not null
       modified: time, nullable
-      userFK: int8, not null, refer to auth.User
-      unique: userFK
+      user_fk: int8, not null, refer to auth.user
+      unique: user_fk
 
  4. **Вторичный пользователь (далее provider)** 
    таблицы:
    >  
-      edgeNode.Provider
+      edgenode.provider
         id: int8, serial
         uid: text, not null 
         created: time, not null
         unique: uid
 
-      edgeNode.ProviderUser
+      edgenode.provider_user
         id: int8, serial
-        login: text, not null
         email: text, not null
         status: text, not null, -> enum type (haskell) 
-        providerFK: int8, not null, refer to edgeNode.Provider
-        providerUserFK: int8, not null, refer to auth.ProviderUser
+        provider_fk: int8, not null, refer to edgenode.provider
+        user_fk: int8, not null, refer to auth.user
         created: time, not null
         modified: time, nullable
-        unique: (login, providerFK)
+        unique: (provider_fk, user_fk)
 
-      auth.ProviderUser
-        id: int8, serial
-        pass: text, not null
-        created: time, not null
-        modified: time, nullable
-
-      edgeNode.ProviderBranch
+      edgenode.provider_branch
         id: int8, serial 
         title: text, not null
         country: text, not null -> enum type (haskell)
         address: text, not null
-        isHQ: bool, not null. default false
+        is_hq: bool, not null. default false
         created: time, not null
         modified: time, nullable
         deleted: time, nullable
-        isDeleted: bool, not null, default false
-        providerFK: int8, not null, refer to edgeNode.Provider
+        is_deleted: bool, not null, default false
+        provider_fk: int8, not null, refer to edgenode.provider
 
-      edgeNode.ProviderBranchQualification    
+      edgenode.provider_branch_qualification    
         id: int8, serial
         title: text, not null
         type: text, not null -> enum type (haskell)
-        studyTime: text, not null -> enum type (haskell)
-        academicArea: list of text, -> enum type (haskell)
+        study_time: text, not null -> enum type (haskell)
+        academic_area: list of text, -> enum type (haskell)
         start: date, not null
         end: date, not null
-        isRepeated: bool, not null, default false
-        applicationDeadline: date, not null
+        is_repeated: bool, not null, default false
+        application_deadline: date, not null
         category: text, not null -> enum type (haskell)
         created: time, not null
         modified: time, nullable
         deleted: time, nullable
-        isDeleted: bool, not null, default false
-        providerBranchFK: int8, not null, refer to edgeNode.ProviderBranch
+        is_deleted: bool, not null, default false
+        provider_branch_fk: int8, not null, refer to edgenode.provider_branch
 
-      edgeNode.ProviderBranchQualificationTuitioFees
+      edgenode.provider_branch_qualification_tuition_fees
         id: int8, serial
         amount: int8, not null
         currency: text, not null, -> enum type (haskell)
         per: text, not null, -> enum type (haskell)
         country: text, not null -> enum type (haskell)
-        providerQualificationFK: int8, not null, refer to edgeNode.ProviderQualification
+        provider_qualification_fk: int8, not null, refer to edgenode.provider_qualification
 
       https://blog.typeable.io/posts/2019-11-21-sql-sum-types.html
       create type unit as enum ('()');
-      edgeNode.ProviderBranchQualificationDependency
+      edgenode.provider_branch_qualification_dependency
         id: int8, serial
-        providerBranchQualificationFK: int8, not null, refer to edgeNode.ProviderBranchQualification 
+        provider_branch_qualification_fk: int8, not null, refer to edgenode.provider_branch_qualification 
         created: time, not null
         modified: time, nullable
         deleted: time, nullable
-        isDeleted: bool, not null, default false
-        Degree unit,
-        Qualification,
-        check((Degree is not null and Qualification is null) or 
-              (Degree is null and Qualification is not null))
-        constraint providerBranchQualificationDependency__degree foreign key (id, Degree) references Degree (id,tag),
-        constraint providerBranchQualificationDependency__qualification foreign key (id, Qualification) references Qualification (id, tag),
+        is_deleted: bool, not null, default false
+        degree unit,
+        qualification unit,
+        check((degree is not null and qualification is null) or 
+              (degree is null and qualification is not null))
+        constraint provider_branch_qualification_dependency__degree foreign key (id, degree) references degree (id, tag),
+        constraint provider_branch_qualification_dependency__qualification foreign key (id, Qualification) references qualification (id, tag),
 
-      edgeNode.Degree
+      edgenode.degree
         id: int8, not null
         tag: unit not null default '()',
         type: text, not null -> enum type (haskell)
         grade: jsonb, nullable (value)
         primary key (id,tag)
 
-      edgeNode.Qualification
+      edgenode.qualification
         id: int8, not null
         tag: unit not null default '()',
-        providerBranchQualificationFK: int8, not null, refer to edgeNode.ProviderBranchQualification
+        provider_branch_qualification_fk: int8, not null, refer to edgenode.provider_branch_qualification
         grade: jsonb, not null (value)
         primary key (id,tag)
 
-      edgeNode.QualificationTypeCountry
+      edgenode.qualification_type_country
         id: int8, serial
         country: list of text, not null -> enum type (haskell)
-        qualififcationType: text, not null, -> enum type (haskell)
-        unique: qualififcationType
+        qualififcation_type: text, not null, -> enum type (haskell)
+        unique: qualififcation_type
 
-      edgeNode.QualificationTypeGrade
+      edgenode.qualification_type_grade
         id: int8, serial
-        qualififcationType: text, not null, -> enum type (haskell)
+        qualififcation_type: text, not null, -> enum type (haskell)
         grade: range, type (text, int)
-        unique: qualififcationType
+        unique: qualififcation_type
 
  5. **Регистрация (user)** 
     для регистрации вводится email, пароль.
