@@ -18,23 +18,22 @@ getTopLevelRoles = HS.Statement sql encoder decoder False
   where
     sql = 
       [i|with recursive roles as (
-           select ur.rolefk, array[ur.rolefk] as arr 
-           from "edgeNode"."UserRole" as ur 
-           where ur.userfk = $1
+           select ur.role_fk, array[ur.role_fk] as arr 
+           from auth.user_role as ur 
+           where ur.user_fk = $1
            union all
              select r.id, array_append(rs.arr, r.id)
-             from "edgeNode"."Role" as r
+             from auth.role as r
              join roles as rs
-             on r.parent = rs.rolefk)
+             on r.parent_fk = rs.role_fk)
         select rs1.arr[1] 
         from roles as rs1
-        inner join (select rolefk 
-                   from "edgeNode"."RolePermission" 
-                   where permissionfk in 
-                   (select id from "edgeNode"."Permission" 
+        inner join (select role_fk 
+                   from auth.role_permission 
+                   where permission_fk in 
+                   (select id from auth.permission 
                     where title = $2)) as rs2
-        on rs1.rolefk = rs2.rolefk
-      |]
+        on rs1.role_fk = rs2.role_fk|]
     encoder = 
       contramap (^._1._Wrapped') (HE.param (HE.nonNullable HE.int8)) <>
       contramap (^._2) (HE.param (HE.nonNullable (HE.enum (^.isoPermission.stext))))
@@ -46,18 +45,17 @@ elem = HS.Statement sql encoder decoder False
     sql = 
       [i|with recursive perms as (
            select id, title
-           from "edgeNode"."Permission"
+           from auth.permission
            where id in 
-             (select permissionfk 
-              from "edgeNode"."RolePermission" 
-              where rolefk = any($1))
+             (select permission_fk 
+              from auth.role_permission 
+              where role_fk = any($1))
            union
              select p.id, p.title 
-             from "edgeNode"."Permission" as p
+             from auth.permission as p
              join perms as ps
-             on ps.id = p.parent)
-        select count(*) > 0 from perms where title = $2     
-      |]
+             on ps.id = p.parent_fk)
+        select count(*) > 0 from perms where title = $2|]
     encoder = 
       contramap 
       (^.._1.traversed._Wrapped') 

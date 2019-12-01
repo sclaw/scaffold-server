@@ -45,6 +45,8 @@ import Data.Maybe
 import System.FilePath.Posix
 import qualified Network.AWS.Env as AWS 
 import qualified Network.AWS.Auth as AWS 
+import Control.Monad.IO.Class
+import Katip.Monadic
 
 data Cmd w = 
      Cmd 
@@ -113,7 +115,8 @@ main =
 
       let runApp le = 
            runKatipContextT le (mempty :: LogContexts) mempty $  
-            do e <- Migration.run groundhog 
+            do logger <- katipAddNamespace (Namespace ["db", "migration"]) askLoggerIO
+               e <- liftIO $ Migration.run hasql logger 
                let err e = error $ "migration failure, error: " <> show e
                either err (const (App.run appCfg)) e
       manager <- Http.newTlsManagerWith Http.tlsManagerSettings { managerConnCount = 1 }

@@ -6,6 +6,7 @@ module Database.Action
       , EdgeNodeActionKatip
       , runTryDbConnGH
       , runTryDbConnHasql
+      , runTryDbConnHasqlR 
       ) where
 
 import KatipController
@@ -26,6 +27,7 @@ import Data.Foldable
 import Control.Monad.Trans.Control
 import Control.Monad.Catch
 import Data.Typeable
+import Control.Monad.Reader
 
 type EdgeNodeAction e = TryAction (Exception.Groundhog e) KatipController Postgresql
 
@@ -38,7 +40,9 @@ runTryDbConnGH
   => TryAction (Exception.Groundhog e) m Postgresql a 
   -> Pool Postgresql 
   -> m (Either SomeException a)
-runTryDbConnGH action = katipAddNamespace (Namespace ["db", "groundhog"]) . runTryDbConn action
+runTryDbConnGH action = 
+    katipAddNamespace (Namespace ["db", "groundhog"]) 
+  . runTryDbConn action
 
 runTryDbConnHasql 
   :: Show a 
@@ -50,10 +54,22 @@ runTryDbConnHasql action pool =
     logger <- katipAddNamespace (Namespace ["db", "hasql"]) askLoggerIO
     dbRes <- liftIO $ Hasql.use pool (action logger)
     for_ dbRes (liftIO . logger InfoS . logStr . show)
-    return $ first fromHasqlToServerExcep dbRes
+    return $ first hasqlToException dbRes
 
-fromHasqlToServerExcep :: Hasql.UsageError -> Exception.Hasql
-fromHasqlToServerExcep 
+runTryDbConnHasqlR 
+  :: Show a 
+  => ReaderT KatipLoggerIO Session a
+  -> Hasql.Pool
+  -> KatipController (Either Exception.Hasql a)
+runTryDbConnHasqlR action pool = 
+  do 
+    logger <- katipAddNamespace (Namespace ["db", "hasql"]) askLoggerIO
+    dbRes <- liftIO $ Hasql.use pool (runReaderT action logger)
+    for_ dbRes (liftIO . logger InfoS . logStr . show)
+    return $ first hasqlToException dbRes
+
+hasqlToException :: Hasql.UsageError -> Exception.Hasql
+hasqlToException 
   e@(Hasql.SessionError 
    (Hasql.QueryError _ _ 
     (Hasql.ResultError 
@@ -63,4 +79,4 @@ fromHasqlToServerExcep
   | unique_violation == code = 
     Exception.UniqueViolation msg
   | otherwise = Exception.OtherError e 
-fromHasqlToServerExcep e = Exception.OtherError e
+hasqlToException e = Exception.OtherError e

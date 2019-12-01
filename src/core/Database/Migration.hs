@@ -3,86 +3,77 @@
 
 module Database.Migration (run) where
 
-import qualified EdgeNode.Application as App
-
-import Database.Action (runTryDbConnGH)  
-import Database.DbMeta  
-import Database.Groundhog.Postgresql
-import Data.Pool
-import Control.Monad.IO.Class
-import Database.Groundhog.Core
-import Database.Groundhog.Generic (firstRow)
-import Data.Word (Word32)
+import Data.Word
 import Data.Bool (bool)
-import Data.Time.Clock
-import Data.Typeable
-import Database.Table
-import qualified Database.Exception as Exception
-import Control.Exception.Base
+import Data.Time.Clock ()
 import Katip
-import Control.Lens
+import Control.Lens 
 import Control.Lens.Iso.Extended
 import Data.String.Interpolate
 import Data.Foldable
-import qualified Database.Migration.Batch as Batch 
+import qualified Database.Migration.Batch as Batch
 import Data.Maybe
 import Control.Monad
 import Control.Applicative
+import KatipController
+import qualified Hasql.Pool
+import qualified Hasql.Session
+import qualified Hasql.Statement
+import qualified Hasql.Encoders as HE
+import qualified Hasql.Decoders as HD
+import qualified Hasql.Pool as Hasql
+import Prelude hiding (init)
+import Control.Monad.IO.Class
 
-type MigrationAction a = TryAction (Exception.Groundhog ()) (KatipContextT App.AppMonad) Postgresql a
+run :: Hasql.Pool -> KatipLoggerIO -> IO (Either Hasql.Pool.UsageError ())
+run cm logger = Hasql.Pool.use cm $ Hasql.Session.statement () checkDBMeta >>= traverse_ (bool (initDb logger) (roll Nothing logger))
 
-run :: Pool Postgresql -> KatipContextT App.AppMonad (Either SomeException ())
-run cm = (checkDBMeta >>= traverse_ (bool Database.Migration.init (Database.Migration.migrate Nothing))) `runTryDbConnGH` cm
+checkDBMeta :: Hasql.Statement.Statement () (Maybe Bool)
+checkDBMeta = Hasql.Statement.Statement sql HE.noParams decoder False
+  where 
+    sql =
+      [i|select exists (select 1
+         from information_schema.tables 
+         where table_schema = 'public'
+               and table_name = 'db_meta')|]
+    decoder = HD.rowMaybe $ HD.column (HD.nonNullable HD.bool)
 
-init :: MigrationAction ()
-init = 
-  do 
-    Database.Table.print 
-    mkTables
-    Database.Migration.migrate (Just 1)
+initDb :: KatipLoggerIO -> Hasql.Session.Session ()
+initDb logger = Hasql.Session.statement () mkDbMeta >> roll (Just 1) logger
 
-migrate :: Maybe Word32 -> MigrationAction ()
-migrate init = 
+mkDbMeta = Hasql.Statement.Statement sql HE.noParams HD.noResult False
+  where 
+    sql = 
+     [i|create table db_meta (
+        version int4 not null,
+        created timestamptz not null default now(),
+        modified timestamptz)|]
+
+roll :: Maybe Word32 -> KatipLoggerIO -> Hasql.Session.Session () 
+roll v logger =
   do
-    v <- (<|> init) `fmap` getVersion
-    let batch = Batch.Version `fmap`init
-    for_ (v <|> init) $ \i -> do
-      $(logTM) InfoS (logStr ("migration will be start from version " <> i^.stringify))     
-      next <- Batch.exec (Batch.Version i)
+    v' <- (<|> v) `fmap` Hasql.Session.statement () getVersion
+    let batch = Batch.Version `fmap` v
+    for_ (v' <|> v) $ \i -> do
+      liftIO $ logger InfoS (logStr ("migration will be start from version " <> i^.stringify))     
+      next <- Batch.exec (Batch.Version i) logger
       for_ (next <|> batch) $ \ident -> do
-        tm <- liftIO getCurrentTime
-        let v = ident^.coerced 
-        setVersion tm (maybe (New v) (const (Init v)) init)
-        $(logTM) InfoS (logStr ("migration finished at version " <> show ident))
-      when (isNothing next) $ $(logTM) InfoS (logStr ("no migration found" :: String))  
+        let new = ident^.coerced 
+        Hasql.Session.statement () (setVersion (maybe (New new) (const (Init new)) v))
+        liftIO $ logger InfoS (logStr ("migration finished at version " <> show ident))
+      when (isNothing next) $ liftIO $ logger InfoS (logStr ("no migration found" :: String))
 
-checkDBMeta :: MigrationAction (Maybe Bool)
-checkDBMeta = 
-  do 
-    let tbl = show (typeOf (undefined :: DbMeta)) 
-    let sql = 
-         [i| select exists (select 1
-           from information_schema.tables 
-           where table_schema = 'public'
-           and table_name = '#{tbl}')
-         |]   
-    stream <- queryRaw False sql []
-    row <- firstRow stream
-    traverse ((fst `fmap`) . fromPersistValues) row
-
-getVersion :: MigrationAction (Maybe Word32)
-getVersion =
-  do 
-    let sql =
-          [i|select "dbMetaMigrationVersion"  from "DbMeta" 
-            order by "dbMetaMigrationVersion" desc limit 1  
-          |]
-    stream <- queryRaw False sql []
-    row <- firstRow stream
-    traverse (return . fromPrimitivePersistValue . head) row
+getVersion :: Hasql.Statement.Statement () (Maybe Word32)
+getVersion = Hasql.Statement.Statement sql HE.noParams decoder False
+  where sql = [i|select version from db_meta|]
+        decoder = HD.rowMaybe $ HD.column (HD.nonNullable (HD.int4 <&> (^.integral)))
 
 data SetVrsion = Init Word32 | New Word32   
 
-setVersion :: UTCTime -> SetVrsion -> MigrationAction ()
-setVersion tm (Init v) = insert_ (DbMeta v tm)
-setVersion tm (New v) = replace (DbMetaKey (PersistInt64 1)) (DbMeta v tm)
+setVersion :: SetVrsion -> Hasql.Statement.Statement () ()
+setVersion (Init v) = Hasql.Statement.Statement sql encoder HD.noResult False
+  where sql = [i|insert into db_meta (version, created) values ($1, now())|]
+        encoder = v^.integral >$ HE.param (HE.nonNullable HE.int4)
+setVersion (New v) = Hasql.Statement.Statement sql encoder HD.noResult False
+  where sql = [i|update db_meta set version = $1, modified = now()|]
+        encoder = v^.integral >$ HE.param (HE.nonNullable HE.int4)
