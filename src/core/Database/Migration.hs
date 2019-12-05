@@ -56,7 +56,7 @@ roll v logger =
     let batch = Batch.Version `fmap` v
     for_ (v' <|> v) $ \i -> do
       liftIO $ logger InfoS (logStr ("migration will be start from version " <> i^.stringify))     
-      next <- Batch.exec (Batch.Version i) logger
+      next <- Batch.rollMigrations (Batch.Version i) logger
       for_ (next <|> batch) $ \ident -> do
         let new = ident^.coerced 
         Hasql.Session.statement () (setVersion (maybe (New new) (const (Init new)) v))

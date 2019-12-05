@@ -56,31 +56,30 @@ spec_rbac = describeHasql [migrate] (pure fill) "rbac" $
 
 fill :: Session ()
 fill = sql 
-  [i|insert into "edgeNode"."Role" (title) values ('r1');
-     insert into "edgeNode"."Role" (title, parent) values ('r2', 1);
-     insert into "edgeNode"."Role" (title, parent) values ('r5', 1);
-     insert into "edgeNode"."Role" (title, parent) values ('r3', 2);
-     insert into "edgeNode"."Role" (title, parent) values ('r4', 2);
-     insert into "edgeNode"."Role" (title, parent) values ('r6', 3);
-     insert into "edgeNode"."Role" (title, parent) values ('r7', 3);
-     insert into "edgeNode"."Role" (title, parent) values ('r8', 6);
-     insert into "edgeNode"."Permission" (title) values ('root');
-     insert into "edgeNode"."Permission" (title, parent) values ('provider_admin', 1);
-     insert into "edgeNode"."Permission" (title, parent) values ('provider_guest', 2);
-     insert into "edgeNode"."RolePermission" (rolefk, permissionfk) values (6, 1);
-     insert into "edgeNode"."RolePermission" (rolefk, permissionfk) values (3, 1);
-     insert into "edgeNode"."RolePermission" (rolefk, permissionfk) values (6, 2);
-     insert into "edgeNode"."RolePermission" (rolefk, permissionfk) values (2, 3);
-     insert into "edgeNode"."RolePermission" (rolefk, permissionfk) values (4, 1);
-     insert into "edgeNode"."User" ("userGender") values ('male');
-     insert into "edgeNode"."User" ("userGender") values ('male');
-     insert into "edgeNode"."User" ("userGender") values ('male');
-     insert into "edgeNode"."User" ("userGender") values ('male');
-     insert into "edgeNode"."User" ("userGender") values ('male');
-     insert into "edgeNode"."UserRole" (userfk, rolefk) values (1, 3);
-     insert into "edgeNode"."UserRole" (userfk, rolefk) values (2, 3);
-     insert into "edgeNode"."UserRole" (userfk, rolefk) values (3, 2);
-     insert into "edgeNode"."UserRole" (userfk, rolefk) values (4, 8);
+  [i|delete from auth.role_permission;
+     delete from auth.role;
+     insert into auth.role (title) values ('r1');
+     insert into auth.role (title, parent_fk) select 'r2', id from auth.role where title = 'r1';
+     insert into auth.role (title, parent_fk) select 'r5', id from auth.role where title = 'r1';
+     insert into auth.role (title, parent_fk) select 'r3', id from auth.role where title = 'r2';
+     insert into auth.role (title, parent_fk) select 'r4', id from auth.role where title = 'r2';
+     insert into auth.role (title, parent_fk) select 'r6', id from auth.role where title = 'r5';
+     insert into auth.role (title, parent_fk) select 'r7', id from auth.role where title = 'r5';
+     insert into auth.role (title, parent_fk) select 'r8', id from auth.role where title = 'r6';
+     insert into auth.role_permission (role_fk, permission_fk) select id, 1 from auth.role where title = 'r6';
+     insert into auth.role_permission (role_fk, permission_fk) select id, 1 from auth.role where title = 'r3';
+     insert into auth.role_permission (role_fk, permission_fk) select id, 2 from auth.role where title = 'r6';
+     insert into auth.role_permission (role_fk, permission_fk) select id, 3 from auth.role where title = 'r2';
+     insert into auth.role_permission (role_fk, permission_fk) select id, 1 from auth.role where title = 'r4';
+     insert into auth.user (identifier, password, created, user_type) values ('uid1', '', now(), '');
+     insert into auth.user (identifier, password, created, user_type) values ('uid2', '', now(), '');
+     insert into auth.user (identifier, password, created, user_type) values ('uid3', '', now(), '');
+     insert into auth.user (identifier, password, created, user_type) values ('uid4', '', now(), '');
+     insert into auth.user (identifier, password, created, user_type) values ('uid5', '', now(), '');
+     insert into auth.user_role (user_fk, role_fk) select 1, id from auth.role where title = 'r3';
+     insert into auth.user_role (user_fk, role_fk) select 2, id from auth.role where title = 'r3';
+     insert into auth.user_role (user_fk, role_fk) select 3, id from auth.role where title = 'r2';
+     insert into auth.user_role (user_fk, role_fk) select 4, id from auth.role where title = 'r8';
   |]
 
 test1 :: Session ()
@@ -120,7 +119,7 @@ test4 =
       statement 
       (UserId 4, ProviderGuest) 
       Rbac.getTopLevelRoles
-    r <- statement (xs, ProviderGuest) Rbac.elem 
+    r <- statement (xs, ProviderGuest) Rbac.elem
     r `shouldBe`Just False
 
 test5 :: Session ()

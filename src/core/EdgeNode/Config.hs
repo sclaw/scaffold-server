@@ -81,8 +81,12 @@ newtype GroundhogSettings = GroundhogSettings { groundhogSettingsPoolN :: Int }
   deriving Show 
   deriving newtype FromJSON
 
-data HasqlSettings = HasqlSettings { hasqlSettingsPoolN :: !Int, hasqlSettingsTm :: !NominalDiffTime }
-  deriving Show
+data HasqlSettings = 
+     HasqlSettings 
+     { hasqlSettingsPoolN :: !Int
+     , hasqlSettingsTm :: !NominalDiffTime
+     , hasqlSettingsResPerStripe :: !Int 
+     } deriving Show
 
 data PoolSettings = 
      PoolSettings 

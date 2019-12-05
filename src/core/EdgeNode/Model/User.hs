@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE DeriveGeneric          #-}
@@ -30,7 +29,6 @@ module EdgeNode.Model.User
 import EdgeNode.User
 
 import TH.Mk
-import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import qualified Data.Text as T
 import Orm.PersistField ()
 import Data.Default.Class.Extended
@@ -39,8 +37,6 @@ import Control.Lens
 import Proto3.Suite.Types
 import Data.Either
 import Control.Lens.Iso.Extended
-import Data.Aeson
-import Orphan ()
 import Test.QuickCheck
 
 instance Default Gender where
@@ -53,22 +49,9 @@ instance Arbitrary UserId where
   arbitrary = UserId <$> arbitrary
 
 mkToSchemaAndJSONProtoIdent ''UserId
-mkWrappedPrimitivePersistField ''UserId
+makeWrapped ''UserId
 mkFromHttpApiDataIdent ''UserId
 mkEnumConvertor ''Gender
-mkPrimitivePersistField ''Gender [| iso fromGender toGender |] 
-mkPrimitivePersistFieldParam ''Enumerated [| enumGender |]
-
-enumGender :: (FromJSON a, ToJSON a) => Iso' a T.Text
-enumGender = 
-  iso ((^.from textbsl.to strip._Just) . encode) 
-      (either err id `fmap` 
-       (eitherDecode . (^.to mkJson.textbsl))) 
-  where err = error . (<>) "decode error: "
-        mkJson x = "\"" <> x <> "\""
-        strip x = do 
-         x' <- T.stripPrefix "\"" x
-         T.stripSuffix "\"" x'  
 
 defUser :: User
 defUser = def

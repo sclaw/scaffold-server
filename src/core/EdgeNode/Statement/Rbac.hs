@@ -52,8 +52,8 @@ elem = HS.Statement sql encoder decoder False
               where role_fk = any($1))
            union
              select p.id, p.title 
-             from auth.permission as p
-             join perms as ps
+             from perms as ps
+             inner join auth.permission as p
              on ps.id = p.parent_fk)
         select count(*) > 0 from perms where title = $2|]
     encoder = 

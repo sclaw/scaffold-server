@@ -44,8 +44,8 @@
     первичный пользователь: email (уникальный в edgeNode, пароль).
     вторичный пользователь: provider uid в edgeNode, login уникальный в рамках provider, пароль.
     Аутентификации проходит в рамках таблицы auth.user:
-     - перввичный пользователь: login(field) ~ email
-     - вторичный пользовталь: login(field) ~ providerId#login
+     - перввичный пользователь: identifier ~ email
+     - вторичный пользовталь: identifier ~ providerId#login
 
     После аутентификации клиент получает информацию кто 
     он для правильного отображения на стороне front
@@ -91,7 +91,7 @@
        id: int8, serial
        title: text not null
        description: text, nullable
-       parent: int8 null refer to auth.role (id)
+       parent_fk: int8 null refer to auth.role (id)
        created: time, not null
        modified: time, nullable       
        unique: title 
@@ -100,7 +100,7 @@
        id: int8, serial
        title: text not null
        description: text, nullable
-       parent: int8 null refer to auth.permission (id)
+       parent_fk: int8 null refer to auth.permission (id)
        created: time, not null
        modified: time, nullable  
        unique: title
@@ -111,20 +111,27 @@
        unique: (user_fk, role_fk)
 
      auth.role_permission
-       permission_fk: int8, not null, refer to auth.ermission (id)
+       permission_fk: int8, not null, refer to auth.permission (id)
        role_fk: int8, not null, refer to auth.role (id)
        unique: (user_fk, role_fk)
 
      auth.user 
        id: int8, serial
-       login: text, not null
+       identifier: text, not null
        password: bytea, not null
        created: time, not null
        modified: time, nullable
        user_type: text not null, -> enum type (haskell) 
-       index: login     
-       unique: login
+       index: identifier     
+       unique: identifier
 
+     auth.token
+       id: int8, serial
+       token: bytea not null
+       user_fk: int8, not null, refer to auth.user (id)
+       created, time not null
+       unique: text, not null
+       
  3. **Первичный пользователь (user)**
   таблицы:
   >

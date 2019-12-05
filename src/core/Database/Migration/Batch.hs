@@ -8,7 +8,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Database.Migration.Batch (Version (..), exec) where 
+module Database.Migration.Batch (Version (..), rollMigrations) where 
 
 import KatipController
 import Data.Word (Word32)
@@ -30,13 +30,18 @@ data MigrationStep = NextSql B.ByteString Version | Stop deriving Show
 
 $mkMigrationSeq
 
-exec :: Version -> KatipLoggerIO -> Hasql.Session.Session (Maybe Version) 
-exec _ _ | null list = return Nothing    
-exec ver logger = maybe (error ("migration not found: " <> show ver)) ok ((Map.fromList list) Map.!? ver) 
-  where  
+rollMigrations :: Version -> KatipLoggerIO -> Hasql.Session.Session (Maybe Version) 
+rollMigrations _ _ | null list = return Nothing    
+rollMigrations ver logger = 
+  case (Map.fromList list) Map.!? ver of 
+    Nothing -> error ("migration not found: " <> show ver)
+    Just x -> ok x  
+  where
+    log = liftIO . logger InfoS . logStr   
     ok Stop = return $ Just ver
-    ok (NextSql sql ver) = do
-      liftIO $ logger InfoS (logStr ([i|migration from #{ver} to #{ver + 1}|] :: String))
-      liftIO $ logger InfoS (logStr ([i|query: #{sql}|] :: String))
+    ok (NextSql sql ver) = do 
+      log ([i|migration from #{ver} 
+              to #{ver + 1}|] :: String)
+      log ([i|query: #{sql}|] :: String)
       Hasql.Session.sql sql
-      exec ver logger
+      rollMigrations ver logger

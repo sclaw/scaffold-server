@@ -32,6 +32,7 @@ module KatipController
        , jwk
        , amazon
        , bucketPrefix
+       , hasqlDbPool
          -- * run
        , runKatipController
          -- * re-export
@@ -65,6 +66,7 @@ import qualified Control.Monad.RWS.Strict as RWS
 import Control.Monad.RWS.Class
 import qualified Network.AWS.Env as AWS
 import qualified Data.Text as T
+import qualified Hasql.Connection as Hasql
 
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 
@@ -76,6 +78,8 @@ data KatipEnv =
        :: !(Pool.Pool Postgresql)
      , katipEnvHasqlDb    
        :: !Hasql.Pool
+     , katipEnvHasqlDbPool
+       :: !(Pool.Pool Hasql.Connection)
      , katipEnvHttpReqManager 
        :: !Manager
      , katipEnvApiKeys

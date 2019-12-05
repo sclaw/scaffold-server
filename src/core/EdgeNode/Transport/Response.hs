@@ -1,0 +1,99 @@
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+
+-- |
+-- Generic response that should be used in services. Currently it doesn't
+-- keep type level info about concrete error that may happen, but that may
+-- change in the future. Instead we use "EdgeNode.Error" module to represent
+-- generic errors without looking "inside".
+--
+-- Module provide 'Response' type and convenient pattern synonyms for
+-- different pattern creation.
+module EdgeNode.Transport.Response
+       ( Response(Response, Ok, Warnings, Errors, Error)
+       , EdgeNode.AsError(..)
+       , fromValidation
+       , fromEither
+       , fromEithers
+       ) where
+
+import EdgeNode.Transport.Error as EdgeNode
+import Control.Lens hiding ((.=))
+import Data.Aeson.Extended hiding (Error)
+import qualified Data.Text as T
+import Data.Typeable
+import Data.Swagger hiding (Response)
+import Data.Validation hiding (fromEither)
+import GHC.Exts
+import GHC.Generics
+
+--  Generic response for sirius services.
+data Response a
+  = Response
+  { responseResult :: (Maybe a)
+    -- ^ Computation result.
+  , responseWarnings :: [Error]
+  , responseErrors :: [Error]
+  } deriving stock Show
+    deriving stock Typeable
+    deriving stock Generic
+    deriving stock Foldable
+    deriving stock Traversable
+    deriving stock Functor
+
+pattern Ok :: a ->  Response a
+pattern Ok x = Response (Just x) ([]::[EdgeNode.Error]) ([]::[EdgeNode.Error])
+pattern Warnings :: a -> [Error] -> Response a
+pattern Warnings x warns = Response (Just x) warns ([]::[EdgeNode.Error])
+pattern Errors :: [Error] -> Response a
+pattern Errors errs = Response Nothing [] errs
+pattern Error :: Error -> Response a
+pattern Error err = Response Nothing [] [err]
+
+instance ToJSON a => ToJSON (Response a) where
+  toJSON (Response Nothing [] []) = object ["success" .= Null]
+  toJSON (Response Nothing ys xs) = object
+    $ (if null ys then id else (("warning".=ys):))
+      (if null xs then [] else ["error".=xs])
+  toJSON (Response (Just x) ys xs) = object
+    $ (if null ys then id else (("warning".=ys):))
+    . (if null xs then id else (("error".=xs):))
+    $ ["success" .= x ]
+
+instance FromJSON a => FromJSON (Response a) where
+  parseJSON = withObject "response" $ \o -> do
+    msuccess <- o .:? "success"
+    warns <- o .:? "warning" .!= []
+    errors <- o .:? "error" .!= []
+    pure $ Response msuccess warns errors
+
+instance (ToSchema a, Typeable a) => ToSchema (Response a) where
+  declareNamedSchema _ = do
+    eSchema <- declareSchemaRef (Proxy @Error)
+    aSchema <- declareSchemaRef (Proxy @a)
+    let uniq = T.pack $ show (typeOf (undefined :: a))
+    pure $ NamedSchema (Just $ "Response-" <> uniq) $ mempty
+         & type_ .~ SwaggerObject
+         & properties .~ fromList
+             [ ("success", aSchema)
+             , ("warnings", eSchema)
+             , ("error", eSchema)
+             ]
+
+fromValidation :: Validate v => v [EdgeNode.Error] a -> Response a
+fromValidation v = case v ^. _Either of Left es -> Errors es; Right x -> Ok x
+
+fromEither :: AsError e => Either e a -> Response a
+fromEither (Left e) = Errors [asError e]
+fromEither (Right x) = Ok x
+
+fromEithers :: AsError e => Either [e] a -> Response a
+fromEithers (Left es) = Errors $ map asError es
+fromEithers (Right x) = Ok x
