@@ -87,11 +87,10 @@ main =
       hSetBuffering stdout NoBuffering 
 
       groundhog <- createPostgresqlPool (mkOrmConn (cfg^.db)) (cfg^.groundhog.coerced)
-      hasqlp <- Hasql.acquire (cfg^.hasql.poolN, cfg^.hasql.tm, mkRawConn (cfg^.db))
-
+     
       hasqlpool <- Pool.createPool 
         (HasqlConn.acquire (mkRawConn (cfg^.db)) >>=  
-         either (const (throwIO (ErrorCall "hasql conn error"))) pure) 
+         either (throwIO . ErrorCall . maybe "hasql conn error" (^.from textbs.from stext)) pure) 
         HasqlConn.release
         (cfg^.hasql.poolN) 
         (cfg^.hasql.tm) 
@@ -127,20 +126,14 @@ main =
       let runApp le = 
            runKatipContextT le (mempty :: LogContexts) mempty $  
             do logger <- katipAddNamespace (Namespace ["db", "migration"]) askLoggerIO
-               e <- liftIO $ Migration.run hasqlp logger 
-               let err e = error $ "migration failure, error: " <> show e
-               either err (const (App.run appCfg)) e
+               liftIO $ Migration.run hasqlpool logger
+               App.run appCfg
       manager <- Http.newTlsManagerWith Http.tlsManagerSettings { managerConnCount = 1 }
 
-      awsEnv <- AWS.newEnvWith 
-                (AWS.FromKeys 
-                 (cfg^.EdgeNode.Config.amazon.accessKey) 
-                 (cfg^.EdgeNode.Config.amazon.secretKey)) 
-                 Nothing 
-                 manager
+      awsEnv <- AWS.newEnvWith (AWS.FromKeys (cfg^.EdgeNode.Config.amazon.accessKey) (cfg^.EdgeNode.Config.amazon.secretKey)) Nothing manager
 
       let katipAmazon = Amazon awsEnv (cfg^.EdgeNode.Config.amazon.EdgeNode.Config.bucketPrefix)  
-      let katipEnv = KatipEnv term groundhog hasqlp hasqlpool manager (cfg^.service.coerced) (fromRight' jwke) katipAmazon
+      let katipEnv = KatipEnv term groundhog hasqlpool manager (cfg^.service.coerced) (fromRight' jwke) katipAmazon
       bracket env' closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)     
       
 mkOrmConn :: Db -> String

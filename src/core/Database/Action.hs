@@ -2,12 +2,12 @@
 {-# LANGUAGE FlexibleContexts #-}
 
 module Database.Action 
-      ( EdgeNodeAction
-      , EdgeNodeActionKatip
-      , runTryDbConnGH
-      , runTryDbConnHasql
-      , runTryDbConnHasqlR
+      ( runTryDbConnHasql
       , transaction
+      , katipTransaction
+      , SessionR
+      , ask
+      , lift
       ) where
 
 import KatipController
@@ -32,21 +32,6 @@ import Control.Monad.Reader
 import qualified Hasql.Connection as Hasql
 import  Control.Exception (throwIO)
 
-type EdgeNodeAction e = TryAction (Exception.Groundhog e) KatipController Postgresql
-
-type EdgeNodeActionKatip e a = EdgeNodeAction e a ->  Pool Postgresql -> KatipController (Either SomeException a)
-
-runTryDbConnGH 
-  :: (KatipContext m, 
-      MonadBaseControl IO m, 
-      MonadCatch m, Typeable e, Show e) 
-  => TryAction (Exception.Groundhog e) m Postgresql a 
-  -> Pool Postgresql 
-  -> m (Either SomeException a)
-runTryDbConnGH action = 
-    katipAddNamespace (Namespace ["db", "groundhog"]) 
-  . runTryDbConn action
-
 runTryDbConnHasql 
   :: Show a 
   => (KatipLoggerIO -> Session a) 
@@ -59,23 +44,13 @@ runTryDbConnHasql action pool =
     for_ dbRes (liftIO . logger InfoS . logStr . show)
     return $ first hasqlToException dbRes
 
-runTryDbConnHasqlR 
-  :: Show a 
-  => ReaderT KatipLoggerIO Session a
-  -> Hasql.Pool
-  -> KatipController (Either Exception.Hasql a)
-runTryDbConnHasqlR action pool = 
-  do 
-    logger <- katipAddNamespace (Namespace ["db", "hasql"]) askLoggerIO
-    dbRes <- liftIO $ Hasql.use pool (runReaderT action logger)
-    for_ dbRes (liftIO . logger InfoS . logStr . show)
-    return $ first hasqlToException dbRes
-
 newtype QueryErrorWrapper = QueryErrorWrapper Hasql.QueryError 
   deriving Show
 
 instance Exception QueryErrorWrapper
 
+
+type SessionR a = ReaderT KatipLoggerIO Session a
 
 -- | Run exception-safe database transaction. User action is run inside
 -- transaction.
@@ -99,21 +74,26 @@ instance Exception QueryErrorWrapper
 -- This method may throw 'SQLException' in case if SQL exception
 -- happens during operations that commit or rollback transaction,
 -- in this case connection may not be in a clean state.
-transaction :: Pool Hasql.Connection -> Hasql.Session a -> IO a
-transaction pool session = fmap join run >>= either (throwIO . QueryErrorWrapper) pure
+transaction :: Pool Hasql.Connection -> KatipLoggerIO -> ReaderT KatipLoggerIO Session a -> IO a
+transaction pool logger session = fmap join run >>= either (throwIO . QueryErrorWrapper) pure
   where
     run = withResource pool $ \conn ->
       mask $ \release -> do 
         begin <- Hasql.run (Hasql.sql "begin") conn
         let withBegin = do
               result <- 
-                release (Hasql.run session conn >>= 
+                release (Hasql.run (runReaderT session logger) conn >>= 
                   either (throwIO . QueryErrorWrapper) pure)
                  `onException` 
                 Hasql.run (Hasql.sql "rollback") conn
               commit <- Hasql.run (Hasql.sql "commit") conn    
               traverse (const (pure result)) commit
         traverse (const withBegin) begin
+
+katipTransaction :: Pool Hasql.Connection -> ReaderT KatipLoggerIO Session a -> KatipController a
+katipTransaction pool session = do 
+  logger <- katipAddNamespace (Namespace ["db", "hasql"]) askLoggerIO
+  liftIO $ transaction pool logger session
 
 hasqlToException :: Hasql.UsageError -> Exception.Hasql
 hasqlToException 

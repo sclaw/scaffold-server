@@ -26,7 +26,6 @@ module KatipController
        , katipEnv
        , terminal
        , groundhogDb
-       , hasqlDb
        , httpReqManager
        , apiKeys
        , jwk
@@ -76,8 +75,6 @@ data KatipEnv =
        :: !Term
      , katipEnvGroundhogDb    
        :: !(Pool.Pool Postgresql)
-     , katipEnvHasqlDb    
-       :: !Hasql.Pool
      , katipEnvHasqlDbPool
        :: !(Pool.Pool Hasql.Connection)
      , katipEnvHttpReqManager 

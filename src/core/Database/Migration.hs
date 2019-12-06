@@ -16,17 +16,19 @@ import Data.Maybe
 import Control.Monad
 import Control.Applicative
 import KatipController
-import qualified Hasql.Pool
 import qualified Hasql.Session
 import qualified Hasql.Statement
 import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
-import qualified Hasql.Pool as Hasql
 import Prelude hiding (init)
 import Control.Monad.IO.Class
+import qualified Hasql.Connection as Hasql
+import qualified Data.Pool as Pool
+import Database.Action
+import Control.Monad.Trans.Class
 
-run :: Hasql.Pool -> KatipLoggerIO -> IO (Either Hasql.Pool.UsageError ())
-run cm logger = Hasql.Pool.use cm $ Hasql.Session.statement () checkDBMeta >>= traverse_ (bool (initDb logger) (roll Nothing logger))
+run :: Pool.Pool Hasql.Connection -> KatipLoggerIO -> IO ()
+run cm logger = transaction cm logger $ lift (Hasql.Session.statement () checkDBMeta) >>= traverse_ (bool initDb (roll Nothing))
 
 checkDBMeta :: Hasql.Statement.Statement () (Maybe Bool)
 checkDBMeta = Hasql.Statement.Statement sql HE.noParams decoder False
@@ -38,8 +40,8 @@ checkDBMeta = Hasql.Statement.Statement sql HE.noParams decoder False
                and table_name = 'db_meta')|]
     decoder = HD.rowMaybe $ HD.column (HD.nonNullable HD.bool)
 
-initDb :: KatipLoggerIO -> Hasql.Session.Session ()
-initDb logger = Hasql.Session.statement () mkDbMeta >> roll (Just 1) logger
+initDb :: SessionR ()
+initDb = lift (Hasql.Session.statement () mkDbMeta) >> roll (Just 1)
 
 mkDbMeta = Hasql.Statement.Statement sql HE.noParams HD.noResult False
   where 
@@ -49,17 +51,18 @@ mkDbMeta = Hasql.Statement.Statement sql HE.noParams HD.noResult False
         created timestamptz not null default now(),
         modified timestamptz)|]
 
-roll :: Maybe Word32 -> KatipLoggerIO -> Hasql.Session.Session () 
-roll v logger =
+roll :: Maybe Word32 -> SessionR () 
+roll v =
   do
-    v' <- (<|> v) `fmap` Hasql.Session.statement () getVersion
+    v' <- lift $ (<|> v) `fmap` Hasql.Session.statement () getVersion
     let batch = Batch.Version `fmap` v
     for_ (v' <|> v) $ \i -> do
+      logger <- ask
       liftIO $ logger InfoS (logStr ("migration will be start from version " <> i^.stringify))     
-      next <- Batch.rollMigrations (Batch.Version i) logger
+      next <- lift $ Batch.rollMigrations (Batch.Version i) logger
       for_ (next <|> batch) $ \ident -> do
         let new = ident^.coerced 
-        Hasql.Session.statement () (setVersion (maybe (New new) (const (Init new)) v))
+        lift $ Hasql.Session.statement () (setVersion (maybe (New new) (const (Init new)) v))
         liftIO $ logger InfoS (logStr ("migration finished at version " <> show ident))
       when (isNothing next) $ liftIO $ logger InfoS (logStr ("no migration found" :: String))
 
