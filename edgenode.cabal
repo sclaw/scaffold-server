@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cc3061b7f535813a5ff6a29599f1595a5e6bbfa4ec9891de22569d5824104cee
+-- hash: 60caa2f898f6bb11778a88274c0a9d4caf51cb2664353c0b83552fd0ecea61ed
 
 name:           edgenode
 version:        0.1.0.0
@@ -75,6 +75,7 @@ library
       EdgeNode.Statement.Rbac
       EdgeNode.Statement.User
       EdgeNode.Transport.Error
+      EdgeNode.Transport.Id
       EdgeNode.Transport.Response
       Hash
       Json
@@ -152,6 +153,7 @@ library
     , amazonka
     , async
     , base >=4.7 && <5
+    , binary
     , brick
     , bytestring
     , casing
@@ -176,6 +178,7 @@ library
     , groundhog
     , groundhog-postgresql
     , groundhog-th
+    , hashable
     , hashing
     , hasql
     , hasql-th
@@ -240,6 +243,7 @@ library
     , tasty-hunit
     , template-haskell
     , text
+    , text-show
     , th-printf
     , thyme
     , time

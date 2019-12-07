@@ -1,5 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 
 module Database.Transaction 
       ( transaction
@@ -78,8 +83,11 @@ transaction pool logger session = fmap join run >>= either (throwIO . QueryError
 class ParamsShow a where
   render :: a -> String
 
-instance ParamsShow () where render () = mempty
-instance ParamsShow Int32 where render = show
+instance {-# OVERLAPS #-} ParamsShow () where render () = mempty
+instance {-# OVERLAPS #-} ParamsShow Int32 where render = show
+instance {-# OVERLAPS #-} ParamsShow Int64 where render = show
+
+instance {-# OVERLAPS #-} (Coercible a b, Show b) => ParamsShow a where render = show . coerce @a @b
 
 statement :: ParamsShow a => Hasql.Statement a b -> a -> ReaderT KatipLoggerIO Session b
 statement s@(Hasql.Statement sql _ _ _) a = do 

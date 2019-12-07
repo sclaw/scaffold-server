@@ -163,6 +163,9 @@ library:
     - network-ip
     - data-textual
     - servant-client-core
+    - binary
+    - hashable
+    - text-show
   source-dirs:
     - src/core
     - src/extended
