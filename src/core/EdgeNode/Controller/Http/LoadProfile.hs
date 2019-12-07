@@ -6,14 +6,12 @@
 module EdgeNode.Controller.Http.LoadProfile (controller) where
 
 import EdgeNode.Model.User 
-import EdgeNode.Error
 
 import Json
 import Katip
 import KatipController
 import qualified Data.Text as T
 import Control.Lens.Iso.Extended
-import Database.Action (runTryDbConnHasql)
 import qualified Hasql.Session as Hasql.Session
 import qualified Hasql.Statement as HS
 import qualified Hasql.Encoders as HE
@@ -24,18 +22,16 @@ import Data.String.Interpolate
 import Control.Monad.IO.Class
 import qualified Data.Aeson as Aeson
 import Proto3.Suite.Types
+import Database.Transaction
 
 controller :: UserId -> KatipController (Alternative (Error T.Text) User)
 controller uid =
   do
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (action uid) hasql
-    let mkErr e = 
-          $(logTM) ErrorS (logStr (show e)) $> 
-          Error (ServerError (InternalServerError (show e^.stextl)))
-    let mkOk Nothing = return $ Error $ ResponseError "user not found"
-        mkOk (Just u) = return $ Fortune u      
-    either mkErr mkOk x
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    x <- katipTransaction hasql (ask >>= lift . action uid)
+    let mkOk Nothing = Error $ ResponseError "user not found"
+        mkOk (Just u) = Fortune u      
+    return $ mkOk x
 
 action :: UserId -> KatipLoggerIO -> Hasql.Session.Session (Maybe User)
 action uid logger = 

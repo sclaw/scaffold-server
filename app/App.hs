@@ -21,10 +21,8 @@ import qualified Database.Migration as Migration
 import Control.Exception (bracket)
 import Control.Lens hiding (Wrapped, Unwrapped) 
 import Data.Monoid.Colorful (hGetTerm)
-import Database.Groundhog.Postgresql (createPostgresqlPool)
 import Katip
 import System.IO (stdout)
-import qualified Hasql.Pool as Hasql
 import qualified Hasql.Connection as HasqlConn
 import Control.Lens.Iso.Extended
 import Control.Monad
@@ -36,7 +34,6 @@ import qualified Data.ByteString.Lazy  as B
 import GHC.IO.Handle (BufferMode (NoBuffering), hSetBuffering)
 import Data.Default.Class
 import Control.Monad.RWS.Strict (evalRWST)
-import Data.String.Interpolate
 import qualified Network.HTTP.Client.TLS as Http
 import Network.HTTP.Client (ManagerSettings (managerConnCount))
 import GHC.Generics (Generic)
@@ -86,8 +83,6 @@ main =
       term <- hGetTerm stdout
       hSetBuffering stdout NoBuffering 
 
-      groundhog <- createPostgresqlPool (mkOrmConn (cfg^.db)) (cfg^.groundhog.coerced)
-     
       hasqlpool <- Pool.createPool 
         (HasqlConn.acquire (mkRawConn (cfg^.db)) >>=  
          either (throwIO . ErrorCall . maybe "hasql conn error" (^.from textbs.from stext)) pure) 
@@ -133,21 +128,8 @@ main =
       awsEnv <- AWS.newEnvWith (AWS.FromKeys (cfg^.EdgeNode.Config.amazon.accessKey) (cfg^.EdgeNode.Config.amazon.secretKey)) Nothing manager
 
       let katipAmazon = Amazon awsEnv (cfg^.EdgeNode.Config.amazon.EdgeNode.Config.bucketPrefix)  
-      let katipEnv = KatipEnv term groundhog hasqlpool manager (cfg^.service.coerced) (fromRight' jwke) katipAmazon
+      let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) (fromRight' jwke) katipAmazon
       bracket env' closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)     
       
-mkOrmConn :: Db -> String
-mkOrmConn x = 
-  [i| host=#{x^.host} port=#{x^.port} 
-      dbname=#{x^.database} user=#{x^.user} 
-      password=#{x^.pass}
-  |]
-
 mkRawConn :: Db -> HasqlConn.Settings
-mkRawConn x = 
-  HasqlConn.settings
-  (x^.host.stext.textbs)
-  (x^.port.to fromIntegral)
-  (x^.user.stext.textbs)
-  (x^.pass.stext.textbs)
-  (x^.database.stext.textbs)
+mkRawConn x = HasqlConn.settings (x^.host.stext.textbs) (x^.port.to fromIntegral) (x^.user.stext.textbs) (x^.pass.stext.textbs) (x^.database.stext.textbs)

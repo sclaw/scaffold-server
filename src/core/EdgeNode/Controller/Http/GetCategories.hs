@@ -8,7 +8,6 @@
 
 module EdgeNode.Controller.Http.GetCategories (controller) where
 
-import EdgeNode.Error
 import EdgeNode.Model.Category
 import EdgeNode.Api.Http.User.GetCategories
 
@@ -17,15 +16,13 @@ import KatipController
 import Json
 import Data.Aeson.Unit
 import Control.Lens
-import Database.Action
-import Katip
+import Database.Transaction
 import Control.Lens.Iso.Extended
 import Data.Vector.Lens
 import qualified Hasql.Statement as HS
 import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
 import qualified Hasql.Session as Hasql.Session
-import Data.Functor
 import Data.String.Interpolate
 import Proto3.Suite.Types
 import Data.Aeson (eitherDecode)
@@ -34,12 +31,9 @@ import Data.Bifunctor
 controller :: KatipController (Alternative (Error Unit) GetCategoriesResponse)
 controller =
   do
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (const action) hasql
-    let mkErr e = 
-         $(logTM) ErrorS (logStr (show e)) $> 
-         Error (ServerError (InternalServerError (show e^.stextl)))
-    either mkErr (return . Fortune) x
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    x <- katipTransaction hasql $ lift action
+    return $ Fortune x
  
 action :: Hasql.Session.Session GetCategoriesResponse
 action = 

@@ -8,7 +8,6 @@
 
 module EdgeNode.Controller.Http.SaveQualifications (controller) where
 
-import EdgeNode.Error
 import EdgeNode.Api.Http.User.SaveQualifications
 import EdgeNode.User.Qualification
 import EdgeNode.Category
@@ -24,8 +23,7 @@ import Json
 import Data.Generics.Product
 import Control.Lens
 import qualified Data.Text as T
-import Database.Action
-import Data.Either.Unwrap
+import Database.Transaction
 import Control.Lens.Iso.Extended
 import Data.Vector.Lens
 import qualified Hasql.Session as Hasql.Session
@@ -47,8 +45,8 @@ controller :: SaveQualificationsRequest -> UserId  -> KatipController (Alternati
 controller req userId =
   do 
     $(logTM) DebugS (logStr (show req))
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    resp <- flip runTryDbConnHasql hasql $ const (do 
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    resp <- katipTransaction hasql $ lift $ do 
       let xsm = req^._Wrapped'.field @"requestValues".from vector
       let xs = mapMaybe mkTpl xsm
       let validator = foldr checkTypeWithGrade (Success []) xs
@@ -95,12 +93,10 @@ controller req userId =
           let decoder = HD.rowList $ HD.column (HD.nonNullable HD.int8) <&> (^.from _Wrapped')
           keys <- Hasql.Session.statement () (HS.Statement sql encoder decoder False)  
           for_ keys $ SaveTrajectory.action userId . Just
-        return ids)
-    whenLeft resp ($(logTM) ErrorS . logStr . show) 
-    let mkErr e = ServerError $ InternalServerError (show e^.stextl)
+        return ids
     let mkResp = SaveQualificationsResponse . Response . (^.vector)
     let mkUserErr xs = ResponseError $ T.intercalate ", " xs 
-    return $ either (Error . mkErr) (bimap mkUserErr mkResp . (^.from _Validation)) resp  
+    return $ bimap mkUserErr mkResp $ resp^.from _Validation  
     
 mkTpl :: UserQualification -> Maybe (T.Text, Int64, Maybe Int64, Maybe Int64, Maybe UserQualificationSkill)
 mkTpl x = 

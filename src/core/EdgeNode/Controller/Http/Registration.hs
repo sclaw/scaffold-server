@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -31,7 +32,7 @@ import Hasql.Session hiding (ServerError)
 import qualified Hasql.Statement as HS 
 import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
-import Database.Action
+import Database.Transaction
 import Crypto.PasswordStore (pbkdf2, makePasswordSaltWith, makeSalt)
 import Data.String.Interpolate
 import Data.Generics.Internal.VL.Lens
@@ -39,7 +40,6 @@ import Data.Generics.Product
 import Data.Generics.Internal.VL.Prism
 import TH.Proto
 import Data.Functor (($>))
-import qualified Database.Exception as Exception
 import Data.Aeson (encode)
 
 {-
@@ -61,11 +61,8 @@ controller :: RegisterRequest -> KatipController (Alternative (Error [RegisterEr
 controller req =
   do
     $(logTM) InfoS (logStr (mkPretty "req: " (show req)))
-    x <- traverse (const (persist req)) (validateInfo req)
-    let mkErr e = 
-         $(logTM) ErrorS (logStr (show e)) $> 
-         Error (ServerError (InternalServerError (show e^.stextl)))
-    either mkErr return (mkResp x)
+    _ <- traverse (const (persist req)) (validateInfo req)
+    undefined
       
 validateInfo :: RegisterRequest -> Validation [RegisterError] ()
 validateInfo info  = validateEmail *> validatePassword  
@@ -79,71 +76,58 @@ validateInfo info  = validateEmail *> validatePassword
      | matched ((info^._Wrapped'.field @"requestPassword".lazytext) ?=~ passRegex) = _Success # ()
      | otherwise = _Failure # [PasswordWeek]
 
-persist :: RegisterRequest -> KatipController (Either Exception.Hasql RegisterResponse)
+persist :: RegisterRequest -> KatipController RegisterResponse
 persist req =
   do 
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    runTryDbConnHasql action hasql
-  where 
-   action logger = 
-    do
-      let sql = 
-           [i| 
-             with 
-              cred as (insert into auth."User" 
-               ("email", "password") 
-               values ($1, $2) returning id),
-              newUser as (insert into "edgeNode"."User"
-               ("userName", "userMiddlename", "userSurname", 
-               "userDayOfBirth", "userAllegiance", "userAvatar", "userGender"
-               ) values
-               ($3, $4, $5, $6, $7, $8, $9) 
-               returning id)
-             insert into "edgeNode"."AuthEdgeNodeUser" 
-             ("auth", "edgeNode")
-             values ((select id from cred), (select id from newUser))
-             returning (select id from newUser)     
-           |]
-      let defu = User.defUser :: User.User      
-      let mkSalt = makeSalt (req^._Wrapped'.field @"requestEmail".lazytext.textbs)
-      let pass = req^._Wrapped'.field @"requestPassword".lazytext.textbs
-      let mkPass = makePasswordSaltWith pbkdf2 id pass mkSalt 2000 
-      let encoder = 
-           (req^._Wrapped'.field @"requestEmail".lazytext) >$ 
-           HE.param (HE.nonNullable HE.text) <>
-           (mkPass >$ HE.param (HE.nonNullable HE.bytea)) <>
-           ((defu^.field @"userName".lazytext) >$ 
-            HE.param (HE.nonNullable HE.text)) <>
-           ((defu^.field @"userMiddlename".lazytext) >$ 
-            HE.param (HE.nonNullable HE.text)) <>
-           ((defu^.field @"userSurname".lazytext) >$ 
-            HE.param (HE.nonNullable HE.text)) <> 
-           ((defu^?field @"userDayOfBirth"._Just.to encode.bytesLazy) >$ 
-             HE.param (HE.nullable HE.bytea)) <>
-           ((defu^.field @"userAllegiance".lazytext) >$ HE.param (HE.nonNullable HE.text)) <>
-           ((defu^.field @"userAvatar") >$ HE.param (HE.nonNullable HE.bytea)) <>
-           ((defu^.field @"userGender".to User.coercedUserGender) >$ 
-            HE.param (HE.nonNullable (HE.enum ((^.stext) . User.fromGender))))
-      let decoder = 
-           HD.singleRow $ 
-           HD.column (HD.nonNullable HD.int8) <&> 
-           ((^._Unwrapped') . Reg.Response . Just . User.UserId)
-      let log = (sql^.from textbs.from stext) <> ", loc: " <> show getLoc
-      liftIO $ logger InfoS (logStr log)
-      statement () (HS.Statement sql encoder decoder False)
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    katipTransaction hasql (ask >>= lift . action)
 
-mkResp 
-  :: Validation 
-     [RegisterError] 
-     (Either Exception.Hasql 
-      RegisterResponse)
-  -> Either 
-     Exception.Hasql 
-     (Alternative 
-      (Error [RegisterError]) 
-      RegisterResponse)
-mkResp = validation (Right . Error . ResponseError) ok
-  where ok (Left (Exception.UniqueViolation _)) 
-            = Right $ Error (ResponseError [EmailTaken])
-        ok (Left e) = Left e
-        ok (Right ident) = Right $ Fortune ident
+action _ = undefined
+
+  -- where 
+  --  action logger = 
+  --   do
+  --     let sql = 
+  --          [i| 
+  --            with 
+  --             cred as (insert into auth."User" 
+  --              ("email", "password") 
+  --              values ($1, $2) returning id),
+  --             newUser as (insert into "edgeNode"."User"
+  --              ("userName", "userMiddlename", "userSurname", 
+  --              "userDayOfBirth", "userAllegiance", "userAvatar", "userGender"
+  --              ) values
+  --              ($3, $4, $5, $6, $7, $8, $9) 
+  --              returning id)
+  --            insert into "edgeNode"."AuthEdgeNodeUser" 
+  --            ("auth", "edgeNode")
+  --            values ((select id from cred), (select id from newUser))
+  --            returning (select id from newUser)     
+  --          |]
+  --     let defu = User.defUser :: User.User      
+  --     let mkSalt = makeSalt (req^._Wrapped'.field @"requestEmail".lazytext.textbs)
+  --     let pass = req^._Wrapped'.field @"requestPassword".lazytext.textbs
+  --     let mkPass = makePasswordSaltWith pbkdf2 id pass mkSalt 2000 
+  --     let encoder = 
+  --          (req^._Wrapped'.field @"requestEmail".lazytext) >$ 
+  --          HE.param (HE.nonNullable HE.text) <>
+  --          (mkPass >$ HE.param (HE.nonNullable HE.bytea)) <>
+  --          ((defu^.field @"userName".lazytext) >$ 
+  --           HE.param (HE.nonNullable HE.text)) <>
+  --          ((defu^.field @"userMiddlename".lazytext) >$ 
+  --           HE.param (HE.nonNullable HE.text)) <>
+  --          ((defu^.field @"userSurname".lazytext) >$ 
+  --           HE.param (HE.nonNullable HE.text)) <> 
+  --          ((defu^?field @"userDayOfBirth"._Just.to encode.bytesLazy) >$ 
+  --            HE.param (HE.nullable HE.bytea)) <>
+  --          ((defu^.field @"userAllegiance".lazytext) >$ HE.param (HE.nonNullable HE.text)) <>
+  --          ((defu^.field @"userAvatar") >$ HE.param (HE.nonNullable HE.bytea)) <>
+  --          ((defu^.field @"userGender".to User.coercedUserGender) >$ 
+  --           HE.param (HE.nonNullable (HE.enum ((^.stext) . User.fromGender))))
+  --     let decoder = 
+  --          HD.singleRow $ 
+  --          HD.column (HD.nonNullable HD.int8) <&> 
+  --          ((^._Unwrapped') . Reg.Response . Just . User.UserId)
+  --     let log = (sql^.from textbs.from stext) <> ", loc: " <> show getLoc
+  --     liftIO $ logger InfoS (logStr log)
+  --     statement () (HS.Statement sql encoder decoder False)

@@ -27,7 +27,7 @@ import Control.Lens
 import Katip
 import Katip.Monadic
 import Data.Bifunctor
-import Database.Action
+import Database.Transaction
 import Control.Lens.Iso.Extended
 import Data.Vector.Lens
 import Data.Either.Unwrap
@@ -54,20 +54,16 @@ controller provider = maybe (return err) ok (provider^?field @"providerIdValue")
     ok ident = 
       do
         $(logTM) DebugS (logStr ([i|provider id: #{show ident}|] :: String))
-        hasql <- fmap (^.katipEnv.hasqlDb) ask
+        hasql <- fmap (^.katipEnv.hasqlDbPool) ask
         logtree <- katipAddNamespace (Namespace ["tree"]) askLoggerIO 
-        x <- runTryDbConnHasql (action ident) hasql
-        whenLeft x ($(logTM) ErrorS . logStr . show) 
-        let mkErr e = 
-             ServerError $ 
-             InternalServerError (show e^.stextl)
+        x <- katipTransaction hasql (ask >>= lift . action ident)
         let mkResp = 
                GetQualififcationsResponse 
              . Response 
              . (^.vector) 
              . map (uncurry Response_Value 
                   . second ((^.vector) . mkTrees logtree))     
-        return $ bimap mkErr mkResp x^.eitherToAlt
+        return $ Fortune $ mkResp x
 
 type DegreeType = TH.Proto.String
 type Path = T.Text

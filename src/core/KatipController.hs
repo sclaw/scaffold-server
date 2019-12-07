@@ -25,7 +25,6 @@ module KatipController
        , env
        , katipEnv
        , terminal
-       , groundhogDb
        , httpReqManager
        , apiKeys
        , jwk
@@ -44,7 +43,6 @@ import Control.Monad.IO.Class
 import Control.Monad.Reader
 import Control.Monad.Reader.Class as R
 import qualified Data.Pool as Pool
-import Database.Groundhog.Postgresql (Postgresql)
 import Katip
 import Servant.Server (Handler)
 import Control.Monad.Trans.Control (MonadBaseControl)
@@ -52,7 +50,6 @@ import Control.Monad.Base (MonadBase)
 import Control.Monad.Error.Class
 import Servant.Server.Internal.ServantErr
 import Data.Monoid.Colorful (Term)
-import qualified Hasql.Pool as Hasql
 import Control.Monad.Catch hiding (Handler) 
 import Control.Exception.Safe (MonadMask)
 import Data.Default.Class
@@ -73,8 +70,6 @@ data KatipEnv =
      KatipEnv 
      { katipEnvTerminal 
        :: !Term
-     , katipEnvGroundhogDb    
-       :: !(Pool.Pool Postgresql)
      , katipEnvHasqlDbPool
        :: !(Pool.Pool Hasql.Connection)
      , katipEnvHttpReqManager 

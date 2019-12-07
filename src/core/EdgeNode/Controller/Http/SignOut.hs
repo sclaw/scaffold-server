@@ -3,8 +3,6 @@
 
 module EdgeNode.Controller.Http.SignOut (controller) where
 
-import EdgeNode.Error
-
 import Auth
 import Data.Aeson.Unit
 import Json
@@ -17,20 +15,17 @@ import qualified Hasql.Decoders as HD
 import Control.Lens
 import Control.Lens.Iso.Extended
 import qualified Data.Text as T
-import Database.Action (runTryDbConnHasql)
 import Data.Functor
 import Data.String.Interpolate
 import Control.Monad.IO.Class
 import Data.Int
+import Database.Transaction
 
 controller :: JWTUser -> KatipController (Alternative (Error T.Text) Unit)
 controller user =  
   do 
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (action user) hasql
-    let mkErr e = 
-         $(logTM) ErrorS (logStr (show e)) $> 
-         Error (ServerError (InternalServerError (show e^.stextl)))
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    x <- katipTransaction hasql (ask >>= lift . action user)
     let mkOk i 
          | i == 0 = 
             $(logTM) InfoS (logStr ("no match token with user " <> show user)) $> 
@@ -39,7 +34,7 @@ controller user =
          | otherwise = 
             $(logTM) InfoS (logStr ("multiple match token with user " <> show user)) $> 
             Fortune Unit     
-    either mkErr mkOk x
+    mkOk x
     
 action :: JWTUser -> KatipLoggerIO -> Hasql.Session.Session Int64
 action user logger = 

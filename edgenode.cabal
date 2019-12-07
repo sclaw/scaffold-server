@@ -23,7 +23,7 @@ library
   exposed-modules:
       Auth
       BuildInfo
-      Database.Action
+      Database.Transaction
       Database.AutoKey
       Database.Exception
       Database.FullText.Index

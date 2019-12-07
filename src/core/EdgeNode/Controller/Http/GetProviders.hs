@@ -12,14 +12,13 @@
 module EdgeNode.Controller.Http.GetProviders (controller) where
 
 import EdgeNode.Api.Http.User.GetProviders
-import EdgeNode.Error
 import EdgeNode.Model.Provider
 
 import TH.Proto
 import KatipController
 import Json
 import Control.Lens
-import Database.Action
+import Database.Transaction
 import Katip
 import Control.Lens.Iso.Extended
 import qualified Data.Text as T
@@ -33,19 +32,15 @@ import qualified Hasql.Session as Hasql.Session
 import qualified Hasql.Statement as HS
 import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
-import Data.Functor
 import Proto3.Suite.Types
 import Control.Monad
 
 controller :: WrapperCountry -> WrapperType -> Int64 -> Maybe Word32 -> KatipController (Alternative (Error T.Text) GetProvidersResponse)
 controller country ty ident cursor =
   do
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (action country ty ident cursor) hasql
-    let mkErr e = 
-         $(logTM) ErrorS (logStr (show e)) $> 
-         Error (ServerError (InternalServerError (show e^.stextl)))
-    either mkErr (return . Fortune) x
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    x <- katipTransaction hasql $ (ask >>= lift . action country ty ident cursor)
+    return $ Fortune x
 
 action :: WrapperCountry -> WrapperType -> Int64 -> Maybe Word32 -> KatipLoggerIO -> Hasql.Session.Session GetProvidersResponse
 action _ ty _ _ _

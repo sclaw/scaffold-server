@@ -5,22 +5,18 @@
 module EdgeNode.Controller.Http.SearchInit (controller, action) where
 
 import EdgeNode.Provider.Qualification
-import EdgeNode.Error
 import EdgeNode.Model.Qualification ()
 import EdgeNode.Model.User
 import EdgeNode.Search.Filter
 import EdgeNode.Iso
 
-import Katip
 import KatipController
 import Json
-import Database.Action
+import Database.Transaction
 import qualified Data.Text as T
-import Data.Either.Unwrap
 import Control.Lens.Iso.Extended
 import Control.Lens
 import qualified Hasql.Session as Hasql.Session
-import Data.Bifunctor
 import qualified Hasql.Statement as HS 
 import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
@@ -37,11 +33,8 @@ import Data.Foldable
 controller :: Maybe UserId -> KatipController (Alternative (Error T.Text) [XQualificationFullInfo])
 controller ident = 
   do
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (const (action ident Nothing)) hasql
-    whenLeft x ($(logTM) ErrorS . logStr . show) 
-    let mkErr e = ServerError $ InternalServerError (show e^.stextl)     
-    return $ first mkErr x^.eitherToAlt
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    fmap Fortune $ katipTransaction hasql $ lift $ action ident Nothing
 
 action :: Maybe UserId -> Maybe Filter -> Hasql.Session.Session [XQualificationFullInfo]    
 action ident filter = 

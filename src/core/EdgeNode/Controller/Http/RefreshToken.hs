@@ -13,7 +13,6 @@
 module EdgeNode.Controller.Http.RefreshToken (controller) where
 
 import EdgeNode.Model.User (UserId)
-import EdgeNode.Error
 import EdgeNode.Api.Http.Auth.RefreshToken (Response (..))
 
 import Auth
@@ -26,7 +25,7 @@ import qualified Crypto.JWT as Jose
 import Data.Generics.Internal.VL.Lens
 import Data.Generics.Product
 import Control.Lens (_Wrapped', to, (>$))
-import Database.Action
+import Database.Transaction
 import Database.Groundhog ()
 import qualified Data.ByteString as B
 import Data.Bifunctor
@@ -53,17 +52,14 @@ controller :: RefreshTokenRequest -> KatipController (Alternative (Error Refresh
 controller req = 
   do 
     let bs = req^._Wrapped'.field @"requestRefreshToken"
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
     key <- fmap (^.katipEnv.jwk) ask
-    x <- runTryDbConnHasql (action bs key) hasql
-    let mkError e =
-         $(logTM) ErrorS (logStr (show e)) $> 
-         Json.Error (ServerError (InternalServerError (show e^.stextl)))
+    x <- katipTransaction hasql (ask >>= lift .  action bs key)
     let mkOk (Left e) = 
           $(logTM) ErrorS (logStr e) $> 
           Json.Error (ResponseError RefreshTokenInvalid)
         mkOk (Right resp) = return $ Fortune resp
-    either mkError mkOk x
+    mkOk x
 
 action :: B.ByteString -> Jose.JWK -> KatipLoggerIO -> Hasql.Session.Session (Either T.Text RefreshTokenResponse)
 action bs key logger =

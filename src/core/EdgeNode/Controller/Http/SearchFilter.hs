@@ -5,19 +5,15 @@
 module EdgeNode.Controller.Http.SearchFilter (controller) where
 
 import EdgeNode.Search.Filter
-import EdgeNode.Error
 import EdgeNode.Iso
 
-import Katip
 import KatipController
 import Json
-import Database.Action
+import Database.Transaction
 import qualified Data.Text as T
-import Data.Either.Unwrap
 import Control.Lens.Iso.Extended
 import Control.Lens
 import qualified Hasql.Session as Hasql.Session
-import Data.Bifunctor
 import Data.String.Interpolate
 import qualified Hasql.Statement as HS
 import qualified Hasql.Encoders as HE
@@ -28,12 +24,9 @@ import Data.Vector.Lens
 controller :: KatipController (Alternative (Error T.Text) Filter)
 controller = 
   do
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (const action) hasql
-    whenLeft x ($(logTM) ErrorS . logStr . show) 
-    let mkErr e = ServerError $ InternalServerError (show e^.stextl)     
-    return $ first mkErr x^.eitherToAlt
-
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    fmap Fortune $ katipTransaction hasql $ lift $ action     
+   
 action :: Hasql.Session.Session Filter
 action = do
   let sql = 

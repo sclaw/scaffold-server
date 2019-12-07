@@ -16,11 +16,6 @@ configHasql:
   hasqlSettingsTm: 0.5
   hasqlSettingsResPerStripe: 1
 
-configPool:
-  poolSettingsStripesN: 1
-  poolSettingsTimeToOpen: 0.5
-  poolSettingsResPerStripe: 1
-
 configKatip: 
   katipPath: katip
   katipSeverity: DebugS

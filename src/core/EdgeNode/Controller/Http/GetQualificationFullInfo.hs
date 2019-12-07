@@ -5,7 +5,6 @@
 
 module EdgeNode.Controller.Http.GetQualificationFullInfo (controller) where
 
-import EdgeNode.Error
 import EdgeNode.Api.Http.User.GetQualificationFullInfo
 import EdgeNode.User.Qualification
 import EdgeNode.Model.User
@@ -18,12 +17,10 @@ import qualified EdgeNode.Iso as Iso
 import EdgeNode.Model.User.Qualification ()
 
 import TH.Proto
-import Katip
 import KatipController
 import Json
-import Database.Action
+import Database.Transaction
 import qualified Data.Text as T
-import Data.Either.Unwrap
 import Control.Lens.Iso.Extended
 import Control.Lens
 import Data.Vector.Lens
@@ -41,12 +38,9 @@ import Data.Char
 controller ::  Maybe UserQualificationId -> UserId -> KatipController (Alternative (Error T.Text) GetQualificationFullInfoResponse)
 controller qualId userId = 
   do
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (action userId qualId) hasql
-    whenLeft x ($(logTM) ErrorS . logStr . show) 
-    let mkErr e = ServerError $ InternalServerError (show e^.stextl)
-    let mkResp = GetQualificationFullInfoResponse . Response . (^.vector)     
-    return $ bimap mkErr mkResp x^.eitherToAlt
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    x <- katipTransaction hasql (ask >>= lift . action userId qualId)
+    return $ Fortune $ GetQualificationFullInfoResponse $ Response $ x^.vector    
 
 action :: UserId -> Maybe UserQualificationId -> KatipLoggerIO -> Hasql.Session.Session [XUserQualificationFullinfo]
 action userId qualId  _ =

@@ -43,8 +43,9 @@ import Control.Monad.RWS.Strict as RWS
 import Control.Monad.Base (MonadBase)
 import Control.Monad.Catch
 import Control.Monad.Trans.Control
-import qualified Hasql.Pool as Hasql
 import Network.Wai.Middleware.Cors
+import qualified Hasql.Connection as Hasql
+import qualified Data.Pool as Pool
 
 data Cfg = 
      Cfg 
@@ -94,7 +95,7 @@ run Cfg {..} =
               , KatipLoggerIO
               , Bool
               , UserId
-              , Hasql.Pool]
+              , Pool.Pool Hasql.Connection]
           context = Proxy     
       let server = 
            hoistServerWithContext 

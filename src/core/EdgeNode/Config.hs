@@ -8,7 +8,6 @@
 
 module EdgeNode.Config 
        ( Config
-       , GroundhogSettings (..)
        , Katip (..)
        , Db
        , Auth (..)
@@ -22,13 +21,9 @@ module EdgeNode.Config
        , database
        , host
        , user
-       , groundhog
        , poolN
        , tm
        , hasql
-       , pool
-       , stripesN
-       , timeToOpen
        , resPerStripe
        , katip
        , ekg
@@ -77,22 +72,11 @@ newtype Hosts = Hosts { hostsSwagger :: String }
   deriving Show 
   deriving newtype FromJSON
 
-newtype GroundhogSettings = GroundhogSettings { groundhogSettingsPoolN :: Int } 
-  deriving Show 
-  deriving newtype FromJSON
-
 data HasqlSettings = 
      HasqlSettings 
      { hasqlSettingsPoolN :: !Int
      , hasqlSettingsTm :: !NominalDiffTime
      , hasqlSettingsResPerStripe :: !Int 
-     } deriving Show
-
-data PoolSettings = 
-     PoolSettings 
-     { poolSettingsStripesN :: !Int
-     , poolSettingsTimeToOpen :: !NominalDiffTime
-     , poolSettingsResPerStripe :: !Int 
      } deriving Show
 
 data Katip = 
@@ -134,9 +118,7 @@ data Config =
      Config 
      { configDb :: !Db 
      , configPorts :: !Ports
-     , configGroundhog :: !GroundhogSettings
      , configHasql :: !HasqlSettings
-     , configPool :: !PoolSettings
      , configKatip :: !Katip
      , configEkg :: !Ekg
      , configAuth :: !Auth
@@ -149,7 +131,6 @@ makeFields ''Config
 makeFields ''Ports
 makeFields ''Db
 makeFields ''HasqlSettings
-makeFields ''PoolSettings
 makeFields ''Ekg
 makeFields ''Katip
 makeFields ''Auth
@@ -163,7 +144,6 @@ load path = decodeFileEither path >>= either throwIO pure
 deriveFromJSON defaultOptions ''Db
 deriveFromJSON defaultOptions ''Config
 deriveFromJSON defaultOptions ''HasqlSettings
-deriveFromJSON defaultOptions ''PoolSettings
 deriveFromJSON defaultOptions ''Ekg
 deriveFromJSON defaultOptions ''Katip
 deriveFromJSON defaultOptions ''Auth

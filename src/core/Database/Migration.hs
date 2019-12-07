@@ -24,8 +24,7 @@ import Prelude hiding (init)
 import Control.Monad.IO.Class
 import qualified Hasql.Connection as Hasql
 import qualified Data.Pool as Pool
-import Database.Action
-import Control.Monad.Trans.Class
+import Database.Transaction
 
 run :: Pool.Pool Hasql.Connection -> KatipLoggerIO -> IO ()
 run cm logger = transaction cm logger $ lift (Hasql.Session.statement () checkDBMeta) >>= traverse_ (bool initDb (roll Nothing))

@@ -10,7 +10,6 @@
 module EdgeNode.Controller.Http.PatchQualifications (controller) where
 
 import EdgeNode.Model.User
-import EdgeNode.Error
 import EdgeNode.Api.Http.User.PatchQualifications
 import EdgeNode.User.Qualification
 import EdgeNode.Model.User.Qualification (UserQualificationSkill (..))
@@ -24,9 +23,7 @@ import Json
 import KatipController
 import Data.Aeson.Unit
 import qualified Data.Text as T
-import Katip
-import Database.Action
-import Data.Either.Unwrap
+import Database.Transaction
 import Control.Lens.Iso.Extended
 import qualified Hasql.Session as Hasql.Session
 import qualified Hasql.Statement as HS
@@ -46,17 +43,14 @@ controller (PatchQualificationsRequest (Request Nothing)) _ = return $ Json.Erro
 controller req uid =
   do
     let Just Request_Value {..} = req^._Wrapped'.field @"requestValue" 
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    let go = do
-          e <- action uid request_ValueIdent request_ValueSkill
-          traverse (\xs -> for_ xs $ SaveTrajectory.action uid . Just) e
-    x <- runTryDbConnHasql   (const go) hasql
-    whenLeft x ($(logTM) ErrorS . logStr . show) 
-    let mkErr e = ServerError $ InternalServerError (show e^.stextl)
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    x <- katipTransaction hasql $ lift $ do 
+      e <- action uid request_ValueIdent request_ValueSkill
+      for e $ \xs -> for_ xs $ 
+        SaveTrajectory.action uid . Just
     case x of 
-      Left e -> return $ Json.Error $ mkErr e
-      Right (Left e) -> return $ Json.Error $ ResponseError e
-      Right (Right _) -> return $ Fortune Unit
+      Left e -> return $ Json.Error $ ResponseError e
+      Right _ -> return $ Fortune Unit
 
 action :: UserId ->  Maybe UserQualificationId -> Maybe Request_ValueSkill -> Hasql.Session.Session (Either T.Text [QualificationId])
 action uid qidm skillm = fmap (join . maybeToRight "qualififcation or (and) skill are absent, or both") $ for ((,) <$> qidm <*> skillm) (uncurry go)

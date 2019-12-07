@@ -5,7 +5,6 @@
 module EdgeNode.Controller.Http.GetTrajectories (controller) where
 
 import EdgeNode.Model.User (UserId)
-import EdgeNode.Error
 import EdgeNode.Api.Http.User.GetTrajectories
 import EdgeNode.Model.User.Trajectory
 import Time.Time
@@ -19,7 +18,6 @@ import qualified Hasql.Session as Hasql.Session
 import qualified Hasql.Statement as HS
 import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
-import Database.Action (runTryDbConnHasql)
 import Control.Lens.Iso.Extended
 import Data.Functor
 import Control.Lens
@@ -30,16 +28,14 @@ import Data.Bifunctor
 import Proto3.Suite.Types
 import Data.Time.Clock.POSIX
 import Data.String.Interpolate
+import Database.Transaction
 
 controller :: UserId -> KatipController (Alternative (Error T.Text) GetTrajectoriesResponse)    
 controller uid =
   do 
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (action uid) hasql
-    let mkErr e = 
-         $(logTM) ErrorS (logStr (show e)) $> 
-         Error (ServerError (InternalServerError (show e^.stextl)))
-    either mkErr (return . Fortune . GetTrajectoriesResponse . Response . (^.vector)) x
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    x <- katipTransaction hasql (ask >>= lift . action uid)
+    return $ Fortune $ GetTrajectoriesResponse $ Response $ x^.vector
 
 action :: UserId -> KatipLoggerIO -> Hasql.Session.Session [Response_Value]
 action uid logger = 

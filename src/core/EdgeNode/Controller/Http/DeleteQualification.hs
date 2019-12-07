@@ -12,34 +12,29 @@ module EdgeNode.Controller.Http.DeleteQualification (controller) where
 import EdgeNode.Model.User
 import EdgeNode.Model.Qualification
 import EdgeNode.Model.User.Qualification
-import qualified EdgeNode.Controller.Http.SaveTrajectory as SaveTrajectory 
-import EdgeNode.Error
+import qualified EdgeNode.Controller.Http.SaveTrajectory as SaveTrajectory
 import EdgeNode.Statement.User (deleteQualification)
 
 import Json
-import Katip
 import KatipController
-import Database.Action
+import Database.Transaction
 import Data.Aeson.Unit
 import qualified Data.Text as T
 import Data.Bifunctor
 import qualified Hasql.Session as Hasql.Session
-import Data.Either.Unwrap
-import Control.Lens.Iso.Extended
 import Control.Lens
 import Data.Foldable
+import Data.Traversable
 
 controller :: UserQualificationId -> UserId -> KatipController (Alternative (Error T.Text) Unit)
 controller qid uid = 
   do
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    let go = do
-          e <- action qid uid
-          traverse (\xs -> for_ xs $ SaveTrajectory.action uid . Just) e
-    x <- runTryDbConnHasql (const go) hasql
-    whenLeft x ($(logTM) ErrorS . logStr . show)
-    let mkErr e = ServerError $ InternalServerError (show e^.stextl)
-    return $ either (Json.Error . mkErr) ((^.eitherToAlt) . bimap ResponseError (const Unit)) x
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    x <- katipTransaction hasql $ lift $ do 
+      e <- action qid uid
+      for e $ \xs -> for_ xs $ 
+        SaveTrajectory.action uid . Just
+    return $ (bimap ResponseError (const Unit) x)^.eitherToAlt
      
 action :: UserQualificationId -> UserId -> Hasql.Session.Session (Either T.Text [QualificationId])
 action qid uid = fmap Right $ Hasql.Session.statement (qid, uid) deleteQualification

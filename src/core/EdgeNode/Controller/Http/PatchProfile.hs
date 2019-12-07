@@ -13,7 +13,7 @@ import Json
 import Katip
 import KatipController
 import Control.Lens
-import Database.Action
+import Database.Transaction
 import Control.Lens.Iso.Extended
 import Data.Aeson.Unit
 import qualified Data.Text as T
@@ -21,7 +21,6 @@ import qualified Hasql.Session as Hasql.Session
 import qualified Hasql.Statement as HS
 import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
-import Data.Functor
 import Data.String.Interpolate
 import Control.Monad.IO.Class
 import Data.Int
@@ -30,15 +29,12 @@ import qualified Data.Aeson as  Aeson
 controller :: User -> UserId -> KatipController (Alternative (Error T.Text) Unit)
 controller new uid =
   do
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (action uid new) hasql
-    let mkErr e = 
-          $(logTM) ErrorS (logStr (show e)) $> 
-          Error (ServerError (InternalServerError (show e^.stextl)))
-    let mkOk 0 = return $ Error $ ResponseError "user not found"
-        mkOk 1 = return $ Fortune Unit
-        mkOk _ = return $ Error $ ServerError (InternalServerError "user ambiguous")      
-    either mkErr mkOk x
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    x <- katipTransaction hasql (ask >>= lift . action uid new)
+    let mkOk 0 = Error $ ResponseError "user not found"
+        mkOk 1 = Fortune Unit
+        mkOk _ = Error $ ServerError (InternalServerError "user ambiguous")      
+    return $ mkOk x
 
 action :: UserId -> User -> KatipLoggerIO -> Hasql.Session.Session Int64
 action uid user logger = 

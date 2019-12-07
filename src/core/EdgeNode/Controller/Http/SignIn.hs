@@ -19,7 +19,7 @@ import Control.Lens (_Wrapped', from, (>$), (<&>), to)
 import Katip
 import Data.Generics.Internal.VL.Lens
 import Data.Generics.Product
-import Database.Action (runTryDbConnHasql)
+import Database.Transaction
 import qualified Hasql.Session as Hasql.Session
 import qualified Hasql.Statement as HS
 import qualified Hasql.Encoders as HE
@@ -49,12 +49,9 @@ controller req =
     let email = req^._Wrapped'.field @"requestEmail"
     let pass = req^._Wrapped'.field @"requestPassword"
     $(logTM) DebugS (logStr (email <> ", " <> pass))
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (actionUser email) hasql
-    let mkErr e = 
-         $(logTM) ErrorS (logStr (show e)) $> 
-         Error (ServerError (InternalServerError (show e^.stextl)))
-    either mkErr (ok (pass^.lazytext.textbs)) x
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    x <- katipTransaction hasql (ask >>= lift . actionUser email)
+    ok (pass^.lazytext.textbs) x
 
 actionUser :: TL.Text -> KatipLoggerIO -> Hasql.Session.Session (Maybe (UserId, B.ByteString))
 actionUser email logger = 
@@ -106,10 +103,10 @@ ok _ (Just (uid, _)) =
          Error (ServerError (InternalServerError (show e^.stextl)))
     case (,) <$> acccesse <*> refreshe of  
      Right ((accessToken, lt), refreshToken) -> do
-      x <- runTryDbConnHasql (actionToken refreshToken uid unique) (env^.hasqlDb)
+      x <- katipTransaction (env^.hasqlDbPool) (ask >>= lift . actionToken refreshToken uid unique)
       let resp (Just _) = Fortune $ SignInResponse (Response accessToken refreshToken lt)
           resp Nothing = Error (ResponseError AlreadySignedIn)      
-      either mkErr (return . resp) x
+      return $ resp x
      Left e -> mkErr e
 
 sendLogToEmail txt = 

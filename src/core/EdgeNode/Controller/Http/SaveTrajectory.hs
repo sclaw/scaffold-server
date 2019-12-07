@@ -12,7 +12,6 @@ module EdgeNode.Controller.Http.SaveTrajectory (controller, action) where
 
 import EdgeNode.Model.User (UserId)
 import EdgeNode.Provider.Qualification
-import EdgeNode.Error 
 import EdgeNode.Model.Qualification ()
 import EdgeNode.Model.User.Trajectory
 import EdgeNode.Api.Http.User.SaveTrajectory (Response (..))
@@ -21,13 +20,10 @@ import TH.Proto
 import KatipController
 import Json
 import Control.Lens
-import Database.Action
-import Katip
-import Control.Lens.Iso.Extended
+import Database.Transaction
 import Data.Generics.Product
 import qualified Data.Text as T
 import qualified Hasql.Session as Hasql.Session
-import Data.Either.Unwrap
 import Control.Monad
 import Data.Traversable
 import Data.Either.Combinators (maybeToRight)
@@ -46,14 +42,11 @@ controller
 controller req uid  =
   do
     let ident = req^._Wrapped'.field @"requestIdent"
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
-    x <- runTryDbConnHasql (const (action uid ident)) hasql
-    whenLeft x ($(logTM) ErrorS . logStr . show) 
-    let mkErr e = ServerError $ InternalServerError (show e^.stextl)     
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+    x <- katipTransaction hasql $ lift $ action uid ident     
     case x of 
-      Left e -> return $ Json.Error $ mkErr e
-      Right (Left e) -> return $ Json.Error $ ResponseError e
-      Right (Right resp) -> return $ Fortune resp
+      Left e -> return $ Json.Error $ ResponseError e
+      Right resp -> return $ Fortune resp
 
 action :: UserId -> Maybe QualificationId -> Hasql.Session.Session (Either T.Text SaveTrajectoryResponse)
 action uid qidm = fmap (join . maybeToRight "qualification request id empty") $ for qidm go

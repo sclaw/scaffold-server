@@ -43,7 +43,7 @@ import Network.IP.Addr
 import Control.Lens
 import Servant.Server
 import qualified Hasql.Session as Hasql.Session
-import Database.Action
+import Database.Transaction
 import Control.Monad
 
 controller :: ApplicationApi (AsServerT KatipController)
@@ -52,15 +52,14 @@ controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
 verifyAuthorization :: UserId -> Rbac.Permission -> KatipController a -> KatipController a
 verifyAuthorization uid perm controller = 
   do
-    hasql <- (^.katipEnv.hasqlDb) `fmap` ask
+    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
     let action logger = 
           do xs <- Hasql.Session.statement (uid, perm) Rbac.getTopLevelRoles
              Hasql.Session.statement (xs, perm) Rbac.elem
-    x <- runTryDbConnHasql action hasql
-    let err e = do $(logTM) ErrorS (logStr (show e)); throwAll err500
+    x <- katipTransaction hasql (ask >>= lift . action)
     let ok (Just isOk) = do unless isOk (throwAll err403); controller
         ok Nothing = throwAll err403
-    either err ok x
+    ok x
  
 httpApi :: HttpApi (AsServerT KatipController)
 httpApi = 
