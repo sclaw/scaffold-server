@@ -15,7 +15,6 @@ import Data.Maybe
 import Control.Monad
 import Control.Applicative
 import KatipController
-import qualified Hasql.Session
 import qualified Hasql.Statement
 import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
@@ -27,7 +26,7 @@ import Database.Transaction
 import Hasql.TH
 
 run :: Pool.Pool Hasql.Connection -> KatipLoggerIO -> IO ()
-run cm logger = transaction cm logger $ lift (Hasql.Session.statement () checkDBMeta) >>= traverse_ (bool initDb (roll Nothing))
+run cm logger = transaction cm logger $ statement checkDBMeta () >>= traverse_ (bool initDb (roll Nothing))
 
 checkDBMeta :: Hasql.Statement.Statement () (Maybe Bool)
 checkDBMeta = 
@@ -38,7 +37,7 @@ checkDBMeta =
            and table_name = 'db_meta') :: bool|]
 
 initDb :: SessionR ()
-initDb = lift (Hasql.Session.statement () mkDbMeta) >> roll (Just 1)
+initDb = statement mkDbMeta () >> roll (Just 1)
 
 mkDbMeta ::  Hasql.Statement.Statement () ()
 mkDbMeta = Hasql.Statement.Statement sql HE.noParams HD.noResult False
@@ -54,7 +53,7 @@ mkDbMeta = Hasql.Statement.Statement sql HE.noParams HD.noResult False
 roll :: Maybe Word32 -> SessionR () 
 roll v =
   do
-    v' <- lift $ (<|> v) `fmap` Hasql.Session.statement () getVersion
+    v' <- (<|> v) `fmap` statement getVersion ()
     let batch = Batch.Version `fmap` v
     for_ (v' <|> v) $ \i -> do
       logger <- ask
@@ -62,7 +61,7 @@ roll v =
       next <- lift $ Batch.rollMigrations (Batch.Version i) logger
       for_ (next <|> batch) $ \ident -> do
         let new = ident^.coerced 
-        lift $ Hasql.Session.statement () (setVersion (maybe (New new) (const (Init new)) v))
+        statement (setVersion (maybe (New new) (const (Init new)) v)) ()
         liftIO $ logger InfoS (logStr ("migration finished at version " <> show ident))
       when (isNothing next) $ liftIO $ logger InfoS (logStr ("no migration found" :: String))
 

@@ -88,12 +88,10 @@ instance (ToSchema a, Typeable a) => ToSchema (Response a) where
              ]
 
 fromValidation :: Validate v => v [EdgeNode.Error] a -> Response a
-fromValidation v = case v ^. _Either of Left es -> Errors es; Right x -> Ok x
+fromValidation v = either Errors Ok $ v ^. _Either
 
 fromEither :: AsError e => Either e a -> Response a
-fromEither (Left e) = Errors [asError e]
-fromEither (Right x) = Ok x
+fromEither = either (Errors . flip (:) [] . asError) Ok
 
 fromEithers :: AsError e => Either [e] a -> Response a
-fromEithers (Left es) = Errors $ map asError es
-fromEithers (Right x) = Ok x
+fromEithers = either (Errors . map asError) Ok

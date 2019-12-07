@@ -4,7 +4,9 @@
 module Database.Transaction 
       ( transaction
       , katipTransaction
+      , statement
       , SessionR
+      , ParamsShow (..)
       , ask
       , lift
       ) where
@@ -20,7 +22,12 @@ import Katip.Monadic (askLoggerIO)
 import Control.Monad.Catch
 import Control.Monad.Reader
 import qualified Hasql.Connection as Hasql
+import qualified Hasql.Statement as Hasql
 import  Control.Exception (throwIO)
+import Control.Lens
+import Control.Lens.Iso.Extended
+import Data.Int
+import Data.Coerce
 
 newtype QueryErrorWrapper = QueryErrorWrapper Hasql.QueryError 
   deriving Show
@@ -68,7 +75,17 @@ transaction pool logger session = fmap join run >>= either (throwIO . QueryError
               traverse (const (pure result)) commit
         traverse (const withBegin) begin
 
+class ParamsShow a where
+  render :: a -> String
+
+instance ParamsShow () where render () = mempty
+instance ParamsShow Int32 where render = show
+
+statement :: ParamsShow a => Hasql.Statement a b -> a -> ReaderT KatipLoggerIO Session b
+statement s@(Hasql.Statement sql _ _ _) a = do 
+  logger <- ask
+  liftIO $ logger DebugS (ls (sql <> " [" <> (render a^.stext.textbs)) <> "]") 
+  lift $ Hasql.statement a s
+
 katipTransaction :: Pool Hasql.Connection -> ReaderT KatipLoggerIO Session a -> KatipController a
-katipTransaction pool session = do 
-  logger <- katipAddNamespace (Namespace ["db", "hasql"]) askLoggerIO
-  liftIO $ transaction pool logger session
+katipTransaction pool session = katipAddNamespace (Namespace ["db", "hasql"]) askLoggerIO >>= (\l -> liftIO (transaction pool l session))
