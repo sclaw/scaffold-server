@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 34d8db91b7a51025f41d6c10eecb908cd8091057773beb482d08ee307c8da7e7
+-- hash: cc3061b7f535813a5ff6a29599f1595a5e6bbfa4ec9891de22569d5824104cee
 
 name:           edgenode
 version:        0.1.0.0
@@ -23,15 +23,11 @@ library
   exposed-modules:
       Auth
       BuildInfo
-      Database.Transaction
       Database.AutoKey
-      Database.Exception
-      Database.FullText.Index
-      Database.FullText.Search
       Database.Migration
       Database.Migration.Batch
       Database.Migration.Test
-      Database.Render
+      Database.Transaction
       EdgeNode.Api
       EdgeNode.Api.Http.Admin
       EdgeNode.Api.Http.Api
@@ -182,7 +178,7 @@ library
     , groundhog-th
     , hashing
     , hasql
-    , hasql-pool
+    , hasql-th
     , hslogger
     , hspec
     , hspec-expectations-lifted

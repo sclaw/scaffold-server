@@ -37,11 +37,10 @@ rollMigrations ver logger =
     Nothing -> error ("migration not found: " <> show ver)
     Just x -> ok x  
   where
-    log = liftIO . logger InfoS . logStr   
+    runLog = liftIO . logger InfoS . logStr   
     ok Stop = return $ Just ver
     ok (NextSql sql ver) = do 
-      log ([i|migration from #{ver} 
-              to #{ver + 1}|] :: String)
-      log ([i|query: #{sql}|] :: String)
+      runLog ([i|migration from #{ver} to #{ver + 1}|] :: String)
+      runLog ([i|query: #{sql}|] :: String)
       Hasql.Session.sql sql
       rollMigrations ver logger

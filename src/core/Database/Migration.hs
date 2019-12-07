@@ -9,7 +9,6 @@ import Data.Time.Clock ()
 import Katip
 import Control.Lens 
 import Control.Lens.Iso.Extended
-import Data.String.Interpolate
 import Data.Foldable
 import qualified Database.Migration.Batch as Batch
 import Data.Maybe
@@ -25,29 +24,31 @@ import Control.Monad.IO.Class
 import qualified Hasql.Connection as Hasql
 import qualified Data.Pool as Pool
 import Database.Transaction
+import Hasql.TH
 
 run :: Pool.Pool Hasql.Connection -> KatipLoggerIO -> IO ()
 run cm logger = transaction cm logger $ lift (Hasql.Session.statement () checkDBMeta) >>= traverse_ (bool initDb (roll Nothing))
 
 checkDBMeta :: Hasql.Statement.Statement () (Maybe Bool)
-checkDBMeta = Hasql.Statement.Statement sql HE.noParams decoder False
-  where 
-    sql =
-      [i|select exists (select 1
-         from information_schema.tables 
-         where table_schema = 'public'
-               and table_name = 'db_meta')|]
-    decoder = HD.rowMaybe $ HD.column (HD.nonNullable HD.bool)
+checkDBMeta = 
+  [maybeStatement|
+     select exists (select 1
+     from information_schema.tables 
+     where table_schema = 'public'
+           and table_name = 'db_meta') :: bool|]
 
 initDb :: SessionR ()
 initDb = lift (Hasql.Session.statement () mkDbMeta) >> roll (Just 1)
 
+mkDbMeta ::  Hasql.Statement.Statement () ()
 mkDbMeta = Hasql.Statement.Statement sql HE.noParams HD.noResult False
   where 
     sql = 
-     [i|create table db_meta (
+     [uncheckedSql|
+       create table db_meta (
         version int4 not null,
-        created timestamptz not null default now(),
+        created timestamptz not
+        null default now(),
         modified timestamptz)|]
 
 roll :: Maybe Word32 -> SessionR () 
@@ -66,16 +67,10 @@ roll v =
       when (isNothing next) $ liftIO $ logger InfoS (logStr ("no migration found" :: String))
 
 getVersion :: Hasql.Statement.Statement () (Maybe Word32)
-getVersion = Hasql.Statement.Statement sql HE.noParams decoder False
-  where sql = [i|select version from db_meta|]
-        decoder = HD.rowMaybe $ HD.column (HD.nonNullable (HD.int4 <&> (^.integral)))
+getVersion = rmap (fmap fromIntegral) [maybeStatement|select (version :: int4) from db_meta|]
 
 data SetVrsion = Init Word32 | New Word32   
 
 setVersion :: SetVrsion -> Hasql.Statement.Statement () ()
-setVersion (Init v) = Hasql.Statement.Statement sql encoder HD.noResult False
-  where sql = [i|insert into db_meta (version, created) values ($1, now())|]
-        encoder = v^.integral >$ HE.param (HE.nonNullable HE.int4)
-setVersion (New v) = Hasql.Statement.Statement sql encoder HD.noResult False
-  where sql = [i|update db_meta set version = $1, modified = now()|]
-        encoder = v^.integral >$ HE.param (HE.nonNullable HE.int4)
+setVersion (Init v) = lmap (const (v^.integral)) [resultlessStatement|insert into db_meta (version, created) values ($1 :: int4, now())|]
+setVersion (New v) = lmap (const (v^.integral)) [resultlessStatement|update db_meta set version = $1 :: int4, modified = now()|]
