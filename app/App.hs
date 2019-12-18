@@ -18,7 +18,6 @@ import KatipController
 import BuildInfo (gitLatestCommitHash)
 import Pretty
 import qualified Database.Migration as Migration
-import Control.Exception (bracket)
 import Control.Lens hiding (Wrapped, Unwrapped) 
 import Data.Monoid.Colorful (hGetTerm)
 import Katip

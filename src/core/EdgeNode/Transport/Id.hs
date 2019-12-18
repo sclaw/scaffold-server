@@ -58,7 +58,9 @@ instance FromJSON Id where
   parseJSON (String t) = Id <$> case reads (T.unpack t) of
     [(x,_)] -> pure x
     _ -> fail "unable to parse"
-  parseJSON (Number n) = case floatingOrInteger @Double n of
-    Left _ -> fail "id can't be floating value"
-    Right m -> pure $ Id m
+  parseJSON (Number n) = 
+    either 
+    (const (fail "id can't be floating value")) 
+    (pure . Id) 
+    (floatingOrInteger @Double n)
   parseJSON _ = fail "id should be integral value or string"

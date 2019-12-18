@@ -38,6 +38,7 @@ import Proto3.Suite.Types
 import Data.Either
 import Control.Lens.Iso.Extended
 import Test.QuickCheck
+import Database.Transaction (ParamsShow (..))
 
 instance Default Gender where
   def = toEnum 0   
@@ -47,6 +48,9 @@ instance ToParamSchema UserId
 
 instance Arbitrary UserId where
   arbitrary = UserId <$> arbitrary
+
+instance ParamsShow UserId where 
+  render (UserId x) = render x 
 
 mkToSchemaAndJSONProtoIdent ''UserId
 makeWrapped ''UserId

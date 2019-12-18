@@ -12,7 +12,6 @@ import Test.Hspec.DB.Hasql
 import Hasql.Session
 import Test.Hspec.Expectations.Lifted
 import Data.String.Interpolate
-import Debug.Trace ()
 
 
 ----- test ----- 

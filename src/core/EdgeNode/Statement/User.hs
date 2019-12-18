@@ -45,9 +45,5 @@ deleteTrajectory = HS.Statement sql encoder HD.noResult False
   where
     sql = [i|delete from "edgeNode"."Trajectory" where "user" = $2 and id = $1|]
     encoder =
-      contramap 
-      (^._1._Wrapped') 
-      (HE.param (HE.nonNullable HE.int8)) <>
-      contramap 
-      (^._1._Wrapped') 
-      (HE.param (HE.nonNullable HE.int8))
+      contramap (^._1._Wrapped') (HE.param (HE.nonNullable HE.int8)) <>
+      contramap (^._1._Wrapped') (HE.param (HE.nonNullable HE.int8))

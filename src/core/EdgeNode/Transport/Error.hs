@@ -17,6 +17,8 @@ module EdgeNode.Transport.Error
       , appendMeta
       ) where
 
+import EdgeNode.Transport.Payload
+
 import Control.Exception
 import Control.Lens hiding ((.=))
 import Data.Aeson.Extended hiding (Error)
@@ -32,7 +34,7 @@ import GHC.Generics
 -- additional metadata.
 data Error = Error
   { errorMessage :: T.Text -- ^ Human readable message.
-  , errorMeta :: Maybe Object -- ^ Message metadata.
+  , errorMeta :: Maybe Payload -- ^ Message metadata.
   } deriving stock Show
     deriving stock Generic
 
@@ -46,24 +48,26 @@ instance AsError Error where asError = id
 
 -- | Add metadata to the existing error.
 addMeta :: ToJSON a => T.Text -> a -> Error -> Error
-addMeta name t Error{..} = case errorMeta of
-  Nothing -> Error{errorMeta=Just $ HM.singleton name (toJSON t), ..}
-  Just v -> Error{errorMeta=Just $ HM.insert name (toJSON t) v, ..}
+addMeta name t Error {..} = 
+  case errorMeta of
+    Nothing -> Error { errorMeta = Just $ Payload $ HM.singleton name (toJSON t), ..}
+    Just (Payload v) -> Error { errorMeta = Just $ Payload $ HM.insert name (toJSON t) v, ..}
 
 -- | Append metadata to the list of arrays.
 appendMeta :: ToJSON a => T.Text -> a -> Error -> Error
-appendMeta name t Error{..} = case errorMeta of
-  Nothing -> Error{errorMeta=Just $ HM.singleton name (toJSON (t:[])), ..}
-  Just v -> Error{errorMeta=Just $ HM.alter (\case
-    Nothing -> Just $ toJSON (t:[])
-    Just (Array as) -> Just $ Array $ V.cons (toJSON t) as
-    Just other -> Just $ toJSON $ toJSON t:other:[]) name v
+appendMeta name t Error{..} = 
+  case errorMeta of
+    Nothing -> Error { errorMeta = Just $ Payload $ HM.singleton name (toJSON (t:[])), ..}
+    Just (Payload v) -> Error { errorMeta = Just $ Payload $ HM.alter (\case
+      Nothing -> Just $ toJSON (t:[])
+      Just (Array as) -> Just $ Array $ V.cons (toJSON t) as
+      Just other -> Just $ toJSON $ toJSON t:other:[]) name v
     , ..}
 
 appendMetas :: ToJSON a => T.Text -> [a] -> Error -> Error
 appendMetas name ts Error{..} = case errorMeta of
-  Nothing -> Error{errorMeta=Just $ HM.singleton name (toJSON ts), ..}
-  Just v -> Error{errorMeta=Just $ HM.alter (\case
+  Nothing -> Error { errorMeta = Just $ Payload $ HM.singleton name (toJSON ts), ..}
+  Just (Payload v) -> Error { errorMeta = Just $ Payload $ HM.alter (\case
     Nothing -> Just $ toJSON ts
     Just (Array as) -> Just $ Array $ V.map toJSON (V.fromList ts) <> as
     Just other -> Just $ toJSON $ other:(map toJSON ts) ) name v
@@ -92,9 +96,7 @@ instance ToSchema Error where
     oSchema <- declareSchemaRef (Proxy @Object)
     pure $ NamedSchema (Just $ "Error") $ mempty
          & type_ .~ SwaggerObject
-         & properties .~ [ ("message", tSchema)
-                         , ("meta", oSchema)
-                         ]
+         & properties .~ [("message", tSchema), ("meta", oSchema)]
          & required .~ ["message"]
 
 -- | Error with corresponding locations.

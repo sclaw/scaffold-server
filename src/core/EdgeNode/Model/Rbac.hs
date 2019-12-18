@@ -35,9 +35,13 @@ import Data.String
 import Orm.PersistField ()
 import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import Test.QuickCheck
+import Database.Transaction (ParamsShow (..))
 
 instance Arbitrary RoleId where
   arbitrary = RoleId <$> arbitrary
+
+instance ParamsShow RoleId where 
+  render (RoleId x) = render x 
 
 data Permission = 
        Root
@@ -49,6 +53,8 @@ data Permission =
 
 instance Arbitrary Permission where
   arbitrary = oneof [pure Root, pure ProviderAdmin, pure ProviderGuest, pure User]
+
+instance ParamsShow Permission where render = show 
 
 mkEnumConvertor ''Permission
 mkToSchemaAndJSONProtoIdent ''RoleId

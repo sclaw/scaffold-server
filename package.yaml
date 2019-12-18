@@ -166,6 +166,7 @@ library:
     - binary
     - hashable
     - text-show
+    - foldl
   source-dirs:
     - src/core
     - src/extended

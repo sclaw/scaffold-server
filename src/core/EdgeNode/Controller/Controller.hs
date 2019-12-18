@@ -42,7 +42,6 @@ import Servant.Auth.Server
 import Network.IP.Addr
 import Control.Lens
 import Servant.Server
-import qualified Hasql.Session as Hasql.Session
 import Database.Transaction
 import Control.Monad
 
@@ -53,11 +52,9 @@ verifyAuthorization :: UserId -> Rbac.Permission -> KatipController a -> KatipCo
 verifyAuthorization uid perm controller = 
   do
     hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
-    x <- katipTransaction hasql $ lift $ do 
-      xs <- Hasql.Session.statement 
-            (uid, perm) 
-            Rbac.getTopLevelRoles
-      Hasql.Session.statement (xs, perm) Rbac.elem
+    x <- katipTransaction hasql $ do 
+      xs <- statement Rbac.getTopLevelRoles (uid, perm)
+      statement Rbac.elem (xs, perm)
     case x of 
       Just isOk -> do 
         unless isOk (throwAll err403)

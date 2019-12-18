@@ -33,6 +33,7 @@ import Control.Lens
 import Control.Lens.Iso.Extended
 import Data.Int
 import Data.Coerce
+import Data.List
 
 newtype QueryErrorWrapper = QueryErrorWrapper Hasql.QueryError 
   deriving Show
@@ -65,7 +66,9 @@ type SessionR a = ReaderT KatipLoggerIO Session a
 -- happens during operations that commit or rollback transaction,
 -- in this case connection may not be in a clean state.
 transaction :: Pool Hasql.Connection -> KatipLoggerIO -> ReaderT KatipLoggerIO Session a -> IO a
-transaction pool logger session = fmap join run >>= either (throwIO . QueryErrorWrapper) pure
+transaction pool logger session = 
+  fmap join run >>= 
+  either (throwIO . QueryErrorWrapper) pure
   where
     run = withResource pool $ \conn ->
       mask $ \release -> do 
@@ -83,10 +86,17 @@ transaction pool logger session = fmap join run >>= either (throwIO . QueryError
 class ParamsShow a where
   render :: a -> String
 
-instance {-# OVERLAPS #-} ParamsShow () where render () = mempty
-instance {-# OVERLAPS #-} ParamsShow Int32 where render = show
-instance {-# OVERLAPS #-} ParamsShow Int64 where render = show
-
+instance ParamsShow () where render () = mempty
+instance ParamsShow Int32 where render = show
+instance ParamsShow Int64 where render = show
+instance (ParamsShow a, ParamsShow b) => ParamsShow (a, b) where 
+  render (x, y) = render x <> ", " <> render y
+instance (ParamsShow a, ParamsShow b, ParamsShow c) => ParamsShow (a, b, c) where 
+  render x = render (x^._1) <> ", " <> render (x^._2) <> ", " <> render (x^._3)
+instance (ParamsShow a, ParamsShow b, ParamsShow c, ParamsShow d) => ParamsShow (a, b, c, d) where 
+    render x = render (x^._1) <> ", " <> render (x^._2) <> ", " <> render (x^._3) <> ", " <> render (x^._4) 
+instance ParamsShow a => ParamsShow [a] where 
+  render xs = intercalate ", " $ map render xs
 instance {-# OVERLAPS #-} (Coercible a b, Show b) => ParamsShow a where render = show . coerce @a @b
 
 statement :: ParamsShow a => Hasql.Statement a b -> a -> ReaderT KatipLoggerIO Session b
@@ -96,4 +106,4 @@ statement s@(Hasql.Statement sql _ _ _) a = do
   lift $ Hasql.statement a s
 
 katipTransaction :: Pool Hasql.Connection -> ReaderT KatipLoggerIO Session a -> KatipController a
-katipTransaction pool session = katipAddNamespace (Namespace ["db", "hasql"]) askLoggerIO >>= (\l -> liftIO (transaction pool l session))
+katipTransaction pool session = katipAddNamespace (Namespace ["db", "hasql"]) askLoggerIO >>= (liftIO . flip (transaction pool) session)
