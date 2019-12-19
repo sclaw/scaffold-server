@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dab84f5a7c3cb663825366b3cafce31cfd640bbd475d1eb655d1388bf8954ced
+-- hash: 80b2c669569ec442e9557cd5edbfacfd8acc83b0b5ef638355c065361fc4e36e
 
 name:           edgenode
 version:        0.1.0.0
@@ -185,6 +185,7 @@ library
     , hashing
     , hasql
     , hasql-th
+    , hasql-transaction
     , hslogger
     , hspec
     , hspec-expectations-lifted

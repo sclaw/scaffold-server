@@ -167,6 +167,7 @@ library:
     - hashable
     - text-show
     - foldl
+    - hasql-transaction
   source-dirs:
     - src/core
     - src/extended

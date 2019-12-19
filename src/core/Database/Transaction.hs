@@ -8,6 +8,7 @@
 
 module Database.Transaction 
       ( transaction
+      , transactionHasql
       , katipTransaction
       , statement
       , SessionR
@@ -28,6 +29,8 @@ import Control.Monad.Catch
 import Control.Monad.Reader
 import qualified Hasql.Connection as Hasql
 import qualified Hasql.Statement as Hasql
+import qualified Hasql.Transaction as HasqlT
+import qualified Hasql.Transaction.Sessions as HasqlT
 import  Control.Exception (throwIO)
 import Control.Lens
 import Control.Lens.Iso.Extended
@@ -82,6 +85,14 @@ transaction pool logger session =
               commit <- Hasql.run (Hasql.sql "commit") conn    
               traverse (const (pure result)) commit
         traverse (const withBegin) begin
+
+transactionHasql :: Pool Hasql.Connection -> KatipLoggerIO -> ReaderT KatipLoggerIO HasqlT.Transaction a -> IO a
+transactionHasql pool logger session =
+  withResource pool $ \conn -> do
+    let runT = HasqlT.transaction HasqlT.ReadCommitted HasqlT.Write 
+    resp <- Hasql.run (runReaderT (mapReaderT runT session) logger) conn  
+     `onException`  Hasql.run (runT HasqlT.condemn) conn
+    either (throwIO . QueryErrorWrapper) pure resp
 
 class ParamsShow a where
   render :: a -> String

@@ -1,1 +1,6 @@
-site_name: My Docs
+site_name: EdgeNode
+nav:
+    - Home: index.md
+theme: readthedocs
+
+
