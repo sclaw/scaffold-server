@@ -13,6 +13,8 @@
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TypeApplications #-}
 
 module EdgeNode.Application (Cfg (..), AppMonad (..), run) where
 
@@ -46,6 +48,7 @@ import Control.Monad.Trans.Control
 import Network.Wai.Middleware.Cors
 import qualified Hasql.Connection as Hasql
 import qualified Data.Pool as Pool
+import Data.Generics.Product.Fields
 
 data Cfg = 
      Cfg 
@@ -127,12 +130,16 @@ logUncaughtException log req e = when (Warp.defaultShouldDisplayException e) $ m
   where without = log ErrorS (logStr ("Uncaught exception " <> show e))
         within r = log ErrorS (logStr ("\"GET " <> rawPathInfo r^.from textbs.from stext <> " HTTP/1.1\" 500 - " <> show e))
 
+
+deriving instance Generic CorsResourcePolicy
+
 mkCors :: Middleware
-mkCors = cors (const (pure newCors))
-  where 
-    newCors = 
-      simpleCorsResourcePolicy
-       { corsRequestHeaders = ["Authorization", "content-type"]
-       , corsExposedHeaders = Just ["X-Set-Bearer"]
-       , corsMethods = simpleMethods ++ ["PUT", "PATCH", "DELETE"]
-       }
+mkCors = 
+  cors $ const $ pure $
+    simpleCorsResourcePolicy 
+    & field @"corsRequestHeaders" .~
+      ["Authorization", "content-type"]
+    & field @"corsExposedHeaders" ?~ 
+      ["X-Set-Bearer"]
+    & field @"corsMethods" .~ 
+      simpleMethods ++ ["PUT", "PATCH", "DELETE"]

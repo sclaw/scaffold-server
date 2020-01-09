@@ -8,6 +8,7 @@ import Hasql.Session
 import TH.Mk
 import Data.String.Interpolate
 import Data.Foldable
+import Data.ByteString
 
 $mkMigrationTest
 

@@ -8,7 +8,6 @@
 
 module Database.Transaction 
       ( transaction
-      , transactionHasql
       , katipTransaction
       , statement
       , SessionR
@@ -29,8 +28,6 @@ import Control.Monad.Catch
 import Control.Monad.Reader
 import qualified Hasql.Connection as Hasql
 import qualified Hasql.Statement as Hasql
-import qualified Hasql.Transaction as HasqlT
-import qualified Hasql.Transaction.Sessions as HasqlT
 import  Control.Exception (throwIO)
 import Control.Lens
 import Control.Lens.Iso.Extended
@@ -75,24 +72,21 @@ transaction pool logger session =
   where
     run = withResource pool $ \conn ->
       mask $ \release -> do 
-        begin <- Hasql.run (Hasql.sql "begin") conn
+        bg <- begin conn
+        let action = do 
+              e <- Hasql.run (runReaderT session logger) conn
+              either (throwIO . QueryErrorWrapper) pure e
         let withBegin = do
-              result <- 
-                release (Hasql.run (runReaderT session logger) conn >>= 
-                  either (throwIO . QueryErrorWrapper) pure)
-                 `onException` 
-                Hasql.run (Hasql.sql "rollback") conn
-              commit <- Hasql.run (Hasql.sql "commit") conn    
-              traverse (const (pure result)) commit
-        traverse (const withBegin) begin
+              result <- release action `onException` rollback conn
+              cm <- commit conn    
+              traverse (const (pure result)) cm
+        traverse (const withBegin) bg
 
-transactionHasql :: Pool Hasql.Connection -> KatipLoggerIO -> ReaderT KatipLoggerIO HasqlT.Transaction a -> IO a
-transactionHasql pool logger session =
-  withResource pool $ \conn -> do
-    let runT = HasqlT.transaction HasqlT.ReadCommitted HasqlT.Write 
-    resp <- Hasql.run (runReaderT (mapReaderT runT session) logger) conn  
-     `onException`  Hasql.run (runT HasqlT.condemn) conn
-    either (throwIO . QueryErrorWrapper) pure resp
+begin, commit, rollback :: Hasql.Connection -> IO (Either Hasql.QueryError ())
+begin = Hasql.run (Hasql.sql "begin")
+commit = Hasql.run (Hasql.sql "commit")
+rollback = Hasql.run (Hasql.sql "rollback")
+
 
 class ParamsShow a where
   render :: a -> String

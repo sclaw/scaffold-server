@@ -20,7 +20,7 @@ module EdgeNode.Api
        , swaggerHttpApi
        ) where
 
-import EdgeNode.Api.Http.Api
+import EdgeNode.Api.Api
 
 import Servant.API
 import Servant.API.Generic

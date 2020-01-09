@@ -426,4 +426,5 @@ mkMigrationTest = do
   let list = mkName "list"
   let mkSql str = LitE (StringL str)
   let xs' = if null xs then [] else map mkSql xs
-  return [ValD (VarP list) (NormalB (ListE xs')) []]
+  let sig = SigD list (AppT ListT (ConT (mkName "ByteString")))
+  return $ sig : [ValD (VarP list) (NormalB (ListE xs')) []]

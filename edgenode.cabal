@@ -4,14 +4,14 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 80b2c669569ec442e9557cd5edbfacfd8acc83b0b5ef638355c065361fc4e36e
+-- hash: 80b58693ae828d5f661b313fcb9eeb4b478c13a0012598eaec0af6ad4a09be15
 
 name:           edgenode
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/githubuser/web#readme>
 author:         edgeNode
 maintainer:     Sergey Yakovlev<fclaw007@gmail.com>
-copyright:      2019 edgeNode
+copyright:      2019 edgenode
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -29,38 +29,16 @@ library
       Database.Migration.Test
       Database.Transaction
       EdgeNode.Api
-      EdgeNode.Api.Http.Admin
-      EdgeNode.Api.Http.Api
-      EdgeNode.Api.Http.Auth
-      EdgeNode.Api.Http.Provider
-      EdgeNode.Api.Http.Search
-      EdgeNode.Api.Http.Service
-      EdgeNode.Api.Http.User
+      EdgeNode.Api.Admin
+      EdgeNode.Api.Api
+      EdgeNode.Api.Auth
+      EdgeNode.Api.Provider
+      EdgeNode.Api.Search
+      EdgeNode.Api.Service
+      EdgeNode.Api.User
       EdgeNode.Application
       EdgeNode.Config
       EdgeNode.Controller.Controller
-      EdgeNode.Controller.Http.DeleteQualification
-      EdgeNode.Controller.Http.DeleteTrajectory
-      EdgeNode.Controller.Http.GetCategories
-      EdgeNode.Controller.Http.GetProviders
-      EdgeNode.Controller.Http.GetQualificationFullInfo
-      EdgeNode.Controller.Http.GetQualififcations
-      EdgeNode.Controller.Http.GetTrajectories
-      EdgeNode.Controller.Http.LoadCountries
-      EdgeNode.Controller.Http.LoadProfile
-      EdgeNode.Controller.Http.PatchProfile
-      EdgeNode.Controller.Http.PatchQualifications
-      EdgeNode.Controller.Http.RefreshToken
-      EdgeNode.Controller.Http.Registration
-      EdgeNode.Controller.Http.SaveQualifications
-      EdgeNode.Controller.Http.SaveTrajectory
-      EdgeNode.Controller.Http.SearchApplyFilter
-      EdgeNode.Controller.Http.SearchFilter
-      EdgeNode.Controller.Http.SearchInit
-      EdgeNode.Controller.Http.SearchQualification
-      EdgeNode.Controller.Http.SignIn
-      EdgeNode.Controller.Http.SignOut
-      EdgeNode.Controller.Http.ValidateRefreshToken
       EdgeNode.Iso
       EdgeNode.Model.Category
       EdgeNode.Model.Provider
@@ -136,7 +114,6 @@ library
       DoctestDriver
       EdgeNode.Api.Http.Test
       EdgeNode.Explain
-      EdgeNode.Statement.Rbac.Test
       TestDriver
       App
   other-modules:
@@ -185,7 +162,6 @@ library
     , hashing
     , hasql
     , hasql-th
-    , hasql-transaction
     , hslogger
     , hspec
     , hspec-expectations-lifted

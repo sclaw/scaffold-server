@@ -5,16 +5,16 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module EdgeNode.Api.Http.Provider (ProviderApi (..)) where
+module EdgeNode.Api.Auth (AuthApi (..)) where
 
 import Servant.API.Generic
+import Servant.API.WebSocket ()
 import Servant.API
 
-data ProviderApi route = 
-     ProviderApi 
-     { _providerApiRegistrationCountry
+data AuthApi route = 
+     AuthApi
+     { _authApiRegistration
        :: route
-       :- "registration"
-       :> "country"
-       :> Get '[JSON] ()
+       :- Description "simple registration" 
+       :> Post '[JSON] ()
      } deriving stock Generic

@@ -5,23 +5,16 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module EdgeNode.Api.Http.Admin (AdminApi (..)) where
+module EdgeNode.Api.Provider (ProviderApi (..)) where
 
 import Servant.API.Generic
 import Servant.API
 
-data AdminApi route = 
-     AdminApi 
-     { _adminApiRegistrationCountry
+data ProviderApi route = 
+     ProviderApi 
+     { _providerApiRegistrationCountry
        :: route
-       :- "provider"
-       :> "registration"
+       :- "registration"
        :> "country"
        :> Get '[JSON] ()
-     , _adminApiRegistrationTypes
-       :: route
-       :- "provider"
-       :> "registration"
-       :> "types"
-       :> Get '[JSON] ()  
      } deriving stock Generic

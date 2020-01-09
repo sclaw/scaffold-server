@@ -5,19 +5,19 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module EdgeNode.Api.Http.Api 
+module EdgeNode.Api.Api 
        ( HttpApi (..)
-       , module EdgeNode.Api.Http.Auth
-       , module EdgeNode.Api.Http.User
-       , module EdgeNode.Api.Http.Service
-       , module EdgeNode.Api.Http.Search
+       , module EdgeNode.Api.Auth
+       , module EdgeNode.Api.User
+       , module EdgeNode.Api.Service
+       , module EdgeNode.Api.Search
        ) where
 
 import Auth
-import EdgeNode.Api.Http.Auth
-import EdgeNode.Api.Http.User
-import EdgeNode.Api.Http.Service
-import EdgeNode.Api.Http.Search
+import EdgeNode.Api.Auth
+import EdgeNode.Api.User
+import EdgeNode.Api.Service
+import EdgeNode.Api.Search
 
 import Servant.Ip
 import Servant.API.Generic

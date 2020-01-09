@@ -1,6 +1,6 @@
 module EdgeNode.Api.Http.Test (spec_api) where
 
-import EdgeNode.Api.Http.Admin
+import EdgeNode.Api.Admin
 
 import Test.Hspec
 import Data.Proxy

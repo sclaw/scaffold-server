@@ -5,15 +5,10 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module EdgeNode.Api.Http.Service (ServiceApi (..), WebApi (..), GoogleApi (..)) where
-
-import Web.Google.Translator
+module EdgeNode.Api.Service (ServiceApi (..), WebApi (..), GoogleApi (..)) where
 
 import Servant.API.Generic
 import Servant.API
-import Json
-import TH.Proto
-import qualified Data.Text as T
 
 newtype ServiceApi route = 
         ServiceApi
@@ -38,7 +33,5 @@ newtype GoogleApi route =
         { _googleApiLoadCountries
           :: route
           :- Description "load all countries"
-          :> "countries" 
-          :> Capture "lang" GoogleLanguage
-          :> Get '[JSON] (Alternative (Error T.Text) CountryResponse)     
+          :> Get '[JSON] ()     
         } deriving stock Generic
