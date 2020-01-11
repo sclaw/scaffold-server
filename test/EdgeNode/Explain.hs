@@ -11,8 +11,8 @@
 
 module EdgeNode.Explain (spec_explain) where
 
-import qualified EdgeNode.Statement.User
 import qualified EdgeNode.Statement.Rbac 
+import qualified EdgeNode.Statement.File
 
 import Database.Migration.Test
 import Test.Hspec hiding (shouldBe)
@@ -54,17 +54,12 @@ data SomeQuery = forall a b . Arbitrary a => SomeQuery (Statement a b)
 -- | List of all database queries.
 explainTests :: [(String, [(String, SomeQuery)])]
 explainTests = 
-  [ "EdgeNode.Statement.User"
-    ==> [ "deleteQualification" =>> 
-          EdgeNode.Statement.User.deleteQualification
-        , "deleteTrajectory" =>> 
-          EdgeNode.Statement.User.deleteTrajectory
-        ]
-  , "EdgeNode.Statement.Rbac"
+  [ "EdgeNode.Statement.Rbac"
     ==> [ "getTopLevelRoles" =>> 
           EdgeNode.Statement.Rbac.getTopLevelRoles
         , "elem" =>> EdgeNode.Statement.Rbac.elem
         ]
+  , "EdgeNode.Statement.File" ==> ["save" =>> EdgeNode.Statement.File.save]      
   ]
   
 (==>) a b = (a, b)

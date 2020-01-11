@@ -18,7 +18,7 @@ module KatipController
        , KatipState (..)
        , KatipLoggerIO
        , KatipControllerState (..)
-       , Amazon (..)
+       , Minio (..)
          -- * lens
        , nm
        , ctx
@@ -28,9 +28,10 @@ module KatipController
        , httpReqManager
        , apiKeys
        , jwk
-       , amazon
+       , minio
        , bucketPrefix
        , hasqlDbPool
+       , conn
          -- * run
        , runKatipController
          -- * re-export
@@ -60,7 +61,7 @@ import Control.Monad.Time
 import Data.Time
 import qualified Control.Monad.RWS.Strict as RWS 
 import Control.Monad.RWS.Class
-import qualified Network.AWS.Env as AWS
+import qualified Network.Minio as Minio 
 import qualified Data.Text as T
 import qualified Hasql.Connection as Hasql
 
@@ -77,10 +78,10 @@ data KatipEnv =
      , katipEnvApiKeys
        :: ![(String, String)]
      , katipEnvJwk :: !JWK
-     , katipEnvAmazon :: !Amazon
+     , katipEnvMinio :: !Minio
      }
 
-data Amazon = Amazon { amazonEnv :: !AWS.Env, amazonBucketPrefix :: !T.Text }
+data Minio = Minio { minioConn :: !Minio.MinioConn, minioBucketPrefix :: !T.Text }
 
 newtype KatipLogger = KatipWriter [String] 
   deriving newtype Monoid
@@ -134,7 +135,7 @@ newtype KatipController a =
   
 makeFields ''Config
 makeFields ''KatipEnv
-makeFields ''Amazon
+makeFields ''Minio
 
 -- These instances get even easier with lenses!
 instance Katip KatipController where

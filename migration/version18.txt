@@ -1,6 +1,0 @@
-alter table "auth"."AuthenticatedUser" rename to "User";
-alter table "auth"."User" rename "authenticatedUserEmail" to "email";
-alter table "auth"."User" rename "authenticatedUserPassword" to "password";
-alter table "edgeNode"."UserTablesBonds" rename to "AuthEdgeNodeUser";
-alter table "edgeNode"."AuthEdgeNodeUser" rename "userTablesBondsAuth" to "auth";
-alter table "edgeNode"."AuthEdgeNodeUser" rename "userTablesBondsEdgeNode" to "edgeNode";

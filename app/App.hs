@@ -38,13 +38,13 @@ import Network.HTTP.Client (ManagerSettings (managerConnCount))
 import GHC.Generics (Generic)
 import Options.Generic
 import Data.Maybe
-import System.FilePath.Posix
-import qualified Network.AWS.Env as AWS 
-import qualified Network.AWS.Auth as AWS 
+import System.FilePath.Posix 
 import Control.Monad.IO.Class
 import Katip.Monadic
 import qualified Data.Pool as Pool
 import Control.Exception
+import qualified Network.Minio as Minio
+import Data.String
 
 data Cmd w = 
      Cmd 
@@ -56,6 +56,8 @@ data Cmd w =
      , pathToKatip :: w ::: Maybe FilePath <?> "path to katip log"
      , pathToJwk :: w ::: Maybe FilePath <?> "path to jwk"
      , swaggerHost :: w ::: Maybe FilePath <?> "swagger host"
+     , minioHost :: w ::: Maybe String <?> "minio host"
+     , minioPort :: w ::: Maybe String <?> "minio port"
      } deriving stock Generic
     
 instance ParseRecord (Cmd Wrapped)
@@ -75,6 +77,8 @@ main =
             & katip.path %~ (\path -> maybe path (</> path) pathToKatip)
             & auth.EdgeNode.Config.jwk %~ (\path -> maybe path (</> path) pathToJwk)
             & hosts %~ (`fromMaybe` fmap Hosts swaggerHost)
+            & EdgeNode.Config.minio.host %~ (`fromMaybe` minioHost)
+            & EdgeNode.Config.minio.port %~ (`fromMaybe` minioPort)
       pPrint cfg
 
       void $ forkServer (cfg^.ekg.host.stext.textbs) (cfg^.ekg.port)
@@ -124,10 +128,15 @@ main =
                App.run appCfg
       manager <- Http.newTlsManagerWith Http.tlsManagerSettings { managerConnCount = 1 }
 
-      awsEnv <- AWS.newEnvWith (AWS.FromKeys (cfg^.EdgeNode.Config.amazon.accessKey) (cfg^.EdgeNode.Config.amazon.secretKey)) Nothing manager
+      minioEnv <-  flip Minio.mkMinioConn manager $ 
+        Minio.setCreds 
+        (Minio.Credentials 
+         (cfg^.EdgeNode.Config.minio.accessKey) 
+         (cfg^.EdgeNode.Config.minio.secretKey))
+        (fromString (cfg^.EdgeNode.Config.minio.host <> ":" <> cfg^.EdgeNode.Config.minio.port))
 
-      let katipAmazon = Amazon awsEnv (cfg^.EdgeNode.Config.amazon.EdgeNode.Config.bucketPrefix)  
-      let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) (fromRight' jwke) katipAmazon
+      let katipMinio = Minio minioEnv (cfg^.EdgeNode.Config.minio.EdgeNode.Config.bucketPrefix)
+      let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) (fromRight' jwke) katipMinio
       bracket env' closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)     
       
 mkRawConn :: Db -> HasqlConn.Settings

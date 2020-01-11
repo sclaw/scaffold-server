@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 80b58693ae828d5f661b313fcb9eeb4b478c13a0012598eaec0af6ad4a09be15
+-- hash: 0ff27c5eb3a06030702788cca26670771cac908d3fd6e2551149249c5b1133af
 
 name:           edgenode
 version:        0.1.0.0
@@ -32,6 +32,7 @@ library
       EdgeNode.Api.Admin
       EdgeNode.Api.Api
       EdgeNode.Api.Auth
+      EdgeNode.Api.File
       EdgeNode.Api.Provider
       EdgeNode.Api.Search
       EdgeNode.Api.Service
@@ -39,6 +40,7 @@ library
       EdgeNode.Application
       EdgeNode.Config
       EdgeNode.Controller.Controller
+      EdgeNode.Controller.File.Upload
       EdgeNode.Iso
       EdgeNode.Model.Category
       EdgeNode.Model.Provider
@@ -50,6 +52,7 @@ library
       EdgeNode.Model.User.Qualification
       EdgeNode.Model.User.Trajectory
       EdgeNode.Search
+      EdgeNode.Statement.File
       EdgeNode.Statement.Rbac
       EdgeNode.Statement.User
       EdgeNode.Transport.Error
@@ -65,6 +68,7 @@ library
       Orphan
       Pretty
       Servant.Ip
+      Servant.Multipart.File
       Servant.Swagger.KatipController
       Swagger.ToSchema
       TH.Mk
@@ -101,6 +105,7 @@ library
       EdgeNode.Country
       EdgeNode.Error
       EdgeNode.Lang
+      EdgeNode.Minio
       EdgeNode.Provider
       EdgeNode.Provider.Qualification
       EdgeNode.Rbac
@@ -129,7 +134,6 @@ library
       QuickCheck
     , aeson
     , aeson-injector
-    , amazonka
     , async
     , base >=4.7 && <5
     , binary
@@ -177,6 +181,7 @@ library
     , lifted-base
     , memory
     , mime-mail
+    , minio-hs
     , monad-control
     , monad-loops
     , monad-time
@@ -204,6 +209,7 @@ library
     , servant-auth-server
     , servant-auth-swagger
     , servant-client-core
+    , servant-multipart
     , servant-server
     , servant-swagger
     , servant-swagger-ui

@@ -41,7 +41,7 @@ module EdgeNode.Config
        , userId
        , accessKey
        , secretKey
-       , amazon
+       , minio
        , bucketPrefix
        ) 
        where
@@ -53,7 +53,6 @@ import Control.Exception
 import Data.Yaml
 import Data.Time.Clock
 import Data.Int
-import qualified Network.AWS as AWS
 import qualified Data.Text as T
 
 data Db = Db 
@@ -104,13 +103,13 @@ newtype ApiKeys = ApiKeys [(String, String)]
 newtype Service = Service { serviceApiKeys :: ApiKeys }
   deriving Show
 
-deriving instance Show AWS.SecretKey
-
-data Amazon = 
-     Amazon 
-     { amazonAccessKey :: !AWS.AccessKey
-     , amazonSecretKey :: !AWS.SecretKey
-     , amazonBucketPrefix :: !T.Text 
+data Minio = 
+     Minio
+     { minioAccessKey :: !T.Text
+     , minioSecretKey :: !T.Text
+     , minioBucketPrefix :: !T.Text
+     , minioHost :: !String
+     , minioPort :: !String
      }
   deriving Show
 
@@ -124,7 +123,7 @@ data Config =
      , configAuth :: !Auth
      , configService :: !Service
      , configHosts :: !Hosts
-     , configAmazon :: !Amazon
+     , configMinio :: !Minio
      } deriving Show
 
 makeFields ''Config
@@ -134,7 +133,7 @@ makeFields ''HasqlSettings
 makeFields ''Ekg
 makeFields ''Katip
 makeFields ''Auth
-makeFields ''Amazon
+makeFields ''Minio
 
 -- Load program configuration from file (server.yaml), or
 -- raise YamlException and terminate program.
@@ -149,4 +148,4 @@ deriveFromJSON defaultOptions ''Katip
 deriveFromJSON defaultOptions ''Auth
 deriveFromJSON defaultOptions ''ApiKeys
 deriveFromJSON defaultOptions ''Service
-deriveFromJSON defaultOptions ''Amazon
+deriveFromJSON defaultOptions ''Minio

@@ -3,7 +3,7 @@ module Hash (mkHash) where
 import Control.Lens.Iso.Extended    
 import Control.Lens
 import Crypto.Hash
-import Data.ByteString
+import Data.Text
 
-mkHash :: Show a => a -> ByteString
-mkHash x = show (hash (show x^.stext.textbs) :: SHA256)^.stext.textbs
+mkHash :: Show a => a -> Text
+mkHash x = show (hash (show x^.stext.textbs) :: SHA256)^.stext   

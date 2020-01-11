@@ -163,7 +163,7 @@ library:
     - mime-mail
     - hspec-expectations-lifted
     - split
-    - amazonka
+    - minio-hs
     - network-ip
     - data-textual
     - servant-client-core
@@ -171,6 +171,7 @@ library:
     - hashable
     - text-show
     - foldl
+    - servant-multipart
 
   source-dirs:
     - src/core

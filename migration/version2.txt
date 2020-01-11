@@ -1,35 +1,52 @@
-create schema auth;
-create schema "edgeNode";
-create table if not exists "edgeNode"."User"
-(id bigserial primary key,
- "userName" text,
- "userMiddlename" text,
- "userSurname" text,
- "userDayOfBirth" bytea,
- "userAllegiance" text,
- "userAvatar" bytea,
- "userGender" text not null
- );
-create table if not exists "auth"."AuthenticatedUser"
-(id bigserial primary key,
- "authenticatedUserEmail" text,
- "authenticatedUserPassword" bytea);
-create table if not exists "edgeNode"."UserTablesBonds"
-(id bigserial primary key,
- "userTablesBondsAuth" int8,
- "userTablesBondsEdgeNode" int8);
-create table if not exists "edgeNode"."StateExam" 
-         (id bigserial primary key, 
-          "stateExamTitle" text not null, 
-          "stateExamCountry" text not null);
-         create table if not exists "edgeNode"."HigherDegree" 
-         (id bigserial primary key, 
-          "higherDegreeCountry" text not null, 
-          "higherDegreeProvider" text not null);
-         create table if not exists "edgeNode"."InternationalDiploma" 
-         (id bigserial primary key, 
-          "internationalDiplomaTitle" text not null);
-         create table if not exists "edgeNode"."LanguageStandard" 
-         (id bigserial primary key, 
-          "languageStandardStandard" text not null, 
-          "languageStandardGrade" bytea not null);
+create schema if not exists auth;
+create table auth.user (
+id bigserial primary key,
+identifier text not null,
+password bytea not null,
+created timestamptz not null default now(),
+modified timestamptz,
+user_type text not null,
+constraint "user_identifier_uniq" unique("identifier"));
+create table auth.token (
+id bigserial primary key,
+user_fk int8 not null constraint "token_user_id_fk" references auth.user(id),
+token bytea not null,
+created timestamptz not null default now(),
+uid text not null);
+create table auth.role 
+(id bigserial primary key, 
+ title text not null,
+ description text,
+ parent_fk int8 null 
+ constraint "role_id_fk" 
+ references auth.role(id),
+ created timestamptz not null default now(),
+ modified timestamptz, 
+ constraint "role_title_uniq" unique ("title"));
+create table auth.permission 
+(id bigserial primary key, 
+ title text not null,
+ description text,
+ parent_fk int8 null 
+ constraint "permission_id_fk" 
+ references auth.permission(id),
+ created timestamptz not null default now(),
+ modified timestamptz,
+ constraint "permission_title_uniq" unique ("title"));
+create table auth.user_role 
+(user_fk int8 not null constraint "user_role_user_id_fk" references auth.user(id),
+ role_fk int8 not null constraint "user_role_role_id_fk" references auth.role(id));
+create table auth.role_permission 
+(role_fk int8 not null constraint "role_permission_role_id_fk" references auth.role(id),
+ permission_fk int8 not null constraint "role_permission_permission_id_fk" references auth.permission(id));
+
+create schema if not exists storage;
+create table storage.file (
+    id bigserial primary key,
+    title text not null,
+    mime text not null,
+    hash text not null,
+    created timestamptz not null default now(),
+    modified timestamptz,
+    constraint "file_hash_uniq" unique ("hash")
+);

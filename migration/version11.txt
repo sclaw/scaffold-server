@@ -1,2 +1,0 @@
-alter table "edgeNode"."QualificationProviderFeatures" 
-         rename column "qualififcationKey" to "qualificationKey";

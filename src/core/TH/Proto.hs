@@ -11,6 +11,7 @@ module TH.Proto where
 
 import EdgeNode.Lang
 import EdgeNode.Country
+import EdgeNode.Minio
 
 import TH.Mk
 import GHC.Generics
@@ -18,8 +19,14 @@ import Control.Lens
 
 mkEnumConvertor ''Language
 mkEnumConvertor ''Country
+mkEnumConvertor ''Bucket
 
-mkSRGEqEnum ''Country "Wrapper"
-mkEnumConvertor ''WrapperCountry
-mkParamSchemaEnum ''WrapperCountry
-mkFromHttpApiDataEnum ''WrapperCountry
+mkSRGEqEnum ''Country "EdgeNode"
+mkEnumConvertor ''EdgeNodeCountry
+mkParamSchemaEnum ''EdgeNodeCountry
+mkFromHttpApiDataEnum ''EdgeNodeCountry
+
+mkSRGEqEnum ''Bucket "EdgeNode"
+mkEnumConvertor ''EdgeNodeBucket
+mkParamSchemaEnum ''EdgeNodeBucket
+mkFromHttpApiDataEnum ''EdgeNodeBucket

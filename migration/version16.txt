@@ -1,1 +1,0 @@
-alter table "edgeNode"."Trajectory" add column id bigserial constraint trajectory_pk primary key;

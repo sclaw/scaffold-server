@@ -12,6 +12,7 @@ import EdgeNode.Model.User
 import qualified EdgeNode.Model.Rbac as Rbac
 import qualified EdgeNode.Statement.Rbac as Rbac
 -- controllers
+import qualified EdgeNode.Controller.File.Upload as File.Upload
 
 import Katip
 import KatipController
@@ -47,6 +48,7 @@ httpApi =
   , _httpApiUser    = \ip -> (`authGateway` (toServant . user ip))
   , _httpApiService = \ip -> (`authGateway` (toServant . service ip))
   , _httpApiSearch  = \ip -> (`authGateway` (toServant . search ip))
+  , _httpApiFile = toServant . file
   }
 
 auth :: Maybe IP4 ->  AuthApi (AsServerT KatipController)
@@ -93,3 +95,13 @@ search _ user =
      (Namespace ["search", "searchQualification"])
      undefined       
   }
+
+file :: Maybe IP4 -> FileApi (AsServerT KatipController)
+file _ = 
+  FileApi 
+  { _fileApiUpload = \bucket file -> 
+    flip logExceptionM ErrorS $
+    katipAddNamespace 
+    (Namespace ["file", "upload"])
+    (File.Upload.controller bucket file)
+  } 

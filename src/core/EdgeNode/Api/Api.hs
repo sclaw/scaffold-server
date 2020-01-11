@@ -11,6 +11,7 @@ module EdgeNode.Api.Api
        , module EdgeNode.Api.User
        , module EdgeNode.Api.Service
        , module EdgeNode.Api.Search
+       , module EdgeNode.Api.File
        ) where
 
 import Auth
@@ -18,6 +19,7 @@ import EdgeNode.Api.Auth
 import EdgeNode.Api.User
 import EdgeNode.Api.Service
 import EdgeNode.Api.Search
+import EdgeNode.Api.File
 
 import Servant.Ip
 import Servant.API.Generic
@@ -49,4 +51,9 @@ data HttpApi route =
        :> HeaderIP
        :> Auth '[AppJwt] JWTUser
        :> ToServant SearchApi AsApi
+     , _httpApiFile  
+       :: route 
+       :- "file"
+       :> HeaderIP
+       :> ToServant FileApi AsApi
      } deriving stock Generic 
