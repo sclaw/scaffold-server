@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0ff27c5eb3a06030702788cca26670771cac908d3fd6e2551149249c5b1133af
+-- hash: 1e013a66d6e51d00ed26a8b3135644453ad9aadc749bd638cc461a56fa6d0601
 
 name:           edgenode
 version:        0.1.0.0
@@ -42,29 +42,17 @@ library
       EdgeNode.Controller.Controller
       EdgeNode.Controller.File.Upload
       EdgeNode.Iso
-      EdgeNode.Model.Category
-      EdgeNode.Model.Provider
-      EdgeNode.Model.Qualification
       EdgeNode.Model.Rbac
-      EdgeNode.Model.Token
-      EdgeNode.Model.Tree
-      EdgeNode.Model.User
-      EdgeNode.Model.User.Qualification
-      EdgeNode.Model.User.Trajectory
       EdgeNode.Search
       EdgeNode.Statement.File
       EdgeNode.Statement.Rbac
-      EdgeNode.Statement.User
       EdgeNode.Transport.Error
       EdgeNode.Transport.Id
       EdgeNode.Transport.Payload
       EdgeNode.Transport.Response
       Hash
-      Json
       KatipController
       Middleware
-      Orm.PersistField
-      Orm.PersistField.Enumerated
       Orphan
       Pretty
       Servant.Ip
@@ -88,31 +76,11 @@ library
       Test.Hspec.DB.Extended
       Test.Hspec.DB.Groundhog
       Test.Hspec.DB.Hasql
-      EdgeNode.Api.Http.Auth.RefreshToken
-      EdgeNode.Api.Http.Auth.RefreshTokenValidator
-      EdgeNode.Api.Http.Auth.Register
-      EdgeNode.Api.Http.Auth.SignIn
-      EdgeNode.Api.Http.User.GetCategories
-      EdgeNode.Api.Http.User.GetCourse
-      EdgeNode.Api.Http.User.GetProviders
-      EdgeNode.Api.Http.User.GetQualificationFullInfo
-      EdgeNode.Api.Http.User.GetQualififcations
-      EdgeNode.Api.Http.User.GetTrajectories
-      EdgeNode.Api.Http.User.PatchQualifications
-      EdgeNode.Api.Http.User.SaveQualifications
-      EdgeNode.Api.Http.User.SaveTrajectory
-      EdgeNode.Category
       EdgeNode.Country
-      EdgeNode.Error
       EdgeNode.Lang
       EdgeNode.Minio
-      EdgeNode.Provider
-      EdgeNode.Provider.Qualification
       EdgeNode.Rbac
-      EdgeNode.Search.Filter
       EdgeNode.User
-      EdgeNode.User.Qualification
-      EdgeNode.User.Trajectory
       Protobuf.Scalar
       Time.Time
       Web.Google.Translator.Country

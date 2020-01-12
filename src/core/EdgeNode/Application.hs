@@ -20,7 +20,7 @@ module EdgeNode.Application (Cfg (..), AppMonad (..), run) where
 
 import EdgeNode.Api
 import qualified EdgeNode.Controller.Controller as Controller
-import EdgeNode.Model.User (UserId)
+import EdgeNode.Transport.Id
 
 import Katip.Monadic                 (askLoggerIO)
 import KatipController
@@ -58,7 +58,7 @@ data Cfg =
        -- data structure that represents a cryptographic key 
      , cfgJwk :: !JWK
      , cfgIsAuthEnabled :: !Bool
-     , cfgUserId :: !UserId 
+     , cfgUserId :: !Id 
      }
 
 newtype AppMonad a = AppMonad { runAppMonad :: RWS.RWST KatipEnv KatipLogger KatipState IO a }
@@ -97,7 +97,7 @@ run Cfg {..} =
               , JWTSettings
               , KatipLoggerIO
               , Bool
-              , UserId
+              , Id
               , Pool.Pool Hasql.Connection]
           context = Proxy     
       let server = 

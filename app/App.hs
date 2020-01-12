@@ -13,6 +13,7 @@ module App (main) where
 
 import qualified EdgeNode.Application as App
 import EdgeNode.Config
+import EdgeNode.Transport.Id
 
 import KatipController
 import BuildInfo (gitLatestCommitHash)
@@ -119,7 +120,7 @@ main =
            (cfg^.ports.port) 
            (fromRight' jwke) 
            (cfg^.auth.isAuthEnabled)
-           (cfg^.auth.userId._Unwrapped')                    
+           (cfg^.auth.userId.coerced)                    
 
       let runApp le = 
            runKatipContextT le (mempty :: LogContexts) mempty $  

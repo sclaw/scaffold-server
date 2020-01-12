@@ -8,7 +8,7 @@ module EdgeNode.Controller.Controller (controller) where
 
 import Auth
 import EdgeNode.Api
-import EdgeNode.Model.User
+import EdgeNode.Transport.Id
 import qualified EdgeNode.Model.Rbac as Rbac
 import qualified EdgeNode.Statement.Rbac as Rbac
 -- controllers
@@ -28,7 +28,7 @@ import Control.Monad
 controller :: ApplicationApi (AsServerT KatipController)
 controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
 
-verifyAuthorization :: UserId -> Rbac.Permission -> KatipController a -> KatipController a
+verifyAuthorization :: Id -> Rbac.Permission -> KatipController a -> KatipController a
 verifyAuthorization uid perm controller = 
   do
     hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask

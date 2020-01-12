@@ -20,28 +20,16 @@
 {-# LANGUAGE DerivingStrategies     #-}
 
 module EdgeNode.Model.Rbac
-       ( RoleId (..)
-       , RoleIdWrapper (..)
-       , Permission (..)
+       ( Permission (..)
        , isoPermission
        )
        where
 
-import EdgeNode.Rbac 
-
 import TH.Mk
 import Control.Lens 
-import Data.String
-import Orm.PersistField ()
-import Database.Groundhog.Generic (primToPersistValue, primFromPersistValue)
 import Test.QuickCheck
 import Database.Transaction (ParamsShow (..))
-
-instance Arbitrary RoleId where
-  arbitrary = RoleId <$> arbitrary
-
-instance ParamsShow RoleId where 
-  render (RoleId x) = render x 
+import Data.String
 
 data Permission = 
        Root
@@ -57,8 +45,6 @@ instance Arbitrary Permission where
 instance ParamsShow Permission where render = show 
 
 mkEnumConvertor ''Permission
-mkToSchemaAndJSONProtoIdent ''RoleId
-mkWrappedPrimitivePersistField ''RoleId
 
 instance IsString Permission where
   fromString = toPermission

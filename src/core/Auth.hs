@@ -19,9 +19,10 @@ module Auth
       , verifyToken
       ) where
 
-import EdgeNode.Model.User
-import Time.Time
+import EdgeNode.Transport.Id
+import EdgeNode.Transport.Response
 
+import Time.Time
 import qualified Data.Text as T
 import Servant.Auth.Server.Internal.JWT
 import Servant.Auth.Server
@@ -29,7 +30,7 @@ import Control.Lens.Iso.Extended
 import Control.Lens
 import Servant.Auth.Server.Internal.Class
 import Servant.Auth.Swagger
-import Data.Swagger hiding (HasSecurity)
+import Data.Swagger hiding (HasSecurity, Response)
 import qualified Crypto.JWT as Jose
 import Data.ByteArray (constEq)
 import qualified Data.ByteString as BS
@@ -48,14 +49,13 @@ import Crypto.JWT
 import Data.Time.Clock.System
 import Data.Time.Clock
 import qualified Data.HashMap.Strict as HM
-import Data.Aeson
+import Data.Aeson hiding (Error)
 import Data.Aeson.TH
 import qualified Hasql.Session as Hasql
 import qualified Hasql.Statement as HS
 import qualified Hasql.Encoders as HE
 import qualified Hasql.Decoders as HD
 import Data.String.Interpolate
-import Json
 import Servant.Server
 import qualified Hasql.Connection as Hasql
 import qualified Data.Pool as Pool
@@ -65,7 +65,7 @@ data AppJwt
 
 data JWTUser = 
      JWTUser 
-     { jWTUserUserId :: !UserId
+     { jWTUserUserId :: !Id
      , jWTUserEmail :: !T.Text
      , jWTUserUnique :: !String 
      } 
@@ -76,8 +76,8 @@ deriveJSON defaultOptions ''JWTUser
 instance FromJWT JWTUser
 instance ToJWT JWTUser 
 
-instance FromJWT UserId
-instance ToJWT UserId
+instance FromJWT Id
+instance ToJWT Id
 
 instance HasSecurity AppJwt where
   securityName _ = "AppJwtSecurity"
@@ -88,7 +88,7 @@ instance HasSecurity AppJwt where
    (Just "JSON Web Token-based API key")
   
 instance IsAuth AppJwt JWTUser where
-  type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, UserId, Pool.Pool Hasql.Connection, Bool]
+  type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, Id, Pool.Pool Hasql.Connection, Bool]
   runAuth _ _ cfg log uid pool = 
    bool (return (JWTUser uid mempty mempty)) 
         (Auth.jwtAuthCheck cfg log pool)
@@ -97,17 +97,17 @@ authGateway :: AuthResult JWTUser -> (AuthResult JWTUser -> api) -> api
 authGateway auth api = api auth
 
 applyController 
-  :: Maybe (KatipController (Alternative (Json.Error e) a)) 
+  :: Maybe (KatipController (Response a)) 
   -> AuthResult JWTUser
-  -> (JWTUser -> KatipController (Alternative (Json.Error e) a)) 
-  -> KatipController (Alternative (Json.Error e) a)
+  -> (JWTUser -> KatipController (Response a)) 
+  -> KatipController (Response a)
 applyController unauthorized user authorized = 
   case user of 
     Authenticated u -> authorized u
     Indefinite -> do 
       out <- sequence unauthorized  
       maybe (throwAll err401) return out
-    err -> return $ Json.Error (AuthError (show err^.stext))
+    err -> return $ Error undefined
 
 jwtAuthCheck :: JWTSettings -> KatipLoggerIO -> Pool.Pool Hasql.Connection -> AuthCheck JWTUser
 jwtAuthCheck cfg logger pool = 
@@ -152,7 +152,7 @@ actionCheckToken (Just user) =
              where "tokenUserId" = $1 
              and "tokenUnique" = $2)|]
      let encoder = 
-          (jWTUserUserId user^._Wrapped' >$ 
+          (jWTUserUserId user^.coerced >$ 
            HE.param (HE.nonNullable HE.int8)) <> 
           (jWTUserUnique user^.stext >$ 
            HE.param (HE.nonNullable HE.text))
@@ -160,7 +160,7 @@ actionCheckToken (Just user) =
      exists <- Hasql.statement () (HS.Statement sql encoder decoder False)
      return $ if exists then Right user else Left "token not found"
 
-mkAccessToken :: JWK -> UserId -> String -> ExceptT JWTError IO (SignedJWT, Time)
+mkAccessToken :: JWK -> Id -> String -> ExceptT JWTError IO (SignedJWT, Time)
 mkAccessToken jwk uid unique = 
   do 
      alg <- bestJWSAlg jwk
@@ -177,7 +177,7 @@ mkAccessToken jwk uid unique =
      let tm = Time (fromIntegral (systemSeconds t)) 0
      (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims
 
-mkRefreshToken :: JWK -> UserId -> ExceptT JWTError IO SignedJWT
+mkRefreshToken :: JWK -> Id -> ExceptT JWTError IO SignedJWT
 mkRefreshToken jwk uid =
   do 
     alg <- bestJWSAlg jwk
