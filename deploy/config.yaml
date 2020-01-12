@@ -39,5 +39,5 @@ configMinio:
   minioAccessKey: minioadmin
   minioSecretKey: minioadmin
   minioBucketPrefix: edgenode
-  minioHost: http://127.0.0.1
+  minioHost: http://109.228.61.185
   minioPort: "9000"
