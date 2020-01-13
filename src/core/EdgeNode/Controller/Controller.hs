@@ -104,4 +104,8 @@ file _ =
     katipAddNamespace 
     (Namespace ["file", "upload"])
     (File.Upload.controller bucket file)
+  , _fileApiPatch = undefined
+  , _fileApiDelete = undefined
+  , _fileApiDownload = undefined 
+  , _fileApiPreview = undefined 
   } 

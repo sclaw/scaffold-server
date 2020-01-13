@@ -138,8 +138,8 @@ mkCors =
   cors $ const $ pure $
     simpleCorsResourcePolicy 
     & field @"corsRequestHeaders" .~
-      ["Authorization", "content-type"]
+      ["Authorization", "content-type", "Access-Control-Allow-Origin"]
     & field @"corsExposedHeaders" ?~ 
       ["X-Set-Bearer"]
-    & field @"corsMethods" .~ 
+    & field @"corsMethods" .~
       simpleMethods ++ ["PUT", "PATCH", "DELETE"]

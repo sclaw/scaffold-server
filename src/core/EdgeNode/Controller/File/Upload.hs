@@ -23,11 +23,13 @@ import Database.Transaction
 import qualified Hasql.Session as Hasql
 import Data.Bifunctor
 import qualified Data.Text as T
+import Data.Time.Clock
 
 controller :: EdgeNodeBucket -> File -> KatipController (Response Id)
 controller bucket File {..} = do 
   Minio {..} <- fmap (^.katipEnv.minio) ask
-  let hash = mkHash (fileName <> fileMime)
+  tm <- liftIO getCurrentTime
+  let hash = mkHash (fileName <> fileMime <> (show tm^.stext))
   minioResult <- liftIO $ runMinioWith minioConn $ do
     let newBucket = 
           minioBucketPrefix <> "." <> 

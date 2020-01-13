@@ -25,4 +25,20 @@ data FileApi route =
        :> Capture "bucket" EdgeNodeBucket
        :> MultipartForm Tmp File 
        :> Post '[JSON] (Response Id)
+     , _fileApiPatch
+       :: route 
+       :- Description ""
+       :> Patch '[JSON] ()
+     , _fileApiDelete
+       :: route
+       :- Description ""
+       :> Delete '[JSON] ()
+     , _fileApiDownload
+       :: route
+       :- Description ""
+       :> Post '[JSON] ()
+     , _fileApiPreview
+       :: route
+       :- Description ""
+       :> Post '[JSON] ()
      } deriving stock Generic
