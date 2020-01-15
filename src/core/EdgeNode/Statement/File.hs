@@ -21,10 +21,10 @@ save =
     statement = 
       [foldStatement|
         insert into storage.file 
-        (hash, name, mime) 
-        select hash, name, mime
+        (hash, title, mime) 
+        select x.hash, x.title, x.mime
         from unnest(
           $1 :: text[], 
           $2 :: text[], 
-          $3 :: text[]) as x(hash, name, mime) 
+          $3 :: text[]) as x(hash, title, mime) 
         returning id :: int8|]

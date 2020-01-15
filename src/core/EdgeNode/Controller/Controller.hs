@@ -24,6 +24,9 @@ import Control.Lens
 import Servant.Server
 import Database.Transaction
 import Control.Monad
+import qualified Network.Wai as Wai
+import qualified Data.ByteString.Lazy as BL
+import Network.HTTP.Types
 
 controller :: ApplicationApi (AsServerT KatipController)
 controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
@@ -106,6 +109,5 @@ file _ =
     (File.Upload.controller bucket file)
   , _fileApiPatch = undefined
   , _fileApiDelete = undefined
-  , _fileApiDownload = undefined 
-  , _fileApiPreview = undefined 
+  , _fileApiDownload = Tagged $ \_ resp -> resp $ Wai.responseLBS status200 [] BL.empty
   } 

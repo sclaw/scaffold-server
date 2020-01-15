@@ -36,9 +36,6 @@ data FileApi route =
      , _fileApiDownload
        :: route
        :- Description ""
-       :> Post '[JSON] ()
-     , _fileApiPreview
-       :: route
-       :- Description ""
-       :> Post '[JSON] ()
+       :> "download"
+       :> Raw
      } deriving stock Generic
