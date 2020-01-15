@@ -29,8 +29,8 @@ import Data.Either
 controller :: EdgeNodeBucket -> Files -> KatipController (Response [Id])
 controller bucket x = do 
   Minio {..} <- fmap (^.katipEnv.minio) ask
-  tm <- liftIO getCurrentTime
   es <- for (coerce x) $ \File {..} -> do 
+    tm <- liftIO getCurrentTime
     let hash = mkHash (fileName <> fileMime <> (show tm^.stext))
     minioResult <- liftIO $ runMinioWith minioConn $ do
       let newBucket = 
