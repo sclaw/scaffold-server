@@ -7,6 +7,7 @@ module EdgeNode.Controller.File.Upload (controller) where
 import EdgeNode.Transport.Response
 import EdgeNode.Statement.File
 import EdgeNode.Transport.Id
+import EdgeNode.Model.File
 
 import TH.Proto
 import Servant.Multipart.File
@@ -44,7 +45,11 @@ controller bucket x = do
         Nothing
       fPutObject newBucket hash filePath defaultPutObjectOptions     
     $(logTM) DebugS (logStr (show minioResult))
-    return  $ fmap (const (hash, fileName, fileMime)) minioResult
+    let tpl = 
+          ( Hash (UnicodeText hash)
+          , Name (UnicodeText fileName)
+          , Mime (UnicodeText fileMime))
+    return $ fmap (const tpl) minioResult
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   let (errorXs, successXs) = partitionEithers es
   ids <- katipTransaction hasql (lift (action successXs))
@@ -53,5 +58,5 @@ controller bucket x = do
 mkErr :: MinioErr -> T.Text
 mkErr e = show e^.stext 
 
-action :: [(T.Text, T.Text, T.Text)] -> Hasql.Session [Id]
+action :: [(Hash, Name, Mime)] -> Hasql.Session [Id]
 action = (`Hasql.statement` save)

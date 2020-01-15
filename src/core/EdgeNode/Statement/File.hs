@@ -4,23 +4,27 @@
 module EdgeNode.Statement.File (save) where
 
 import EdgeNode.Transport.Id
+import EdgeNode.Model.File
 
 import qualified Hasql.Statement as HS
-import qualified Data.Text as T
 import Hasql.TH
 import Control.Lens
 import Control.Foldl
+import Data.Coerce
 
-save :: HS.Statement [(T.Text, T.Text, T.Text)] [Id]
-save = lmap unzip3 $ statement $ premap (^.coerced) list
+save :: HS.Statement [(Hash, Name, Mime)] [Id]
+save =
+  lmap (unzip3 . Prelude.map (\x -> x & _1 %~ coerce & _2 %~ coerce & _3 %~ coerce)) $ 
+  statement $ 
+  premap (^.coerced) list
   where  
     statement = 
       [foldStatement|
         insert into storage.file 
-        (title, mime, hash) 
-        select t, m, h
+        (hash, name, mime) 
+        select hash, name, mime
         from unnest(
           $1 :: text[], 
           $2 :: text[], 
-          $3 :: text[]) as x(t, m, h) 
+          $3 :: text[]) as x(hash, name, mime) 
         returning id :: int8|]
