@@ -4,9 +4,14 @@
 module EdgeNode.Model.File (Hash (..), Name (..), Mime (..), UnicodeText (..)) where
 
 import Test.QuickCheck.Extended
+import Database.Transaction
+import Orphan ()
 
-newtype Hash = Hash UnicodeText deriving newtype Arbitrary
+newtype Hash = Hash UnicodeText 
+  deriving newtype (Arbitrary, ParamsShow)
 
-newtype Name = Name UnicodeText deriving newtype Arbitrary
+newtype Name = Name UnicodeText 
+  deriving newtype (Arbitrary, ParamsShow)
  
-newtype Mime = Mime UnicodeText deriving newtype Arbitrary
+newtype Mime = Mime UnicodeText 
+  deriving newtype (Arbitrary, ParamsShow)

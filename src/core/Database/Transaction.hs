@@ -99,13 +99,13 @@ instance (ParamsShow a, ParamsShow b) => ParamsShow (a, b) where
 instance (ParamsShow a, ParamsShow b, ParamsShow c) => ParamsShow (a, b, c) where 
   render x = render (x^._1) <> ", " <> render (x^._2) <> ", " <> render (x^._3)
 instance (ParamsShow a, ParamsShow b, ParamsShow c, ParamsShow d) => ParamsShow (a, b, c, d) where 
-    render x = render (x^._1) <> ", " <> render (x^._2) <> ", " <> render (x^._3) <> ", " <> render (x^._4) 
+  render x = render (x^._1) <> ", " <> render (x^._2) <> ", " <> render (x^._3) <> ", " <> render (x^._4)     
 instance ParamsShow a => ParamsShow [a] where 
   render xs = intercalate ", " $ map render xs
 instance {-# OVERLAPS #-} (Coercible a b, Show b) => ParamsShow a where render = show . coerce @a @b
 
 statement :: ParamsShow a => Hasql.Statement a b -> a -> ReaderT KatipLoggerIO Session b
-statement s@(Hasql.Statement sql _ _ _) a = do 
+statement s@(Hasql.Statement sql _ _ _) a = do
   logger <- ask
   liftIO $ logger DebugS (ls (sql <> " [" <> (render a^.stext.textbs)) <> "]") 
   lift $ Hasql.statement a s

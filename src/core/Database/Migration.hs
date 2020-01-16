@@ -60,16 +60,21 @@ roll v =
       liftIO $ logger InfoS (logStr ("migration will be start from version " <> i^.stringify))     
       next <- lift $ Batch.rollMigrations (Batch.Version i) logger
       for_ (next <|> batch) $ \ident -> do
-        let new = ident^.coerced 
-        statement (setVersion (maybe (New new) (const (Init new)) v)) ()
+        let new = ident^.coerced
+        statement (setVersion (maybe (New new) (const (Init new)) v)) None
         liftIO $ logger InfoS (logStr ("migration finished at version " <> show ident))
       when (isNothing next) $ liftIO $ logger InfoS (logStr ("no migration found" :: String))
 
 getVersion :: Hasql.Statement.Statement () (Maybe Word32)
 getVersion = rmap (fmap fromIntegral) [maybeStatement|select (version :: int4) from db_meta|]
 
-data SetVrsion = Init Word32 | New Word32   
+data SetVersion = Init Word32 | New Word32 | None
 
-setVersion :: SetVrsion -> Hasql.Statement.Statement () ()
+instance ParamsShow SetVersion where 
+  render (Init x) = show x
+  render (New x) = show x
+  render None = mempty
+
+setVersion ::  SetVersion -> Hasql.Statement.Statement SetVersion ()
 setVersion (Init v) = lmap (const (v^.integral)) [resultlessStatement|insert into db_meta (version, created) values ($1 :: int4, now())|]
 setVersion (New v) = lmap (const (v^.integral)) [resultlessStatement|update db_meta set version = $1 :: int4, modified = now()|]

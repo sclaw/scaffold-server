@@ -49,6 +49,8 @@ import Network.Wai.Middleware.Cors
 import qualified Hasql.Connection as Hasql
 import qualified Data.Pool as Pool
 import Data.Generics.Product.Fields
+import Servant.Multipart
+import Network.Wai.Parse
 
 data Cfg = 
      Cfg 
@@ -98,6 +100,7 @@ run Cfg {..} =
               , KatipLoggerIO
               , Bool
               , Id
+              , Proxy Tmp
               , Pool.Pool Hasql.Connection]
           context = Proxy     
       let server = 
@@ -113,9 +116,13 @@ run Cfg {..} =
            Warp.defaultSettings
            & Warp.setPort cfgPort
            & Warp.setOnException (logUncaughtException excep)
+      let multipartOpts = 
+            (defaultMultipartOptions (Proxy :: Proxy Tmp)) 
+            { generalOptions = clearMaxRequestNumFiles defaultParseRequestBodyOptions }   
       let mkCtx = jwtCfg :. defaultCookieSettings 
                   :. ctxlog :. cfgIsAuthEnabled 
                   :. cfgUserId :. (cfg^.katipEnv.hasqlDbPool)
+                  :. multipartOpts
                   :. EmptyContext      
       let runServer = serveWithContext (withSwagger api) mkCtx server
       mware <-katipAddNamespace (Namespace ["middleware"]) askLoggerIO

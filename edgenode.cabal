@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e1b0ad57bc0daa96742dc3e425e334489160086d0c26cfe22c26bfc20440bcde
+-- hash: 256c974890163c1519358bcc456005ea68a49296b990ec797c4f3af4b3a548e3
 
 name:           edgenode
 version:        0.1.0.0
@@ -40,6 +40,7 @@ library
       EdgeNode.Application
       EdgeNode.Config
       EdgeNode.Controller.Controller
+      EdgeNode.Controller.File.Download
       EdgeNode.Controller.File.Upload
       EdgeNode.Iso
       EdgeNode.Model.File
@@ -59,7 +60,7 @@ library
       Servant.Ip
       Servant.Multipart.File
       Servant.Swagger.KatipController
-      Swagger.ToSchema
+      Servant.Swagger.RawM
       TH.Mk
       TH.Proto
       Web.Google.Translator
@@ -180,6 +181,7 @@ library
     , servant-auth-swagger
     , servant-client-core
     , servant-multipart
+    , servant-rawm
     , servant-server
     , servant-swagger
     , servant-swagger-ui
@@ -213,6 +215,7 @@ library
     , wai
     , wai-app-static
     , wai-cors
+    , wai-extra
     , warp
     , websockets
     , yaml

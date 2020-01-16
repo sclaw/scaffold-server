@@ -16,6 +16,7 @@ import EdgeNode.Transport.Response
 import Servant.Multipart.File
 import Servant.Multipart
 import TH.Proto
+import Servant.RawM
 
 data FileApi route = 
      FileApi
@@ -37,5 +38,6 @@ data FileApi route =
        :: route
        :- Description ""
        :> "download"
-       :> Raw
+       :> Capture "fid" Id
+       :> RawM
      } deriving stock Generic

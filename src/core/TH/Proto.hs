@@ -16,6 +16,8 @@ import EdgeNode.Minio
 import TH.Mk
 import GHC.Generics
 import Control.Lens
+import Test.QuickCheck.Extended
+import Database.Transaction
 
 mkEnumConvertor ''Language
 mkEnumConvertor ''Country
@@ -30,3 +32,8 @@ mkSRGEqEnum ''Bucket "EdgeNode"
 mkEnumConvertor ''EdgeNodeBucket
 mkParamSchemaEnum ''EdgeNodeBucket
 mkFromHttpApiDataEnum ''EdgeNodeBucket
+
+instance Arbitrary EdgeNodeBucket where
+  arbitrary = oneof [pure Default, pure Provider]
+
+instance ParamsShow EdgeNodeBucket where render x = x^.isoEdgeNodeBucket

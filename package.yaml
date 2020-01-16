@@ -172,6 +172,8 @@ library:
     - text-show
     - foldl
     - servant-multipart
+    - servant-rawm
+    - wai-extra
 
   source-dirs:
     - src/core

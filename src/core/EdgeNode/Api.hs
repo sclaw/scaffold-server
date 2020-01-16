@@ -32,6 +32,7 @@ import Data.Swagger
 import Control.Lens
 import Servant.Auth.Swagger ()
 import Control.Lens.Iso.Extended
+import Servant.Swagger.RawM ()
 
 data ApplicationApi route = 
      ApplicationApi 

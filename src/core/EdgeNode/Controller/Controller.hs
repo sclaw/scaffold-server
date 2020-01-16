@@ -13,6 +13,7 @@ import qualified EdgeNode.Model.Rbac as Rbac
 import qualified EdgeNode.Statement.Rbac as Rbac
 -- controllers
 import qualified EdgeNode.Controller.File.Upload as File.Upload
+import qualified EdgeNode.Controller.File.Download as File.Download
 
 import Katip
 import KatipController
@@ -24,9 +25,6 @@ import Control.Lens
 import Servant.Server
 import Database.Transaction
 import Control.Monad
-import qualified Network.Wai as Wai
-import qualified Data.ByteString.Lazy as BL
-import Network.HTTP.Types
 
 controller :: ApplicationApi (AsServerT KatipController)
 controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
@@ -109,5 +107,9 @@ file _ =
     (File.Upload.controller bucket file)
   , _fileApiPatch = undefined
   , _fileApiDelete = undefined
-  , _fileApiDownload = Tagged $ \_ resp -> resp $ Wai.responseLBS status200 [] BL.empty
+  , _fileApiDownload = \fid -> 
+     flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["file", "download"]) 
+     (File.Download.controller fid)
   } 

@@ -5,7 +5,7 @@
 module EdgeNode.Controller.File.Upload (controller) where
 
 import EdgeNode.Transport.Response
-import EdgeNode.Statement.File
+import EdgeNode.Statement.File as File
 import EdgeNode.Transport.Id
 import EdgeNode.Model.File
 
@@ -20,8 +20,6 @@ import Katip
 import Control.Monad
 import Hash
 import Database.Transaction
-import qualified Hasql.Session as Hasql
-import qualified Data.Text as T
 import Data.Time.Clock
 import Data.Traversable
 import Data.Coerce
@@ -48,15 +46,10 @@ controller bucket x = do
     let tpl = 
           ( Hash (UnicodeText hash)
           , Name (UnicodeText fileName)
-          , Mime (UnicodeText fileMime))
+          , Mime (UnicodeText fileMime)
+          , bucket)
     return $ fmap (const tpl) minioResult
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   let (errorXs, successXs) = partitionEithers es
-  ids <- katipTransaction hasql (lift (action successXs))
-  return $ Warnings ids (map (asError .  mkErr) errorXs)
-
-mkErr :: MinioErr -> T.Text
-mkErr e = show e^.stext 
-
-action :: [(Hash, Name, Mime)] -> Hasql.Session [Id]
-action = (`Hasql.statement` save)
+  ids <- katipTransaction hasql $ statement File.save successXs
+  return $ Warnings ids (map (asError . (\e -> show e^.stext)) errorXs)
