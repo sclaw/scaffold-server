@@ -44,7 +44,7 @@ mkDbMeta = Hasql.Statement.Statement sql HE.noParams HD.noResult False
   where 
     sql = 
      [uncheckedSql|
-       create table db_meta (
+       create table public.db_meta (
         version int4 not null,
         created timestamptz not
         null default now(),
@@ -76,5 +76,5 @@ instance ParamsShow SetVersion where
   render None = mempty
 
 setVersion ::  SetVersion -> Hasql.Statement.Statement SetVersion ()
-setVersion (Init v) = lmap (const (v^.integral)) [resultlessStatement|insert into db_meta (version, created) values ($1 :: int4, now())|]
-setVersion (New v) = lmap (const (v^.integral)) [resultlessStatement|update db_meta set version = $1 :: int4, modified = now()|]
+setVersion (Init v) = lmap (const (v^.integral)) [resultlessStatement|insert into public.db_meta (version, created) values ($1 :: int4, now())|]
+setVersion (New v) = lmap (const (v^.integral)) [resultlessStatement|update public.db_meta set version = $1 :: int4, modified = now()|]
