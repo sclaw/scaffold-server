@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Servant.Multipart.File (Files (..), File (..)) where
 
@@ -26,11 +27,15 @@ data File =
      }
 
 instance FromMultipart Tmp Files where 
-    fromMultipart x = 
-      Just $ Files $ flip map (files x) $ \FileData {..} -> 
-        File fdFileName fdFileCType fdPayload
+  fromMultipart x = 
+    Just $ Files $ flip map (files x) $ \FileData {..} -> 
+      File fdFileName fdFileCType fdPayload
 
-instance HasSwagger sub => HasSwagger (MultipartForm tag Files :> sub) where
+instance FromMultipart Tmp File where 
+  fromMultipart x = fmap mkFile $ lookupFile "file" x
+    where mkFile FileData {..} = File fdFileName fdFileCType fdPayload
+
+instance HasSwagger sub => HasSwagger (MultipartForm tag a :> sub) where
   toSwagger _ = 
     toSwagger (Proxy :: Proxy sub) & 
     Servant.Swagger.Internal.addParam paramFile

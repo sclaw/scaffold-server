@@ -29,10 +29,13 @@ data FileApi route =
      , _fileApiPatch
        :: route 
        :- Description ""
+       :> Capture "fid" Id
+       :> MultipartForm Tmp File       
        :> Patch '[JSON] ()
      , _fileApiDelete
        :: route
        :- Description ""
+       :> Capture "fid" Id
        :> Delete '[JSON] ()
      , _fileApiDownload
        :: route

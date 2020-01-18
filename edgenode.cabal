@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 256c974890163c1519358bcc456005ea68a49296b990ec797c4f3af4b3a548e3
+-- hash: b83931227bb3303431c39ca14c88275a25e9ede6a2853af11141e146a1ed9872
 
 name:           edgenode
 version:        0.1.0.0
@@ -112,6 +112,7 @@ library
     , bytestring
     , casing
     , colorful-monoids
+    , conduit
     , containers
     , contravariant-extras
     , data-default-class

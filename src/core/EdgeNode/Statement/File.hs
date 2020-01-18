@@ -1,7 +1,8 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 
-module EdgeNode.Statement.File (save) where
+module EdgeNode.Statement.File (save, getMeta) where
 
 import EdgeNode.Transport.Id
 import EdgeNode.Model.File
@@ -38,3 +39,8 @@ save =
           $3 :: text[],
           $4 :: text[]) as x(hash, title, mime, bucket) 
         returning id :: int8|]
+
+getMeta :: HS.Statement Id (Maybe (Hash, Name, Mime, Bucket))
+getMeta = dimap (^.coerced) (fmap mkTpl) statement
+  where statement = [maybeStatement| select hash :: text, title :: text, mime :: text, bucket :: text from storage.file where id = $1 :: int8|]
+        mkTpl x = x & _1 %~ coerce & _2 %~ coerce & _3 %~ coerce & _4 %~ coerce 

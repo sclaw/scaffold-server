@@ -59,7 +59,10 @@ explainTests =
           EdgeNode.Statement.Rbac.getTopLevelRoles
         , "elem" =>> EdgeNode.Statement.Rbac.elem
         ]
-  , "EdgeNode.Statement.File" ==> ["save" =>> EdgeNode.Statement.File.save]      
+  , "EdgeNode.Statement.File" ==> 
+    [ "save" =>> EdgeNode.Statement.File.save
+    , "getMeta" =>> EdgeNode.Statement.File.getMeta
+    ]      
   ]
   
 (==>) a b = (a, b)
