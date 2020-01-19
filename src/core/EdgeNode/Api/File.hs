@@ -8,15 +8,15 @@
 module EdgeNode.Api.File (FileApi (..)) where
 
 import EdgeNode.Transport.Id
+import EdgeNode.Transport.Response
 
 import Servant.API.Generic
-import Servant.API.WebSocket ()
 import Servant.API
-import EdgeNode.Transport.Response
 import Servant.Multipart.File
 import Servant.Multipart
 import TH.Proto
 import Servant.RawM
+import Data.Aeson.Unit
 
 data FileApi route = 
      FileApi
@@ -28,18 +28,18 @@ data FileApi route =
        :> Post '[JSON] (Response [Id])
      , _fileApiPatch
        :: route 
-       :- Description ""
+       :- Description "patch file by replacing new one"
        :> Capture "fid" Id
        :> MultipartForm Tmp File       
-       :> Patch '[JSON] ()
+       :> Patch '[JSON] (Response Unit)
      , _fileApiDelete
        :: route
-       :- Description ""
+       :- Description "delete file"
        :> Capture "fid" Id
-       :> Delete '[JSON] ()
+       :> Delete '[JSON] (Response Unit)
      , _fileApiDownload
        :: route
-       :- Description ""
+       :- Description "download from server"
        :> "download"
        :> Capture "fid" Id
        :> RawM

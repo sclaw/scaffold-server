@@ -14,6 +14,8 @@ import qualified EdgeNode.Statement.Rbac as Rbac
 -- controllers
 import qualified EdgeNode.Controller.File.Upload as File.Upload
 import qualified EdgeNode.Controller.File.Download as File.Download
+import qualified EdgeNode.Controller.File.Delete as File.Delete
+import qualified EdgeNode.Controller.File.Patch as File.Patch
 
 import Katip
 import KatipController
@@ -100,16 +102,24 @@ search _ user =
 file :: Maybe IP4 -> FileApi (AsServerT KatipController)
 file _ = 
   FileApi 
-  { _fileApiUpload = \bucket file -> 
+  { _fileApiUpload = \bucket files -> 
     flip logExceptionM ErrorS $
     katipAddNamespace 
     (Namespace ["file", "upload"])
-    (File.Upload.controller bucket file)
-  , _fileApiPatch = undefined
-  , _fileApiDelete = undefined
+    (File.Upload.controller bucket files)
+  , _fileApiPatch = \fid file ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["file", "patch"])
+    (File.Patch.controller fid file)  
+  , _fileApiDelete = \fid ->
+     flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["file", "delete"]) 
+     (File.Delete.controller fid)    
   , _fileApiDownload = \fid -> 
      flip logExceptionM ErrorS $
      katipAddNamespace 
      (Namespace ["file", "download"]) 
      (File.Download.controller fid)
-  } 
+  }

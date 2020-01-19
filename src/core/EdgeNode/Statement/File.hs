@@ -2,7 +2,12 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 
-module EdgeNode.Statement.File (save, getMeta) where
+module EdgeNode.Statement.File 
+       ( save
+       , getMeta
+       , EdgeNode.Statement.File.delete
+       , getHash
+       ) where
 
 import EdgeNode.Transport.Id
 import EdgeNode.Model.File
@@ -42,5 +47,29 @@ save =
 
 getMeta :: HS.Statement Id (Maybe (Hash, Name, Mime, Bucket))
 getMeta = dimap (^.coerced) (fmap mkTpl) statement
-  where statement = [maybeStatement| select hash :: text, title :: text, mime :: text, bucket :: text from storage.file where id = $1 :: int8|]
-        mkTpl x = x & _1 %~ coerce & _2 %~ coerce & _3 %~ coerce & _4 %~ coerce 
+  where 
+    statement = 
+      [maybeStatement| 
+        select hash :: text, title :: text, mime :: text, bucket :: text 
+        from storage.file
+        where id = $1 :: int8 
+              and not is_deleted|]
+    mkTpl x = x & _1 %~ coerce & _2 %~ coerce & _3 %~ coerce & _4 %~ coerce 
+
+delete :: HS.Statement Id ()
+delete = lmap coerce statement
+  where
+    statement = 
+      [singletonStatement|
+        update storage.file 
+        set deleted = now(), is_deleted = true 
+        where id = $1 :: int8|]
+
+getHash :: HS.Statement Id (Maybe Hash)
+getHash = dimap (^.coerced) (fmap coerce) statement
+  where 
+    statement = 
+      [maybeStatement|
+        select hash :: text
+        from storage.file
+        where id = $1 :: int8|]
