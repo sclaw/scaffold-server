@@ -6,7 +6,8 @@ module EdgeNode.Statement.File
        ( save
        , getMeta
        , EdgeNode.Statement.File.delete
-       , getHash
+       , getHashWithBucket
+       , patch
        ) where
 
 import EdgeNode.Transport.Id
@@ -67,11 +68,22 @@ delete = dimap coerce (\x -> x > 0) statement
         where id = $1 :: int8 
               and not is_deleted :: bool|]
 
-getHash :: HS.Statement Id (Maybe Hash)
-getHash = dimap (^.coerced) (fmap coerce) statement
+getHashWithBucket :: HS.Statement Id (Maybe (Hash, Bucket))
+getHashWithBucket = dimap (^.coerced) (fmap (\x -> x & _1 %~ coerce & _2 %~ coerce)) statement
   where 
     statement = 
       [maybeStatement|
-        select hash :: text
+        select hash :: text, bucket :: text
         from storage.file
         where id = $1 :: int8|]
+
+patch :: HS.Statement (Name, Mime, Hash) ()
+patch = lmap (\x -> x & _1 %~ coerce & _2 %~ coerce & _3 %~ coerce) statement 
+  where
+    statement = 
+      [resultlessStatement|
+        update storage.file set 
+        title = $1 :: text,
+        mime = $2 :: text,
+        modified = now()
+        where hash = $3 :: text|]

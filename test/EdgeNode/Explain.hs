@@ -63,7 +63,8 @@ explainTests =
     [ "save" =>> EdgeNode.Statement.File.save
     , "getMeta" =>> EdgeNode.Statement.File.getMeta
     , "delete" =>> EdgeNode.Statement.File.delete
-    , "getHask" =>> EdgeNode.Statement.File.getHash
+    , "getHashWithBucket" =>> EdgeNode.Statement.File.getHashWithBucket
+    , "patch" =>> EdgeNode.Statement.File.patch
     ]
   ]
   

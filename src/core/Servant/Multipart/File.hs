@@ -16,6 +16,7 @@ import Servant.API
 import Servant.Multipart
 import Data.Swagger as Swagger
 import Control.Lens
+import Data.Typeable
 
 newtype Files = Files { filesXs :: [File] }
 
@@ -32,17 +33,17 @@ instance FromMultipart Tmp Files where
       File fdFileName fdFileCType fdPayload
 
 instance FromMultipart Tmp File where 
-  fromMultipart x = fmap mkFile $ lookupFile "file" x
+  fromMultipart x = fmap mkFile $ lookupFile "payloadFile" x
     where mkFile FileData {..} = File fdFileName fdFileCType fdPayload
 
-instance HasSwagger sub => HasSwagger (MultipartForm tag a :> sub) where
+instance (Typeable a, HasSwagger sub) => HasSwagger (MultipartForm tag a :> sub) where
   toSwagger _ = 
     toSwagger (Proxy :: Proxy sub) & 
     Servant.Swagger.Internal.addParam paramFile
     where
       paramFile = 
         mempty
-        & Swagger.name .~ "payload"
+        & Swagger.name .~ ("payload" <> T.pack (show (typeOf (undefined :: a))))
         & Swagger.required ?~ True
         & Swagger.schema .~ 
           Swagger.ParamOther
