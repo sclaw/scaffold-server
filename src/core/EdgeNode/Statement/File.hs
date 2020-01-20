@@ -64,7 +64,8 @@ delete = dimap coerce (\x -> x > 0) statement
         update storage.file 
         set deleted = now(), 
         is_deleted = true 
-        where id = $1 :: int8|]
+        where id = $1 :: int8 
+              and not is_deleted :: bool|]
 
 getHash :: HS.Statement Id (Maybe Hash)
 getHash = dimap (^.coerced) (fmap coerce) statement

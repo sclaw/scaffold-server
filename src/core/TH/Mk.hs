@@ -431,4 +431,25 @@ mkMigrationTest = do
   return $ sig : [ValD (VarP list) (NormalB (ListE xs')) []]
 
 mkEncoder :: Name -> Q [Dec]
-mkEncoder _ = undefined
+mkEncoder name = do 
+  TyConI (DataD _ _ _ _ c@[(RecC _ xs)] _) <- reify name
+  let types = flip map xs $ \(_, _, ConT t) -> 
+        case nameBase t of 
+          "Text" -> ConT (mkName ("T." <> (nameBase t)))
+          _ -> ConT (mkName (nameBase t))
+  let mkTpl [] tpl = tpl 
+      mkTpl (t:ts) app = mkTpl ts (AppT app t) 
+  let mkTypeSyn = 
+        TySynD (mkName (nameBase name <> "Encoder")) [] 
+               (mkTpl types (TupleT (length xs)))
+  let mkEncoderSig = 
+        SigD (mkName ("mkEncoder" <> nameBase name)) 
+             (AppT (AppT ArrowT (ConT name)) 
+                    (mkTpl types (TupleT (length xs))))
+  let fields = flip map xs $ \(field, _, _) -> VarE (mkName (nameBase field))
+  let mkTplExp r [] = r
+      mkTplExp r (f:fs) = mkTplExp (r ++ [AppE f (VarE (mkName "x"))]) fs
+  let mkEncoderFun = 
+        FunD (mkName ("mkEncoder" <> nameBase name)) 
+             [Clause [] (NormalB (LamE [VarP (mkName "x")] (TupE (mkTplExp [] fields)))) []]
+  return [mkTypeSyn, mkEncoderSig, mkEncoderFun]
