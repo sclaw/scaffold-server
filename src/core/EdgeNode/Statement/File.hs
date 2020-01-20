@@ -56,13 +56,14 @@ getMeta = dimap (^.coerced) (fmap mkTpl) statement
               and not is_deleted|]
     mkTpl x = x & _1 %~ coerce & _2 %~ coerce & _3 %~ coerce & _4 %~ coerce 
 
-delete :: HS.Statement Id ()
-delete = lmap coerce statement
+delete :: HS.Statement Id Bool
+delete = dimap coerce (\x -> x > 0) statement
   where
     statement = 
-      [singletonStatement|
+      [rowsAffectedStatement|
         update storage.file 
-        set deleted = now(), is_deleted = true 
+        set deleted = now(), 
+        is_deleted = true 
         where id = $1 :: int8|]
 
 getHash :: HS.Statement Id (Maybe Hash)

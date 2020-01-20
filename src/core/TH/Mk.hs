@@ -23,6 +23,7 @@ module TH.Mk
        , mkParamSchemaEnum
        , mkMigrationSeq
        , mkMigrationTest
+       , mkEncoder
        )
        where
 
@@ -428,3 +429,6 @@ mkMigrationTest = do
   let xs' = if null xs then [] else map mkSql xs
   let sig = SigD list (AppT ListT (ConT (mkName "ByteString")))
   return $ sig : [ValD (VarP list) (NormalB (ListE xs')) []]
+
+mkEncoder :: Name -> Q [Dec]
+mkEncoder _ = undefined
