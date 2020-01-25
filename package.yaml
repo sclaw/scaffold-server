@@ -175,6 +175,8 @@ library:
     - servant-rawm
     - wai-extra
     - conduit
+    - HList
+    - derive
 
   source-dirs:
     - src/core

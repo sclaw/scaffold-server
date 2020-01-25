@@ -94,6 +94,8 @@ extra-deps:
  - selective-0.3@sha256:2777d8b1f298f91ae1570af5d59ca19ff5266629b6565ae1d4ef59f90387391b,3522
  - servant-multipart-0.11.4@sha256:f34d1ef775113ce5e4ad54018a3b83435abcff4b63e2520db8a626d67566205f,2143
  - minio-hs-1.5.2
+ - HList-0.5.0.0@sha256:7d7a0bee8d01a7e0e10bf96c5214a21bebae3ecfc02d14fc13bf75458b38ac43,7137
+ - derive-2.6.5@sha256:41480f98be28ca5a942f137f1ce17c2fc5e67040c434e8d3f4c45459b8bc6cbb,3184
 
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git

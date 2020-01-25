@@ -37,6 +37,11 @@ services:
     networks:
       - edgeNode
   
+  storage: 
+    image: minio/minio:latest
+    container_name: "edge-node-file-storage"
+    restart: 'always'
+
 networks:
   edgeNode:
 

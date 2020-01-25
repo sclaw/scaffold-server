@@ -33,6 +33,7 @@ import Data.Swagger hiding (Response)
 import Data.Validation hiding (fromEither)
 import GHC.Exts
 import GHC.Generics
+import Test.QuickCheck.Extended
 
 --  Generic response for sirius services.
 data Response a
@@ -86,6 +87,9 @@ instance (ToSchema a, Typeable a) => ToSchema (Response a) where
              , ("warnings", eSchema)
              , ("error", eSchema)
              ]
+
+instance Arbitrary a => Arbitrary (Response a) where arbitrary = fmap (\x -> Response x [] []) arbitrary
+
 
 fromValidation :: Validate v => v [EdgeNode.Error] a -> Response a
 fromValidation v = either Errors Ok $ v ^. _Either

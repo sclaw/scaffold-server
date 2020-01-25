@@ -7,21 +7,19 @@
 
 module EdgeNode.Api.Admin (AdminApi (..)) where
 
+import EdgeNode.Transport.Provider
+import EdgeNode.Transport.Response
+
 import Servant.API.Generic
 import Servant.API
+import Data.Aeson.Unit
 
 data AdminApi route = 
      AdminApi 
-     { _adminApiRegistrationCountry
+     { _adminApiProviderRegister
        :: route
        :- "provider"
-       :> "registration"
-       :> "country"
-       :> Get '[JSON] ()
-     , _adminApiRegistrationTypes
-       :: route
-       :- "provider"
-       :> "registration"
-       :> "types"
-       :> Get '[JSON] ()  
+       :> "registter"
+       :> ReqBody '[JSON] ProviderRegistration 
+       :> Post '[JSON] (Response Unit)  
      } deriving stock Generic

@@ -1,7 +1,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 
-module EdgeNode.Statement.Rbac (getTopLevelRoles, EdgeNode.Statement.Rbac.elem) where
+module EdgeNode.Statement.Rbac (getTopLevelRoles, isPermissionBelongToRole) where
 
 import EdgeNode.Model.Rbac
 import EdgeNode.Transport.Id
@@ -36,8 +36,8 @@ getTopLevelRoles = lmap (bimap (^.coerced) (^.isoPermission.stext)) $ statement 
                     where title = $2 :: text)) as rp
         on r.role_fk = rp.role_fk|]
 
-elem :: HS.Statement ([Id], Permission) (Maybe Bool)
-elem = lmap (bimap (^..traversed.coerced) (^.isoPermission.stext)) statement
+isPermissionBelongToRole :: HS.Statement ([Id], Permission) (Maybe Bool)
+isPermissionBelongToRole = lmap (bimap (^..traversed.coerced) (^.isoPermission.stext)) statement
   where 
     statement = 
       [maybeStatement|

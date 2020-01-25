@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9758e7e38557bed3eea6238de48e26f240f1f3511f00636cae399de45fe29cb8
+-- hash: 597800b3dfbdb902a983ca1e5aa4220348ffee8461624adb38ae24e539f48b74
 
 name:           edgenode
 version:        0.1.0.0
@@ -84,7 +84,9 @@ library
       EdgeNode.Country
       EdgeNode.Lang
       EdgeNode.Minio
+      EdgeNode.Provider
       EdgeNode.Rbac
+      EdgeNode.Transport.Provider
       EdgeNode.User
       Protobuf.Scalar
       Time.Time
@@ -104,7 +106,8 @@ library
       app
   ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -XMonadFailDesugaring -XOverloadedStrings
   build-depends:
-      QuickCheck
+      HList
+    , QuickCheck
     , aeson
     , aeson-injector
     , async
@@ -120,6 +123,7 @@ library
     , data-default-class
     , data-textual
     , deepseq
+    , derive
     , directory
     , doctest
     , doctest-discover

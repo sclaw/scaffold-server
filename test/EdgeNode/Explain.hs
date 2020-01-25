@@ -57,7 +57,8 @@ explainTests =
   [ "EdgeNode.Statement.Rbac"
     ==> [ "getTopLevelRoles" =>> 
           EdgeNode.Statement.Rbac.getTopLevelRoles
-        , "elem" =>> EdgeNode.Statement.Rbac.elem
+        , "isPermissionBelongToRole" =>> 
+          EdgeNode.Statement.Rbac.isPermissionBelongToRole
         ]
   , "EdgeNode.Statement.File" ==> 
     [ "save" =>> EdgeNode.Statement.File.save

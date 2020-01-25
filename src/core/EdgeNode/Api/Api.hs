@@ -20,6 +20,7 @@ import EdgeNode.Api.User
 import EdgeNode.Api.Service
 import EdgeNode.Api.Search
 import EdgeNode.Api.File
+import EdgeNode.Api.Admin
 
 import Servant.Ip
 import Servant.API.Generic
@@ -56,4 +57,9 @@ data HttpApi route =
        :- "file"
        :> HeaderIP
        :> ToServant FileApi AsApi
+     , _httpApiAdmin
+       :: route 
+       :- "admin"
+       :> HeaderIP
+       :> ToServant AdminApi AsApi       
      } deriving stock Generic 

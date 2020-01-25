@@ -10,6 +10,7 @@ module Test.QuickCheck.Extended
 
 import qualified Data.Text as T
 import Test.QuickCheck
+import Data.Aeson.Unit
 
 -- | Generate arbitrary text.
 genText :: Gen T.Text
@@ -24,3 +25,5 @@ newtype UnicodeText = UnicodeText T.Text
 
 instance Arbitrary UnicodeText where
   arbitrary = UnicodeText <$> genText
+
+instance Arbitrary Unit where arbitrary = pure (toEnum 0)

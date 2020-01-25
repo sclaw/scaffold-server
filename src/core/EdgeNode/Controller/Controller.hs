@@ -37,7 +37,7 @@ verifyAuthorization uid perm controller =
     hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
     x <- katipTransaction hasql $ do 
       xs <- statement Rbac.getTopLevelRoles (uid, perm)
-      statement Rbac.elem (xs, perm)
+      statement Rbac.isPermissionBelongToRole (xs, perm)
     case x of 
       Just isOk -> do 
         unless isOk (throwAll err403)

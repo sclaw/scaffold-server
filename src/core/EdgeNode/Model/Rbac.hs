@@ -40,7 +40,11 @@ data Permission =
      deriving stock Show
 
 instance Arbitrary Permission where
-  arbitrary = oneof [pure Root, pure ProviderAdmin, pure ProviderGuest, pure User]
+  arbitrary = oneof 
+    [ pure Root
+    , pure ProviderAdmin
+    , pure ProviderGuest
+    , pure User]
 
 instance ParamsShow Permission where render = show 
 
