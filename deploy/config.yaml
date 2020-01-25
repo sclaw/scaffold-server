@@ -36,8 +36,8 @@ configService:
    - [google, AIzaSyCBwZWJtSwz4dN8suya3YLZMJJjodr3zVM]
 
 configMinio:
-  minioAccessKey: minioadmin
-  minioSecretKey: minioadmin
+  minioAccessKey: AKIAIOSFODNN7EXAMPLE
+  minioSecretKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
   minioBucketPrefix: edgenode
-  minioHost: 127.0.0.1
+  minioHost: http://1270.0.0.1
   minioPort: "9000"

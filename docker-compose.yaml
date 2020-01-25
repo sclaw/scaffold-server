@@ -22,7 +22,7 @@ services:
       - edgeNode
 
   server:
-    image: registry.gitlab.com/edgenode2/server:latest
+    image: server # registry.gitlab.com/edgenode2/server:latest
     container_name: "edge-node-server"
     links:
       - server-db
@@ -41,6 +41,14 @@ services:
     image: minio/minio:latest
     container_name: "edge-node-file-storage"
     restart: 'always'
+    ports:
+      - '9000:9000'
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ACCESS_KEY: AKIAIOSFODNN7EXAMPLE
+      MINIO_SECRET_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    command: server /data
     networks:
       - edgeNode
 
@@ -49,5 +57,6 @@ networks:
 
 volumes:
   pg_data_db: {}
+  minio_data: {}
 
 # vim: et:sw=2
