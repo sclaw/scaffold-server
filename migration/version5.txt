@@ -5,14 +5,7 @@ create table edgenode.provider (
   created timestamptz not null default now(),
   constraint "provider_uid_uniq" unique ("uid"));
 
-create auth.user (
-  id bigserial primary key,
-  password bytea not null
-  created timestamptz not null default now(),
-  modified timestamptz,
-  user_type text not null);
-
-create edgenode.provider_user (
+create table edgenode.provider_user (
   id bigserial primary key,
   email text not null,
   status text not null,  

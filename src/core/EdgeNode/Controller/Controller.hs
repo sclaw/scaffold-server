@@ -52,6 +52,7 @@ httpApi =
   , _httpApiService = \ip -> (`authGateway` (toServant . service ip))
   , _httpApiSearch  = \ip -> (`authGateway` (toServant . search ip))
   , _httpApiFile = toServant . file
+  , _httpApiAdmin = undefined
   }
 
 auth :: Maybe IP4 ->  AuthApi (AsServerT KatipController)
