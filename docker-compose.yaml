@@ -6,9 +6,9 @@ services:
     container_name: "edge-node-server-db"
     restart: 'always'
     expose:
-     - 5433
+     - 5432
     ports:
-      - '5433:5432'
+      - '5432:5432'
     environment:
       - DB_USER=web
       - DB_PASSWORD=this_is_web
@@ -22,7 +22,7 @@ services:
       - edgeNode
 
   server:
-    image: server # registry.gitlab.com/edgenode2/server:latest
+    image: registry.gitlab.com/edgenode2/server:latest
     container_name: "edge-node-server"
     links:
       - server-db
