@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 597800b3dfbdb902a983ca1e5aa4220348ffee8461624adb38ae24e539f48b74
+-- hash: 4fb8c2034a8524dafb1a7a2889d90847fb9b3bde41b20db9f729e19bc12581f6
 
 name:           edgenode
 version:        0.1.0.0
@@ -66,6 +66,7 @@ library
       TH.Mk
       TH.Proto
       Web.Google.Translator
+      Wrapper
       Control.Lens.Extended
       Control.Lens.Iso.Extended
       Data.Aeson.Extended

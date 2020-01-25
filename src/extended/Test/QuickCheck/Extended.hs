@@ -3,8 +3,7 @@
 
 module Test.QuickCheck.Extended
        ( module Test.QuickCheck
-       , UnicodeText(..)
-       , genText
+       , genText 
        , genTextN
       ) where
 
@@ -19,11 +18,5 @@ genText = T.pack . getPrintableString <$> arbitrary
 -- | Get string of the bounded size.
 genTextN :: Int -> Gen T.Text
 genTextN n = T.pack . take (n - 1) . getPrintableString <$> arbitrary
-
--- | Wrapper for text in order to generate valid unicode string
-newtype UnicodeText = UnicodeText T.Text
-
-instance Arbitrary UnicodeText where
-  arbitrary = UnicodeText <$> genText
 
 instance Arbitrary Unit where arbitrary = pure (toEnum 0)
