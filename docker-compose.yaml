@@ -1,7 +1,7 @@
 version: '3.2'
 services:
 
-  server-db:
+  database:
     image: postgres
     container_name: "edge-node-server-db"
     restart: 'always'
@@ -10,10 +10,10 @@ services:
     ports:
       - '5432:5432'
     environment:
-      - DB_USER=web
-      - DB_PASSWORD=this_is_web
-      - DB_DATABASE=web
-      - POSTGRES_PASSWORD=this_is_postgres
+      - DB_USER=$DBUSER
+      - DB_PASSWORD=3190d261d186aeead3a8deec202737c7775af5c8d455a9e5ba958c48b5fd3f59
+      - DB_DATABASE=$DATABASE
+      - POSTGRES_PASSWORD=264c0424e4bd463a7d02b9db6896143e1a96cd1c52511119f839d2bc9c934241
       - POSTGRES_USER=postgres
     volumes:
       - ${PWD}/deploy/db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
@@ -25,9 +25,11 @@ services:
     image: registry.gitlab.com/edgenode2/server:latest
     container_name: "edge-node-server"
     links:
-      - server-db
+      - database
+      - storage
     depends_on:
-      - server-db
+      - database
+      - storage
     expose:
      - 25
     ports:
