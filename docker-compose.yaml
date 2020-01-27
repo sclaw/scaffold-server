@@ -43,6 +43,8 @@ services:
     image: minio/minio:latest
     container_name: "edge-node-file-storage"
     restart: 'always'
+    expose:
+      - 9000    
     ports:
       - '9000:9000'
     volumes:
