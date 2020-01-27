@@ -5,4 +5,4 @@ cd /home/nix/
 
 sleep 2
 echo 'launch server..'
-./bin/edge-node-server --cfgPath deploy/config.yaml --pathToKatip deploy --pathToJwk deploy +RTS -N -T -s -A64m
+./bin/edge-node-server --cfgPath deploy/config.yaml --pathToKatip deploy --pathToJwk deploy +RTS -N -AL32m -n4m -A32m -qb0 -I0 -T -s
