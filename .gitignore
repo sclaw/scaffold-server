@@ -10,3 +10,4 @@ dist/
 stack.yaml.lock 
 /dist*
 site/
+.env

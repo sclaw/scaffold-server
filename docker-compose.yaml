@@ -14,7 +14,7 @@ services:
       - DB_PASSWORD=3190d261d186aeead3a8deec202737c7775af5c8d455a9e5ba958c48b5fd3f59
       - DB_DATABASE=$DATABASE
       - POSTGRES_PASSWORD=264c0424e4bd463a7d02b9db6896143e1a96cd1c52511119f839d2bc9c934241
-      - POSTGRES_USER=postgres
+       - POSTGRES_USER=postgres
     volumes:
       - ${PWD}/deploy/db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
       - pg_data_db:/var/lib/postgresql/data
@@ -22,7 +22,7 @@ services:
       - edgeNode
 
   server:
-    image: registry.gitlab.com/edgenode2/server:latest
+    image: registry.gitlab.com/edgenode2/server:$TAG
     container_name: "edge-node-server"
     links:
       - database
