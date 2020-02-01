@@ -81,7 +81,7 @@ transaction pool logger session =
               cm <- commit conn    
               traverse (const (pure result)) cm
         traverse (const withBegin) bg
-
+        
 begin, commit, rollback :: Hasql.Connection -> IO (Either Hasql.QueryError ())
 begin = Hasql.run (Hasql.sql "begin")
 commit = Hasql.run (Hasql.sql "commit")

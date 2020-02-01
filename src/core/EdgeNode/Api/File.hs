@@ -11,7 +11,7 @@ import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
 
 import Servant.API.Generic
-import Servant.API
+import Servant.API.Extended
 import Servant.Multipart.File
 import Servant.Multipart
 import TH.Proto

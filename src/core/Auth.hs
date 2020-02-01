@@ -22,7 +22,7 @@ module Auth
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
 
-import Time.Time
+import Data.Time
 import qualified Data.Text as T
 import Servant.Auth.Server.Internal.JWT
 import Servant.Auth.Server

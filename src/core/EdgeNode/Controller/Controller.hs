@@ -28,6 +28,8 @@ import Servant.Server
 import Database.Transaction
 import Control.Monad
 
+import Debug.Trace
+
 controller :: ApplicationApi (AsServerT KatipController)
 controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
 
@@ -52,7 +54,7 @@ httpApi =
   , _httpApiService = \ip -> (`authGateway` (toServant . service ip))
   , _httpApiSearch  = \ip -> (`authGateway` (toServant . search ip))
   , _httpApiFile = toServant . file
-  , _httpApiAdmin = undefined
+  , _httpApiAdmin = toServant . admin
   }
 
 auth :: Maybe IP4 ->  AuthApi (AsServerT KatipController)
@@ -124,3 +126,6 @@ file _ =
      (Namespace ["file", "download"]) 
      (File.Download.controller fid)
   }
+
+admin :: Maybe IP4 -> AdminApi (AsServerT KatipController)
+admin _ = AdminApi { _adminApiProviderRegister = \req -> trace (show req) undefined } 

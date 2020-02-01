@@ -5,7 +5,7 @@ module Data.Tree.Extended
 
 import Data.Tree 
 import Data.Tree.Zipper
-import           Control.Applicative
+import Control.Applicative
 
 insert :: Eq a => a -> (a -> Bool) -> Tree a -> Tree a
 insert node _ tree | isRoot (fromTree tree) && label (fromTree tree) == node = tree

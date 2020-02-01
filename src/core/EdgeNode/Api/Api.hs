@@ -12,6 +12,7 @@ module EdgeNode.Api.Api
        , module EdgeNode.Api.Service
        , module EdgeNode.Api.Search
        , module EdgeNode.Api.File
+       , module EdgeNode.Api.Admin 
        ) where
 
 import Auth

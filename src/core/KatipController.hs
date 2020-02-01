@@ -9,6 +9,7 @@
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE PackageImports #-}
 
 module KatipController
        ( Config (..)
@@ -58,7 +59,7 @@ import Control.DeepSeq
 import Network.HTTP.Client
 import Crypto.JOSE.JWK
 import Control.Monad.Time
-import Data.Time
+import "time" Data.Time
 import qualified Control.Monad.RWS.Strict as RWS 
 import Control.Monad.RWS.Class
 import qualified Network.Minio as Minio 

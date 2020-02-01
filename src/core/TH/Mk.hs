@@ -6,16 +6,12 @@
 {-# LANGUAGE TupleSections #-}
 
 module TH.Mk
-       ( mkPrimitivePersistField
-       , mkWrappedPrimitivePersistField
-       , mkNumInstanceFromWrappedNum
-       , mkWrappedForDataWithSingleField
+       ( mkWrappedForDataWithSingleField
        , mkToSchemaAndJSON
        , mkToSchemaAndJSONProtoIdent
        , mkSRGEqEnum
        , mkToSchemaAndDefJSON
        , mkEnumConvertor
-       , mkPrimitivePersistFieldParam
        , mkRequestWrapper
        , mkResponseWrapper
        , mkFromHttpApiDataIdent
@@ -28,7 +24,6 @@ module TH.Mk
        where
 
 import Control.Lens
-import Database.Groundhog.Core
 import Language.Haskell.TH
 import Data.Aeson.Extended          (deriveJSON', deriveJSON)
 import Data.Swagger.Schema.Extended
@@ -51,76 +46,6 @@ import Data.List
 import System.IO
 import Control.Monad
 import qualified System.IO.Strict as IOS
-
-mkPrimitivePersistField :: Name -> ExpQ -> Q [Dec]
-mkPrimitivePersistField name iso = [d|
-  instance PersistField $nameT where
-    persistName _ = $(litE.stringL.show $ name)
-    toPersistValues = primToPersistValue
-    fromPersistValues = primFromPersistValue
-    dbType proxy value = dbType proxy (view $iso value)
-  instance NeverNull $nameT
-  instance PrimitivePersistField $nameT where
-    toPrimitivePersistValue value = 
-      toPrimitivePersistValue (view $iso value)
-    fromPrimitivePersistValue prim = 
-      view (from $iso) (fromPrimitivePersistValue prim)
-  |]
-  where nameT = conT name
-
-mkPrimitivePersistFieldParam :: Name -> ExpQ -> Q [Dec]
-mkPrimitivePersistFieldParam name iso = 
-  [d|
-     instance (PrimitivePersistField $(varT a)
-             , ToJSON $(varT a)
-             , FromJSON $(varT a)) 
-             => PersistField $(appT nameT (varT a)) where
-       persistName _ = $(litE.stringL $ nameBase name)
-       toPersistValues = primToPersistValue
-       fromPersistValues = primFromPersistValue
-       dbType proxy value = dbType proxy (view $iso value)
-     instance NeverNull $(appT nameT (varT a))
-     instance (PrimitivePersistField $(varT a)
-             , ToJSON $(varT a)
-             , FromJSON $(varT a)) 
-             => PrimitivePersistField $(appT nameT (varT a)) where
-       toPrimitivePersistValue value = 
-         toPrimitivePersistValue (view $iso value)
-       fromPrimitivePersistValue prim = 
-         view (from $iso) (fromPrimitivePersistValue prim)
-  |]
-  where nameT = conT name
-        a = mkName "a"  
-
-mkWrappedPrimitivePersistField :: Name -> Q [Dec]
-mkWrappedPrimitivePersistField name = do
-  decs1 <- makeWrapped name
-  decs2 <- mkPrimitivePersistField name [| _Wrapped' |]
-  pure $ decs1 ++ decs2
-
-mkNumInstanceFromWrappedNum :: Name -> ExpQ -> Q [Dec]
-mkNumInstanceFromWrappedNum name iso =
-  do
-    let x = mkName "x"
-        y = mkName "y"
-        plus = mkName "+"
-        multiply = mkName "*"
-        abs = mkName "abs"
-        minus = mkName "-"
-        sig = mkName "signum"
-    TyConI (DataD _ _ _ _ [RecC cons _] _) <- reify name
-    [d|
-       instance Num $(conT name) where
-         (+) $(conP cons [varP x]) $(conP cons [varP y]) =
-             $(conE cons) $(infixE (Just (varE x)) (varE plus) (Just (varE y)))
-         (*) $(conP cons [varP x]) $(conP cons [varP y]) =
-             $(conE cons) $(infixE (Just (varE x)) (varE multiply) (Just (varE y)))
-         abs $(conP cons [varP x]) = $(conE cons) $(appE (varE abs) (varE x))
-         signum $(conP cons [varP x]) = $(conE cons) $(appE (varE sig) (varE x))
-         fromInteger x = $(conE cons) (view $iso x)
-         (-) $(conP cons [varP x]) $(conP cons [varP y]) =
-             $(conE cons) $(infixE (Just (varE x)) (varE minus) (Just (varE y)))
-     |]
 
 getConstructorType (RecC _ [(_, _, ConT c)]) = c
 getConstructorType (NormalC _ [(_, ConT c)]) = c
@@ -431,12 +356,18 @@ mkMigrationTest = do
   return $ sig : [ValD (VarP list) (NormalB (ListE xs')) []]
 
 mkEncoder :: Name -> Q [Dec]
-mkEncoder name = do 
+mkEncoder name = do
   TyConI (DataD _ _ _ _ c@[(RecC _ xs)] _) <- reify name
-  let types = flip map xs $ \(_, _, ConT t) -> 
-        case nameBase t of 
-          "Text" -> ConT (mkName ("T." <> (nameBase t)))
-          _ -> ConT (mkName (nameBase t))
+  let types = flip map xs $ \(_, _, ty) ->
+        case ty of 
+          ConT t -> 
+            case nameModule t of 
+              Just "Data.Text.Internal" -> ConT (mkName ("T." <> (nameBase t)))
+              Just "Data.Text.Internal.Lazy" -> ConT (mkName ("LT." <> (nameBase t)))
+              _ -> ConT (mkName (nameBase t))
+          AppT (ConT x) (ConT y) -> 
+            AppT (ConT (mkName (nameBase x))) 
+                 (ConT (mkName (nameBase y)))    
   let mkTpl [] tpl = tpl 
       mkTpl (t:ts) app = mkTpl ts (AppT app t) 
   let mkTypeSyn = 
