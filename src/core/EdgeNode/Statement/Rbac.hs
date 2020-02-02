@@ -1,7 +1,11 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 
-module EdgeNode.Statement.Rbac (getTopLevelRoles, isPermissionBelongToRole) where
+module EdgeNode.Statement.Rbac 
+       ( getTopLevelRoles
+       , isPermissionBelongToRole
+       , assignRoleToUser
+       ) where
 
 import EdgeNode.Model.Rbac
 import EdgeNode.Transport.Id
@@ -11,6 +15,7 @@ import Control.Lens
 import Control.Lens.Iso.Extended
 import Control.Foldl
 import Hasql.TH
+import Data.Int
 
 getTopLevelRoles :: HS.Statement (Id, Permission) [Id]
 getTopLevelRoles = lmap (bimap (^.coerced) (^.isoPermission.stext)) $ statement $ premap (^.coerced) list                
@@ -55,3 +60,12 @@ isPermissionBelongToRole = lmap (bimap (^..traversed.coerced) (^.isoPermission.s
              inner join auth.permission as p
              on ps.id = p.parent_fk)
         select ((count(*) > 0) :: bool) from perms where title = $2 :: text|]
+
+assignRoleToUser :: HS.Statement Int64 ()
+assignRoleToUser = 
+  [resultlessStatement|
+    insert into auth.user_role 
+    (user_fk, role_fk) 
+    select $1 :: int8, id 
+    from auth.role 
+    where title = 'provider'|]

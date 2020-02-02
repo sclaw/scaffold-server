@@ -14,6 +14,7 @@ module EdgeNode.Explain (spec_explain) where
 import qualified EdgeNode.Statement.Rbac 
 import qualified EdgeNode.Statement.File
 import qualified EdgeNode.Statement.User
+import qualified EdgeNode.Statement.Admin
 
 import Database.Migration.Test
 import Test.Hspec hiding (shouldBe)
@@ -60,6 +61,8 @@ explainTests =
           EdgeNode.Statement.Rbac.getTopLevelRoles
         , "isPermissionBelongToRole" =>> 
           EdgeNode.Statement.Rbac.isPermissionBelongToRole
+        , "assignRoleToUser" =>>
+          EdgeNode.Statement.Rbac.assignRoleToUser  
         ]
   , "EdgeNode.Statement.File" ==> 
     [ "save" =>> EdgeNode.Statement.File.save
@@ -69,6 +72,7 @@ explainTests =
     , "patch" =>> EdgeNode.Statement.File.patch
     ]
   , "EdgeNode.Statement.User" ==> ["new" =>> EdgeNode.Statement.User.new]
+  , "EdgeNode.Statement.Admin" ==> ["newProvider" =>> EdgeNode.Statement.Admin.newProvider]
   ]
   
 (==>) a b = (a, b)

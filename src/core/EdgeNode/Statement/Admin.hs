@@ -21,6 +21,9 @@ import Database.Transaction
 import Data.Generics.Product.Fields
 import Data.List
 import GHC.Generics (Generic)
+import Data.Int
+import Data.DeriveTH
+import Test.QuickCheck.Extended
 
 data ProviderRegistrationExt = 
      ProviderRegistrationExt
@@ -32,6 +35,7 @@ data ProviderRegistrationExt =
      } deriving Generic
 
 mkEncoder ''ProviderRegistrationExt
+derive makeArbitrary ''ProviderRegistrationExt
 
 instance ParamsShow ProviderRegistrationExt where
   render x = intercalate "," 
@@ -42,12 +46,11 @@ instance ParamsShow ProviderRegistrationExt where
     , x^.field @"providerRegistrationExtRegisterStatus".from stextl
     ]
 
-
-newProvider :: HS.Statement ProviderRegistrationExt ()
+newProvider :: HS.Statement ProviderRegistrationExt (Maybe Int64)
 newProvider = lmap ((\x -> x & each %~ (^.lazytext) & _3 %~ (^.textbs)) . mkEncoderProviderRegistrationExt) statement
   where  
     statement = 
-      [resultlessStatement|
+      [maybeStatement|
         with 
           getProvider as (
            insert into edgenode.provider (uid) 
@@ -59,9 +62,10 @@ newProvider = lmap ((\x -> x & each %~ (^.lazytext) & _3 %~ (^.textbs)) . mkEnco
            (identifier, password, user_type)
            values (md5($1 :: text || $2 :: text), $3 :: bytea, $4 :: text)
            on conflict do nothing
-           returning id, 1 as m)  
+           returning id, 1 as m)
         insert into edgenode.provider_user 
         (email, status, provider_id, user_id)
         select $2 :: text, $5 :: text, t.pi, t.ui from  
         (select p.id as pi, u.id as ui 
-         from getProvider as p inner join getUser as u on p.m = u.m) as t|]
+         from getProvider as p inner join getUser as u on p.m = u.m) as t
+        returning (select id from getUser) :: int8|]
