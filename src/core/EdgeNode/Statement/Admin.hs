@@ -24,10 +24,11 @@ import GHC.Generics (Generic)
 
 data ProviderRegistrationExt = 
      ProviderRegistrationExt
-     { providerRegistrationExtAdminEmail  :: !LT.Text 
-     , providerRegistrationExtProviderUID :: !LT.Text
-     , providerRegistrationExtPassword    :: !LT.Text
-     , providerRegistrationExtType        :: !LT.Text
+     { providerRegistrationExtAdminEmail     :: !LT.Text 
+     , providerRegistrationExtProviderUID    :: !LT.Text
+     , providerRegistrationExtPassword       :: !LT.Text
+     , providerRegistrationExtType           :: !LT.Text
+     , providerRegistrationExtRegisterStatus :: !LT.Text
      } deriving Generic
 
 mkEncoder ''ProviderRegistrationExt
@@ -37,7 +38,9 @@ instance ParamsShow ProviderRegistrationExt where
     [ x^.field @"providerRegistrationExtAdminEmail".from stextl
     , x^.field @"providerRegistrationExtProviderUID".from stextl
     , x^.field @"providerRegistrationExtPassword".from stextl
-    , x^.field @"providerRegistrationExtType".from stextl]
+    , x^.field @"providerRegistrationExtType".from stextl
+    , x^.field @"providerRegistrationExtRegisterStatus".from stextl
+    ]
 
 
 newProvider :: HS.Statement ProviderRegistrationExt ()
@@ -59,6 +62,6 @@ newProvider = lmap ((\x -> x & each %~ (^.lazytext) & _3 %~ (^.textbs)) . mkEnco
            returning id, 1 as m)  
         insert into edgenode.provider_user 
         (email, status, provider_id, user_id)
-        select $2 :: text, '', t.pi, t.ui from  
+        select $2 :: text, $5 :: text, t.pi, t.ui from  
         (select p.id as pi, u.id as ui 
          from getProvider as p inner join getUser as u on p.m = u.m) as t|]

@@ -30,4 +30,5 @@ controller provider = do
         (provider^.field @"providerRegistrationProviderUID")
         (password^.stextl)
         (Secondary^.isoType.stextl)
+        (Active^.isoRegisterStatus.stextl)
   fmap (const (Ok Unit)) $ katipTransaction hasql $ statement Admin.newProvider providerExt

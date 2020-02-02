@@ -6,7 +6,14 @@
 {-# LANGUAGE TypeOperators  #-}
 {-# LANGUAGE DataKinds #-}
 
-module EdgeNode.Model.User (User, Type (..), isoType, encoder) where
+module EdgeNode.Model.User 
+       ( User
+       , Type (..)
+       , RegisterStatus (..)
+       , isoType
+       , isoRegisterStatus
+       , encoder
+       ) where
 
 import EdgeNode.User
 
@@ -41,7 +48,10 @@ derive makeArbitrary ''UInt64
 
 data Type = Primary | Secondary 
 
+data RegisterStatus = Active | Wait | TimeOut | Banned
+
 mkEnumConvertor ''Type
+mkEnumConvertor ''RegisterStatus
 
 encoder :: User -> (T.Text, T.Text, T.Text, Int32, Int32, Int32, T.Text, Maybe Int64, Int32)
 encoder x = (hToTuple . hConcat . hFromTuple) tpl
