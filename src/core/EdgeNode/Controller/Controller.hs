@@ -18,7 +18,10 @@ import qualified EdgeNode.Controller.File.Download as File.Download
 import qualified EdgeNode.Controller.File.Delete as File.Delete
 import qualified EdgeNode.Controller.File.Patch as File.Patch
 import qualified EdgeNode.Controller.Admin.ProviderRegister as Admin.ProviderRegister 
-import qualified EdgeNode.Controller.Provider.List as Provider.List 
+import qualified EdgeNode.Controller.Provider.GetBranches as Provider.GetBranches 
+import qualified EdgeNode.Controller.Provider.CreateBranch as Provider.CreateBranch 
+import qualified EdgeNode.Controller.Provider.PatchBranch as Provider.PatchBranch 
+import qualified EdgeNode.Controller.Provider.DeleteBranch as Provider.DeleteBranch 
 
 import Katip
 import KatipController
@@ -143,13 +146,37 @@ provider _ user =
   { _providerApiGetBranches = 
     flip logExceptionM ErrorS $
      katipAddNamespace 
-     (Namespace ["provider", "list"])    
+     (Namespace ["provider", "branch", "list"])    
      (applyController Nothing user $ \x -> 
        verifyAuthorization 
        (jWTUserUserId x) 
        Rbac.PermissionProviderGuest 
-       Provider.List.controller) 
-  , _providerApiCreateBranch = undefined
-  , _providerApiPatchBranch = undefined
-  , _providerApiDeleteBranch = undefined
+       Provider.GetBranches.controller)
+  , _providerApiCreateBranch = \branch ->
+    flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["provider", "branch", "create"])    
+     (applyController Nothing user $ \x -> 
+       verifyAuthorization 
+       (jWTUserUserId x) 
+       Rbac.PermissionProviderAdmin 
+       (Provider.CreateBranch.controller branch))    
+  , _providerApiPatchBranch = \ident branch ->
+    flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["provider", "branch", "patch"])    
+     (applyController Nothing user $ \x -> 
+       verifyAuthorization 
+       (jWTUserUserId x) 
+       Rbac.PermissionProviderAdmin 
+       (Provider.PatchBranch.controller ident branch))    
+  , _providerApiDeleteBranch = \ident ->
+    flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["provider", "branch", "delete"])    
+     (applyController Nothing user $ \x -> 
+       verifyAuthorization 
+       (jWTUserUserId x) 
+       Rbac.PermissionProviderAdmin 
+       (Provider.DeleteBranch.controller ident))    
   }
