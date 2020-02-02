@@ -9,6 +9,7 @@ module EdgeNode.Controller.Controller (controller) where
 import Auth
 import EdgeNode.Api
 import EdgeNode.Transport.Id
+import EdgeNode.Transport.Response
 import qualified EdgeNode.Model.Rbac as Rbac
 import qualified EdgeNode.Statement.Rbac as Rbac
 -- controllers
@@ -25,14 +26,13 @@ import Servant.API.Generic
 import Servant.Auth.Server
 import Network.IP.Addr
 import Control.Lens
-import Servant.Server
 import Database.Transaction
-import Control.Monad
+import Data.Bool
 
 controller :: ApplicationApi (AsServerT KatipController)
 controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
 
-verifyAuthorization :: Id -> Rbac.Permission -> KatipController a -> KatipController a
+verifyAuthorization :: Id -> Rbac.Permission -> KatipController (Response a) -> KatipController (Response a)
 verifyAuthorization uid perm controller = 
   do
     hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
@@ -40,10 +40,8 @@ verifyAuthorization uid perm controller =
       xs <- statement Rbac.getTopLevelRoles (uid, perm)
       statement Rbac.isPermissionBelongToRole (xs, perm)
     case x of 
-      Just isOk -> do 
-        unless isOk (throwAll err403)
-        controller
-      Nothing -> throwAll err403
+      Just isOk -> bool (return (Error undefined)) controller isOk
+      Nothing -> return $ Error undefined
  
 httpApi :: HttpApi (AsServerT KatipController)
 httpApi = 
@@ -53,7 +51,8 @@ httpApi =
   , _httpApiService = \ip -> (`authGateway` (toServant . service ip))
   , _httpApiSearch  = \ip -> (`authGateway` (toServant . search ip))
   , _httpApiFile = toServant . file
-  , _httpApiAdmin = toServant . admin
+  , _httpApiAdmin = \ip -> (`authGateway` (toServant . admin ip))
+  , _httpApiProvider = \ip -> (`authGateway` (toServant . provider ip))
   }
 
 auth :: Maybe IP4 ->  AuthApi (AsServerT KatipController)
@@ -126,12 +125,21 @@ file _ =
      (File.Download.controller fid)
   }
 
-admin :: Maybe IP4 -> AdminApi (AsServerT KatipController)
-admin _ = 
+admin :: Maybe IP4 -> AuthResult JWTUser -> AdminApi (AsServerT KatipController)
+admin _ _ = 
   AdminApi 
   { _adminApiProviderRegister = \provider -> 
     flip logExceptionM ErrorS $
      katipAddNamespace 
      (Namespace ["file", "download"])
      (Admin.ProviderRegister.controller provider)
+  }
+
+provider :: Maybe IP4 -> AuthResult JWTUser -> ProviderApi (AsServerT KatipController)
+provider _ _ = 
+  ProviderApi
+  { _providerApiGetBranches = undefined
+  , _providerApiCreateBranch = undefined
+  , _providerApiPatchBranch = undefined
+  , _providerApiDeleteBranch = undefined
   }

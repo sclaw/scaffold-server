@@ -13,6 +13,7 @@ module EdgeNode.Api.Api
        , module EdgeNode.Api.Search
        , module EdgeNode.Api.File
        , module EdgeNode.Api.Admin 
+       , module EdgeNode.Api.Provider
        ) where
 
 import Auth
@@ -22,6 +23,7 @@ import EdgeNode.Api.Service
 import EdgeNode.Api.Search
 import EdgeNode.Api.File
 import EdgeNode.Api.Admin
+import EdgeNode.Api.Provider
 
 import Servant.Ip
 import Servant.API.Generic
@@ -62,5 +64,12 @@ data HttpApi route =
        :: route 
        :- "admin"
        :> HeaderIP
-       :> ToServant AdminApi AsApi       
+       :> Auth '[AppJwt] JWTUser
+       :> ToServant AdminApi AsApi
+     , _httpApiProvider
+       :: route 
+       :- "provider"
+       :> HeaderIP
+       :> Auth '[AppJwt] JWTUser
+       :> ToServant ProviderApi AsApi              
      } deriving stock Generic 
