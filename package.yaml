@@ -177,6 +177,7 @@ library:
     - errors
     - string-conversions
     - data-default
+    - elocrypt
 
   source-dirs:
     - src/core

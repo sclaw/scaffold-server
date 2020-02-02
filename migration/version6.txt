@@ -1,0 +1,21 @@
+create table public.full_day (
+  id bigserial primary key,
+  year int8 not null,
+  month int8 not null,
+  day int8 not null  
+);
+
+create table edgenode.user (
+  id bigserial primary key,
+  name text,
+  surname text,
+  middlename text,
+  birthday_id int8 not null constraint "user_birthday_id_fk" references public.full_day(id),
+  allegiance text,
+  avatar_id int8 constraint "user_avatar_id_fk" references storage.file(id),
+  gender int4 not null,
+  status text not null, 
+  created timestamptz not null default now(),
+  modified timestamptz,
+  user_id int8 not null constraint "provider_user_user_id_fk" references auth.user(id),
+  constraint "user_user_id_uniq" unique (user_id));

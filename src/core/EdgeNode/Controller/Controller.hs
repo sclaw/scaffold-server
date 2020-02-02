@@ -16,6 +16,7 @@ import qualified EdgeNode.Controller.File.Upload as File.Upload
 import qualified EdgeNode.Controller.File.Download as File.Download
 import qualified EdgeNode.Controller.File.Delete as File.Delete
 import qualified EdgeNode.Controller.File.Patch as File.Patch
+import qualified EdgeNode.Controller.Admin.ProviderRegister as Admin.ProviderRegister 
 
 import Katip
 import KatipController
@@ -27,8 +28,6 @@ import Control.Lens
 import Servant.Server
 import Database.Transaction
 import Control.Monad
-
-import Debug.Trace
 
 controller :: ApplicationApi (AsServerT KatipController)
 controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
@@ -128,4 +127,11 @@ file _ =
   }
 
 admin :: Maybe IP4 -> AdminApi (AsServerT KatipController)
-admin _ = AdminApi { _adminApiProviderRegister = \req -> trace (show req) undefined } 
+admin _ = 
+  AdminApi 
+  { _adminApiProviderRegister = \provider -> 
+    flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["file", "download"])
+     (Admin.ProviderRegister.controller provider)
+  }

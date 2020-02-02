@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7557eefa80fb2bbc4d60a9f1bcb0d8695e4d14a4f41605e51bd2a818dcd4d06c
+-- hash: 993f1ac69d7dc2bfbf12900ef6ee3b3a09049b05b34ed16b7e9f13411fc4c5c0
 
 name:           edgenode
 version:        0.1.0.0
@@ -27,6 +27,7 @@ library
       Database.Migration.Batch
       Database.Migration.Test
       Database.Transaction
+      Default
       EdgeNode.Api
       EdgeNode.Api.Admin
       EdgeNode.Api.Api
@@ -38,6 +39,7 @@ library
       EdgeNode.Api.User
       EdgeNode.Application
       EdgeNode.Config
+      EdgeNode.Controller.Admin.ProviderRegister
       EdgeNode.Controller.Controller
       EdgeNode.Controller.File.Delete
       EdgeNode.Controller.File.Download
@@ -48,6 +50,7 @@ library
       EdgeNode.Model.Rbac
       EdgeNode.Model.User
       EdgeNode.Search
+      EdgeNode.Statement.Admin
       EdgeNode.Statement.File
       EdgeNode.Statement.Rbac
       EdgeNode.Statement.User
@@ -74,6 +77,7 @@ library
       Data.Aeson.TH.Extended
       Data.Aeson.WithField.Extended
       Data.Default.Class.Extended
+      Data.HList.HList.Extended
       Data.Swagger.Schema.Extended
       Data.Tree.Extended
       Servant.API.Extended
@@ -129,6 +133,7 @@ library
     , either
     , either-unwrap
     , ekg
+    , elocrypt
     , errors
     , exception-hierarchy
     , exceptions

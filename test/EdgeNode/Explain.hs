@@ -13,6 +13,7 @@ module EdgeNode.Explain (spec_explain) where
 
 import qualified EdgeNode.Statement.Rbac 
 import qualified EdgeNode.Statement.File
+import qualified EdgeNode.Statement.User
 
 import Database.Migration.Test
 import Test.Hspec hiding (shouldBe)
@@ -67,6 +68,7 @@ explainTests =
     , "getHashWithBucket" =>> EdgeNode.Statement.File.getHashWithBucket
     , "patch" =>> EdgeNode.Statement.File.patch
     ]
+  , "EdgeNode.Statement.User" ==> ["new" =>> EdgeNode.Statement.User.new]
   ]
   
 (==>) a b = (a, b)
