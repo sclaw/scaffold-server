@@ -41,11 +41,11 @@ getTopLevelRoles = lmap (bimap (^.coerced) (^.isoPermission.stext)) $ statement 
                     where title = $2 :: text)) as rp
         on r.role_fk = rp.role_fk|]
 
-isPermissionBelongToRole :: HS.Statement ([Id], Permission) (Maybe Bool)
+isPermissionBelongToRole :: HS.Statement ([Id], Permission) Bool
 isPermissionBelongToRole = lmap (bimap (^..traversed.coerced) (^.isoPermission.stext)) statement
   where 
     statement = 
-      [maybeStatement|
+      [singletonStatement|
         with recursive 
           perms as (
            select id, title
@@ -61,11 +61,9 @@ isPermissionBelongToRole = lmap (bimap (^..traversed.coerced) (^.isoPermission.s
              on ps.id = p.parent_fk)
         select ((count(*) > 0) :: bool) from perms where title = $2 :: text|]
 
-assignRoleToUser :: HS.Statement Int64 ()
-assignRoleToUser = 
+assignRoleToUser :: HS.Statement (Int64, Role) ()
+assignRoleToUser = lmap (& _2 %~ (^.isoRole.stext)) $
   [resultlessStatement|
     insert into auth.user_role 
     (user_fk, role_fk) 
-    select $1 :: int8, id 
-    from auth.role 
-    where title = 'provider'|]
+    select $1 :: int8, id from auth.role where title = $2 :: text|]

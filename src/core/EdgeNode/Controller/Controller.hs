@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 module EdgeNode.Controller.Controller (controller) where
@@ -18,6 +18,7 @@ import qualified EdgeNode.Controller.File.Download as File.Download
 import qualified EdgeNode.Controller.File.Delete as File.Delete
 import qualified EdgeNode.Controller.File.Patch as File.Patch
 import qualified EdgeNode.Controller.Admin.ProviderRegister as Admin.ProviderRegister 
+import qualified EdgeNode.Controller.Provider.List as Provider.List 
 
 import Katip
 import KatipController
@@ -28,31 +29,32 @@ import Network.IP.Addr
 import Control.Lens
 import Database.Transaction
 import Data.Bool
+import qualified Data.Text as T
 
 controller :: ApplicationApi (AsServerT KatipController)
 controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
 
-verifyAuthorization :: Id -> Rbac.Permission -> KatipController (Response a) -> KatipController (Response a)
+verifyAuthorization :: Id -> Rbac.Permission -> (Id -> KatipController (Response a)) -> KatipController (Response a)
 verifyAuthorization uid perm controller = 
   do
     hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
-    x <- katipTransaction hasql $ do 
+    isOk <- katipTransaction hasql $ do 
       xs <- statement Rbac.getTopLevelRoles (uid, perm)
       statement Rbac.isPermissionBelongToRole (xs, perm)
-    case x of 
-      Just isOk -> bool (return (Error undefined)) controller isOk
-      Nothing -> return $ Error undefined
+    let error = "you have no permissions to fulfill this operation"  
+    bool (return (Error (asError @T.Text error))) 
+         (controller uid) isOk
  
 httpApi :: HttpApi (AsServerT KatipController)
 httpApi = 
   HttpApi 
   { _httpApiAuth    = toServant . auth
-  , _httpApiUser    = \ip -> (`authGateway` (toServant . user ip))
-  , _httpApiService = \ip -> (`authGateway` (toServant . service ip))
-  , _httpApiSearch  = \ip -> (`authGateway` (toServant . search ip))
+  , _httpApiUser    = \ip -> (`withAuthResult` (toServant . user ip))
+  , _httpApiService = \ip -> (`withAuthResult` (toServant . service ip))
+  , _httpApiSearch  = \ip -> (`withAuthResult` (toServant . search ip))
   , _httpApiFile = toServant . file
-  , _httpApiAdmin = \ip -> (`authGateway` (toServant . admin ip))
-  , _httpApiProvider = \ip -> (`authGateway` (toServant . provider ip))
+  , _httpApiAdmin = \ip -> (`withAuthResult` (toServant . admin ip))
+  , _httpApiProvider = \ip -> (`withAuthResult` (toServant . provider ip))
   }
 
 auth :: Maybe IP4 ->  AuthApi (AsServerT KatipController)
@@ -131,14 +133,22 @@ admin _ _ =
   { _adminApiProviderRegister = \provider -> 
     flip logExceptionM ErrorS $
      katipAddNamespace 
-     (Namespace ["file", "download"])
+     (Namespace ["admin", "provider", "register"])
      (Admin.ProviderRegister.controller provider)
   }
 
 provider :: Maybe IP4 -> AuthResult JWTUser -> ProviderApi (AsServerT KatipController)
-provider _ _ = 
+provider _ user = 
   ProviderApi
-  { _providerApiGetBranches = undefined
+  { _providerApiGetBranches = 
+    flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["provider", "list"])    
+     (applyController Nothing user $ \x -> 
+       verifyAuthorization 
+       (jWTUserUserId x) 
+       Rbac.PermissionProviderGuest 
+       Provider.List.controller) 
   , _providerApiCreateBranch = undefined
   , _providerApiPatchBranch = undefined
   , _providerApiDeleteBranch = undefined

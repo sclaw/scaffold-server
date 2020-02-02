@@ -12,7 +12,7 @@
 module Auth 
       ( JWTUser (..)
       , AppJwt
-      , authGateway
+      , withAuthResult
       , mkAccessToken
       , mkRefreshToken
       , applyController
@@ -93,8 +93,8 @@ instance IsAuth AppJwt JWTUser where
    bool (return (JWTUser uid mempty mempty)) 
         (Auth.jwtAuthCheck cfg log pool)
 
-authGateway :: AuthResult JWTUser -> (AuthResult JWTUser -> api) -> api
-authGateway auth api = api auth
+withAuthResult :: AuthResult JWTUser -> (AuthResult JWTUser -> api) -> api
+withAuthResult auth api = api auth
 
 applyController 
   :: Maybe (KatipController (Response a)) 

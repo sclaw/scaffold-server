@@ -21,7 +21,9 @@
 
 module EdgeNode.Model.Rbac
        ( Permission (..)
+       , Role (..)
        , isoPermission
+       , isoRole
        )
        where
 
@@ -29,26 +31,28 @@ import TH.Mk
 import Control.Lens 
 import Test.QuickCheck
 import Database.Transaction (ParamsShow (..))
-import Data.String
+import Data.DeriveTH
 
 data Permission = 
-       Root
-     | ProviderAdmin
-     | ProviderGuest
-     | User 
+       PermissionRoot
+     | PermissionProviderAdmin
+     | PermissionProviderGuest
+     | PermissionUser 
      deriving stock Eq
      deriving stock Show
 
-instance Arbitrary Permission where
-  arbitrary = oneof 
-    [ pure Root
-    , pure ProviderAdmin
-    , pure ProviderGuest
-    , pure User]
-
-instance ParamsShow Permission where render = show 
+data Role = 
+       RoleRoot 
+     | RoleUser
+     | RoleProvider
+     | RoleGuest
+     deriving stock Eq
+     deriving stock Show
 
 mkEnumConvertor ''Permission
+mkEnumConvertor ''Role 
+derive makeArbitrary ''Permission
+derive makeArbitrary ''Role
 
-instance IsString Permission where
-  fromString = toPermission
+instance ParamsShow Permission where render = (^.isoPermission) 
+instance ParamsShow Role where render = (^.isoRole)

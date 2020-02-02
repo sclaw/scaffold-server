@@ -10,6 +10,7 @@ import EdgeNode.Transport.Provider
 import EdgeNode.Statement.Admin as Admin
 import EdgeNode.Model.User
 import EdgeNode.Statement.Rbac as Rbac
+import EdgeNode.Model.Rbac
 
 import KatipController
 import Data.Aeson.Unit
@@ -35,4 +36,4 @@ controller provider = do
         (Active^.isoRegisterStatus.stextl)
   fmap (const (Ok Unit)) $ katipTransaction hasql $ do 
     ident <- statement Admin.newProvider providerExt
-    for_ ident $ statement Rbac.assignRoleToUser
+    for_ ident $ \x -> statement Rbac.assignRoleToUser (x, RoleProvider)
