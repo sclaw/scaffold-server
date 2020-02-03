@@ -22,6 +22,7 @@ import EdgeNode.Api
 import qualified EdgeNode.Controller.Controller as Controller
 import EdgeNode.Transport.Id
 
+import Auth
 import Katip.Monadic                 (askLoggerIO)
 import KatipController
 import Servant.Swagger.KatipController
@@ -95,13 +96,14 @@ run Cfg {..} =
       let jwtCfg = defaultJWTSettings cfgJwk 
       let context 
            :: Proxy 
-              '[CookieSettings
-              , JWTSettings
-              , KatipLoggerIO
-              , Bool
-              , Id
-              , Proxy Tmp
-              , Pool.Pool Hasql.Connection]
+              '[ CookieSettings
+               , JWTSettings
+               , KatipLoggerIO
+               , Bool
+               , Id
+               , Proxy Tmp
+               , Pool.Pool Hasql.Connection
+               , BasicAuthCfg]
           context = Proxy     
       let server = 
            hoistServerWithContext 
@@ -119,16 +121,20 @@ run Cfg {..} =
       let multipartOpts = 
             (defaultMultipartOptions (Proxy :: Proxy Tmp)) 
             { generalOptions = clearMaxRequestNumFiles defaultParseRequestBodyOptions }   
-      let mkCtx = jwtCfg :. defaultCookieSettings 
-                  :. ctxlog :. cfgIsAuthEnabled 
-                  :. cfgUserId :. (cfg^.katipEnv.hasqlDbPool)
+      let mkCtx =    jwtCfg 
+                  :. defaultCookieSettings 
+                  :. ctxlog 
+                  :. cfgIsAuthEnabled 
+                  :. cfgUserId
+                  :. (cfg^.katipEnv.hasqlDbPool)
                   :. multipartOpts
-                  :. EmptyContext      
+                  :. (BasicAuthCfgData (cfg^.katipEnv.hasqlDbPool) ctxlog)
+                  :. EmptyContext
       let runServer = serveWithContext (withSwagger api) mkCtx server
       mware <-katipAddNamespace (Namespace ["middleware"]) askLoggerIO
       servAsync <- liftIO $ async $ Warp.runSettings settings (middleware mware runServer)     
       liftIO (void (waitAnyCancel [servAsync])) `logExceptionM` ErrorS
-    
+
 middleware :: KatipLoggerIO -> Application -> Application
 middleware log app = mkCors $ Middleware.logger log app
 

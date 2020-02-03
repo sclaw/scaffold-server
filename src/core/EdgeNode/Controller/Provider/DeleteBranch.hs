@@ -6,11 +6,11 @@
 module EdgeNode.Controller.Provider.DeleteBranch (controller) where
 
 import EdgeNode.Transport.Response
-import EdgeNode.Transport.Provider
+import EdgeNode.Transport.Provider ()
 import EdgeNode.Transport.Id
 
 import KatipController
-import Data.Aeson.WithField
+import Data.Aeson.WithField ()
 import Data.Aeson.Unit
 
 controller :: Id -> Id -> KatipController (Response Unit)

@@ -56,7 +56,7 @@ httpApi =
   , _httpApiService = \ip -> (`withAuthResult` (toServant . service ip))
   , _httpApiSearch  = \ip -> (`withAuthResult` (toServant . search ip))
   , _httpApiFile = toServant . file
-  , _httpApiAdmin = \ip -> (`withAuthResult` (toServant . admin ip))
+  , _httpApiAdmin = \ip -> (`undefined` (toServant . admin ip))
   , _httpApiProvider = \ip -> (`withAuthResult` (toServant . provider ip))
   }
 

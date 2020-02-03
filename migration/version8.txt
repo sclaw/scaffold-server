@@ -1,0 +1,5 @@
+create table auth.admin (
+  id bigserial primary key,
+  login text not null,
+  password bytea not null
+);

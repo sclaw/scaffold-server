@@ -64,7 +64,7 @@ data HttpApi route =
        :: route 
        :- "admin"
        :> HeaderIP
-       :> Auth '[AppJwt] JWTUser
+       :> Auth '[Servant.Auth.Server.BasicAuth] BasicUser
        :> ToServant AdminApi AsApi
      , _httpApiProvider
        :: route 

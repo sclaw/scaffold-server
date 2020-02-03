@@ -12,6 +12,9 @@
 module Auth 
       ( JWTUser (..)
       , AppJwt
+      , BasicUser (..)
+      , JWTUserEncoder
+      , BasicAuthCfgData (..)
       , withAuthResult
       , mkAccessToken
       , mkRefreshToken
@@ -52,26 +55,25 @@ import qualified Data.HashMap.Strict as HM
 import Data.Aeson hiding (Error)
 import Data.Aeson.TH
 import qualified Hasql.Session as Hasql
-import qualified Hasql.Statement as HS
-import qualified Hasql.Encoders as HE
-import qualified Hasql.Decoders as HD
-import Data.String.Interpolate
 import Servant.Server
 import qualified Hasql.Connection as Hasql
 import qualified Data.Pool as Pool
 import Database.Transaction
+import Hasql.TH
+import TH.Mk
 
 data AppJwt
 
 data JWTUser = 
      JWTUser 
      { jWTUserUserId :: !Id
-     , jWTUserEmail :: !T.Text
+     , jWTUserEmail  :: !T.Text
      , jWTUserUnique :: !String 
      } 
   deriving stock Show
   
 deriveJSON defaultOptions ''JWTUser
+mkEncoder ''JWTUser 
 
 instance FromJWT JWTUser
 instance ToJWT JWTUser 
@@ -146,18 +148,16 @@ actionCheckToken :: Maybe JWTUser -> Hasql.Session (Either String JWTUser)
 actionCheckToken Nothing = return $ Left "jwt header error"
 actionCheckToken (Just user) = 
   do 
-     let sql = 
-          [i|select exists (select 1 
-             from "auth"."Token" 
-             where "tokenUserId" = $1 
-             and "tokenUnique" = $2)|]
-     let encoder = 
-          (jWTUserUserId user^.coerced >$ 
-           HE.param (HE.nonNullable HE.int8)) <> 
-          (jWTUserUnique user^.stext >$ 
-           HE.param (HE.nonNullable HE.text))
-     let decoder = HD.singleRow $ HD.column (HD.nonNullable HD.bool)    
-     exists <- Hasql.statement () (HS.Statement sql encoder decoder False)
+     let mkStatement =
+          [singletonStatement|
+            select exists 
+            (select 1 
+             from auth.token 
+             where user = $1 :: int8 
+             and uid = $2 :: text) :: bool|]    
+     exists <- Hasql.statement user $ 
+       flip lmap mkStatement $ \x -> 
+         (mkEncoderJWTUser x^._1.coerced, mkEncoderJWTUser x^._3.stext)   
      return $ if exists then Right user else Left "token not found"
 
 mkAccessToken :: JWK -> Id -> String -> ExceptT JWTError IO (SignedJWT, Time)
@@ -190,3 +190,27 @@ mkRefreshToken jwk uid =
          & unregisteredClaims .~ 
            HM.singleton "dat" (toJSON uid)       
     signClaims jwk (newJWSHeader ((), alg)) claims 
+
+
+data BasicUser = BasicUser { basicUserUserId :: !Id }
+
+instance FromJWT BasicUser
+instance ToJWT BasicUser
+
+deriveJSON defaultOptions ''BasicUser
+
+data BasicAuthCfgData = 
+     BasicAuthCfgData 
+     { basicAuthCfgDataPool   :: !(Pool.Pool Hasql.Connection)
+     , basicAuthCfgDataLogger :: !KatipLoggerIO 
+     }
+
+type instance BasicAuthCfg = BasicAuthCfgData
+
+instance FromBasicAuthData BasicUser where
+  fromBasicAuthData _ cfg  = 
+    transaction 
+    (basicAuthCfgDataPool cfg) 
+    (basicAuthCfgDataLogger cfg) $ 
+    lift $ checkAdmin
+    where checkAdmin = undefined
