@@ -1,0 +1,1 @@
+insert into auth.role_permission (role_fk, permission_fk) values (4, 4);
