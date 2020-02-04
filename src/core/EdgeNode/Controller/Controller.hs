@@ -56,7 +56,7 @@ httpApi =
   , _httpApiService = \ip -> (`withAuthResult` (toServant . service ip))
   , _httpApiSearch  = \ip -> (`withAuthResult` (toServant . search ip))
   , _httpApiFile = toServant . file
-  , _httpApiAdmin = \ip -> (`undefined` (toServant . admin ip))
+  , _httpApiAdmin = \ip -> (`withAuthResult` (toServant . admin ip))
   , _httpApiProvider = \ip -> (`withAuthResult` (toServant . provider ip))
   }
 
@@ -130,14 +130,14 @@ file _ =
      (File.Download.controller fid)
   }
 
-admin :: Maybe IP4 -> AuthResult JWTUser -> AdminApi (AsServerT KatipController)
-admin _ _ = 
+admin :: Maybe IP4 -> AuthResult BasicUser -> AdminApi (AsServerT KatipController)
+admin _ user = 
   AdminApi 
   { _adminApiProviderRegister = \provider -> 
     flip logExceptionM ErrorS $
      katipAddNamespace 
      (Namespace ["admin", "provider", "register"])
-     (Admin.ProviderRegister.controller provider)
+     (withUser user (Admin.ProviderRegister.controller provider))
   }
 
 provider :: Maybe IP4 -> AuthResult JWTUser -> ProviderApi (AsServerT KatipController)

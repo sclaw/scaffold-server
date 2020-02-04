@@ -3,3 +3,7 @@ create table auth.admin (
   login text not null,
   password bytea not null
 );
+
+insert into auth.admin (login, password) values ('admin', 'admin');
+
+alter table auth.user_role add column admin_fk int8 not null constraint "user_role_admin_id_fk" references auth.admin(id);

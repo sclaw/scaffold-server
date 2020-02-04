@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-missing-exported-signatures #-}
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DataKinds #-}
@@ -8,18 +9,19 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Auth 
       ( JWTUser (..)
       , AppJwt
       , BasicUser (..)
-      , JWTUserEncoder
       , BasicAuthCfgData (..)
       , withAuthResult
       , mkAccessToken
       , mkRefreshToken
       , applyController
       , verifyToken
+      , withUser
       ) where
 
 import EdgeNode.Transport.Id
@@ -37,6 +39,7 @@ import Data.Swagger hiding (HasSecurity, Response)
 import qualified Crypto.JWT as Jose
 import Data.ByteArray (constEq)
 import qualified Data.ByteString as BS
+import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as BSL
 import Control.Monad.Reader.Class
 import Control.Monad
@@ -61,6 +64,7 @@ import qualified Data.Pool as Pool
 import Database.Transaction
 import Hasql.TH
 import TH.Mk
+import Data.Coerce
 
 data AppJwt
 
@@ -95,7 +99,7 @@ instance IsAuth AppJwt JWTUser where
    bool (return (JWTUser uid mempty mempty)) 
         (Auth.jwtAuthCheck cfg log pool)
 
-withAuthResult :: AuthResult JWTUser -> (AuthResult JWTUser -> api) -> api
+withAuthResult :: AuthResult user -> (AuthResult user -> api) -> api
 withAuthResult auth api = api auth
 
 applyController 
@@ -119,7 +123,7 @@ jwtAuthCheck cfg logger pool =
       verified <- liftIO $ runExceptT $ verifyToken cfg token  
       getJWTUser logger verified
     check <- liftIO $ transaction pool logger $ lift (actionCheckToken jwt)
-    let mkErr e = do liftIO (logger InfoS (logStr e)); mzero
+    let mkErr e = do liftIO (logger ErrorS (logStr e)); mzero
     either mkErr return check
    
 getToken :: RequestHeaders -> Maybe BS.ByteString
@@ -191,7 +195,6 @@ mkRefreshToken jwk uid =
            HM.singleton "dat" (toJSON uid)       
     signClaims jwk (newJWSHeader ((), alg)) claims 
 
-
 data BasicUser = BasicUser { basicUserUserId :: !Id }
 
 instance FromJWT BasicUser
@@ -207,10 +210,31 @@ data BasicAuthCfgData =
 
 type instance BasicAuthCfg = BasicAuthCfgData
 
+mkEncoder ''BasicAuthData
+
 instance FromBasicAuthData BasicUser where
-  fromBasicAuthData _ cfg  = 
-    transaction 
-    (basicAuthCfgDataPool cfg) 
-    (basicAuthCfgDataLogger cfg) $ 
-    lift $ checkAdmin
-    where checkAdmin = undefined
+  fromBasicAuthData authData cfg  =
+     transaction 
+     (basicAuthCfgDataPool cfg) 
+     (basicAuthCfgDataLogger cfg) $ lift $ 
+     flip fmap checkAdmin $ 
+     maybe 
+     Servant.Auth.Server.NoSuchUser 
+     (Authenticated . BasicUser . coerce)
+    where 
+      checkAdmin = 
+        Hasql.statement 
+        (mkEncoderBasicAuthData authData) 
+        (lmap (& _1 %~ (^.from textbs)) 
+         [maybeStatement|
+           select id :: int8 
+           from auth.admin
+           where login = $1 :: text 
+           and password = $2 :: bytea|])
+
+withUser :: AuthResult user -> (user -> KatipController a) -> KatipController a
+withUser user controller = do 
+  resp <- for user controller
+  case resp of 
+    Authenticated resp -> return resp
+    _ -> throwError err403
