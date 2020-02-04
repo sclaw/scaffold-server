@@ -7,3 +7,17 @@ create table auth.admin (
 insert into auth.admin (login, password) values ('admin', 'admin');
 
 alter table auth.user_role add column admin_fk int8 not null constraint "user_role_admin_id_fk" references auth.admin(id);
+
+insert into auth.role (title, created) values ('root', now());
+insert into auth.role (title, parent_fk, created) values ('user', 1, now());
+insert into auth.role (title, parent_fk, created) values ('provider', 1, now());
+insert into auth.role (title, parent_fk, created) values ('guest', 3, now());
+
+insert into auth.permission (title, created) values ('root', now());
+insert into auth.permission (title, parent_fk, created) values ('user', 1, now());
+insert into auth.permission (title, parent_fk, created) values ('provider_admin', 1, now());
+insert into auth.permission (title, parent_fk, created) values ('provider_guest', 3, now());
+
+insert into auth.role_permission (role_fk, permission_fk) values (1, 1);
+insert into auth.role_permission (role_fk, permission_fk) values (2, 2);
+insert into auth.role_permission (role_fk, permission_fk) values (3, 3);

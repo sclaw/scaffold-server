@@ -9,7 +9,7 @@ create table edgenode.provider_branch (
   deleted timestamptz,
   is_deleted bool not null default false,
   provider_fk int8 not null constraint "provider_branch_provider_id_fk" 
-  references edgenode.provider(id)
+  references edgenode.provider(id),
   image_fk int8 not null constraint "provider_branch_image_id_fk" references storage.file(id));
 
 create table edgenode.provider_branch_journal (
@@ -20,9 +20,7 @@ create table edgenode.provider_branch_journal (
   diff jsonb not null,
   created timestamptz not null default now());
 
-created table edgenode.provider_branch_file (
+create table edgenode.provider_branch_file (
   provider_branch_fk int8 not null constraint "provider_branch_file_provider_branch_id_fk" 
   references edgenode.provider_branch(id),
   file_fk int8 not null constraint "provider_branch_file_file_id_fk" references storage.file(id));
-
-create table edgenode.provider_branch_public ();
