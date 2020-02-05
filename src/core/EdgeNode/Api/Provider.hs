@@ -13,7 +13,7 @@ import EdgeNode.Transport.Response
 
 import Servant.API.Generic
 import Servant.API
-import Data.Aeson.WithField
+import Data.Aeson.WithField.Extended
 import Data.Aeson.Unit
 
 data ProviderApi route = 
@@ -22,14 +22,14 @@ data ProviderApi route =
        :: route
        :- "branch"
        :> Get '[JSON] (Response 
-           [(WithField "files" [Id] 
-            (WithField "image" Id Branch))])
+           [(OptField "files" [Id] 
+            (OptField "image" Id Branch))])
      ,  _providerApiCreateBranch
        :: route
        :- "branch"
        :> ReqBody '[JSON] 
-          (WithField "files" [Id] 
-           (WithField "image" Id Branch))
+          (OptField "files" [Id] 
+           (OptField "image" Id Branch))
        :> Post '[JSON] (Response Id)
      , _providerApiPatchBranch
        :: route

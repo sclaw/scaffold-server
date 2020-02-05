@@ -8,9 +8,12 @@ module EdgeNode.Controller.Provider.GetBranches (controller) where
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Id
+import EdgeNode.Statement.Provider as Provider
 
 import KatipController
-import Data.Aeson.WithField
+import Data.Aeson.WithField.Extended
+import Database.Transaction
+import Control.Lens
 
-controller :: Id -> KatipController (Response [(WithField "files" [Id] (WithField "image" Id Branch))])
-controller _ = undefined
+controller :: Id -> KatipController (Response [(OptField "files" [Id] (OptField "image" Id Branch))])
+controller uid = fmap (^.katipEnv.hasqlDbPool) ask >>= (`katipTransaction` (fmap Ok (statement Provider.getBranches uid)))

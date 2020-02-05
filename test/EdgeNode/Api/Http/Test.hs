@@ -17,12 +17,11 @@ import Data.DeriveTH
 import Test.QuickCheck.Extended
 import Prelude hiding (String)
 import Protobuf.Scalar
-import Data.Aeson.WithField
+import Data.Aeson.WithField.Extended ()
 
 derive makeArbitrary ''ProviderRegistration
 derive makeArbitrary ''Branch
 derive makeArbitrary ''String
-derive makeArbitrary ''WithField
 
 spec_api :: Spec
 spec_api = 

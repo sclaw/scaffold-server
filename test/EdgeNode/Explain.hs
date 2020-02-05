@@ -15,6 +15,7 @@ import qualified EdgeNode.Statement.Rbac
 import qualified EdgeNode.Statement.File
 import qualified EdgeNode.Statement.User
 import qualified EdgeNode.Statement.Admin
+import qualified EdgeNode.Statement.Provider
 
 import Database.Migration.Test
 import Test.Hspec hiding (shouldBe)
@@ -73,6 +74,7 @@ explainTests =
     ]
   , "EdgeNode.Statement.User" ==> ["new" =>> EdgeNode.Statement.User.new]
   , "EdgeNode.Statement.Admin" ==> ["newProvider" =>> EdgeNode.Statement.Admin.newProvider]
+  , "EdgeNode.Statement.Provider" ==> ["getBranches" =>> EdgeNode.Statement.Provider.getBranches]
   ]
   
 (==>) a b = (a, b)
