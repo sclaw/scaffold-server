@@ -107,7 +107,7 @@ instance {-# OVERLAPS #-} (Coercible a b, Show b) => ParamsShow a where render =
 statement :: ParamsShow a => Hasql.Statement a b -> a -> ReaderT KatipLoggerIO Session b
 statement s@(Hasql.Statement sql _ _ _) a = do
   logger <- ask
-  liftIO $ logger DebugS (ls (sql <> " [" <> (render a^.stext.textbs)) <> "]") 
+  liftIO $ logger DebugS (ls (sql <> " { params: [" <> (render a^.stext.textbs)) <> "] }") 
   lift $ Hasql.statement a s
 
 katipTransaction :: Pool Hasql.Connection -> ReaderT KatipLoggerIO Session a -> KatipController a

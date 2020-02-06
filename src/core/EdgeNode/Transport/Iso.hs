@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
-module EdgeNode.Iso (country, language) where
+module EdgeNode.Transport.Iso (country, language) where
 
 import EdgeNode.Country
 import EdgeNode.Lang

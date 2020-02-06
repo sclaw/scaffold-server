@@ -15,5 +15,7 @@ import Data.Aeson.WithField.Extended
 import Database.Transaction
 import Control.Lens
 
-controller :: Id -> KatipController (Response [(OptField "files" [Id] (OptField "image" Id Branch))])
-controller uid = fmap (^.katipEnv.hasqlDbPool) ask >>= (`katipTransaction` (fmap Ok (statement Provider.getBranches uid)))
+controller :: Id -> KatipController (Response [WithId Id (OptField "files" [Id] (OptField "image" Id Branch))])
+controller uid = 
+  fmap (^.katipEnv.hasqlDbPool) ask >>= 
+  (`katipTransaction` (fmap Ok (statement Provider.getBranches uid)))

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5c195e867a6523690e304969c6a7476d05cef6e2cac37c472debfcc725ddb4fa
+-- hash: b2baf2438500147c996635ee7fdcdafafc7e066e67ca76387f7e583888cf1f0e
 
 name:           edgenode
 version:        0.1.0.0
@@ -49,7 +49,6 @@ library
       EdgeNode.Controller.Provider.DeleteBranch
       EdgeNode.Controller.Provider.GetBranches
       EdgeNode.Controller.Provider.PatchBranch
-      EdgeNode.Iso
       EdgeNode.Model.File
       EdgeNode.Model.Rbac
       EdgeNode.Model.User
@@ -61,6 +60,7 @@ library
       EdgeNode.Statement.User
       EdgeNode.Transport.Error
       EdgeNode.Transport.Id
+      EdgeNode.Transport.Iso
       EdgeNode.Transport.Payload
       EdgeNode.Transport.Response
       Hash
@@ -150,7 +150,7 @@ library
     , hashable
     , hashing
     , hasql
-    , hasql-th
+    , hasql-th ==0.4.0.4
     , hslogger
     , hspec
     , hspec-expectations-lifted

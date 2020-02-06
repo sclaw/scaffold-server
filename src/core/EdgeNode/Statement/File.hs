@@ -19,17 +19,19 @@ import Control.Lens
 import Control.Foldl
 import Data.Coerce
 import TH.Proto
-import Data.List
 import Control.Lens.Iso.Extended
+import qualified Data.Vector as V
+import qualified Data.Text as T
 
 save :: HS.Statement [(Hash, Name, Mime, EdgeNodeBucket)] [Id]
 save =
   lmap (
-      unzip4 
+      V.unzip4
+    . V.fromList
     . Prelude.map (\x -> 
-      x & _1 %~ coerce 
-        & _2 %~ coerce 
-        & _3 %~ coerce 
+      x & _1 %~ coerce @_ @T.Text
+        & _2 %~ coerce @_ @T.Text
+        & _3 %~ coerce @_ @T.Text
         & _4 %~ (^.isoEdgeNodeBucket.stext))) $ 
   statement $ 
   premap (^.coerced) list

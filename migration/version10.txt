@@ -1,0 +1,4 @@
+alter table edgenode.provider_branch add column additional_address text;
+alter table edgenode.provider_branch add column postcode text;
+alter table edgenode.provider_branch add column house text;
+alter table edgenode.provider_branch add column info text;

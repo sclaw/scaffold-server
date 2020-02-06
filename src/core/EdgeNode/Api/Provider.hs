@@ -22,8 +22,9 @@ data ProviderApi route =
        :: route
        :- "branch"
        :> Get '[JSON] (Response 
-           [(OptField "files" [Id] 
-            (OptField "image" Id Branch))])
+           [WithId Id 
+            (OptField "files" [Id] 
+             (OptField "image" Id Branch))])
      ,  _providerApiCreateBranch
        :: route
        :- "branch"

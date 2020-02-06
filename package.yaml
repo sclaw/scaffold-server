@@ -101,7 +101,7 @@ library:
     - servant-websockets
     - websockets
     - hasql
-    - hasql-th
+    - hasql-th == 0.4.0.4
     - ekg
     - exceptions
     - regex-with-pcre

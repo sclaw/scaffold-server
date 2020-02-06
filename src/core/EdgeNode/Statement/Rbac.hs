@@ -1,5 +1,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module EdgeNode.Statement.Rbac 
        ( getTopLevelRoles
@@ -16,6 +17,8 @@ import Control.Lens.Iso.Extended
 import Control.Foldl
 import Hasql.TH
 import Data.Int
+import qualified Data.Vector as V
+import Data.Coerce
 
 getTopLevelRoles :: HS.Statement (Id, Permission) [Id]
 getTopLevelRoles = lmap (bimap (^.coerced) (^.isoPermission.stext)) $ statement $ premap (^.coerced) list                
@@ -42,7 +45,8 @@ getTopLevelRoles = lmap (bimap (^.coerced) (^.isoPermission.stext)) $ statement 
         on r.role_fk = rp.role_fk|]
 
 isPermissionBelongToRole :: HS.Statement ([Id], Permission) Bool
-isPermissionBelongToRole = lmap (bimap (^..traversed.coerced) (^.isoPermission.stext)) statement
+isPermissionBelongToRole = 
+  lmap (bimap ((V.fromList . Prelude.map coerce) :: [Id] -> V.Vector Int64) (^.isoPermission.stext)) statement
   where 
     statement = 
       [singletonStatement|
