@@ -74,7 +74,10 @@ explainTests =
     ]
   , "EdgeNode.Statement.User" ==> ["new" =>> EdgeNode.Statement.User.new]
   , "EdgeNode.Statement.Admin" ==> ["newProvider" =>> EdgeNode.Statement.Admin.newProvider]
-  , "EdgeNode.Statement.Provider" ==> ["getBranches" =>> EdgeNode.Statement.Provider.getBranches]
+  , "EdgeNode.Statement.Provider" ==>
+    [ "getBranches" =>> EdgeNode.Statement.Provider.getBranches
+    , "checkHQ" =>> EdgeNode.Statement.Provider.checkHQ
+    , "createBranches" =>> EdgeNode.Statement.Provider.createBranches]
   ]
   
 (==>) a b = (a, b)

@@ -28,12 +28,13 @@ import Control.Monad.Catch
 import Control.Monad.Reader
 import qualified Hasql.Connection as Hasql
 import qualified Hasql.Statement as Hasql
-import  Control.Exception (throwIO)
+import Control.Exception (throwIO)
 import Control.Lens
 import Control.Lens.Iso.Extended
 import Data.Int
 import Data.Coerce
 import Data.List
+import qualified Data.ByteString.Char8 as B
 
 newtype QueryErrorWrapper = QueryErrorWrapper Hasql.QueryError 
   deriving Show
@@ -94,6 +95,8 @@ class ParamsShow a where
 instance ParamsShow () where render () = mempty
 instance ParamsShow Int32 where render = show
 instance ParamsShow Int64 where render = show
+instance ParamsShow B.ByteString where render = B.unpack
+instance ParamsShow a => ParamsShow (Maybe a) where render = maybe mempty render 
 instance (ParamsShow a, ParamsShow b) => ParamsShow (a, b) where 
   render (x, y) = render x <> ", " <> render y
 instance (ParamsShow a, ParamsShow b, ParamsShow c) => ParamsShow (a, b, c) where 

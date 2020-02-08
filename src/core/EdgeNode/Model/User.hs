@@ -33,7 +33,8 @@ import qualified Data.Text as T
 import Data.Int
 import Data.Maybe
 import Data.Coerce
-import Protobuf.Scalar (UInt64 (..))
+import qualified Protobuf.Scalar as Protobuf
+import Protobuf.Scalar (UInt64 (..)) 
 import Data.Generics.Product.Fields
 import Data.HList.HList.Extended
 

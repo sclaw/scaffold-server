@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b2baf2438500147c996635ee7fdcdafafc7e066e67ca76387f7e583888cf1f0e
+-- hash: 3d18df48ad5937b23776c38db5c0b9a32aec7fc9c65ea793e2278c387f218491
 
 name:           edgenode
 version:        0.1.0.0
@@ -45,7 +45,7 @@ library
       EdgeNode.Controller.File.Download
       EdgeNode.Controller.File.Patch
       EdgeNode.Controller.File.Upload
-      EdgeNode.Controller.Provider.CreateBranch
+      EdgeNode.Controller.Provider.CreateBranches
       EdgeNode.Controller.Provider.DeleteBranch
       EdgeNode.Controller.Provider.GetBranches
       EdgeNode.Controller.Provider.PatchBranch
@@ -85,6 +85,7 @@ library
       Data.HList.HList.Extended
       Data.Swagger.Schema.Extended
       Data.Tree.Extended
+      Data.Vector.Extended
       Servant.API.Extended
       Test.Hspec.DB.Hasql
       Test.QuickCheck.Extended
@@ -223,6 +224,7 @@ library
     , tmp-postgres
     , transformers
     , transformers-base
+    , tuple-sop
     , unordered-containers
     , utf8-string
     , validation

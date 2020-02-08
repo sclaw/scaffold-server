@@ -24,14 +24,15 @@ data ProviderApi route =
        :> Get '[JSON] (Response 
            [WithId Id 
             (OptField "files" [Id] 
-             (OptField "image" Id Branch))])
-     ,  _providerApiCreateBranch
+             (OptField "image" Id (
+              WithField "isHQ" Bool Branch)))])
+     ,  _providerApiCreateBranches
        :: route
        :- "branch"
        :> ReqBody '[JSON] 
-          (OptField "files" [Id] 
-           (OptField "image" Id Branch))
-       :> Post '[JSON] (Response Id)
+          [OptField "files" [Id] 
+           (OptField "image" Id Branch)]
+       :> Post '[JSON] (Response [Id])
      , _providerApiPatchBranch
        :: route
        :- "branch"

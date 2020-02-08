@@ -5,6 +5,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Data.Aeson.WithField.Extended
       ( module Data.Aeson.WithField
@@ -25,9 +26,15 @@ import Test.QuickCheck
 import GHC.Generics
 import Data.Foldable
 import GHC.TypeLits
+import Database.Transaction
 
-import Debug.Trace
+instance (ParamsShow a, ParamsShow b) => 
+         ParamsShow (WithField s a b) 
+  where
+    render (WithField x y) = render x ++ render y
 
+instance (ParamsShow a, ParamsShow b) => ParamsShow (OptField s a b) where
+    render (OptField x) = render x
 
 instance (Arbitrary a, Arbitrary b) => Arbitrary (WithField s a b) where
   arbitrary = WithField <$> arbitrary <*> arbitrary
@@ -43,12 +50,10 @@ newtype OptField s a v = OptField (WithField s (Maybe a) v)
   deriving stock Show
   deriving stock Eq
 
-instance (KnownSymbol s, FromJSON a, FromJSON v) =>
+instance (KnownSymbol s, Show a, FromJSON a, Show v, FromJSON v) =>
          FromJSON (OptField s a v) where
   parseJSON = withObject "opt-field" $ \o -> do
-    traceM (show (o, field))
     a <- o .:? field
-    _ <- undefined
     v <- parseJSON $ Object $ HM.delete field o
     pure $ OptField $ WithField a v
     where field = T.pack $ symbolVal (Proxy :: Proxy s)

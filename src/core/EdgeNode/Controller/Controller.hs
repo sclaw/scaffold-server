@@ -19,7 +19,7 @@ import qualified EdgeNode.Controller.File.Delete as File.Delete
 import qualified EdgeNode.Controller.File.Patch as File.Patch
 import qualified EdgeNode.Controller.Admin.ProviderRegister as Admin.ProviderRegister 
 import qualified EdgeNode.Controller.Provider.GetBranches as Provider.GetBranches 
-import qualified EdgeNode.Controller.Provider.CreateBranch as Provider.CreateBranch 
+import qualified EdgeNode.Controller.Provider.CreateBranches as Provider.CreateBranches 
 import qualified EdgeNode.Controller.Provider.PatchBranch as Provider.PatchBranch 
 import qualified EdgeNode.Controller.Provider.DeleteBranch as Provider.DeleteBranch 
 
@@ -152,7 +152,7 @@ provider _ user =
        (jWTUserUserId x) 
        Rbac.PermissionProviderGuest 
        Provider.GetBranches.controller)
-  , _providerApiCreateBranch = \branch ->
+  , _providerApiCreateBranches = \branch ->
     flip logExceptionM ErrorS $
      katipAddNamespace 
      (Namespace ["provider", "branch", "create"])    
@@ -160,7 +160,7 @@ provider _ user =
        verifyAuthorization 
        (jWTUserUserId x) 
        Rbac.PermissionProviderAdmin 
-       (Provider.CreateBranch.controller branch))    
+       (Provider.CreateBranches.controller branch))    
   , _providerApiPatchBranch = \ident branch ->
     flip logExceptionM ErrorS $
      katipAddNamespace 

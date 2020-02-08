@@ -360,14 +360,8 @@ mkEncoder name = do
   TyConI (DataD _ _ _ _ c@[(RecC _ xs)] _) <- reify name
   let types = flip map xs $ \(_, _, ty) ->
         case ty of 
-          ConT t -> 
-            case nameModule t of 
-              Just "Data.Text.Internal" -> ConT (mkName ("T." <> (nameBase t)))
-              Just "Data.Text.Internal.Lazy" -> ConT (mkName ("LT." <> (nameBase t)))
-              _ -> ConT (mkName (nameBase t))
-          AppT (ConT x) (ConT y) -> 
-            AppT (ConT (mkName (nameBase x))) 
-                 (ConT (mkName (nameBase y)))    
+          ConT t -> mkType t
+          AppT (ConT x) (ConT y) -> AppT (ConT (mkName (nameBase x))) (mkType y)    
   let mkTpl [] tpl = tpl 
       mkTpl (t:ts) app = mkTpl ts (AppT app t) 
   let mkTypeSyn = 
@@ -384,3 +378,10 @@ mkEncoder name = do
         FunD (mkName ("mkEncoder" <> nameBase name)) 
              [Clause [] (NormalB (LamE [VarP (mkName "x")] (TupE (mkTplExp [] fields)))) []]
   return [mkTypeSyn, mkEncoderSig, mkEncoderFun]
+  where
+    mkType t = 
+      case nameModule t of 
+        Just "Data.Text.Internal" -> ConT (mkName ("T." <> (nameBase t)))
+        Just "Data.Text.Internal.Lazy" -> ConT (mkName ("LT." <> (nameBase t)))
+        Just "Protobuf.Scalar" -> ConT (mkName ("Protobuf." <> (nameBase t)))
+        _ -> ConT (mkName (nameBase t))

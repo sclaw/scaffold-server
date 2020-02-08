@@ -25,7 +25,7 @@ ghc-options:
   - -Wmissing-pattern-synonym-signatures
   - -XMonadFailDesugaring
   - -XOverloadedStrings
-  # - -ddump-splices
+ #  - -ddump-splices
 
 extra-source-files:
 - README.md
@@ -178,6 +178,7 @@ library:
     - string-conversions
     - data-default
     - elocrypt
+    - tuple-sop
 
   source-dirs:
     - src/core
