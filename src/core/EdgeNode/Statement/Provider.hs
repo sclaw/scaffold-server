@@ -10,6 +10,7 @@ module EdgeNode.Statement.Provider
        ( getBranches
        , createBranches
        , checkHQ
+       , createFiles
        , BranchEncoder
        ) where
 
@@ -132,3 +133,13 @@ checkHQ = lmap (coerce @Id @Int64) statement
          inner join edgenode.provider_branch as pb
          on pu.provider_id = pb.id
          where pu.user_id = $1 :: int8 and not pb.is_deleted and pb.is_hq) :: bool|]
+
+createFiles :: HS.Statement [(Id, Id)] ()
+createFiles = lmap mkEncoder statement
+  where
+    statement = 
+      [resultlessStatement|
+        insert into edgenode.provider_branch_file
+        (provider_branch_fk, file_fk)
+        select p, f from unnest($1 :: int8[], $2 :: int8[]) as x(p, f)|]
+    mkEncoder = V.unzip. V.fromList . Prelude.map (coerce @(Id, Id) @(Int64, Int64))

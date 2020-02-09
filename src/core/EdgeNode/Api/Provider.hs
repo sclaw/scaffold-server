@@ -29,7 +29,9 @@ data ProviderApi route =
      ,  _providerApiCreateBranches
        :: route
        :- "branch"
-       :> ReqBody '[JSON] [OptField "image" Id Branch]
+       :> ReqBody '[JSON] 
+          [OptField "files" [Id]
+           (OptField "image" Id Branch)]
        :> Post '[JSON] (Response [Id])
      , _providerApiPatchBranch
        :: route
