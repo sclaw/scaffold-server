@@ -2,7 +2,7 @@ version: '3.2'
 services:
 
   database:
-    image: postgres
+    image: postgres:latest
     container_name: "edge-node-server-db"
     restart: 'always'
     expose:
@@ -32,6 +32,8 @@ services:
       - storage
     expose:
      - 25
+     - 12000
+     - 8000
     ports:
       - "12000:12000"
       - "8000:8000"
@@ -44,9 +46,9 @@ services:
     container_name: "edge-node-file-storage"
     restart: 'always'
     expose:
-      - 9000    
+      - 9001    
     ports:
-      - '9000:9000'
+      - '9001:9000'
     volumes:
       - minio_data:/data
     environment:

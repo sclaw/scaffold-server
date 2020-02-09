@@ -6,7 +6,7 @@ module EdgeNode.Api.Http.Test (spec_api) where
 
 import EdgeNode.Api.Admin
 import EdgeNode.Api.File
-import EdgeNode.Api.Provider
+import EdgeNode.Api.Provider ()
 import EdgeNode.Transport.Provider
 
 import Test.Hspec
@@ -29,4 +29,4 @@ spec_api =
    context "ToJSON matches ToSchema (AdminApi)" $ do 
      validateEveryToJSON (genericApi (Proxy :: Proxy AdminApi))
      validateEveryToJSON (genericApi (Proxy :: Proxy FileApi))
-     validateEveryToJSON (genericApi (Proxy :: Proxy ProviderApi))
+   --  validateEveryToJSON (genericApi (Proxy :: Proxy ProviderApi))

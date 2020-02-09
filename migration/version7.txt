@@ -10,7 +10,7 @@ create table edgenode.provider_branch (
   is_deleted bool not null default false,
   provider_fk int8 not null constraint "provider_branch_provider_id_fk" 
   references edgenode.provider(id),
-  image_fk int8 not null constraint "provider_branch_image_id_fk" references storage.file(id));
+  image_fk int8 constraint "provider_branch_image_id_fk" references storage.file(id));
 
 create table edgenode.provider_branch_journal (
   user_fk int8 not null constraint "provider_branch_journal_user_id_fk" 
