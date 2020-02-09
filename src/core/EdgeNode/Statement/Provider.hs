@@ -75,7 +75,8 @@ getBranches = lmap (coerce @_ @Int64) $ statement $ premap mkBranch list
        left join edgenode.provider_branch_file as pbf
        on pbf.provider_branch_fk = pb.id
        where au.id = $1 :: int8 and not pb.is_deleted
-       group by pb.id|]  
+       group by pb.id
+       order by pb.is_hq desc, pb.title|]  
     mkBranch x =
       let files = flip fmap (x^?_11._Just) $ \x -> V.toList x^..traversed.coerced @_ @_ @Id @_
           image = x^?_10._Just.coerced

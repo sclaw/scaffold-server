@@ -57,27 +57,23 @@ data SomeQuery = forall a b . Arbitrary a => SomeQuery (Statement a b)
 -- | List of all database queries.
 explainTests :: [(String, [(String, SomeQuery)])]
 explainTests = 
-  [ "EdgeNode.Statement.Rbac"
-    ==> [ "getTopLevelRoles" =>> 
-          EdgeNode.Statement.Rbac.getTopLevelRoles
-        , "isPermissionBelongToRole" =>> 
-          EdgeNode.Statement.Rbac.isPermissionBelongToRole
-        , "assignRoleToUser" =>>
-          EdgeNode.Statement.Rbac.assignRoleToUser  
-        ]
+  [ "EdgeNode.Statement.Rbac" ==> 
+    [ "getTopLevelRoles" =>> EdgeNode.Statement.Rbac.getTopLevelRoles
+    , "isPermissionBelongToRole" =>> EdgeNode.Statement.Rbac.isPermissionBelongToRole
+    , "assignRoleToUser" =>> EdgeNode.Statement.Rbac.assignRoleToUser]
   , "EdgeNode.Statement.File" ==> 
     [ "save" =>> EdgeNode.Statement.File.save
     , "getMeta" =>> EdgeNode.Statement.File.getMeta
     , "delete" =>> EdgeNode.Statement.File.delete
     , "getHashWithBucket" =>> EdgeNode.Statement.File.getHashWithBucket
-    , "patch" =>> EdgeNode.Statement.File.patch
-    ]
+    , "patch" =>> EdgeNode.Statement.File.patch]
   , "EdgeNode.Statement.User" ==> ["new" =>> EdgeNode.Statement.User.new]
   , "EdgeNode.Statement.Admin" ==> ["newProvider" =>> EdgeNode.Statement.Admin.newProvider]
   , "EdgeNode.Statement.Provider" ==>
     [ "getBranches" =>> EdgeNode.Statement.Provider.getBranches
     , "checkHQ" =>> EdgeNode.Statement.Provider.checkHQ
-    , "createBranches" =>> EdgeNode.Statement.Provider.createBranches]
+    , "createBranches" =>> EdgeNode.Statement.Provider.createBranches
+    , "createFiles" =>> EdgeNode.Statement.Provider.createFiles]
   ]
   
 (==>) a b = (a, b)
