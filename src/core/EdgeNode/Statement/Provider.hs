@@ -11,6 +11,7 @@ module EdgeNode.Statement.Provider
        , createBranches
        , checkHQ
        , createFiles
+       , setHQ
        , BranchEncoder
        ) where
 
@@ -144,3 +145,23 @@ createFiles = lmap mkEncoder statement
         (provider_branch_fk, file_fk)
         select p, f from unnest($1 :: int8[], $2 :: int8[]) as x(p, f)|]
     mkEncoder = V.unzip. V.fromList . Prelude.map (coerce @(Id, Id) @(Int64, Int64))
+
+setHQ :: HS.Statement (Id, Id) Bool
+setHQ = dimap coerce (> 0) statement
+  where
+    statement = 
+      [rowsAffectedStatement|
+        with setoffhq as (
+         update edgenode.provider_branch 
+         set is_hq = false
+         where provider_fk in 
+               (select provider_id 
+                from edgenode.provider_user 
+                where "user_id" = $1::int8) and is_hq)
+        update edgenode.provider_branch 
+         set is_hq = true, modified = now()
+         where id = $2 :: int8 and 
+               provider_fk in 
+               (select provider_id 
+                from edgenode.provider_user 
+                where "user_id" = $1::int8)|]

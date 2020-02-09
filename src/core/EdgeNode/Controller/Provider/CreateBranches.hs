@@ -11,7 +11,7 @@ module EdgeNode.Controller.Provider.CreateBranches (controller) where
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Id
-import qualified EdgeNode.Statement.Provider as Provider 
+import qualified EdgeNode.Statement.Provider as Provider
 
 import KatipController
 import Data.Aeson.WithField.Extended

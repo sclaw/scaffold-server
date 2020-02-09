@@ -54,5 +54,5 @@ mkEnumConvertor ''Role
 derive makeArbitrary ''Permission
 derive makeArbitrary ''Role
 
-instance ParamsShow Permission where render = (^.isoPermission) 
+instance ParamsShow Permission where render = (^.isoPermission)
 instance ParamsShow Role where render = (^.isoRole)

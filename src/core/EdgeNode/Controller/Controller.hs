@@ -22,6 +22,7 @@ import qualified EdgeNode.Controller.Provider.GetBranches as Provider.GetBranche
 import qualified EdgeNode.Controller.Provider.CreateBranches as Provider.CreateBranches 
 import qualified EdgeNode.Controller.Provider.PatchBranch as Provider.PatchBranch 
 import qualified EdgeNode.Controller.Provider.DeleteBranch as Provider.DeleteBranch 
+import qualified EdgeNode.Controller.Provider.SetHQ as Provider.SetHQ
 
 import Katip
 import KatipController
@@ -178,5 +179,14 @@ provider _ user =
        verifyAuthorization 
        (jWTUserUserId x) 
        Rbac.PermissionProviderAdmin 
-       (Provider.DeleteBranch.controller ident))    
+       (Provider.DeleteBranch.controller ident))
+  , _providerApiSetHQ = \ident ->
+    flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["provider", "branch", "hq"])    
+     (applyController Nothing user $ \x -> 
+       verifyAuthorization 
+       (jWTUserUserId x) 
+       Rbac.PermissionProviderAdmin 
+       (Provider.SetHQ.controller ident))    
   }

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3d18df48ad5937b23776c38db5c0b9a32aec7fc9c65ea793e2278c387f218491
+-- hash: 7ca69d905bfb95929a4aba1c9ddf9efdc4515c7fe0ffff76d7c7408e18f82a80
 
 name:           edgenode
 version:        0.1.0.0
@@ -49,6 +49,7 @@ library
       EdgeNode.Controller.Provider.DeleteBranch
       EdgeNode.Controller.Provider.GetBranches
       EdgeNode.Controller.Provider.PatchBranch
+      EdgeNode.Controller.Provider.SetHQ
       EdgeNode.Model.File
       EdgeNode.Model.Rbac
       EdgeNode.Model.User

@@ -45,5 +45,11 @@ data ProviderApi route =
        :: route
        :- "branch"
        :> Capture "branchId" Id
-       :> Delete '[JSON] (Response Unit)      
+       :> Delete '[JSON] (Response Unit)
+     , _providerApiSetHQ
+       :: route
+       :- "branch"
+       :> Capture "branchId" Id
+       :> "hq"
+       :> Post '[JSON] (Response Unit)        
      } deriving stock Generic
