@@ -17,6 +17,9 @@ import Database.Transaction
 import qualified Data.Text as T
 
 controller :: Id -> Id -> KatipController (Response Unit)
-controller branchId userId = fmap (^.katipEnv.hasqlDbPool) ask >>= (`katipTransaction` (fmap mkResp (statement Provider.setHQ (userId, branchId))))
-  where mkResp True = Ok Unit
-        mkResp False = Error $ Error.asError @T.Text "not found"
+controller branchId userId = 
+  do hasql <- fmap (^.katipEnv.hasqlDbPool) ask
+     let mkResp True = Ok Unit
+         mkResp False = Error $ Error.asError @T.Text "not found"
+     katipTransaction hasql $ fmap mkResp $ 
+       statement Provider.setHQ (userId, branchId)

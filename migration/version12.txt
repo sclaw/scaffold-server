@@ -1,0 +1,18 @@
+create table edgenode.provider_branch_qualification (
+  id bigserial primary key,
+  title text not null,
+  type text null,
+  study_time text null, 
+  academic_area  text[],
+  start date,
+  finish date,
+  is_repeated bool,
+  application_deadline date,
+  category text,
+  created timestamptz not null default now(),
+  modified timestamptz,
+  deleted timestamptz,
+  is_deleted bool not null default false,
+  provider_branch_fk int8 not null
+  constraint "provider_branch_qualification_provider_branch_id_fk" 
+  references edgenode.provider_branch(id));

@@ -53,7 +53,6 @@ data HttpApi route =
        :: route 
        :- "search"
        :> HeaderIP
-       :> Auth '[AppJwt] JWTUser
        :> ToServant SearchApi AsApi
      , _httpApiFile  
        :: route 

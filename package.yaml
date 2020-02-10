@@ -179,6 +179,8 @@ library:
     - data-default
     - elocrypt
     - tuple-sop
+    - generic-random
+    - generic-deriving
 
   source-dirs:
     - src/core

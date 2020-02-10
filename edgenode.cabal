@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7ca69d905bfb95929a4aba1c9ddf9efdc4515c7fe0ffff76d7c7408e18f82a80
+-- hash: 7e40a1151fa889f4945b9776e5c2c73d96b37898a12a9d6082c8692c1eec169b
 
 name:           edgenode
 version:        0.1.0.0
@@ -50,6 +50,7 @@ library
       EdgeNode.Controller.Provider.GetBranches
       EdgeNode.Controller.Provider.PatchBranch
       EdgeNode.Controller.Provider.SetHQ
+      EdgeNode.Controller.Search
       EdgeNode.Model.File
       EdgeNode.Model.Rbac
       EdgeNode.Model.User
@@ -147,7 +148,9 @@ library
     , extra
     , filepath
     , foldl
+    , generic-deriving
     , generic-lens
+    , generic-random
     , ginger
     , hashable
     , hashing

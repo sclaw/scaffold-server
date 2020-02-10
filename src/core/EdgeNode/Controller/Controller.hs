@@ -23,6 +23,7 @@ import qualified EdgeNode.Controller.Provider.CreateBranches as Provider.CreateB
 import qualified EdgeNode.Controller.Provider.PatchBranch as Provider.PatchBranch 
 import qualified EdgeNode.Controller.Provider.DeleteBranch as Provider.DeleteBranch 
 import qualified EdgeNode.Controller.Provider.SetHQ as Provider.SetHQ
+import qualified EdgeNode.Controller.Search as Search
 
 import Katip
 import KatipController
@@ -55,7 +56,7 @@ httpApi =
   { _httpApiAuth    = toServant . auth
   , _httpApiUser    = \ip -> (`withAuthResult` (toServant . user ip))
   , _httpApiService = \ip -> (`withAuthResult` (toServant . service ip))
-  , _httpApiSearch  = \ip -> (`withAuthResult` (toServant . search ip))
+  , _httpApiSearch  = toServant . search
   , _httpApiFile = toServant . file
   , _httpApiAdmin = \ip -> (`withAuthResult` (toServant . admin ip))
   , _httpApiProvider = \ip -> (`withAuthResult` (toServant . provider ip))
@@ -96,14 +97,14 @@ service _ user = ServiceApi { _serviceApiWeb = toServant webApi }
         undefined
       }
       
-search :: Maybe IP4 -> AuthResult JWTUser -> SearchApi (AsServerT KatipController)
-search _ user = 
+search :: Maybe IP4 -> SearchApi (AsServerT KatipController)
+search _ = 
   SearchApi 
-  { _searchApiSearch =
+  { _searchApiSearch = \query ->
     flip logExceptionM ErrorS $
      katipAddNamespace 
-     (Namespace ["search", "searchQualification"])
-     undefined       
+     (Namespace ["search"])
+     (Search.controller query)
   }
 
 file :: Maybe IP4 -> FileApi (AsServerT KatipController)
@@ -188,5 +189,6 @@ provider _ user =
        verifyAuthorization 
        (jWTUserUserId x) 
        Rbac.PermissionProviderAdmin 
-       (Provider.SetHQ.controller ident))    
+       (Provider.SetHQ.controller ident))
+  , _providerApiCreateQualification = undefined     
   }
