@@ -22,7 +22,7 @@ import Data.Maybe
 controller :: [OptField "files" [Id] (OptField "image" Id Branch)] -> Id -> KatipController (Response [Id])
 controller xs uid = do 
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  katipTransaction hasql $ fmap Ok $ do
+  result <- katipTransactionE hasql $ do
     let (files, branches) = 
           unzip $ 
           flip map xs $ 
@@ -32,3 +32,4 @@ controller xs uid = do
     statement Provider.createFiles $ 
       concat (zipWith (\i xs -> zip (repeat i) xs) ids files)
     return ids
+  return $ fromEither result  

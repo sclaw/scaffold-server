@@ -5,9 +5,14 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Database.Transaction 
-      ( transaction
+      ( transactionE
+      , katipTransactionE
+      , transaction
       , katipTransaction
       , statement
       , SessionR
@@ -16,12 +21,14 @@ module Database.Transaction
       , lift
       ) where
 
+import EdgeNode.Transport.Error
+
 import KatipController
 import GHC.Exception.Type
 import Data.Pool
 import Katip
 import qualified Hasql.Session as Hasql
-import Hasql.Session (Session) 
+import Hasql.Session (Session, QueryError (..), CommandError (..), ResultError (..)) 
 import Control.Monad.IO.Class
 import Katip.Monadic (askLoggerIO)
 import Control.Monad.Catch
@@ -35,14 +42,31 @@ import Data.Int
 import Data.Coerce
 import Data.List
 import qualified Data.ByteString.Char8 as B
+import Data.Generics.Sum.Constructors
+import Data.Generics.Product.Positions
+import GHC.Generics
+import PostgreSQL.ErrorCodes
+import qualified Data.Text as T
 
 newtype QueryErrorWrapper = QueryErrorWrapper Hasql.QueryError 
   deriving Show
 
 instance Exception QueryErrorWrapper
 
-
 type SessionR a = ReaderT KatipLoggerIO Session a
+
+deriving instance Generic Hasql.QueryError
+deriving instance Generic CommandError
+deriving instance Generic ResultError
+
+data ViolationError = ForeignKeyVlolation | UniqueViolation
+  deriving Show
+
+instance AsError ViolationError where
+  asError ForeignKeyVlolation = asError @T.Text "foreign key violation"
+  asError UniqueViolation = asError @T.Text "unique key violation"
+
+instance Exception ViolationError
 
 -- | Run exception-safe database transaction. User action is run inside
 -- transaction.
@@ -66,28 +90,43 @@ type SessionR a = ReaderT KatipLoggerIO Session a
 -- This method may throw 'SQLException' in case if SQL exception
 -- happens during operations that commit or rollback transaction,
 -- in this case connection may not be in a clean state.
-transaction :: Pool Hasql.Connection -> KatipLoggerIO -> ReaderT KatipLoggerIO Session a -> IO a
-transaction pool logger session = 
+transactionE :: Pool Hasql.Connection -> KatipLoggerIO -> ReaderT KatipLoggerIO Session a -> IO (Either ViolationError a)
+transactionE pool logger session = 
   fmap join run >>= 
   either (throwIO . QueryErrorWrapper) pure
   where
     run = withResource pool $ \conn ->
       mask $ \release -> do 
         bg <- begin conn
-        let action = do 
-              e <- Hasql.run (runReaderT session logger) conn
-              either (throwIO . QueryErrorWrapper) pure e
+        let action =
+              Hasql.run (runReaderT session logger) conn >>= 
+                handleDBResult
         let withBegin = do
               result <- release action `onException` rollback conn
               cm <- commit conn    
               traverse (const (pure result)) cm
         traverse (const withBegin) bg
-        
+
+handleDBResult :: Either Hasql.QueryError a -> IO (Either ViolationError a)
+handleDBResult (Left e) =
+  case codem of 
+    Just code ->
+      if code == foreign_key_violation 
+      then return $ Left ForeignKeyVlolation
+      else if code == unique_violation 
+      then return $ Left UniqueViolation 
+      else throwIO $ QueryErrorWrapper e
+    Nothing -> throwIO $ QueryErrorWrapper e
+  where codem = e^?position @3._Ctor @"ResultError"._Ctor @"ServerError"._1     
+handleDBResult (Right  val) = return $ Right val
+
 begin, commit, rollback :: Hasql.Connection -> IO (Either Hasql.QueryError ())
 begin = Hasql.run (Hasql.sql "begin")
 commit = Hasql.run (Hasql.sql "commit")
 rollback = Hasql.run (Hasql.sql "rollback")
 
+transaction :: Pool Hasql.Connection -> KatipLoggerIO -> ReaderT KatipLoggerIO Session a -> IO a
+transaction pool logger session = transactionE pool logger session >>= either throwIO  pure
 
 class ParamsShow a where
   render :: a -> String
@@ -115,3 +154,6 @@ statement s@(Hasql.Statement sql _ _ _) a = do
 
 katipTransaction :: Pool Hasql.Connection -> ReaderT KatipLoggerIO Session a -> KatipController a
 katipTransaction pool session = katipAddNamespace (Namespace ["db", "hasql"]) askLoggerIO >>= (liftIO . flip (transaction pool) session)
+
+katipTransactionE :: Pool Hasql.Connection -> ReaderT KatipLoggerIO Session a -> KatipController (Either ViolationError a)
+katipTransactionE pool session = katipAddNamespace (Namespace ["db", "hasql"]) askLoggerIO >>= (liftIO . flip (transactionE pool) session)

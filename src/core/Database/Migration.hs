@@ -26,7 +26,7 @@ import Database.Transaction
 import Hasql.TH
 
 run :: Pool.Pool Hasql.Connection -> KatipLoggerIO -> IO ()
-run cm logger = transaction cm logger $ statement checkDBMeta () >>= traverse_ (bool initDb (roll Nothing))
+run cm logger = void $ transaction cm logger $ statement checkDBMeta () >>= traverse_ (bool initDb (roll Nothing))
 
 checkDBMeta :: Hasql.Statement.Statement () (Maybe Bool)
 checkDBMeta = 
