@@ -10,8 +10,8 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 module Database.Transaction 
-      ( transactionE
-      , katipTransactionE
+      ( transactionViolationError
+      , katipTransactionViolationError
       , transaction
       , katipTransaction
       , statement
@@ -90,8 +90,8 @@ instance Exception ViolationError
 -- This method may throw 'SQLException' in case if SQL exception
 -- happens during operations that commit or rollback transaction,
 -- in this case connection may not be in a clean state.
-transactionE :: Pool Hasql.Connection -> KatipLoggerIO -> ReaderT KatipLoggerIO Session a -> IO (Either ViolationError a)
-transactionE pool logger session = 
+transactionViolationError :: Pool Hasql.Connection -> KatipLoggerIO -> ReaderT KatipLoggerIO Session a -> IO (Either ViolationError a)
+transactionViolationError pool logger session = 
   fmap join run >>= 
   either (throwIO . QueryErrorWrapper) pure
   where
@@ -126,7 +126,7 @@ commit = Hasql.run (Hasql.sql "commit")
 rollback = Hasql.run (Hasql.sql "rollback")
 
 transaction :: Pool Hasql.Connection -> KatipLoggerIO -> ReaderT KatipLoggerIO Session a -> IO a
-transaction pool logger session = transactionE pool logger session >>= either throwIO  pure
+transaction pool logger session = transactionViolationError pool logger session >>= either throwIO  pure
 
 class ParamsShow a where
   render :: a -> String
@@ -155,5 +155,5 @@ statement s@(Hasql.Statement sql _ _ _) a = do
 katipTransaction :: Pool Hasql.Connection -> ReaderT KatipLoggerIO Session a -> KatipController a
 katipTransaction pool session = katipAddNamespace (Namespace ["db", "hasql"]) askLoggerIO >>= (liftIO . flip (transaction pool) session)
 
-katipTransactionE :: Pool Hasql.Connection -> ReaderT KatipLoggerIO Session a -> KatipController (Either ViolationError a)
-katipTransactionE pool session = katipAddNamespace (Namespace ["db", "hasql"]) askLoggerIO >>= (liftIO . flip (transactionE pool) session)
+katipTransactionViolationError :: Pool Hasql.Connection -> ReaderT KatipLoggerIO Session a -> KatipController (Either ViolationError a)
+katipTransactionViolationError pool session = katipAddNamespace (Namespace ["db", "hasql"]) askLoggerIO >>= (liftIO . flip (transactionViolationError pool) session)

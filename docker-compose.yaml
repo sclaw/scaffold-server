@@ -20,7 +20,7 @@ services:
       - pg_data_db:/var/lib/postgresql/data
     networks:
       edgeNode:
-        ipv4_address: 172.20.0.7
+        ipv4_address: ${DB_HOST}
 
   server:
     image: registry.gitlab.com/edgenode2/server:$TAG
@@ -41,7 +41,7 @@ services:
       - "25:25" 
     networks:
       edgeNode:
-        ipv4_address: 172.20.0.6
+        ipv4_address: ${SERVER_HOST}
   
   storage:
     image: minio/minio:latest
@@ -59,14 +59,14 @@ services:
     command: server /data
     networks:
       edgeNode:
-        ipv4_address: 172.20.0.5
+        ipv4_address: ${FILE_STORAGE_HOST}
 
 networks:
   edgeNode:
     driver: bridge
     ipam:
      config:
-       - subnet: 172.20.0.0/24     
+       - subnet: ${SUB_NET}
 
 volumes:
   pg_data_db: {}

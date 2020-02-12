@@ -22,7 +22,7 @@ import Data.Maybe
 controller :: [OptField "files" [Id] (OptField "image" Id Branch)] -> Id -> KatipController (Response [Id])
 controller xs uid = do 
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  result <- katipTransactionE hasql $ do
+  result <- katipTransactionViolationError hasql $ do
     let (files, branches) = 
           unzip $ 
           flip map xs $ 

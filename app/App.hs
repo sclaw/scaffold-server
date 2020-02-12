@@ -35,7 +35,11 @@ import GHC.IO.Handle (BufferMode (NoBuffering), hSetBuffering)
 import Data.Default.Class
 import Control.Monad.RWS.Strict (evalRWST)
 import qualified Network.HTTP.Client.TLS as Http
-import Network.HTTP.Client (ManagerSettings (managerConnCount))
+import Network.HTTP.Client 
+       ( ManagerSettings 
+         ( managerConnCount
+         , managerResponseTimeout)
+       , responseTimeoutMicro)
 import GHC.Generics (Generic)
 import Options.Generic
 import Data.Maybe
@@ -127,7 +131,10 @@ main =
             do logger <- katipAddNamespace (Namespace ["db", "migration"]) askLoggerIO
                liftIO $ Migration.run hasqlpool logger
                App.run appCfg
-      manager <- Http.newTlsManagerWith Http.tlsManagerSettings { managerConnCount = 1 }
+      manager <- Http.newTlsManagerWith Http.tlsManagerSettings 
+        { managerConnCount = 1
+        , managerResponseTimeout = 
+          responseTimeoutMicro (5 * 10^6) }
 
       minioEnv <-  flip Minio.mkMinioConn manager $ 
         Minio.setCreds 
