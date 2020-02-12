@@ -1,5 +1,5 @@
 configDb:
-  dbHost: database
+  dbHost: 172.20.0.7
   dbPort: 5432
   dbUser: sonny
   dbPass: 3190d261d186aeead3a8deec202737c7775af5c8d455a9e5ba958c48b5fd3f59
@@ -39,5 +39,5 @@ configMinio:
   minioAccessKey: AKIAIOSFODNN7EXAMPLE
   minioSecretKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
   minioBucketPrefix: edgenode
-  minioHost: http://127.0.0.1
-  minioPort: "9001"
+  minioHost: http://172.20.0.5
+  minioPort: "9000"
