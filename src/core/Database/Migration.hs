@@ -61,8 +61,10 @@ roll v =
       next <- lift $ Batch.rollMigrations (Batch.Version i) logger
       for_ (next <|> batch) $ \ident -> do
         let new = ident^.coerced
-        statement (setVersion (maybe (New new) (const (Init new)) v)) None
-        liftIO $ logger InfoS (logStr ("migration finished at version " <> show ident))
+        if new /= i then 
+          do statement (setVersion (maybe (New new) (const (Init new)) v)) None
+             liftIO $ logger InfoS (logStr ("migration finished at version " <> show ident))
+        else liftIO $ logger InfoS (logStr ("no migration found" :: String))     
       when (isNothing next) $ liftIO $ logger InfoS (logStr ("no migration found" :: String))
 
 getVersion :: Hasql.Statement.Statement () (Maybe Word32)

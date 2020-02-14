@@ -24,6 +24,7 @@ import qualified EdgeNode.Controller.Provider.PatchBranch as Provider.PatchBranc
 import qualified EdgeNode.Controller.Provider.DeleteBranch as Provider.DeleteBranch 
 import qualified EdgeNode.Controller.Provider.SetHQ as Provider.SetHQ
 import qualified EdgeNode.Controller.Search as Search
+import qualified EdgeNode.Controller.Auth.SignIn as Auth.SignIn 
 
 import Katip
 import KatipController
@@ -65,11 +66,11 @@ httpApi =
 auth :: Maybe IP4 ->  AuthApi (AsServerT KatipController)
 auth _ = 
   AuthApi 
-  { _authApiRegistration = 
+  { _authApiAuthentication = \req -> 
     flip logExceptionM ErrorS $
     katipAddNamespace 
-    (Namespace ["auth", "registration"])  
-    undefined
+    (Namespace ["auth", "authentication"])  
+    (Auth.SignIn.controller req)
   }
 
 user :: Maybe IP4 -> AuthResult JWTUser -> UserApi (AsServerT KatipController)

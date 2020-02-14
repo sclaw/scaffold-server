@@ -10,6 +10,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Auth 
       ( JWTUser (..)
@@ -26,6 +27,7 @@ module Auth
 
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
+import qualified EdgeNode.Transport.Error as Transport
 
 import Data.Time
 import qualified Data.Text as T
@@ -65,6 +67,7 @@ import Database.Transaction
 import Hasql.TH
 import TH.Mk
 import Data.Coerce
+import Data.Maybe
 
 data AppJwt
 
@@ -110,10 +113,8 @@ applyController
 applyController unauthorized user authorized = 
   case user of 
     Authenticated u -> authorized u
-    Indefinite -> do 
-      out <- sequence unauthorized  
-      maybe (throwAll err401) return out
-    err -> return $ Error undefined
+    Indefinite -> fmap (fromMaybe (Error (Transport.asError @T.Text "authentication required"))) (sequence unauthorized)
+    _ -> return $ Error (Transport.asError @T.Text "unknown authentication error")
 
 jwtAuthCheck :: JWTSettings -> KatipLoggerIO -> Pool.Pool Hasql.Connection -> AuthCheck JWTUser
 jwtAuthCheck cfg logger pool = 

@@ -52,12 +52,17 @@ controller id = do
       payload <- liftIO $ B.readFile path
       return (payload, size, x^._2.coerced @Name @_ @T.Text @_, x^._3.coerced @Mime @_ @T.Text @_)
     return $ first (asError . (\e -> show e^.stext)) r         
-  return $ \_ resp -> resp $ 
-    case minioResp of 
-      Right x -> 
-        responseLBS status200 [(hContentType, (x^._4.textbs))] $ 
-        toLazyByteString $ 
-        stringUtf8 "{\"success:\"" <> 
-         byteString (x^._1) <> 
-         stringUtf8 "}"
-      Left e -> responseLBS status200 [] $ encode $ (Response.Error e :: Response.Response ())
+  return $ \req resp ->
+    if requestMethod req /= 
+       methodGet
+    then resp $ responseLBS status200 [] $ encode $ (Response.Error (asError @T.Text "only GET allowed") :: Response.Response ())
+    else
+      resp $ 
+        case minioResp of 
+          Right x -> 
+            responseLBS status200 [(hContentType, (x^._4.textbs))] $ 
+            toLazyByteString $ 
+            stringUtf8 "{\"success:\"" <> 
+            byteString (x^._1) <> 
+            stringUtf8 "}"
+          Left e -> responseLBS status200 [] $ encode $ (Response.Error e :: Response.Response ())

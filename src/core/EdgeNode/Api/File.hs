@@ -25,7 +25,7 @@ data FileApi route =
        :- Description "upload to server"
        :> Capture "bucket" EdgeNodeBucket
        :> MultipartForm Tmp Files 
-       :> Post '[JSON] (Response [Id])
+       :> Put '[JSON] (Response [Id])
      , _fileApiPatch
        :: route 
        :- Description "patch file by replacing new one"

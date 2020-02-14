@@ -32,7 +32,7 @@ data ProviderApi route =
        :> ReqBody '[JSON] 
           [OptField "files" [Id]
            (OptField "image" Id Branch)]
-       :> Post '[JSON] (Response [Id])
+       :> Put '[JSON] (Response [Id])
      , _providerApiPatchBranch
        :: route
        :- "branch"
@@ -51,10 +51,10 @@ data ProviderApi route =
        :- "branch"
        :> Capture "branchId" Id
        :> "hq"
-       :> Post '[JSON] (Response Unit)
+       :> Put '[JSON] (Response Unit)
      , _providerApiCreateQualification
        :: route 
        :- "qualifiacation"
        :> "new"
-       :> Post '[JSON] (Response Id)          
+       :> Put '[JSON] (Response Id)          
      } deriving stock Generic

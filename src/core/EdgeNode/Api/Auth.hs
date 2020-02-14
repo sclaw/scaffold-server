@@ -7,14 +7,18 @@
 
 module EdgeNode.Api.Auth (AuthApi (..)) where
 
+import EdgeNode.Transport.Auth
+import EdgeNode.Transport.Response
+
 import Servant.API.Generic
-import Servant.API.WebSocket ()
 import Servant.API
 
 data AuthApi route = 
      AuthApi
-     { _authApiRegistration
+     { _authApiAuthentication
        :: route
-       :- Description "simple registration" 
-       :> Post '[JSON] ()
+       :- Description "provder authentication"
+       :> "authenticate"
+       :> ReqBody '[JSON] SigninReq
+       :> Post '[JSON] (Response SigninResp)
      } deriving stock Generic
