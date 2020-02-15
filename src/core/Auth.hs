@@ -28,6 +28,7 @@ module Auth
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
 import qualified EdgeNode.Transport.Error as Transport
+import EdgeNode.Model.User
 
 import Data.Time
 import qualified Data.Text as T
@@ -75,7 +76,8 @@ data JWTUser =
      JWTUser 
      { jWTUserUserId :: !Id
      , jWTUserEmail  :: !T.Text
-     , jWTUserUnique :: !T.Text 
+     , jWTUserUnique :: !T.Text
+     , jWTUserUserRole :: !Type
      } 
   deriving stock Show
   
@@ -99,7 +101,7 @@ instance HasSecurity AppJwt where
 instance IsAuth AppJwt JWTUser where
   type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, Id, Pool.Pool Hasql.Connection, Bool]
   runAuth _ _ cfg log uid pool = 
-   bool (return (JWTUser uid mempty mempty)) 
+   bool (return (JWTUser uid mempty mempty Primary)) 
         (Auth.jwtAuthCheck cfg log pool)
 
 withAuthResult :: AuthResult user -> (AuthResult user -> api) -> api
@@ -165,12 +167,12 @@ actionCheckToken (Just user) =
          (mkEncoderJWTUser x^._1.coerced, mkEncoderJWTUser x^._3)   
      return $ if exists then Right user else Left "token not found"
 
-mkAccessToken :: JWK -> Id -> T.Text -> ExceptT JWTError IO (SignedJWT, Time)
-mkAccessToken jwk uid unique = 
+mkAccessToken :: JWK -> Id -> T.Text -> Type -> ExceptT JWTError IO (SignedJWT, Time)
+mkAccessToken jwk uid unique utype = 
   do 
      alg <- bestJWSAlg jwk
      ct <- liftIO getCurrentTime
-     let user = JWTUser uid "" unique
+     let user = JWTUser uid "" unique utype
      let claims = 
           emptyClaimsSet
           & claimIss ?~ "edgeNode"

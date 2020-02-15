@@ -46,7 +46,7 @@ controller req = do
         PassCheckSuccess -> do
           key <- fmap (^.katipEnv.jwk) ask
           unique <- liftIO $ fmap mkHash (uniformW64 =<< createSystemRandom)
-          access <- liftIO $ runExceptT (Auth.mkAccessToken key (x^._1) unique)
+          access <- liftIO $ runExceptT (Auth.mkAccessToken key (x^._1) unique (x^._2))
           refresh <- liftIO $ runExceptT (Auth.mkRefreshToken key (x^._1))
           let encode x = x^.to Jose.encodeCompact.bytesLazy
           $(logTM) DebugS (logStr ("access token: " <> show (second (first encode) access))) 
@@ -59,7 +59,7 @@ controller req = do
                 True -> Ok $ 
                   def & field @"signinRespAccessToken" .~ encode (a^._1)
                       & field @"signinRespRefreshToken" .~ encode r
-                      & field @"signinRespLifetime" .~ Just (a^._2)
+                      & field @"signinRespLifetime" ?~ (a^._2)
                 False  -> Error $ Error.asError @T.Text "already sign in"
           case x of Right resp -> pure resp; Left e -> pure $ Error (Error.asError @T.Text (show e^.stext))
         PassCheckFail -> pure $ Error (Error.asError @T.Text "wrong password")

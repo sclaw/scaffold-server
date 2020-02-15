@@ -37,6 +37,7 @@ import qualified Protobuf.Scalar as Protobuf
 import Protobuf.Scalar (UInt64 (..)) 
 import Data.Generics.Product.Fields
 import Data.HList.HList.Extended
+import Data.Aeson.TH.Extended
 
 mkEncoder ''User
 mkEncoder ''FullDay
@@ -66,3 +67,5 @@ encoder x = (hToTuple . hConcat . hFromTuple) tpl
       & _5 %~ (hEnd . hBuild . (^.lazytext))
       & _6 %~ (hEnd . hBuild . (^? _Just.field @"uint64Value".(integral @_ @Int64)))
       & _7 %~ (hEnd . hBuild . (either (const (0 :: Int32)) (fromIntegral . fromEnum)  . coerce @_ @(Either Int Gender)))
+
+deriveJSON defaultOptions ''Type
