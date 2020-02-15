@@ -75,7 +75,7 @@ data JWTUser =
      JWTUser 
      { jWTUserUserId :: !Id
      , jWTUserEmail  :: !T.Text
-     , jWTUserUnique :: !String 
+     , jWTUserUnique :: !T.Text 
      } 
   deriving stock Show
   
@@ -162,10 +162,10 @@ actionCheckToken (Just user) =
              and uid = $2 :: text) :: bool|]    
      exists <- Hasql.statement user $ 
        flip lmap mkStatement $ \x -> 
-         (mkEncoderJWTUser x^._1.coerced, mkEncoderJWTUser x^._3.stext)   
+         (mkEncoderJWTUser x^._1.coerced, mkEncoderJWTUser x^._3)   
      return $ if exists then Right user else Left "token not found"
 
-mkAccessToken :: JWK -> Id -> String -> ExceptT JWTError IO (SignedJWT, Time)
+mkAccessToken :: JWK -> Id -> T.Text -> ExceptT JWTError IO (SignedJWT, Time)
 mkAccessToken jwk uid unique = 
   do 
      alg <- bestJWSAlg jwk

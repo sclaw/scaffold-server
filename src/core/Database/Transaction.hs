@@ -136,11 +136,11 @@ instance ParamsShow Int32 where render = show
 instance ParamsShow Int64 where render = show
 instance ParamsShow B.ByteString where render = B.unpack
 instance ParamsShow a => ParamsShow (Maybe a) where render = maybe mempty render 
-instance (ParamsShow a, ParamsShow b) => ParamsShow (a, b) where 
+instance {-# OVERLAPS #-} (ParamsShow a, ParamsShow b) => ParamsShow (a, b) where 
   render (x, y) = render x <> ", " <> render y
-instance (ParamsShow a, ParamsShow b, ParamsShow c) => ParamsShow (a, b, c) where 
+instance {-# OVERLAPS #-} (ParamsShow a, ParamsShow b, ParamsShow c) => ParamsShow (a, b, c) where 
   render x = render (x^._1) <> ", " <> render (x^._2) <> ", " <> render (x^._3)
-instance (ParamsShow a, ParamsShow b, ParamsShow c, ParamsShow d) => ParamsShow (a, b, c, d) where 
+instance {-# OVERLAPS #-} (ParamsShow a, ParamsShow b, ParamsShow c, ParamsShow d) => ParamsShow (a, b, c, d) where 
   render x = render (x^._1) <> ", " <> render (x^._2) <> ", " <> render (x^._3) <> ", " <> render (x^._4)     
 instance ParamsShow a => ParamsShow [a] where 
   render xs = intercalate ", " $ map render xs
