@@ -58,7 +58,7 @@ extra-deps:
    commit: 62ecf0786d0cf28644c5cc106004e259d1388b4a
  - servant-websockets-1.1.0
  - pretty-tree-0.1.0.0@sha256:49b0e17008f9d30328db2bcc2958f3a7b78d154d2335c2dbaa2073e237b524ae   
- - pwstore-fast-2.4.4@sha256:9b6a37510d8b9f37f409a8ab3babac9181afcaaa3fce8ba1c131a7ed3de30698
+ - password-1.0.0.0@sha256:2ec79cb64be80a5254324c67a1e1aa16fc2e015dee9505ce598f4522efcf8899,1824
  - servant-ekg-0.3@sha256:1a578afd662b2f9133455daff50a3822c568e2e106108cf64daa4481a6d585a6
  - ginger-0.9.0.0@sha256:c3e67555f47fbd83d92ff56f66bc7897619a1a92dc8fd2203ddbbaffca726265
  - aeson-injector-1.1.1.0@sha256:499122221731ffa2ef0be90c7eff9e641ccbafd5e1f9e90dc16565af8e7dbcc1

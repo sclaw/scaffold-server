@@ -52,6 +52,8 @@ import qualified Data.Pool as Pool
 import Data.Generics.Product.Fields
 import Servant.Multipart
 import Network.Wai.Parse
+import Network.HTTP.Types.Status
+import TextShow
 
 data Cfg = 
      Cfg 
@@ -118,6 +120,7 @@ run Cfg {..} =
            Warp.defaultSettings
            & Warp.setPort cfgPort
            & Warp.setOnException (logUncaughtException excep)
+           & Warp.setOnExceptionResponse mkResponse 
       let multipartOpts = 
             (defaultMultipartOptions (Proxy :: Proxy Tmp)) 
             { generalOptions = clearMaxRequestNumFiles defaultParseRequestBodyOptions }   
@@ -143,6 +146,8 @@ logUncaughtException log req e = when (Warp.defaultShouldDisplayException e) $ m
   where without = log ErrorS (logStr ("Uncaught exception " <> show e))
         within r = log ErrorS (logStr ("\"GET " <> rawPathInfo r^.from textbs.from stext <> " HTTP/1.1\" 500 - " <> show e))
 
+mkResponse :: SomeException  -> Response
+mkResponse error = responseLBS status500 [("Access-Control-Allow-Origin", "*")] (showt error^.textbsl)
 
 deriving instance Generic CorsResourcePolicy
 

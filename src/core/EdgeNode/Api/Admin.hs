@@ -22,5 +22,5 @@ data AdminApi route =
        :- "provider"
        :> "register"
        :> ReqBody '[JSON] ProviderRegistration 
-       :> Post '[JSON] (Response Unit)  
+       :> Put '[JSON] (Response Unit)  
      } deriving stock Generic

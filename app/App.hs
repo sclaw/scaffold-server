@@ -50,6 +50,7 @@ import qualified Data.Pool as Pool
 import Control.Exception
 import qualified Network.Minio as Minio
 import Data.String
+import Data.Int
 
 data Cmd w = 
      Cmd 
@@ -63,6 +64,7 @@ data Cmd w =
      , swaggerHost :: w ::: Maybe FilePath <?> "swagger host"
      , minioHost :: w ::: Maybe String <?> "minio host"
      , minioPort :: w ::: Maybe String <?> "minio port"
+     , user :: w ::: Maybe Int64 <?> "user"
      } deriving stock Generic
     
 instance ParseRecord (Cmd Wrapped)
@@ -79,6 +81,7 @@ main =
             & db.port %~ (`fromMaybe` localport) 
             & ekg.host %~ (`fromMaybe` ekgHost)
             & auth.isAuthEnabled %~ (`fromMaybe` isAuth)
+            & auth.userId %~ (`fromMaybe` user)
             & katip.path %~ (\path -> maybe path (</> path) pathToKatip)
             & auth.EdgeNode.Config.jwk %~ (\path -> maybe path (</> path) pathToJwk)
             & hosts %~ (`fromMaybe` fmap Hosts swaggerHost)
@@ -148,4 +151,4 @@ main =
       bracket env' closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)     
       
 mkRawConn :: Db -> HasqlConn.Settings
-mkRawConn x = HasqlConn.settings (x^.host.stext.textbs) (x^.port.to fromIntegral) (x^.user.stext.textbs) (x^.pass.stext.textbs) (x^.database.stext.textbs)
+mkRawConn x = HasqlConn.settings (x^.host.stext.textbs) (x^.port.to fromIntegral) (x^.EdgeNode.Config.user.stext.textbs) (x^.pass.stext.textbs) (x^.database.stext.textbs)

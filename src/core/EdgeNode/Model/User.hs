@@ -47,7 +47,7 @@ derive makeArbitrary ''FullDay
 derive makeArbitrary ''User
 derive makeArbitrary ''UInt64
 
-data Type = Primary | Secondary 
+data Type = Primary | Secondary deriving Show
 
 data RegisterStatus = Active | Wait | TimeOut | Banned
 

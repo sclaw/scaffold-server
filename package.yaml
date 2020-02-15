@@ -107,8 +107,7 @@ library:
     - regex-with-pcre
     - validation
     - pretty-tree
-    - rosezipper
-    - pwstore-fast 
+    - rosezipper 
     - servant-swagger-ui
     - servant-swagger-ui-core
     - servant-swagger
@@ -181,6 +180,7 @@ library:
     - tuple-sop
     - generic-random
     - generic-deriving
+    - password
 
   source-dirs:
     - src/core
