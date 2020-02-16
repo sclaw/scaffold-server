@@ -18,6 +18,7 @@ module EdgeNode.Statement.Provider
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Iso
+import EdgeNode.Transport.ProviderExt (GetBranchResp (..))
 
 import qualified Hasql.Statement as HS
 import Hasql.TH
@@ -58,7 +59,7 @@ instance ParamsShow Branch where
     & _6 %~ (^._Just.field @"stringValue".lazytext.from stext)
     & _7 %~ (^._Just.field @"stringValue".lazytext.from stext))^..each
 
-getBranches :: HS.Statement (Id "user") [WithId (Id "branch") (OptField "files" [Id "file"] (OptField "image" (Id "img") (WithField "isHQ" Bool Branch)))]
+getBranches :: HS.Statement (Id "user") [GetBranchResp]
 getBranches = lmap (coerce @_ @Int64) $ statement $ premap mkBranch list 
   where
     statement =
@@ -88,7 +89,7 @@ getBranches = lmap (coerce @_ @Int64) $ statement $ premap mkBranch list
           branchPostode  = x^?_6._Just.from lazytext.to Protobuf.String
           branchHouse    = x^?_7._Just.from lazytext.to Protobuf.String
           branchDescription = x^?_9._Just.from lazytext.to Protobuf.String
-      in WithField (x^._1.coerced) (AnyOptField files (AnyOptField image (WithField (x^._8) Branch {..})))
+      in GetBranchResp (x^._1.coerced) files image (x^._8) Branch {..}
 
 createBranches :: HS.Statement (Id "user", [OptField "image" (Id "img") Branch]) [Id "branch"]
 createBranches = lmap mkEncoder $ statement $ premap (coerce @Int64 @(Id "branch")) list

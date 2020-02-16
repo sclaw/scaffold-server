@@ -12,8 +12,6 @@ module TH.Mk
        , mkSRGEqEnum
        , mkToSchemaAndDefJSON
        , mkEnumConvertor
-       , mkRequestWrapper
-       , mkResponseWrapper
        , mkFromHttpApiDataIdent
        , mkFromHttpApiDataEnum
        , mkParamSchemaEnum
@@ -33,7 +31,7 @@ import Data.Scientific as Scientific
 import Data.Maybe
 import Data.Proxy
 import Control.Lens.Iso.Extended
-import Data.Text (stripPrefix, split)
+import Data.Text (stripPrefix)
 import Text.Casing (quietSnake)
 import Servant.API
 import Data.Char
@@ -192,66 +190,6 @@ mkEnumConvertor name =
      let isoSig = SigD isoN (AppT (AppT (ConT iso) (ConT name)) (ConT str))  
      iosDec <- [d| $(varP isoN) = $(appE (appE (varE (mkName "iso")) (varE isoNFrom)) (varE isoNTo)) |]
      return $ [fromSig, fromN, toSig, toN, isoSig] ++ iosDec
-
-mkRequestWrapper :: Name -> Q [Dec]
-mkRequestWrapper name = do
-  TyConI (DataD _ n _ _ _ _) <- reify name
-  let Just prefix = fmap (last . (^.stext.to (split (== '.')))) $ nameModule n
-  let wrapper = mkName $ (prefix^.from stext) <> nameBase name
-  let fromJson = mkName "FromJSON"
-  let toSchema = mkName "ToSchema"
-  let gen = mkName "Generic"
-  let show = mkName "Show"
-  let entiityWrapper = 
-        NewtypeD [] wrapper [] Nothing 
-        (NormalC wrapper 
-        [(Bang NoSourceUnpackedness 
-                NoSourceStrictness
-        , ConT name)]) 
-        [ DerivClause (Just NewtypeStrategy) [ConT fromJson]
-        , DerivClause (Just AnyclassStrategy) [ConT toSchema]
-        , DerivClause (Just StockStrategy) [ConT gen]
-        , DerivClause (Just NewtypeStrategy) [ConT show]
-        ]
-  let x = mkName "x"      
-  inst <- 
-   [d| instance Wrapped $(conT wrapper) where
-         type Unwrapped $(conT wrapper) = $(conT name) 
-         _Wrapped' = iso fromWrapper toWrapper
-          where fromWrapper $(conP wrapper [varP x]) = $(varE x)
-                toWrapper $(varP x) = $(appE (conE wrapper) (varE x)) 
-    |]                  
-  return $ entiityWrapper : inst 
-
-mkResponseWrapper :: Name -> Q [Dec]
-mkResponseWrapper name =  do
-  TyConI (DataD _ n _ _ _ _) <- reify name
-  let Just prefix = fmap (last . (^.stext.to (split (== '.')))) $ nameModule n
-  let wrapper = mkName $ (prefix^.from stext) <> nameBase name
-  let toJson = mkName "ToJSON"
-  let toSchema = mkName "ToSchema"
-  let gen = mkName "Generic"
-  let show = mkName "Show"
-  let entiityWrapper = 
-        NewtypeD [] wrapper [] Nothing 
-        (NormalC wrapper 
-        [(Bang NoSourceUnpackedness 
-                NoSourceStrictness
-        , ConT name)]) 
-        [ DerivClause (Just NewtypeStrategy) [ConT toJson]
-        , DerivClause (Just AnyclassStrategy) [ConT toSchema]
-        , DerivClause (Just StockStrategy) [ConT gen]
-        , DerivClause (Just NewtypeStrategy) [ConT show]
-        ]
-  let x = mkName "x"      
-  inst <- 
-    [d| instance Wrapped $(conT wrapper) where
-          type Unwrapped $(conT wrapper) = $(conT name) 
-          _Wrapped' = iso fromWrapper toWrapper
-           where fromWrapper $(conP wrapper [varP x]) = $(varE x)
-                 toWrapper $(varP x) = $(appE (conE wrapper) (varE x)) 
-    |]                          
-  return $ entiityWrapper : inst
 
 mkFromHttpApiDataIdent :: Name -> Q [Dec]
 mkFromHttpApiDataIdent name = do

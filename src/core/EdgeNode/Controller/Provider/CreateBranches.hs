@@ -9,7 +9,7 @@
 module EdgeNode.Controller.Provider.CreateBranches (controller) where
 
 import EdgeNode.Transport.Response
-import EdgeNode.Transport.Provider
+import EdgeNode.Transport.ProviderExt
 import EdgeNode.Transport.Id
 import qualified EdgeNode.Statement.Provider as Provider
 
@@ -19,15 +19,15 @@ import Database.Transaction
 import Control.Lens
 import Data.Maybe
 
-controller :: [OptField "files" [Id "file"] (OptField "image" (Id "img") Branch)] -> Id "user" -> KatipController (Response [Id "branch"])
+controller :: [MkBranchReq] -> Id "user" -> KatipController (Response [Id "branch"])
 controller xs uid = do 
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   result <- katipTransactionViolationError hasql $ do
     let (files, branches) = 
           unzip $ 
           flip map xs $ 
-          \(OptField (WithField fs x)) -> 
-           (fromMaybe [] fs, x) 
+          \(MkBranchReq fs img x) -> 
+           (fromMaybe [] fs, OptField (WithField img x)) 
     ids <- statement Provider.createBranches (uid, branches)
     statement Provider.createFiles $ 
       concat (zipWith (\i xs -> zip (repeat i) xs) ids files)

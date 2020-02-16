@@ -10,6 +10,7 @@ module EdgeNode.Api.Provider (ProviderApi (..)) where
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
+import EdgeNode.Transport.ProviderExt
 
 import Servant.API.Generic
 import Servant.API
@@ -21,17 +22,11 @@ data ProviderApi route =
      { _providerApiGetBranches
        :: route
        :- "branch"
-       :> Get '[JSON] (Response 
-           [WithId (Id "branch") 
-            (OptField "files" [Id "file"] 
-             (OptField "image" (Id "img") (
-              WithField "isHQ" Bool Branch)))])
+       :> Get '[JSON] (Response [GetBranchResp])
      ,  _providerApiCreateBranches
        :: route
        :- "branch"
-       :> ReqBody '[JSON] 
-          [OptField "files" [Id "file"]
-           (OptField "image" (Id "img") Branch)]
+       :> ReqBody '[JSON] [MkBranchReq]
        :> Put '[JSON] (Response [Id "branch"])
      , _providerApiPatchBranch
        :: route
@@ -56,5 +51,5 @@ data ProviderApi route =
        :: route 
        :- "qualifiacation"
        :> "new"
-       :> Put '[JSON] (Response (Id "qual"))          
+       :> Put '[JSON] (Response (Id "qual"))
      } deriving stock Generic
