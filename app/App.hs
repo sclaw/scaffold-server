@@ -115,9 +115,10 @@ main =
               (cfg^.katip.severity.from stringify) 
               (cfg^.katip.verbosity.from stringify)  
       let mkNm = Namespace [("<" ++ $(gitLatestCommitHash) ++ ">")^.stext]
-      env <- initLogEnv mkNm (cfg^.katip.EdgeNode.Config.env.stext.coerced)
-      let env' = registerScribe "stdout" std defaultScribeSettings env >>= 
-                 registerScribe "file" file defaultScribeSettings
+      init_env <- initLogEnv mkNm (cfg^.katip.EdgeNode.Config.env.stext.coerced)
+      let env = do 
+            env' <- registerScribe "stdout" std defaultScribeSettings init_env 
+            registerScribe "file" file defaultScribeSettings env'
 
       jwke <- eitherDecode `fmap` B.readFile (cfg^.auth.EdgeNode.Config.jwk)
       jwke `whenLeft` (error . (<>) "jwk decode error: ")
@@ -148,7 +149,7 @@ main =
 
       let katipMinio = Minio minioEnv (cfg^.EdgeNode.Config.minio.EdgeNode.Config.bucketPrefix)
       let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) (fromRight' jwke) katipMinio
-      bracket env' closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)     
+      bracket env closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)     
       
 mkRawConn :: Db -> HasqlConn.Settings
 mkRawConn x = HasqlConn.settings (x^.host.stext.textbs) (x^.port.to fromIntegral) (x^.EdgeNode.Config.user.stext.textbs) (x^.pass.stext.textbs) (x^.database.stext.textbs)
