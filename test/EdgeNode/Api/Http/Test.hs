@@ -6,7 +6,7 @@ module EdgeNode.Api.Http.Test (spec_api) where
 
 import EdgeNode.Api.Admin
 import EdgeNode.Api.File
-import EdgeNode.Api.Provider
+import EdgeNode.Api.Provider ()
 import EdgeNode.Api.Search
 import EdgeNode.Transport.Provider
 
