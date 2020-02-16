@@ -3,6 +3,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DataKinds #-}
 
 module EdgeNode.Controller.File.Patch (controller) where
 
@@ -27,10 +28,10 @@ import Network.Minio hiding (Bucket)
 import Control.Monad.IO.Class
 import Control.Monad.Error.Class
 
-controller :: Id -> File -> KatipController (Response Unit)
+controller :: Id "file" -> File -> KatipController (Response Unit)
 controller id file = do 
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  let notFound = "file {" <> show (coerce @Id @Int64 id)^.stext <> "} not found" 
+  let notFound = "file {" <> show (coerce @(Id "file") @Int64 id)^.stext <> "} not found" 
   resp <- fmap (maybeToRight (asError notFound)) $ 
     katipTransaction hasql $ statement File.getHashWithBucket id
   let patch (hash, bucket) = do 

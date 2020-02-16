@@ -1,8 +1,9 @@
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+{-# LANGUAGE DataKinds #-}
 
 module EdgeNode.Controller.Controller (controller) where
 
@@ -40,7 +41,7 @@ import qualified Data.Text as T
 controller :: ApplicationApi (AsServerT KatipController)
 controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
 
-verifyAuthorization :: Id -> Rbac.Permission -> (Id -> KatipController (Response a)) -> KatipController (Response a)
+verifyAuthorization :: Id "user" -> Rbac.Permission -> (Id "user" -> KatipController (Response a)) -> KatipController (Response a)
 verifyAuthorization uid perm controller = 
   do
     hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask

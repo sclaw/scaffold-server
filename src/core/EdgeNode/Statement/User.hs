@@ -1,5 +1,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DataKinds #-}
 
 module EdgeNode.Statement.User (new) where
 
@@ -10,7 +11,7 @@ import qualified Hasql.Statement as HS
 import Control.Lens
 import Hasql.TH
 
-new :: HS.Statement User Id
+new :: HS.Statement User (Id "user")
 new = dimap encoder (^.coerced) statement
   where
     statement = 

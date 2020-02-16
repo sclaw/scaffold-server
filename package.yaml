@@ -181,6 +181,7 @@ library:
     - generic-random
     - generic-deriving
     - password
+    - ghc-prim
 
   source-dirs:
     - src/core

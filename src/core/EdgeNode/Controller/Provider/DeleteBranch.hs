@@ -13,5 +13,5 @@ import KatipController
 import Data.Aeson.WithField ()
 import Data.Aeson.Unit
 
-controller :: Id -> Id -> KatipController (Response Unit)
+controller :: Id "branch" -> Id "user" -> KatipController (Response Unit)
 controller _ _ = undefined

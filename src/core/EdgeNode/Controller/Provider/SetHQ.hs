@@ -16,7 +16,7 @@ import Control.Lens
 import Database.Transaction
 import qualified Data.Text as T
 
-controller :: Id -> Id -> KatipController (Response Unit)
+controller :: Id "branch"  -> Id "user" -> KatipController (Response Unit)
 controller branchId userId = 
   do hasql <- fmap (^.katipEnv.hasqlDbPool) ask
      let mkResp True = Ok Unit

@@ -1,6 +1,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE DataKinds #-}
 
 module EdgeNode.Statement.File 
        ( save
@@ -23,7 +24,7 @@ import Control.Lens.Iso.Extended
 import qualified Data.Vector as V
 import qualified Data.Text as T
 
-save :: HS.Statement [(Hash, Name, Mime, EdgeNodeBucket)] [Id]
+save :: HS.Statement [(Hash, Name, Mime, EdgeNodeBucket)] [Id "file"]
 save =
   lmap (
       V.unzip4
@@ -48,7 +49,7 @@ save =
           $4 :: text[]) as x(hash, title, mime, bucket) 
         returning id :: int8|]
 
-getMeta :: HS.Statement Id (Maybe (Hash, Name, Mime, Bucket))
+getMeta :: HS.Statement (Id "file") (Maybe (Hash, Name, Mime, Bucket))
 getMeta = dimap (^.coerced) (fmap mkTpl) statement
   where 
     statement = 
@@ -59,7 +60,7 @@ getMeta = dimap (^.coerced) (fmap mkTpl) statement
               and not is_deleted|]
     mkTpl x = x & _1 %~ coerce & _2 %~ coerce & _3 %~ coerce & _4 %~ coerce 
 
-delete :: HS.Statement Id Bool
+delete :: HS.Statement (Id "file") Bool
 delete = dimap coerce (\x -> x > 0) statement
   where
     statement = 
@@ -70,7 +71,7 @@ delete = dimap coerce (\x -> x > 0) statement
         where id = $1 :: int8 
               and not is_deleted :: bool|]
 
-getHashWithBucket :: HS.Statement Id (Maybe (Hash, Bucket))
+getHashWithBucket :: HS.Statement (Id "file") (Maybe (Hash, Bucket))
 getHashWithBucket = dimap (^.coerced) (fmap (\x -> x & _1 %~ coerce & _2 %~ coerce)) statement
   where 
     statement = 

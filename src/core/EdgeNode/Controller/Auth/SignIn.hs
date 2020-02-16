@@ -6,10 +6,12 @@
 
 module EdgeNode.Controller.Auth.SignIn (controller) where
 
+import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Auth
 import qualified EdgeNode.Statement.Auth as Auth
 import qualified EdgeNode.Transport.Error as Error
+import EdgeNode.Model.User
 
 import Katip
 import KatipController
@@ -32,10 +34,11 @@ import Control.Monad.IO.Class
 import qualified Auth as Auth
 import Control.Monad.Except
 import Data.Bifunctor
+import Data.Aeson.WithField
 
 derive makeDefault ''SigninResp
 
-controller :: SigninReq -> KatipController (Response SigninResp)
+controller :: SigninReq -> KatipController (Response (WithId (Id "user") (WithField "role" Type SigninResp)))
 controller req = do 
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   cred <- katipTransaction hasql $ statement Auth.getUserCred req
@@ -56,7 +59,7 @@ controller req = do
               hasql <- fmap (^.katipEnv.hasqlDbPool) ask
               status <- katipTransaction hasql $ statement Auth.putRefreshToken (encode r, x^._1, unique)
               return $ case status of 
-                True -> Ok $ 
+                True -> Ok $ WithField (x^._1) $ WithField (x^._2) $
                   def & field @"signinRespAccessToken" .~ encode (a^._1)
                       & field @"signinRespRefreshToken" .~ encode r
                       & field @"signinRespLifetime" ?~ (a^._2)

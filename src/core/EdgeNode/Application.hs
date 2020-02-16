@@ -63,7 +63,7 @@ data Cfg =
        -- data structure that represents a cryptographic key 
      , cfgJwk :: !JWK
      , cfgIsAuthEnabled :: !Bool
-     , cfgUserId :: !Id 
+     , cfgUserId :: !(Id "user")
      }
 
 newtype AppMonad a = AppMonad { runAppMonad :: RWS.RWST KatipEnv KatipLogger KatipState IO a }
@@ -102,7 +102,7 @@ run Cfg {..} =
                , JWTSettings
                , KatipLoggerIO
                , Bool
-               , Id
+               , Id "user"
                , Proxy Tmp
                , Pool.Pool Hasql.Connection
                , BasicAuthCfg]

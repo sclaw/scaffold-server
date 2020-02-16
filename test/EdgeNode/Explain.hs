@@ -16,6 +16,7 @@ import qualified EdgeNode.Statement.File
 import qualified EdgeNode.Statement.User
 import qualified EdgeNode.Statement.Admin
 import qualified EdgeNode.Statement.Provider
+import qualified EdgeNode.Statement.Auth
 
 import Database.Migration.Test
 import Test.Hspec hiding (shouldBe)
@@ -74,6 +75,9 @@ explainTests =
     , "checkHQ" =>> EdgeNode.Statement.Provider.checkHQ
     , "createBranches" =>> EdgeNode.Statement.Provider.createBranches
     , "createFiles" =>> EdgeNode.Statement.Provider.createFiles]
+  , "EdgeNode.Statement.Auth" ==> 
+    [ "getUserCred" =>> EdgeNode.Statement.Auth.getUserCred
+    , "putRefreshToken" =>> EdgeNode.Statement.Auth.putRefreshToken]  
   ]
   
 (==>) a b = (a, b)

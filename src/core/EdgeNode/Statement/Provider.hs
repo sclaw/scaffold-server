@@ -58,7 +58,7 @@ instance ParamsShow Branch where
     & _6 %~ (^._Just.field @"stringValue".lazytext.from stext)
     & _7 %~ (^._Just.field @"stringValue".lazytext.from stext))^..each
 
-getBranches :: HS.Statement Id [WithId Id (OptField "files" [Id] (OptField "image" Id (WithField "isHQ" Bool Branch)))]
+getBranches :: HS.Statement (Id "user") [WithId (Id "branch") (OptField "files" [Id "file"] (OptField "image" (Id "img") (WithField "isHQ" Bool Branch)))]
 getBranches = lmap (coerce @_ @Int64) $ statement $ premap mkBranch list 
   where
     statement =
@@ -79,7 +79,7 @@ getBranches = lmap (coerce @_ @Int64) $ statement $ premap mkBranch list
        group by pb.id
        order by pb.is_hq desc, pb.title|]  
     mkBranch x =
-      let files = flip fmap (x^?_11._Just) $ \x -> V.toList x^..traversed.coerced @_ @_ @Id @_
+      let files = flip fmap (x^?_11._Just) $ \x -> V.toList x^..traversed.coerced @_ @_ @(Id "file") @_
           image = x^?_10._Just.coerced
           branchTitle    = x^._2.from lazytext
           branchCountry  = x^._3.from country
@@ -90,8 +90,8 @@ getBranches = lmap (coerce @_ @Int64) $ statement $ premap mkBranch list
           branchDescription = x^?_9._Just.from lazytext.to Protobuf.String
       in WithField (x^._1.coerced) (AnyOptField files (AnyOptField image (WithField (x^._8) Branch {..})))
 
-createBranches :: HS.Statement (Id, [OptField "image" Id Branch]) [Id]
-createBranches = lmap mkEncoder $ statement $ premap (coerce @Int64 @Id) list
+createBranches :: HS.Statement (Id "user", [OptField "image" (Id "img") Branch]) [Id "branch"]
+createBranches = lmap mkEncoder $ statement $ premap (coerce @Int64 @(Id "branch")) list
   where 
     statement = 
       [foldStatement|
@@ -124,8 +124,8 @@ createBranches = lmap mkEncoder $ statement $ premap (coerce @Int64 @Id) list
        & _6 %~ (^._Just.field @"stringValue".lazytext)
        & _7 %~ (^._Just.field @"stringValue".lazytext))
 
-checkHQ :: HS.Statement Id Bool
-checkHQ = lmap (coerce @Id @Int64) statement
+checkHQ :: HS.Statement (Id "branch") Bool
+checkHQ = lmap (coerce @(Id "branch") @Int64) statement
   where 
     statement = 
       [singletonStatement|
@@ -136,7 +136,7 @@ checkHQ = lmap (coerce @Id @Int64) statement
          on pu.provider_id = pb.id
          where pu.user_id = $1 :: int8 and not pb.is_deleted and pb.is_hq) :: bool|]
 
-createFiles :: HS.Statement [(Id, Id)] ()
+createFiles :: HS.Statement [(Id "branch" , Id "file")] ()
 createFiles = lmap mkEncoder statement
   where
     statement = 
@@ -144,9 +144,9 @@ createFiles = lmap mkEncoder statement
         insert into edgenode.provider_branch_file
         (provider_branch_fk, file_fk)
         select p, f from unnest($1 :: int8[], $2 :: int8[]) as x(p, f)|]
-    mkEncoder = V.unzip. V.fromList . Prelude.map (coerce @(Id, Id) @(Int64, Int64))
+    mkEncoder = V.unzip. V.fromList . Prelude.map (coerce @(Id "branch", Id "file") @(Int64, Int64))
 
-setHQ :: HS.Statement (Id, Id) Bool
+setHQ :: HS.Statement (Id "user", Id "branch") Bool
 setHQ = dimap coerce (> 0) statement
   where
     statement = 

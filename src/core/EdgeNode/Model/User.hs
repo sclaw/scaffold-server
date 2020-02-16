@@ -5,6 +5,8 @@
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE TypeOperators  #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
 
 module EdgeNode.Model.User 
        ( User
@@ -38,6 +40,8 @@ import Protobuf.Scalar (UInt64 (..))
 import Data.Generics.Product.Fields
 import Data.HList.HList.Extended
 import Data.Aeson.TH.Extended
+import Data.Swagger
+import GHC.Generics
 
 mkEncoder ''User
 mkEncoder ''FullDay
@@ -48,9 +52,11 @@ derive makeArbitrary ''FullDay
 derive makeArbitrary ''User
 derive makeArbitrary ''UInt64
 
-data Type = Primary | Secondary deriving Show
+data Type = Primary | Secondary deriving stock (Show, Generic)
 
 data RegisterStatus = Active | Wait | TimeOut | Banned
+
+instance ToSchema Type
 
 mkEnumConvertor ''Type
 mkEnumConvertor ''RegisterStatus

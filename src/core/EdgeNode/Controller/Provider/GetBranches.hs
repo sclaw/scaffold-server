@@ -16,12 +16,12 @@ import Database.Transaction
 import Control.Lens
 
 controller 
-  :: Id 
+  :: Id "user" 
   -> KatipController 
      (Response 
-      [WithId Id 
-       (OptField "files" [Id] 
-        (OptField "image" Id 
+      [WithId (Id "branch")
+       (OptField "files" [Id "file"] 
+        (OptField "image" (Id "img") 
         (WithField "isHQ" Bool Branch)))])
 controller uid = 
   fmap (^.katipEnv.hasqlDbPool) ask >>= 

@@ -1,6 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DataKinds #-}
 
 module EdgeNode.Controller.File.Upload (controller) where
 
@@ -25,7 +26,7 @@ import Data.Traversable
 import Data.Coerce
 import Data.Either
 
-controller :: EdgeNodeBucket -> Files -> KatipController (Response [Id])
+controller :: EdgeNodeBucket -> Files -> KatipController (Response [Id "file"])
 controller bucket x = do 
   Minio {..} <- fmap (^.katipEnv.minio) ask
   es <- for (coerce x) $ \File {..} -> do 

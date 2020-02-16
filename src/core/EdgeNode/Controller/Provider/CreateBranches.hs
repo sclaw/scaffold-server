@@ -19,7 +19,7 @@ import Database.Transaction
 import Control.Lens
 import Data.Maybe
 
-controller :: [OptField "files" [Id] (OptField "image" Id Branch)] -> Id -> KatipController (Response [Id])
+controller :: [OptField "files" [Id "file"] (OptField "image" (Id "img") Branch)] -> Id "user" -> KatipController (Response [Id "branch"])
 controller xs uid = do 
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   result <- katipTransactionViolationError hasql $ do

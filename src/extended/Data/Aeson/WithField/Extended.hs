@@ -27,6 +27,8 @@ import GHC.Generics
 import Data.Foldable
 import GHC.TypeLits
 import Database.Transaction
+import Data.Typeable
+import Data.Swagger.Internal.Utils
 
 instance (ParamsShow a, ParamsShow b) => 
          ParamsShow (WithField s a b) 
@@ -46,10 +48,16 @@ newtype OptField s a v = OptField (WithField s (Maybe a) v)
   deriving Generic
   deriving newtype ToJSON
   deriving newtype Arbitrary
-  deriving anyclass ToSchema
   deriving stock Show
   deriving stock Eq
 
+instance (ToSchema a, ToSchema v, Typeable a, Typeable v) => ToSchema (OptField s a v) where
+  declareNamedSchema _ = do 
+    aSchema <- declareSchema (Proxy @(Maybe a))
+    vSchema <- declareSchema (Proxy @v)
+    let uniq = T.pack $ show (typeOf (undefined :: a)) ++ "-" ++ show (typeOf (undefined :: v))
+    pure $ NamedSchema (Just $ "(OptField" <> uniq <> ")") (swaggerMappend aSchema vSchema)
+       
 instance (KnownSymbol s, Show a, FromJSON a, Show v, FromJSON v) =>
          FromJSON (OptField s a v) where
   parseJSON = withObject "opt-field" $ \o -> do

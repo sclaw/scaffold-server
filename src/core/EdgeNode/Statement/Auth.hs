@@ -16,6 +16,7 @@ module EdgeNode.Statement.Auth
 import EdgeNode.Transport.Auth
 import EdgeNode.Transport.Id
 import EdgeNode.Model.User
+import EdgeNode.Statement.Provider ()
 
 import qualified Hasql.Statement as HS
 import TH.Mk
@@ -34,8 +35,11 @@ import Data.Coerce
 import qualified Data.ByteString as B
 import qualified Data.Text as T
 import Data.Int
+import Data.DeriveTH
+import Test.QuickCheck.Extended
 
 mkEncoder ''SigninReq
+derive makeArbitrary ''SigninReq
 
 instance ParamsShow SigninReq where
   render x = intercalate "," 
@@ -45,7 +49,7 @@ instance ParamsShow SigninReq where
     , x^.field @"signinReqPassword".from stextl
     ]
 
-getUserCred :: HS.Statement SigninReq (Maybe (Id, Type, PassHash))
+getUserCred :: HS.Statement SigninReq (Maybe (Id "user", Type, PassHash))
 getUserCred = dimap (initT . mkTpl . mkEncoderSigninReq) decoder statement
   where
     mkTpl x = 
@@ -64,13 +68,13 @@ getUserCred = dimap (initT . mkTpl . mkEncoderSigninReq) decoder statement
          & _Just._2 %~ (^.from stext.from isoType) 
          & _Just._3 %~ (^.from textbs.to coerce)
 
-instance ParamsShow (B.ByteString, Id, T.Text) where 
+instance ParamsShow (B.ByteString, Id "user" , T.Text) where 
     render x = intercalate "," 
       [ x^._1.from textbs.from stext
       , x^._2.coerced @_ @_ @Int64 @_.to show
       , x^._3.from stext] 
     
-putRefreshToken :: HS.Statement (B.ByteString, Id, T.Text) Bool
+putRefreshToken :: HS.Statement (B.ByteString, Id "user", T.Text) Bool
 putRefreshToken = dimap (& _2 %~ coerce) (> 0) statement
   where
     statement =

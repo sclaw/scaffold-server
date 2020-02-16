@@ -25,22 +25,22 @@ data FileApi route =
        :- Description "upload to server"
        :> Capture "bucket" EdgeNodeBucket
        :> MultipartForm Tmp Files 
-       :> Put '[JSON] (Response [Id])
+       :> Put '[JSON] (Response [Id "file"])
      , _fileApiPatch
        :: route 
        :- Description "patch file by replacing new one"
-       :> Capture "fid" Id
+       :> Capture "fid" (Id "file")
        :> MultipartForm Tmp File       
        :> Patch '[JSON] (Response Unit)
      , _fileApiDelete
        :: route
        :- Description "delete file"
-       :> Capture "fid" Id
+       :> Capture "fid" (Id "file")
        :> Delete '[JSON] (Response Unit)
      , _fileApiDownload
        :: route
        :- Description "download from server"
        :> "download"
-       :> Capture "fid" Id
+       :> Capture "fid" (Id "file")
        :> RawM
      } deriving stock Generic

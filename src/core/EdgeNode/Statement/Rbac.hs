@@ -1,6 +1,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DataKinds #-}
 
 module EdgeNode.Statement.Rbac 
        ( getTopLevelRoles
@@ -20,7 +21,7 @@ import Data.Int
 import qualified Data.Vector as V
 import Data.Coerce
 
-getTopLevelRoles :: HS.Statement (Id, Permission) [Id]
+getTopLevelRoles :: HS.Statement (Id "user", Permission) [Id "role"]
 getTopLevelRoles = lmap (bimap (^.coerced) (^.isoPermission.stext)) $ statement $ premap (^.coerced) list                
   where
     statement = 
@@ -44,9 +45,9 @@ getTopLevelRoles = lmap (bimap (^.coerced) (^.isoPermission.stext)) $ statement 
                     where title = $2 :: text)) as rp
         on r.role_fk = rp.role_fk|]
 
-isPermissionBelongToRole :: HS.Statement ([Id], Permission) Bool
+isPermissionBelongToRole :: HS.Statement ([Id "role"], Permission) Bool
 isPermissionBelongToRole = 
-  lmap (bimap ((V.fromList . Prelude.map coerce) :: [Id] -> V.Vector Int64) (^.isoPermission.stext)) statement
+  lmap (bimap ((V.fromList . Prelude.map coerce) :: [Id "role"] -> V.Vector Int64) (^.isoPermission.stext)) statement
   where 
     statement = 
       [singletonStatement|

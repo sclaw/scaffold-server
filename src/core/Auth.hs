@@ -11,6 +11,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Auth 
       ( JWTUser (..)
@@ -74,7 +75,7 @@ data AppJwt
 
 data JWTUser = 
      JWTUser 
-     { jWTUserUserId :: !Id
+     { jWTUserUserId :: !(Id "user")
      , jWTUserEmail  :: !T.Text
      , jWTUserUnique :: !T.Text
      , jWTUserUserRole :: !Type
@@ -82,13 +83,13 @@ data JWTUser =
   deriving stock Show
   
 deriveJSON defaultOptions ''JWTUser
-mkEncoder ''JWTUser 
+mkEncoder ''JWTUser
 
 instance FromJWT JWTUser
 instance ToJWT JWTUser 
 
-instance FromJWT Id
-instance ToJWT Id
+instance FromJWT (Id "user")
+instance ToJWT (Id "user")
 
 instance HasSecurity AppJwt where
   securityName _ = "AppJwtSecurity"
@@ -99,7 +100,7 @@ instance HasSecurity AppJwt where
    (Just "JSON Web Token-based API key")
   
 instance IsAuth AppJwt JWTUser where
-  type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, Id, Pool.Pool Hasql.Connection, Bool]
+  type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, Id "user", Pool.Pool Hasql.Connection, Bool]
   runAuth _ _ cfg log uid pool = 
    bool (return (JWTUser uid mempty mempty Primary)) 
         (Auth.jwtAuthCheck cfg log pool)
@@ -160,14 +161,14 @@ actionCheckToken (Just user) =
             select exists 
             (select 1 
              from auth.token 
-             where user = $1 :: int8 
+             where "user_fk" = $1 :: int8 
              and uid = $2 :: text) :: bool|]    
      exists <- Hasql.statement user $ 
        flip lmap mkStatement $ \x -> 
          (mkEncoderJWTUser x^._1.coerced, mkEncoderJWTUser x^._3)   
      return $ if exists then Right user else Left "token not found"
 
-mkAccessToken :: JWK -> Id -> T.Text -> Type -> ExceptT JWTError IO (SignedJWT, Time)
+mkAccessToken :: JWK -> Id "user" -> T.Text -> Type -> ExceptT JWTError IO (SignedJWT, Time)
 mkAccessToken jwk uid unique utype = 
   do 
      alg <- bestJWSAlg jwk
@@ -184,7 +185,7 @@ mkAccessToken jwk uid unique utype =
      let tm = Time (fromIntegral (systemSeconds t)) 0
      (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims
 
-mkRefreshToken :: JWK -> Id -> ExceptT JWTError IO SignedJWT
+mkRefreshToken :: JWK -> Id "user" -> ExceptT JWTError IO SignedJWT
 mkRefreshToken jwk uid =
   do 
     alg <- bestJWSAlg jwk
@@ -198,7 +199,7 @@ mkRefreshToken jwk uid =
            HM.singleton "dat" (toJSON uid)       
     signClaims jwk (newJWSHeader ((), alg)) claims 
 
-data BasicUser = BasicUser { basicUserUserId :: !Id }
+data BasicUser = BasicUser { basicUserUserId :: !(Id "user") }
 
 instance FromJWT BasicUser
 instance ToJWT BasicUser

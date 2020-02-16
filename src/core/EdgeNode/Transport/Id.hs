@@ -5,6 +5,9 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE DataKinds #-}
 
 module EdgeNode.Transport.Id (Id(..)) where
 
@@ -22,11 +25,12 @@ import Servant.API
 import Test.QuickCheck    (Arbitrary)
 import TextShow
 import Database.Transaction (ParamsShow (..))
+import GHC.Types
 
 -- | Type for ids that is shared across all the projects.
 -- user id is int64, so it's encrypted as "text" in json,
 -- otherwise js code may fail to work with it.
-newtype Id = Id Int64
+newtype Id (a :: Symbol) = Id Int64
   deriving newtype (Show, Eq)
   deriving newtype Arbitrary
   deriving newtype Binary
@@ -43,18 +47,19 @@ newtype Id = Id Int64
   deriving newtype FromHttpApiData
   deriving newtype ParamsShow
 
-instance ToSchema Id where
+instance ToSchema (Id a) where
   declareNamedSchema _ = do
     srcSchema <- declareSchemaRef (Proxy :: Proxy String)
-    pure $ NamedSchema (Just "Id") $ mempty
+   --  let unique = T.pack $ show (typeOf (undefined :: a))
+    pure $ NamedSchema (Just ("Id(" <> T.pack (show (Proxy @a)) <> ")")) $ mempty
       & type_ .~ SwaggerString
-      & properties .~ [("type", srcSchema)]
-      & required .~ ["type"]
+      & properties .~ [("id", srcSchema)]
+      & required .~ ["id"]
 
-instance ToJSON Id where
+instance ToJSON (Id a) where
   toJSON (Id v) = toJSON (T.pack (show v))
 
-instance FromJSON Id where
+instance FromJSON (Id a) where
   parseJSON (String t) = Id <$> case reads (T.unpack t) of
     [(x,_)] -> pure x
     _ -> fail "unable to parse"

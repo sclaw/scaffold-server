@@ -2,6 +2,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DataKinds #-}
 
 module EdgeNode.Controller.File.Download (controller) where
 
@@ -32,10 +33,10 @@ import Data.ByteString.Builder
 import Data.Aeson
 import Data.Time.Clock
 
-controller :: Id -> KatipController Application
+controller :: Id "file" -> KatipController Application
 controller id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  let notFound = "file {" <> show (coerce @Id @Int64 id)^.stext <> "} not found" 
+  let notFound = "file {" <> show (coerce @(Id "file") @Int64 id)^.stext <> "} not found" 
   meta <- fmap (maybeToRight (asError notFound)) $ 
     katipTransaction hasql $ statement File.getMeta id
   minioResp <- fmap join $ for meta $ \x -> do 

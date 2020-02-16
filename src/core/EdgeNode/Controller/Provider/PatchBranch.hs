@@ -13,5 +13,5 @@ import KatipController
 import Data.Aeson.WithField
 import Data.Aeson.Unit
 
-controller :: Id -> WithField "files" [Id] (WithField "image" Id Branch) -> Id -> KatipController (Response Unit)
+controller :: Id "branch" -> WithField "files" [Id "file"] (WithField "image" (Id "img") Branch) -> Id "user" -> KatipController (Response Unit)
 controller _ _ _ = undefined

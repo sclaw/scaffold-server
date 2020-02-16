@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ad2f3280e902fc5a4d81979b4328ca84492be67a71c26b823a8e351b475f97cf
+-- hash: b8cff7cd8c14217f038584335cb8e7293e0d99ec0482ab5e9f8e82374589492d
 
 name:           edgenode
 version:        0.1.0.0
@@ -155,6 +155,7 @@ library
     , generic-deriving
     , generic-lens
     , generic-random
+    , ghc-prim
     , ginger
     , hashable
     , hashing
