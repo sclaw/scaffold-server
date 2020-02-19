@@ -10,7 +10,7 @@ module EdgeNode.Api.Provider (ProviderApi (..)) where
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
-import EdgeNode.Transport.ProviderExt
+import EdgeNode.Transport.Extended
 
 import Servant.API.Generic
 import Servant.API

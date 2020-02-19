@@ -36,10 +36,10 @@ import Control.Monad.Except
 import Data.Bifunctor
 import Data.Aeson.WithField
 
-derive makeDefault ''SigninResp
+derive makeDefault ''Tokens
 
-controller :: SigninReq -> KatipController (Response (WithId (Id "user") (WithField "role" Type SigninResp)))
-controller req = do 
+controller :: SigninReq -> KatipController (Response (WithId (Id "user") (WithField "role" UserRole Tokens)))
+controller req = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   cred <- katipTransaction hasql $ statement Auth.getUserCred req
   fmap (fromMaybe (Error (Error.asError @T.Text "credential not found"))) $ 
@@ -60,9 +60,9 @@ controller req = do
               status <- katipTransaction hasql $ statement Auth.putRefreshToken (encode r, x^._1, unique)
               return $ case status of 
                 True -> Ok $ WithField (x^._1) $ WithField (x^._2) $
-                  def & field @"signinRespAccessToken" .~ encode (a^._1)
-                      & field @"signinRespRefreshToken" .~ encode r
-                      & field @"signinRespLifetime" ?~ (a^._2)
+                  def & field @"tokensAccessToken" .~ encode (a^._1)
+                      & field @"tokensRefreshToken" .~ encode r
+                      & field @"tokensLifetime" ?~ (a^._2)
                 False  -> Error $ Error.asError @T.Text "already sign in"
           case x of Right resp -> pure resp; Left e -> pure $ Error (Error.asError @T.Text (show e^.stext))
         PassCheckFail -> pure $ Error (Error.asError @T.Text "wrong password")

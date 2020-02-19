@@ -1,16 +1,22 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE GeneralisedNewtypeDeriving #-}
+{-# LANGUAGE UndecidableInstances #-}
 
-module EdgeNode.Transport.ProviderExt 
+module EdgeNode.Transport.Extended 
        ( GetBranchResp (..)
        , MkBranchReq (..)
        ) where
 
 import EdgeNode.Transport.Provider
+import EdgeNode.Transport.Auth
 import EdgeNode.Transport.Id
 import GHC.Generics
 import TH.Mk
+import Data.Swagger
 
 data GetBranchResp = 
      GetBranchResp 

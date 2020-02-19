@@ -41,7 +41,7 @@ controller provider user = do
         (provider^.field @"providerRegistrationProviderUID")
         (provider^.field @"providerRegistrationAdminEmail")
         (unPassHash hashedPassword^.from lazytext)
-        (Secondary^.isoType.stextl)
+        (Secondary^.isoUserRole.stextl)
         (Active^.isoRegisterStatus.stextl)
   fmap (const (Ok Unit)) $ katipTransaction hasql $ do 
     ident <- statement Admin.newProvider providerExt

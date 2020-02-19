@@ -49,7 +49,7 @@ instance ParamsShow SigninReq where
     , x^.field @"signinReqPassword".from stextl
     ]
 
-getUserCred :: HS.Statement SigninReq (Maybe (Id "user", Type, PassHash))
+getUserCred :: HS.Statement SigninReq (Maybe (Id "user", UserRole, PassHash))
 getUserCred = dimap (initT . mkTpl . mkEncoderSigninReq) decoder statement
   where
     mkTpl x = 
@@ -65,7 +65,7 @@ getUserCred = dimap (initT . mkTpl . mkEncoderSigninReq) decoder statement
         where identifier = md5($1 :: text || $2 :: text)|]
     decoder x =  
       x  & _Just._1 %~ coerce 
-         & _Just._2 %~ (^.from stext.from isoType) 
+         & _Just._2 %~ (^.from stext.from isoUserRole) 
          & _Just._3 %~ (^.from textbs.to coerce)
 
 instance ParamsShow (B.ByteString, Id "user" , T.Text) where 

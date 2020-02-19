@@ -9,7 +9,7 @@ import EdgeNode.Api.File
 import EdgeNode.Api.Provider
 import EdgeNode.Api.Search
 import EdgeNode.Transport.Provider
-import EdgeNode.Transport.ProviderExt
+import EdgeNode.Transport.Extended
 
 import Test.Hspec
 import Data.Proxy

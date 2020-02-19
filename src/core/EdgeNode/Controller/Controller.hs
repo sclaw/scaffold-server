@@ -72,6 +72,7 @@ auth _ =
     katipAddNamespace 
     (Namespace ["auth", "authentication"])  
     (Auth.SignIn.controller req)
+  , _authApiRefreshAccessToken = undefined  
   }
 
 user :: Maybe IP4 -> AuthResult JWTUser -> UserApi (AsServerT KatipController)

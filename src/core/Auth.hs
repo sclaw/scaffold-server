@@ -78,7 +78,7 @@ data JWTUser =
      { jWTUserUserId :: !(Id "user")
      , jWTUserEmail  :: !T.Text
      , jWTUserUnique :: !T.Text
-     , jWTUserUserRole :: !Type
+     , jWTUserUserRole :: !UserRole
      } 
   deriving stock Show
   
@@ -168,7 +168,7 @@ actionCheckToken (Just user) =
          (mkEncoderJWTUser x^._1.coerced, mkEncoderJWTUser x^._3)   
      return $ if exists then Right user else Left "token not found"
 
-mkAccessToken :: JWK -> Id "user" -> T.Text -> Type -> ExceptT JWTError IO (SignedJWT, Time)
+mkAccessToken :: JWK -> Id "user" -> T.Text -> UserRole -> ExceptT JWTError IO (SignedJWT, Time)
 mkAccessToken jwk uid unique utype = 
   do 
      alg <- bestJWSAlg jwk

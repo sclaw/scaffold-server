@@ -9,7 +9,7 @@
 module EdgeNode.Controller.Provider.CreateBranches (controller) where
 
 import EdgeNode.Transport.Response
-import EdgeNode.Transport.ProviderExt
+import EdgeNode.Transport.Extended
 import EdgeNode.Transport.Id
 import qualified EdgeNode.Statement.Provider as Provider
 

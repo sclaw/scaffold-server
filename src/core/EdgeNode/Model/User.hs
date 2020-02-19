@@ -10,9 +10,9 @@
 
 module EdgeNode.Model.User 
        ( User
-       , Type (..)
+       , UserRole (..)
        , RegisterStatus (..)
-       , isoType
+       , isoUserRole
        , isoRegisterStatus
        , encoder
        ) where
@@ -52,13 +52,13 @@ derive makeArbitrary ''FullDay
 derive makeArbitrary ''User
 derive makeArbitrary ''UInt64
 
-data Type = Primary | Secondary deriving stock (Show, Generic)
+data UserRole = Primary | Secondary deriving stock (Show, Generic)
 
 data RegisterStatus = Active | Wait | TimeOut | Banned
 
-instance ToSchema Type
+instance ToSchema UserRole
 
-mkEnumConvertor ''Type
+mkEnumConvertor ''UserRole
 mkEnumConvertor ''RegisterStatus
 
 encoder :: User -> (T.Text, T.Text, T.Text, Int32, Int32, Int32, T.Text, Maybe Int64, Int32)
@@ -74,4 +74,4 @@ encoder x = (hToTuple . hConcat . hFromTuple) tpl
       & _6 %~ (hEnd . hBuild . (^? _Just.field @"uint64Value".(integral @_ @Int64)))
       & _7 %~ (hEnd . hBuild . (either (const (0 :: Int32)) (fromIntegral . fromEnum)  . coerce @_ @(Either Int Gender)))
 
-deriveJSON defaultOptions ''Type
+deriveJSON defaultOptions ''UserRole

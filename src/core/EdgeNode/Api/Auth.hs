@@ -20,12 +20,17 @@ data AuthApi route =
      AuthApi
      { _authApiAuthentication
        :: route
-       :- Description "provder authentication"
+       :- Description "authentication"
        :> "authenticate"
        :> ReqBody '[JSON] SigninReq
        :> Post '[JSON]
           (Response 
            (WithId (Id "user") 
-            (WithField "role" Type 
-             SigninResp)))
+            (WithField "role" UserRole 
+             Tokens)))
+     , _authApiRefreshAccessToken
+       :: route 
+       :- Description "refresh access token"
+       :> ReqBody '[JSON] Token
+       :> Post '[JSON] (Response Tokens)
      } deriving stock Generic

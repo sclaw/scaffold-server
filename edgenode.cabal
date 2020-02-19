@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d608bde67f21c7ab205d6082e168579769a0ef92dd9093f38ad5934503db49ae
+-- hash: add86d179f2d225603672cbba63ada23bd79b3782edaf3f82f9f1477e4265903
 
 name:           edgenode
 version:        0.1.0.0
@@ -62,10 +62,10 @@ library
       EdgeNode.Statement.Rbac
       EdgeNode.Statement.User
       EdgeNode.Transport.Error
+      EdgeNode.Transport.Extended
       EdgeNode.Transport.Id
       EdgeNode.Transport.Iso
       EdgeNode.Transport.Payload
-      EdgeNode.Transport.ProviderExt
       EdgeNode.Transport.Response
       Hash
       KatipController

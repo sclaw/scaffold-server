@@ -8,7 +8,7 @@ module EdgeNode.Controller.Provider.GetBranches (controller) where
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Id
 import EdgeNode.Statement.Provider as Provider
-import EdgeNode.Transport.ProviderExt (GetBranchResp)
+import EdgeNode.Transport.Extended (GetBranchResp)
 
 import KatipController
 import Database.Transaction

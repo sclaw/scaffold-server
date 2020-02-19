@@ -18,7 +18,7 @@ module EdgeNode.Statement.Provider
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Iso
-import EdgeNode.Transport.ProviderExt (GetBranchResp (..))
+import EdgeNode.Transport.Extended (GetBranchResp (..))
 
 import qualified Hasql.Statement as HS
 import Hasql.TH
