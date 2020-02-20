@@ -4,7 +4,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module EdgeNode.Controller.Auth.SignIn (controller) where
+module EdgeNode.Controller.Auth.SignIn (controller, mkTokens) where
 
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
@@ -35,6 +35,7 @@ import qualified Auth as Auth
 import Control.Monad.Except
 import Data.Bifunctor
 import Data.Aeson.WithField
+import Data.Tuple.Ops
 
 derive makeDefault ''Tokens
 
@@ -46,23 +47,24 @@ controller req = do
     for cred $ \x -> do 
       let check = checkPass (req^.field @"signinReqPassword".lazytext.to mkPass) (x^._3)
       case check of 
-        PassCheckSuccess -> do
-          key <- fmap (^.katipEnv.jwk) ask
-          unique <- liftIO $ fmap mkHash (uniformW64 =<< createSystemRandom)
-          access <- liftIO $ runExceptT (Auth.mkAccessToken key (x^._1) unique (x^._2))
-          refresh <- liftIO $ runExceptT (Auth.mkRefreshToken key (x^._1))
-          let encode x = x^.to Jose.encodeCompact.bytesLazy
-          $(logTM) DebugS (logStr ("access token: " <> show (second (first encode) access))) 
-          $(logTM) DebugS (logStr ("refresh token: " <> show (second encode refresh)))
-          x <- for ((,) <$> access <*> refresh) $
-            \(a, r) -> do
-              hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-              status <- katipTransaction hasql $ statement Auth.putRefreshToken (encode r, x^._1, unique)
-              return $ case status of 
-                True -> Ok $ WithField (x^._1) $ WithField (x^._2) $
-                  def & field @"tokensAccessToken" .~ encode (a^._1)
-                      & field @"tokensRefreshToken" .~ encode r
-                      & field @"tokensLifetime" ?~ (a^._2)
-                False  -> Error $ Error.asError @T.Text "already sign in"
-          case x of Right resp -> pure resp; Left e -> pure $ Error (Error.asError @T.Text (show e^.stext))
+        PassCheckSuccess -> fmap (fromEither . first (Error.asError @T.Text)) $ mkTokens (initT x)
         PassCheckFail -> pure $ Error (Error.asError @T.Text "wrong password")
+
+mkTokens :: (Id "user", UserRole) -> KatipController (Either T.Text (WithId (Id "user") (WithField "role" UserRole Tokens)))
+mkTokens cred = do 
+  key <- fmap (^.katipEnv.jwk) ask
+  unique <- liftIO $ fmap mkHash (uniformW64 =<< createSystemRandom)
+  access <- liftIO $ runExceptT (Auth.mkAccessToken key (cred^._1) unique (cred^._2))
+  refresh <- liftIO $ runExceptT (Auth.mkRefreshToken key (cred^._1))
+  let encode x = x^.to Jose.encodeCompact.bytesLazy
+  $(logTM) DebugS (logStr ("access token: " <> show (second (first encode) access))) 
+  $(logTM) DebugS (logStr ("refresh token: " <> show (second encode refresh)))
+  x <- for ((,) <$> access <*> refresh) $
+    \(a, r) -> do
+      hasql <- fmap (^.katipEnv.hasqlDbPool) ask
+      void $ katipTransaction hasql $ statement Auth.putRefreshToken (encode r, cred^._1, unique)
+      pure $ WithField (cred^._1) $ WithField (cred^._2) $
+        def & field @"tokensAccessToken" .~ encode (a^._1)
+            & field @"tokensRefreshToken" .~ encode r
+            & field @"tokensLifetime" ?~ (a^._2)
+  case x of Right resp -> pure $ Right resp; Left e -> pure $ Left (show e^.stext)           

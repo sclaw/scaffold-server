@@ -28,8 +28,8 @@ configEkg:
 
 configAuth: 
   authJwk: symmetric.jwk
-  authIsAuthEnabled: false
-  authUserId: 1 
+  authIsAuthEnabled: true
+  authUserId: 1
 
 configService:
   serviceApiKeys: 

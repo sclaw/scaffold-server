@@ -31,6 +31,10 @@ data AuthApi route =
      , _authApiRefreshAccessToken
        :: route 
        :- Description "refresh access token"
+       :> "token"
+       :> "user"
+       :> Capture "uid" (Id "user")
+       :> "refresh"
        :> ReqBody '[JSON] Token
        :> Post '[JSON] (Response Tokens)
      } deriving stock Generic

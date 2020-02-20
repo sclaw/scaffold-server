@@ -11,6 +11,7 @@
 module EdgeNode.Statement.Auth 
        ( getUserCred
        , putRefreshToken
+       , checkRefreshToken
        ) where
 
 import EdgeNode.Transport.Auth
@@ -74,12 +75,20 @@ instance ParamsShow (B.ByteString, Id "user" , T.Text) where
       , x^._2.coerced @_ @_ @Int64 @_.to show
       , x^._3.from stext] 
     
-putRefreshToken :: HS.Statement (B.ByteString, Id "user", T.Text) Bool
-putRefreshToken = dimap (& _2 %~ coerce) (> 0) statement
+putRefreshToken :: HS.Statement (B.ByteString, Id "user", T.Text) ()
+putRefreshToken = lmap (& _2 %~ coerce) statement
   where
     statement =
-      [rowsAffectedStatement|
+      [resultlessStatement|
         insert into auth.token 
         (token, created, user_fk, uid) 
-        values ($1 :: bytea, now(), $2 :: int8, $3 :: text)
-        on conflict do nothing|] 
+        values ($1 :: bytea, now(), $2 :: int8, $3 :: text)|] 
+
+checkRefreshToken :: HS.Statement (T.Text, Id "user") (Maybe UserRole)
+checkRefreshToken = dimap (& _2 %~ coerce) (fmap (^.from stext.from isoUserRole)) $
+  [maybeStatement|
+    select "user_type" :: text
+    from auth.token as at
+    inner join auth.user as au
+    on at."user_fk" = au.id
+    where uid = $1 :: text and "user_fk" = $2 :: int8|]

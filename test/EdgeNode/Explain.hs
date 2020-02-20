@@ -77,7 +77,8 @@ explainTests =
     , "createFiles" =>> EdgeNode.Statement.Provider.createFiles]
   , "EdgeNode.Statement.Auth" ==> 
     [ "getUserCred" =>> EdgeNode.Statement.Auth.getUserCred
-    , "putRefreshToken" =>> EdgeNode.Statement.Auth.putRefreshToken]  
+    , "putRefreshToken" =>> EdgeNode.Statement.Auth.putRefreshToken
+    , "checkRefreshToken" =>> EdgeNode.Statement.Auth.checkRefreshToken]  
   ]
   
 (==>) a b = (a, b)

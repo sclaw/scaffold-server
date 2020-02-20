@@ -135,6 +135,7 @@ instance ParamsShow () where render () = mempty
 instance ParamsShow Int32 where render = show
 instance ParamsShow Int64 where render = show
 instance ParamsShow B.ByteString where render = B.unpack
+instance ParamsShow T.Text where render = T.unpack
 instance ParamsShow a => ParamsShow (Maybe a) where render = maybe mempty render 
 instance {-# OVERLAPS #-} (ParamsShow a, ParamsShow b) => ParamsShow (a, b) where 
   render (x, y) = render x <> ", " <> render y

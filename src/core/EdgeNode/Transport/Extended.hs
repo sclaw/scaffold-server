@@ -12,11 +12,9 @@ module EdgeNode.Transport.Extended
        ) where
 
 import EdgeNode.Transport.Provider
-import EdgeNode.Transport.Auth
 import EdgeNode.Transport.Id
 import GHC.Generics
 import TH.Mk
-import Data.Swagger
 
 data GetBranchResp = 
      GetBranchResp 

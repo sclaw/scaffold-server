@@ -26,6 +26,7 @@ import qualified EdgeNode.Controller.Provider.DeleteBranch as Provider.DeleteBra
 import qualified EdgeNode.Controller.Provider.SetHQ as Provider.SetHQ
 import qualified EdgeNode.Controller.Search as Search
 import qualified EdgeNode.Controller.Auth.SignIn as Auth.SignIn 
+import qualified EdgeNode.Controller.Auth.RefreshAccessToken as Auth.RefreshAccessToken
 
 import Katip
 import KatipController
@@ -72,7 +73,11 @@ auth _ =
     katipAddNamespace 
     (Namespace ["auth", "authentication"])  
     (Auth.SignIn.controller req)
-  , _authApiRefreshAccessToken = undefined  
+  , _authApiRefreshAccessToken = \uid req ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace 
+    (Namespace ["auth", "refreshAccessToken"])  
+    (Auth.RefreshAccessToken.controller req uid) 
   }
 
 user :: Maybe IP4 -> AuthResult JWTUser -> UserApi (AsServerT KatipController)
