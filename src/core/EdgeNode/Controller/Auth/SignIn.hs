@@ -54,8 +54,8 @@ mkTokens :: (Id "user", UserRole) -> KatipController (Either T.Text (WithId (Id 
 mkTokens cred = do 
   key <- fmap (^.katipEnv.jwk) ask
   unique <- liftIO $ fmap mkHash (uniformW64 =<< createSystemRandom)
-  access <- liftIO $ runExceptT (Auth.mkAccessToken key (cred^._1) unique (cred^._2))
-  refresh <- liftIO $ runExceptT (Auth.mkRefreshToken key (cred^._1))
+  access <- liftIO $ runExceptT (Auth.mkAccessToken key (cred^._1) (cred^._2))
+  refresh <- liftIO $ runExceptT (Auth.mkRefreshToken key unique)
   let encode x = x^.to Jose.encodeCompact.bytesLazy
   $(logTM) DebugS (logStr ("access token: " <> show (second (first encode) access))) 
   $(logTM) DebugS (logStr ("refresh token: " <> show (second encode refresh)))

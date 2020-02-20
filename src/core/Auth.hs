@@ -30,6 +30,7 @@ import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
 import qualified EdgeNode.Transport.Error as Transport
 import EdgeNode.Model.User
+import qualified EdgeNode.Transport.Auth as Auth
 
 import Data.Time
 import qualified Data.Text as T
@@ -77,13 +78,13 @@ data JWTUser =
      JWTUser 
      { jWTUserUserId :: !(Id "user")
      , jWTUserEmail  :: !T.Text
-     , jWTUserUnique :: !T.Text
      , jWTUserUserRole :: !UserRole
-     } 
-  deriving stock Show
+     } deriving stock Show
   
 deriveJSON defaultOptions ''JWTUser
 mkEncoder ''JWTUser
+
+mkEnumConvertor ''Auth.Error
 
 instance FromJWT JWTUser
 instance ToJWT JWTUser 
@@ -102,7 +103,7 @@ instance HasSecurity AppJwt where
 instance IsAuth AppJwt JWTUser where
   type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, Id "user", Pool.Pool Hasql.Connection, Bool]
   runAuth _ _ cfg log uid pool = 
-   bool (return (JWTUser uid mempty mempty Primary)) 
+   bool (return (JWTUser uid mempty Primary)) 
         (Auth.jwtAuthCheck cfg log pool)
 
 withAuthResult :: AuthResult user -> (AuthResult user -> api) -> api
@@ -116,8 +117,10 @@ applyController
 applyController unauthorized user authorized = 
   case user of 
     Authenticated u -> authorized u
-    Indefinite -> fmap (fromMaybe (Error (Transport.asError @T.Text "authentication required"))) (sequence unauthorized)
-    _ -> return $ Error (Transport.asError @T.Text "unknown authentication error")
+    Indefinite -> fmap (fromMaybe unauthorizedError) (sequence unauthorized)
+    _ -> return unkonwnError
+  where unauthorizedError = Error $ Transport.asError @T.Text $ (Auth.ErrorAuthenticationRequired^.isoError.stext)
+        unkonwnError = Error $ Transport.asError @T.Text (Auth.ErrorUnknownError^.isoError.stext)
 
 jwtAuthCheck :: JWTSettings -> KatipLoggerIO -> Pool.Pool Hasql.Connection -> AuthCheck JWTUser
 jwtAuthCheck cfg logger pool = 
@@ -153,7 +156,7 @@ getJWTUser log (Right claim) = either err return (decodeJWT claim)
   where err e = do liftIO (log InfoS (logStr ("decode jwt claim error " <> e))); mzero
 
 actionCheckToken :: Maybe JWTUser -> Hasql.Session (Either String JWTUser)
-actionCheckToken Nothing = return $ Left "jwt header error"
+actionCheckToken Nothing = return $ Left "access token not found"
 actionCheckToken (Just user) = 
   do 
      let mkStatement =
@@ -165,28 +168,27 @@ actionCheckToken (Just user) =
              and uid = $2 :: text) :: bool|]    
      exists <- Hasql.statement user $ 
        flip lmap mkStatement $ \x -> 
-         (mkEncoderJWTUser x^._1.coerced, mkEncoderJWTUser x^._3)   
-     return $ if exists then Right user else Left "token not found"
+         (mkEncoderJWTUser x^._1.coerced, mkEncoderJWTUser x^._2)   
+     return $ if exists then Right user else Left "refresh token not found"
 
-mkAccessToken :: JWK -> Id "user" -> T.Text -> UserRole -> ExceptT JWTError IO (SignedJWT, Time)
-mkAccessToken jwk uid unique utype = 
-  do 
-     alg <- bestJWSAlg jwk
-     ct <- liftIO getCurrentTime
-     let user = JWTUser uid "" unique utype
-     let claims = 
-          emptyClaimsSet
-          & claimIss ?~ "edgeNode"
-          & claimIat ?~ NumericDate ct
-          & claimExp ?~ NumericDate (addUTCTime 600 ct)
-          & unregisteredClaims .~ 
-            HM.singleton "dat" (toJSON user)            
-     t <- liftIO getSystemTime
-     let tm = Time (fromIntegral (systemSeconds t)) 0
-     (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims
+mkAccessToken :: JWK -> Id "user" -> UserRole -> ExceptT JWTError IO (SignedJWT, Time)
+mkAccessToken jwk uid utype = do 
+  alg <- bestJWSAlg jwk
+  ct <- liftIO getCurrentTime
+  let user = JWTUser uid "" utype
+  let claims = 
+        emptyClaimsSet
+        & claimIss ?~ "edgeNode"
+        & claimIat ?~ NumericDate ct
+        & claimExp ?~ NumericDate (addUTCTime 600 ct)
+        & unregisteredClaims .~ 
+          HM.singleton "dat" (toJSON user)            
+  t <- liftIO getSystemTime
+  let tm = Time (fromIntegral (systemSeconds t)) 0
+  (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims
 
-mkRefreshToken :: JWK -> Id "user" -> ExceptT JWTError IO SignedJWT
-mkRefreshToken jwk uid =
+mkRefreshToken :: JWK -> T.Text -> ExceptT JWTError IO SignedJWT
+mkRefreshToken jwk unique =
   do 
     alg <- bestJWSAlg jwk
     ct <- liftIO getCurrentTime
@@ -196,7 +198,7 @@ mkRefreshToken jwk uid =
          & claimIat ?~ NumericDate ct
          & claimExp ?~ NumericDate (addUTCTime (7 * 10^6) ct)
          & unregisteredClaims .~ 
-           HM.singleton "dat" (toJSON uid)       
+           HM.singleton "dat" (toJSON unique)       
     signClaims jwk (newJWSHeader ((), alg)) claims 
 
 data BasicUser = BasicUser { basicUserUserId :: !(Id "user") }
