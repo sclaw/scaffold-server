@@ -75,14 +75,14 @@ instance ParamsShow (B.ByteString, Id "user" , T.Text) where
       , x^._2.coerced @_ @_ @Int64 @_.to show
       , x^._3.from stext] 
     
-putRefreshToken :: HS.Statement (B.ByteString, Id "user", T.Text) ()
-putRefreshToken = lmap (& _2 %~ coerce) statement
+putRefreshToken :: HS.Statement (Id "user", T.Text, T.Text) ()
+putRefreshToken = lmap (& _1 %~ coerce) statement
   where
     statement =
       [resultlessStatement|
         insert into auth.token 
-        (token, created, user_fk, uid) 
-        values ($1 :: bytea, now(), $2 :: int8, $3 :: text)|] 
+        (created, user_fk, refresh_token_hash, "unique") 
+        values (now(), $1 :: int8, $2 :: text, $3 :: text)|] 
 
 checkRefreshToken :: HS.Statement (T.Text, Id "user") (Maybe UserRole)
 checkRefreshToken = dimap (& _2 %~ coerce) (fmap (^.from stext.from isoUserRole)) $
@@ -91,4 +91,4 @@ checkRefreshToken = dimap (& _2 %~ coerce) (fmap (^.from stext.from isoUserRole)
     from auth.token as at
     inner join auth.user as au
     on at."user_fk" = au.id
-    where uid = $1 :: text and "user_fk" = $2 :: int8|]
+    where "unique" = $1 :: text and "user_fk" = $2 :: int8|]

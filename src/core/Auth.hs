@@ -79,6 +79,7 @@ data JWTUser =
      { jWTUserUserId :: !(Id "user")
      , jWTUserEmail  :: !T.Text
      , jWTUserUserRole :: !UserRole
+     , jwtUserRefreshTokenHash :: !T.Text
      } deriving stock Show
   
 deriveJSON defaultOptions ''JWTUser
@@ -103,7 +104,7 @@ instance HasSecurity AppJwt where
 instance IsAuth AppJwt JWTUser where
   type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, Id "user", Pool.Pool Hasql.Connection, Bool]
   runAuth _ _ cfg log uid pool = 
-   bool (return (JWTUser uid mempty Primary)) 
+   bool (return (JWTUser uid mempty Primary mempty)) 
         (Auth.jwtAuthCheck cfg log pool)
 
 withAuthResult :: AuthResult user -> (AuthResult user -> api) -> api
@@ -129,6 +130,7 @@ jwtAuthCheck cfg logger pool =
     jwt <- for (getToken headers) $ \token -> do
       verified <- liftIO $ runExceptT $ verifyToken cfg token  
       getJWTUser logger verified
+    liftIO $ print jwt  
     check <- liftIO $ transaction pool logger $ lift (actionCheckToken jwt)
     let mkErr e = do liftIO (logger ErrorS (logStr e)); mzero
     either mkErr return check
@@ -165,17 +167,17 @@ actionCheckToken (Just user) =
             (select 1 
              from auth.token 
              where "user_fk" = $1 :: int8 
-             and uid = $2 :: text) :: bool|]    
+             and refresh_token_hash = $2 :: text) :: bool|]    
      exists <- Hasql.statement user $ 
        flip lmap mkStatement $ \x -> 
-         (mkEncoderJWTUser x^._1.coerced, mkEncoderJWTUser x^._2)   
+         (mkEncoderJWTUser x^._1.coerced, mkEncoderJWTUser x^._4)   
      return $ if exists then Right user else Left "refresh token not found"
 
-mkAccessToken :: JWK -> Id "user" -> UserRole -> ExceptT JWTError IO (SignedJWT, Time)
-mkAccessToken jwk uid utype = do 
+mkAccessToken :: JWK -> Id "user" -> T.Text -> UserRole -> ExceptT JWTError IO (SignedJWT, Time)
+mkAccessToken jwk uid refresh_token_hash utype = do 
   alg <- bestJWSAlg jwk
   ct <- liftIO getCurrentTime
-  let user = JWTUser uid "" utype
+  let user = JWTUser uid "" utype refresh_token_hash
   let claims = 
         emptyClaimsSet
         & claimIss ?~ "edgeNode"

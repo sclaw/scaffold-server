@@ -53,16 +53,21 @@ controller req = do
 mkTokens :: (Id "user", UserRole) -> KatipController (Either T.Text (WithId (Id "user") (WithField "role" UserRole Tokens)))
 mkTokens cred = do 
   key <- fmap (^.katipEnv.jwk) ask
-  unique <- liftIO $ fmap mkHash (uniformW64 =<< createSystemRandom)
-  access <- liftIO $ runExceptT (Auth.mkAccessToken key (cred^._1) (cred^._2))
-  refresh <- liftIO $ runExceptT (Auth.mkRefreshToken key unique)
+  uq <- liftIO $ fmap mkHash $ 
+    uniformW64 =<< createSystemRandom
+  tokens <- liftIO $ runExceptT $ do
+    refresh <- Auth.mkRefreshToken key uq 
+    access <- Auth.mkAccessToken key (cred^._1) (mkHash refresh) (cred^._2)
+    pure $ (access, refresh)
   let encode x = x^.to Jose.encodeCompact.bytesLazy
-  $(logTM) DebugS (logStr ("access token: " <> show (second (first encode) access))) 
-  $(logTM) DebugS (logStr ("refresh token: " <> show (second encode refresh)))
-  x <- for ((,) <$> access <*> refresh) $
+  $(logTM) DebugS (logStr ("access token: " <> show (second (first (encode . fst)) tokens))) 
+  $(logTM) DebugS (logStr ("refresh token: " <> show (second (encode . snd) tokens)))
+  x <- for tokens $
     \(a, r) -> do
       hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-      void $ katipTransaction hasql $ statement Auth.putRefreshToken (encode r, cred^._1, unique)
+      void $ katipTransaction hasql $ 
+        statement Auth.putRefreshToken 
+        (cred^._1, mkHash r, uq)
       pure $ WithField (cred^._1) $ WithField (cred^._2) $
         def & field @"tokensAccessToken" .~ encode (a^._1)
             & field @"tokensRefreshToken" .~ encode r

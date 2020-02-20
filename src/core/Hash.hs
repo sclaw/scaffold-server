@@ -6,4 +6,4 @@ import Crypto.Hash
 import Data.Text
 
 mkHash :: Show a => a -> Text
-mkHash x = show (hash (show x^.stext.textbs) :: SHA256)^.stext   
+mkHash x = show (hash (show x^.stext.textbs) :: SHA256)^.stext

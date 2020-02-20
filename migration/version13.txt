@@ -1,0 +1,3 @@
+alter table auth.token add column refresh_token_hash text not null;
+alter table auth.token drop column uid;
+alter table auth.token add column unique text not null;
