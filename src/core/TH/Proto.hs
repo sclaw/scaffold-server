@@ -12,6 +12,7 @@ module TH.Proto where
 import EdgeNode.Lang
 import EdgeNode.Country
 import EdgeNode.Minio
+import qualified EdgeNode.Transport.Auth as Transport.Auth
 
 import TH.Mk
 import GHC.Generics
@@ -32,6 +33,8 @@ mkSRGEqEnum ''Bucket "EdgeNode"
 mkEnumConvertor ''EdgeNodeBucket
 mkParamSchemaEnum ''EdgeNodeBucket
 mkFromHttpApiDataEnum ''EdgeNodeBucket
+
+mkEnumConvertor ''Transport.Auth.Error
 
 instance Arbitrary EdgeNodeBucket where
   arbitrary = oneof [pure Default, pure Provider]

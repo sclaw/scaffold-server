@@ -13,6 +13,7 @@ import qualified EdgeNode.Statement.Auth as Auth
 import EdgeNode.Transport.Id
 import EdgeNode.Controller.Auth.SignIn (mkTokens)
 
+import TH.Proto
 import Katip
 import Auth
 import KatipController
@@ -23,16 +24,17 @@ import Servant.Auth.Server
 import qualified Data.Text as T
 import Data.Bifunctor
 import Data.Traversable
-import Crypto.JWT (unregisteredClaims)
+import qualified Crypto.JWT as JWT
 import Database.Transaction
 import Data.Aeson
 import Data.Generics.Product.Positions
+import Control.Lens.Iso.Extended
 
 controller :: Token -> Id "user" -> KatipController (Response Tokens)
 controller token user_id = do
   key <- fmap (^.katipEnv.jwk) ask 
   verify_result <- 
-    fmap (first (T.pack . show)) $ 
+    fmap (first mkJWTError) $ 
     liftIO $ 
     runExceptT $ 
     verifyToken
@@ -41,7 +43,7 @@ controller token user_id = do
   fmap (fromEither . first (Error.asError @T.Text) . join) $ 
     for verify_result $ \claims -> do 
       hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-      let uqm = claims^.unregisteredClaims.at "dat".to (fmap fromJSON)
+      let uqm = claims^.JWT.unregisteredClaims.at "dat".to (fmap fromJSON)
       case uqm of 
         Just (Success uq) -> do
           user_role_m <- katipTransaction hasql $ 
@@ -55,3 +57,7 @@ controller token user_id = do
           $(logTM) ErrorS (logStr ("dat json decoding error: " <> e))  
           pure $ Left "dat json decoding error"  
         Nothing -> pure $ Left "dat not found"
+
+mkJWTError :: JWT.JWTError -> T.Text
+mkJWTError JWT.JWTExpired = ErrorRefreshTokenExpired^.isoError.stext
+mkJWTError _ = ErrorJWTError^.isoError.stext
