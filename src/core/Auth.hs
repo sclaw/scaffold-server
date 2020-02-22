@@ -181,7 +181,7 @@ mkAccessToken jwk uid refresh_token_hash utype = do
         emptyClaimsSet
         & claimIss ?~ "edgeNode"
         & claimIat ?~ NumericDate ct
-        & claimExp ?~ NumericDate (addUTCTime 600 ct)
+        & claimExp ?~ NumericDate (addUTCTime 5 ct)
         & unregisteredClaims .~ 
           HM.singleton "dat" (toJSON user)            
   t <- liftIO getSystemTime

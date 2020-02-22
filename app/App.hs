@@ -74,7 +74,6 @@ deriving instance Show (Cmd Unwrapped)
 main :: IO ()
 main =
     do
-      mapM_ (`hSetEncoding` utf8) [stdout, stderr]
       Cmd {..} <- unwrapRecord "edgenode server"
       rawCfg <- EdgeNode.Config.load cfgPath
       let cfg = 
@@ -112,8 +111,13 @@ main =
              (cfg^.katip.verbosity.from stringify)
       tm <- getCurrentTime
       let katipFilePath = cfg^.katip.path <> "/" <> show tm <> ".log"
-      file <- mkFileScribe 
-              katipFilePath 
+      fileHdl <- openFile katipFilePath AppendMode
+
+      mapM_ (`hSetEncoding` utf8) [stdout, stderr, fileHdl]
+
+      file <- mkHandleScribe
+              (ColorLog True) 
+              fileHdl
               (cfg^.katip.severity.from stringify) 
               (cfg^.katip.verbosity.from stringify)  
       let mkNm = Namespace [("<" ++ $(gitLatestCommitHash) ++ ">")^.stext]
@@ -151,6 +155,7 @@ main =
 
       let katipMinio = Minio minioEnv (cfg^.EdgeNode.Config.minio.EdgeNode.Config.bucketPrefix)
       let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) (fromRight' jwke) katipMinio
+
       bracket env closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)     
       
 mkRawConn :: Db -> HasqlConn.Settings

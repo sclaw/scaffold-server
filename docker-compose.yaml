@@ -70,7 +70,7 @@ services:
       - "9200:9200"
       - "5044:5044"
     volumes:
-      - ./logstash.conf:/usr/share/logstash/config/
+      - ./deploy/logstash/config:/etc/logstash/conf.d
       - elk_data:/var/lib/elasticsearch
     networks:
       edgeNode:
