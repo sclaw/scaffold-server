@@ -5,6 +5,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module EdgeNode.Api 
        ( ApplicationApi (..)
@@ -25,6 +26,7 @@ module EdgeNode.Api
 
 import EdgeNode.Api.Api
 
+import BuildInfo
 import Servant.API
 import Servant.API.Generic
 import Servant.API.WebSocket ()
@@ -64,4 +66,4 @@ swaggerHttpApi hs port =
   & info.description ?~ "EdgeNode server api"^.stext
   & info.version .~ "0.0.1"^.stext
   & info.contact ?~ (Contact Nothing Nothing (Just ("fclaw007@gmail.com"^.stext)))
-  & info.title .~ "EdgeNode: global bank for intellectual capital"
+  & info.title .~ "EdgeNode: global bank for intellectual capital. Tag: " <> $gitTag
