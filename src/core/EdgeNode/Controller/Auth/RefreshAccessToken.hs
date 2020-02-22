@@ -30,14 +30,15 @@ import Data.Aeson
 import Data.Generics.Product.Positions
 import Control.Lens.Iso.Extended
 import Data.Foldable
+import Pretty
 
 controller :: Token -> Id "user" -> KatipController (Response Tokens)
 controller req user_id = do
   let token = req^.field @"tokenToken"
-  $(logTM) DebugS (logStr ("refresh token: " ++ show token))
+  $(logTM) DebugS (logStr (mkPretty "refresh token request:" token))
   key <- fmap (^.katipEnv.jwk) ask 
   verify_result <- liftIO $ runExceptT $ verifyToken (defaultJWTSettings key) token
-  for_ (verify_result^?_Left) $ \e -> $(logTM) ErrorS (logStr (show e))   
+  for_ (verify_result^?_Left) $ \e -> $(logTM) ErrorS (logStr (mkPretty "refresh token error:" e))   
   fmap (fromEither . first (Error.asError @T.Text) . join) $ 
     for (first mkJWTError verify_result) $ \claims -> do 
       hasql <- fmap (^.katipEnv.hasqlDbPool) ask
@@ -52,7 +53,7 @@ controller req user_id = do
               mkTokens (user_id, user_role)
             Nothing -> pure $ Left "token not found"
         Just (Error e) -> do 
-          $(logTM) ErrorS (logStr ("dat json decoding error: " <> e))  
+          $(logTM) ErrorS (logStr (mkPretty "dat json decoding error: " e))  
           pure $ Left "dat json decoding error"  
         Nothing -> pure $ Left "dat not found"
 

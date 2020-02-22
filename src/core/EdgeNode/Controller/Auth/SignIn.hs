@@ -36,6 +36,7 @@ import Control.Monad.Except
 import Data.Bifunctor
 import Data.Aeson.WithField
 import Data.Tuple.Ops
+import Pretty
 
 derive makeDefault ''Tokens
 
@@ -60,8 +61,8 @@ mkTokens cred = do
     access <- Auth.mkAccessToken key (cred^._1) (mkHash refresh) (cred^._2)
     pure $ (access, refresh)
   let encode x = x^.to Jose.encodeCompact.bytesLazy
-  $(logTM) DebugS (logStr ("access token: " <> show (second (first (encode . fst)) tokens))) 
-  $(logTM) DebugS (logStr ("refresh token: " <> show (second (encode . snd) tokens)))
+  $(logTM) DebugS (logStr (mkPretty "access token: " (second (first (encode . fst)) tokens))) 
+  $(logTM) DebugS (logStr (mkPretty "refresh token: " (second (encode . snd) tokens)))
   x <- for tokens $
     \(a, r) -> do
       hasql <- fmap (^.katipEnv.hasqlDbPool) ask
