@@ -29,19 +29,17 @@ import Database.Transaction
 import Data.Aeson
 import Data.Generics.Product.Positions
 import Control.Lens.Iso.Extended
+import Data.Foldable
 
 controller :: Token -> Id "user" -> KatipController (Response Tokens)
-controller token user_id = do
+controller req user_id = do
+  let token = req^.field @"tokenToken"
+  $(logTM) DebugS (logStr ("refresh token: " ++ show token))
   key <- fmap (^.katipEnv.jwk) ask 
-  verify_result <- 
-    fmap (first mkJWTError) $ 
-    liftIO $ 
-    runExceptT $ 
-    verifyToken
-    (defaultJWTSettings key) 
-    (token^.field @"tokenToken")
+  verify_result <- liftIO $ runExceptT $ verifyToken (defaultJWTSettings key) token
+  for_ (verify_result^?_Left) $ \e -> $(logTM) ErrorS (logStr (show e))   
   fmap (fromEither . first (Error.asError @T.Text) . join) $ 
-    for verify_result $ \claims -> do 
+    for (first mkJWTError verify_result) $ \claims -> do 
       hasql <- fmap (^.katipEnv.hasqlDbPool) ask
       let uqm = claims^.JWT.unregisteredClaims.at "dat".to (fmap fromJSON)
       case uqm of 

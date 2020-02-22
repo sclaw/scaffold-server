@@ -97,6 +97,8 @@ extra-deps:
  - derive-2.6.5@sha256:41480f98be28ca5a942f137f1ce17c2fc5e67040c434e8d3f4c45459b8bc6cbb,3184
  - elocrypt-2.1.0@sha256:2bf49f367186e82b36c434f5304063f5443a0f9e8e00b83636ba5ee62bc39111,2709
  - template-haskell-compat-v0208-0.1.2.1@sha256:039deac4225c1d2fa7ac349f09d2050f8a7b932a892fa040e11d639a12851dc5,1524
+ - pretty-simple-3.2.1.0
+
 
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git

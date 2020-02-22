@@ -13,14 +13,17 @@ import EdgeNode.Transport.Extended
 import EdgeNode.Transport.Id
 import qualified EdgeNode.Statement.Provider as Provider
 
+import Katip
 import KatipController
 import Data.Aeson.WithField.Extended
 import Database.Transaction
 import Control.Lens
 import Data.Maybe
+import Pretty
 
 controller :: [MkBranchReq] -> Id "user" -> KatipController (Response [Id "branch"])
 controller xs uid = do 
+  $(logTM) DebugS (logStr ("branches: " ++ mkPretty mempty xs))
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   result <- katipTransactionViolationError hasql $ do
     let (files, branches) = 
@@ -32,4 +35,4 @@ controller xs uid = do
     statement Provider.createFiles $ 
       concat (zipWith (\i xs -> zip (repeat i) xs) ids files)
     return ids
-  return $ fromEither result  
+  return $ fromEither result

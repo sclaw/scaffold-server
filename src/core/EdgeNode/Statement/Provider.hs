@@ -78,7 +78,7 @@ getBranches = lmap (coerce @_ @Int64) $ statement $ premap mkBranch list
        on pbf.provider_branch_fk = pb.id
        where au.id = $1 :: int8 and not pb.is_deleted
        group by pb.id
-       order by pb.is_hq desc, pb.title|]  
+       order by pb.is_hq desc, pb.title|]
     mkBranch x =
       let files = flip fmap (x^?_11._Just) $ \x -> V.toList x^..traversed.coerced @_ @_ @(Id "file") @_
           image = x^?_10._Just.coerced
@@ -86,14 +86,14 @@ getBranches = lmap (coerce @_ @Int64) $ statement $ premap mkBranch list
           branchCountry  = x^._3.from country
           branchAddress1 = x^?_4._Just.from lazytext.to Protobuf.String
           branchAddress2 = x^?_5._Just.from lazytext.to Protobuf.String
-          branchPostode  = x^?_6._Just.from lazytext.to Protobuf.String
+          branchPostcode = x^?_6._Just.from lazytext.to Protobuf.String
           branchHouse    = x^?_7._Just.from lazytext.to Protobuf.String
           branchDescription = x^?_9._Just.from lazytext.to Protobuf.String
       in GetBranchResp (x^._1.coerced) files image (x^._8) Branch {..}
 
 createBranches :: HS.Statement (Id "user", [OptField "image" (Id "img") Branch]) [Id "branch"]
 createBranches = lmap mkEncoder $ statement $ premap (coerce @Int64 @(Id "branch")) list
-  where 
+  where
     statement = 
       [foldStatement|
         with

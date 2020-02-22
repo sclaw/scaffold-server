@@ -82,7 +82,7 @@ library:
     - directory
     - filepath
     - time
-    - pretty-simple
+    - pretty-simple == 3.2.1.0
     - brick
     - process
     - random

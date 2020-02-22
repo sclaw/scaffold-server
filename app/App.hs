@@ -51,6 +51,7 @@ import Control.Exception
 import qualified Network.Minio as Minio
 import Data.String
 import Data.Int
+import System.IO
 
 data Cmd w = 
      Cmd 
@@ -73,6 +74,7 @@ deriving instance Show (Cmd Unwrapped)
 main :: IO ()
 main =
     do
+      mapM_ (`hSetEncoding` utf8) [stdout, stderr]
       Cmd {..} <- unwrapRecord "edgenode server"
       rawCfg <- EdgeNode.Config.load cfgPath
       let cfg = 

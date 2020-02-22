@@ -130,7 +130,6 @@ jwtAuthCheck cfg logger pool =
     jwt <- for (getToken headers) $ \token -> do
       verified <- liftIO $ runExceptT $ verifyToken cfg token  
       getJWTUser logger verified
-    liftIO $ print jwt  
     check <- liftIO $ transaction pool logger $ lift (actionCheckToken jwt)
     let mkErr e = do liftIO (logger ErrorS (logStr e)); mzero
     either mkErr return check

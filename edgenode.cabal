@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d56756dc0b18198072ce47bd8e321850db079ce1ae0feef37b1600cf6d07ec50
+-- hash: 8817b1d2f77b43c5e04a149d003c99a15934283cc55d37b0ad8dfce107d79444
 
 name:           edgenode
 version:        0.1.0.0
@@ -187,7 +187,7 @@ library
     , password
     , pcg-random
     , postgresql-error-codes
-    , pretty-simple
+    , pretty-simple ==3.2.1.0
     , pretty-tree
     , process
     , proto3-suite
