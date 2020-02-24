@@ -27,7 +27,7 @@ import Data.Coerce
 import Data.Either
 
 controller :: EdgeNodeBucket -> Files -> KatipController (Response [Id "file"])
-controller bucket x = do 
+controller bucket x = do
   Minio {..} <- fmap (^.katipEnv.minio) ask
   es <- for (coerce x) $ \File {..} -> do 
     tm <- liftIO getCurrentTime

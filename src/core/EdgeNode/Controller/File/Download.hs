@@ -29,9 +29,10 @@ import Control.Lens.Iso.Extended
 import Data.Int
 import Control.Monad
 import Data.Bifunctor
-import Data.ByteString.Builder
 import Data.Aeson
 import Data.Time.Clock
+import Data.Text.Encoding
+import qualified Data.ByteString.Base64 as B64
 
 controller :: Id "file" -> KatipController Application
 controller id = do
@@ -56,14 +57,19 @@ controller id = do
   return $ \req resp ->
     if requestMethod req /= 
        methodGet
-    then resp $ responseLBS status200 [] $ encode $ (Response.Error (asError @T.Text "only GET allowed") :: Response.Response ())
+    then resp $ 
+         responseLBS status200 [] $ 
+         encode $ 
+         (Response.Error (asError @T.Text "only GET allowed") :: Response.Response ())
     else
       resp $ 
         case minioResp of 
-          Right x -> 
+          Right x ->
             responseLBS status200 [(hContentType, (x^._4.textbs))] $ 
-            toLazyByteString $ 
-            stringUtf8 "{\"success:\"" <> 
-            byteString (x^._1) <> 
-            stringUtf8 "}"
-          Left e -> responseLBS status200 [] $ encode $ (Response.Error e :: Response.Response ())
+            encode (Response.Ok $ textToByteString (x^._1))
+          Left e -> 
+            responseLBS status200 [] $ 
+            encode $ (Response.Error e :: Response.Response ())
+
+textToByteString :: B.ByteString -> T.Text
+textToByteString x = (decodeUtf8 $ B64.encode x)

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8817b1d2f77b43c5e04a149d003c99a15934283cc55d37b0ad8dfce107d79444
+-- hash: dca4b3a5aab732cead0924235307fa6a8b2fc084f706b59f3f52b743dd1cb0be
 
 name:           edgenode
 version:        0.1.0.0
@@ -127,6 +127,7 @@ library
     , aeson-injector
     , async
     , base >=4.7 && <5
+    , base64-bytestring
     , binary
     , brick
     , bytestring

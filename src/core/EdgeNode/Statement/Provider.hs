@@ -12,6 +12,7 @@ module EdgeNode.Statement.Provider
        , checkHQ
        , createFiles
        , setHQ
+       , updateBranches
        , BranchEncoder
        ) where
 
@@ -166,3 +167,41 @@ setHQ = dimap coerce (> 0) statement
                (select provider_id 
                 from edgenode.provider_user 
                 where "user_id" = $1::int8)|]
+
+updateBranches :: HS.Statement [(Id "branch", Maybe (Id "img"), Branch)] ()
+updateBranches = lmap mkEncoder statement
+  where
+    mkEncoder xs = 
+      let tpl =  unzip3 xs
+      in  consT ((V.fromList . coerce @_ @[Int64]) (tpl^._1)) $ 
+          consT ((V.fromList . coerce @_ @[Maybe Int64]) (tpl^._2)) 
+                ((V.unzip7 . V.fromList . Prelude.map mkTpl) (tpl^._3))
+    mkTpl x = 
+      ((mkEncoderBranch x) 
+      & _1 %~ (^.lazytext)
+      & _2 %~ (^.country)
+      & _3 %~ (^?_Just.field @"stringValue".lazytext)
+      & _4 %~ (^?_Just.field @"stringValue".lazytext)
+      & _5 %~ (^?_Just.field @"stringValue".lazytext)
+      & _6 %~ (^?_Just.field @"stringValue".lazytext)
+      & _7 %~ (^?_Just.field @"stringValue".lazytext))
+    statement =
+      [resultlessStatement|
+        update edgenode.provider_branch 
+        set title = x.new_title,
+            country = x.new_country,
+            address = coalesce(x.new_address, address),
+            image_fk = coalesce(x.new_image_fk, image_fk),
+            additional_address = coalesce(x.new_additional_address, additional_address),
+            postcode = coalesce(x.new_postcode, postcode),
+            house = coalesce(x.new_house, house),
+            info = coalesce(x.new_info, info),
+            modified = now()
+        from (
+          select ident, new_image_fk, new_title, new_country, 
+                 new_address, new_additional_address, new_postcode, new_house, new_info 
+          from unnest($1 :: int8[], $2 :: int8?[], $3 :: text[], $4 :: text[], 
+                      $5 :: text?[], $6 :: text?[], $7 :: text?[], $8 :: text?[], $9 :: text?[])
+           as x(ident, new_image_fk, new_title, new_country, 
+                new_address, new_additional_address, new_postcode, new_house, new_info)) as x
+        where id = x.ident|]

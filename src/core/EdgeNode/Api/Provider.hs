@@ -31,10 +31,10 @@ data ProviderApi route =
      , _providerApiPatchBranch
        :: route
        :- "branch"
-       :> Capture "branchId" (Id "branch")
        :> ReqBody '[JSON] 
-          (WithField "files" [Id "file"] 
-           (WithField "image" (Id "img") Branch))
+          [WithId (Id "branch") 
+           (OptField "files" [Id "file"] 
+            (OptField "image" (Id "img") Branch))]
        :> Patch '[JSON] (Response Unit)
      ,  _providerApiDeleteBranch
        :: route

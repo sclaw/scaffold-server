@@ -182,6 +182,7 @@ library:
     - generic-deriving
     - password
     - ghc-prim
+    - base64-bytestring
 
   source-dirs:
     - src/core
