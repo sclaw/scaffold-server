@@ -66,10 +66,7 @@ controller id = do
         case minioResp of 
           Right x ->
             responseLBS status200 [(hContentType, (x^._4.textbs))] $ 
-            encode (Response.Ok $ textToByteString (x^._1))
+            encode (Response.Ok $ decodeUtf8 $ B64.encode (x^._1))
           Left e -> 
             responseLBS status200 [] $ 
             encode $ (Response.Error e :: Response.Response ())
-
-textToByteString :: B.ByteString -> T.Text
-textToByteString x = (decodeUtf8 $ B64.encode x)
