@@ -42,9 +42,13 @@ data ProviderApi route =
        :> Capture "branchId" (Id "branch")
        :> "hq"
        :> Put '[JSON] (Response Unit)
+     , _providerApiPublish
+       :: route
+       :- "publish"
+       :> Post '[JSON] (Response Unit)
      , _providerApiCreateQualification
        :: route 
        :- "qualifiacation"
        :> "new"
-       :> Put '[JSON] (Response (Id "qual"))
+       :> Put '[JSON] (Response (Id "qual")) 
      } deriving stock Generic

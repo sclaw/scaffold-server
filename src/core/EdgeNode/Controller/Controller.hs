@@ -27,6 +27,7 @@ import qualified EdgeNode.Controller.Provider.SetHQ as Provider.SetHQ
 import qualified EdgeNode.Controller.Search as Search
 import qualified EdgeNode.Controller.Auth.SignIn as Auth.SignIn 
 import qualified EdgeNode.Controller.Auth.RefreshAccessToken as Auth.RefreshAccessToken
+import qualified EdgeNode.Controller.Provider.Publish as Provider.Publish
 
 import Katip
 import KatipController
@@ -198,5 +199,14 @@ provider _ user =
        (jWTUserUserId x) 
        Rbac.PermissionProviderAdmin 
        (Provider.SetHQ.controller ident))
-  , _providerApiCreateQualification = undefined     
+  , _providerApiCreateQualification = undefined
+  , _providerApiPublish =
+    flip logExceptionM ErrorS $
+    katipAddNamespace 
+     (Namespace ["provider", "branch", "list"])    
+     (applyController Nothing user $ \x -> 
+      verifyAuthorization 
+      (jWTUserUserId x) 
+      Rbac.PermissionProviderGuest 
+      Provider.Publish.controller)
   }

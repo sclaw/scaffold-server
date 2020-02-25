@@ -13,6 +13,7 @@ module EdgeNode.Statement.Provider
        , createFiles
        , setHQ
        , updateBranches
+       , publish
        , BranchEncoder
        ) where
 
@@ -211,3 +212,6 @@ updateBranches = lmap mkEncoder statement
            as x(ident, new_image_fk, new_title, new_country, 
                 new_address, new_additional_address, new_postcode, new_house, new_info)) as x
         where id = x.ident|]
+
+publish :: HS.Statement (Id "user") ()
+publish = lmap (coerce @_ @Int64) undefined
