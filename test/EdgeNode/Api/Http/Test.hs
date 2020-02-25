@@ -31,6 +31,9 @@ instance Arbitrary GetBranchResp where
 instance Arbitrary MkBranchReq where
   arbitrary = MkBranchReq <$> arbitrary <*> arbitrary <*> arbitrary
 
+instance Arbitrary PatchBranchReq where
+  arbitrary = PatchBranchReq <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
+
 spec_api :: Spec
 spec_api = 
   describe "Swagger spec for API v1" $ do 

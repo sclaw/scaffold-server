@@ -7,14 +7,12 @@
 
 module EdgeNode.Api.Provider (ProviderApi (..)) where
 
-import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Extended
 
 import Servant.API.Generic
 import Servant.API
-import Data.Aeson.WithField.Extended
 import Data.Aeson.Unit
 
 data ProviderApi route = 
@@ -31,10 +29,7 @@ data ProviderApi route =
      , _providerApiPatchBranch
        :: route
        :- "branch"
-       :> ReqBody '[JSON] 
-          [WithId (Id "branch") 
-           (OptField "files" [Id "file"] 
-            (OptField "image" (Id "img") Branch))]
+       :> ReqBody '[JSON] [PatchBranchReq]
        :> Patch '[JSON] (Response Unit)
      ,  _providerApiDeleteBranch
        :: route

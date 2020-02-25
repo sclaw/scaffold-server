@@ -9,6 +9,7 @@
 module EdgeNode.Transport.Extended 
        ( GetBranchResp (..)
        , MkBranchReq (..)
+       , PatchBranchReq (..)
        ) where
 
 import EdgeNode.Transport.Provider
@@ -32,5 +33,15 @@ data MkBranchReq =
      , mkBranchReqBranch :: !Branch
      } deriving (Generic, Show)
 
+data PatchBranchReq = 
+     PatchBranchReq
+     { patchBranchReqId :: !(Id "branch")
+     , patchBranchReqFiles :: !(Maybe [Id "file"])
+     , patchBranchReqImg :: !(Maybe (Id "img"))
+     , patchBranchReqBranch :: !Branch 
+     } deriving (Generic, Show)
+
+
 mkToSchemaAndJSON ''GetBranchResp
 mkToSchemaAndJSON ''MkBranchReq
+mkToSchemaAndJSON ''PatchBranchReq
