@@ -31,7 +31,8 @@ import TH.Mk
 import Control.Lens 
 import Test.QuickCheck
 import Database.Transaction (ParamsShow (..))
-import Data.DeriveTH
+import Test.QuickCheck.Arbitrary.Generic
+import GHC.Generics
 
 data Permission = 
        PermissionRoot
@@ -40,6 +41,7 @@ data Permission =
      | PermissionUser 
      deriving stock Eq
      deriving stock Show
+     deriving stock Generic
 
 data Role = 
        RoleRoot 
@@ -48,11 +50,18 @@ data Role =
      | RoleGuest
      deriving stock Eq
      deriving stock Show
+     deriving stock Generic
 
 mkEnumConvertor ''Permission
 mkEnumConvertor ''Role 
-derive makeArbitrary ''Permission
-derive makeArbitrary ''Role
+
+instance Arbitrary Role where
+  arbitrary = genericArbitrary
+  shrink = genericShrink
+
+instance Arbitrary Permission where
+  arbitrary = genericArbitrary
+  shrink = genericShrink
 
 instance ParamsShow Permission where render = (^.isoPermission)
 instance ParamsShow Role where render = (^.isoRole)

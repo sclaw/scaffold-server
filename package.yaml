@@ -172,7 +172,6 @@ library:
     - wai-extra
     - conduit
     - HList
-    - derive
     - errors
     - string-conversions
     - data-default
@@ -183,6 +182,7 @@ library:
     - password
     - ghc-prim
     - base64-bytestring
+    - generic-arbitrary
 
   source-dirs:
     - src/core

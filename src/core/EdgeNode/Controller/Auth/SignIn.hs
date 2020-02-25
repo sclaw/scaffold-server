@@ -16,9 +16,6 @@ import EdgeNode.Model.User
 import Katip
 import KatipController
 import Control.Lens
-import Data.Derive.Default
-import Data.DeriveTH
-import Data.Default
 import Default ()
 import Database.Transaction
 import Data.Traversable
@@ -37,8 +34,9 @@ import Data.Bifunctor
 import Data.Aeson.WithField
 import Data.Tuple.Ops
 import Pretty
+import Data.Default.Class
 
-derive makeDefault ''Tokens
+instance Default Tokens
 
 controller :: SigninReq -> KatipController (Response (WithId (Id "user") (WithField "role" UserRole Tokens)))
 controller req = do

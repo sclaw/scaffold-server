@@ -39,15 +39,21 @@ import Proto3.Suite.Types
 import qualified Data.Text.Lazy as LT
 import Data.List
 import Data.Generics.Product.Fields
-import Data.DeriveTH
 import Test.QuickCheck.Extended
 import Prelude hiding (String)
 import Data.Tuple.Ops
 import Data.Generics.Product.Positions
+import Test.QuickCheck.Arbitrary.Generic
 
 mkEncoder ''Branch
-derive makeArbitrary ''String
-derive makeArbitrary ''Branch
+
+instance Arbitrary String where
+  arbitrary = genericArbitrary
+  shrink = genericShrink
+
+instance Arbitrary Branch where
+  arbitrary = genericArbitrary
+  shrink = genericShrink
 
 instance ParamsShow Branch where 
   render x = intercalate ", " $

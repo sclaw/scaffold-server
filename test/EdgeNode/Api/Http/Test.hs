@@ -15,24 +15,35 @@ import Test.Hspec
 import Data.Proxy
 import Servant.API.Generic
 import Servant.Swagger.Test
-import Data.DeriveTH
 import Test.QuickCheck.Extended
 import Prelude hiding (String)
 import Protobuf.Scalar
 import Data.Aeson.WithField.Extended ()
+import Test.QuickCheck.Arbitrary.Generic
 
-derive makeArbitrary ''ProviderRegistration 
-derive makeArbitrary ''Branch
-derive makeArbitrary ''String
+instance Arbitrary ProviderRegistration where
+  arbitrary = genericArbitrary
+  shrink = genericShrink
+
+instance Arbitrary Branch where
+  arbitrary = genericArbitrary
+  shrink = genericShrink
+
+instance Arbitrary String where
+  arbitrary = genericArbitrary
+  shrink = genericShrink
 
 instance Arbitrary GetBranchResp where
-  arbitrary = GetBranchResp <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
+  arbitrary = genericArbitrary
+  shrink = genericShrink
 
 instance Arbitrary MkBranchReq where
-  arbitrary = MkBranchReq <$> arbitrary <*> arbitrary <*> arbitrary
+  arbitrary = genericArbitrary
+  shrink = genericShrink
 
 instance Arbitrary PatchBranchReq where
-  arbitrary = PatchBranchReq <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
+  arbitrary = genericArbitrary
+  shrink = genericShrink
 
 spec_api :: Spec
 spec_api = 

@@ -22,8 +22,8 @@ import Data.Generics.Product.Fields
 import Data.List
 import GHC.Generics (Generic)
 import Data.Int
-import Data.DeriveTH
 import Test.QuickCheck.Extended
+import Test.QuickCheck.Arbitrary.Generic
 
 data ProviderRegistrationExt = 
      ProviderRegistrationExt
@@ -35,7 +35,10 @@ data ProviderRegistrationExt =
      } deriving Generic
 
 mkEncoder ''ProviderRegistrationExt
-derive makeArbitrary ''ProviderRegistrationExt
+
+instance Arbitrary ProviderRegistrationExt where
+  arbitrary = genericArbitrary
+  shrink = genericShrink
 
 instance ParamsShow ProviderRegistrationExt where
   render x = intercalate "," 

@@ -36,11 +36,14 @@ import Data.Coerce
 import qualified Data.ByteString as B
 import qualified Data.Text as T
 import Data.Int
-import Data.DeriveTH
 import Test.QuickCheck.Extended
+import Test.QuickCheck.Arbitrary.Generic
 
 mkEncoder ''SigninReq
-derive makeArbitrary ''SigninReq
+
+instance Arbitrary SigninReq where
+  arbitrary = genericArbitrary
+  shrink = genericShrink
 
 instance ParamsShow SigninReq where
   render x = intercalate "," 

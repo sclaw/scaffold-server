@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dca4b3a5aab732cead0924235307fa6a8b2fc084f706b59f3f52b743dd1cb0be
+-- hash: 9ff1961c44c8a4b4554deea19680a68d4aedfe77b309acaed2f1a3a6eaf20f59
 
 name:           edgenode
 version:        0.1.0.0
@@ -140,7 +140,6 @@ library
     , data-default-class
     , data-textual
     , deepseq
-    , derive
     , directory
     , doctest
     , doctest-discover
@@ -154,6 +153,7 @@ library
     , extra
     , filepath
     , foldl
+    , generic-arbitrary
     , generic-deriving
     , generic-lens
     , generic-random
