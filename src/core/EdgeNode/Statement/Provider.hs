@@ -214,4 +214,19 @@ updateBranches = lmap mkEncoder statement
         where id = x.ident|]
 
 publish :: HS.Statement (Id "user") ()
-publish = lmap (coerce @_ @Int64) undefined
+publish = 
+  lmap (coerce @_ @Int64) 
+  [resultlessStatement|
+    insert into edgenode.provider_branch_public
+    (title, country, address, image_fk, provider_branch_fk, provider_fk)
+    select pb.title, pb.country, pb.address, pb.image_fk, pb.id, pb.provider_fk 
+    from edgenode.provider_user as pu
+    inner join edgenode.provider_branch as pb
+    on pu.provider_id = pb.provider_fk
+    where "user_id" = $1 :: int8
+    on conflict (provider_branch_fk, provider_fk)
+    do update 
+    set title = excluded.title, country = excluded.country, 
+    address = excluded.address, image_fk = excluded.image_fk, 
+    provider_branch_fk = excluded.provider_branch_fk,
+    provider_fk = excluded.provider_fk|]

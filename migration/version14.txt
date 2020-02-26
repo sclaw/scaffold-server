@@ -2,10 +2,14 @@ create table edgenode.provider_branch_public (
   id bigserial primary key,
   title text not null,
   country text not null,
-  address text not null,
+  address text null,
   image_fk int8 constraint "provider_branch_public_image_id_fk" references storage.file(id),
   provider_branch_fk int8 not null
   constraint "provider_branch_public_provider_branch_id_fk" 
   references edgenode.provider_branch(id),
-  constraint "provider_branch_public_provider_branch_fk_uniq" unique (provider_branch_fk)
+  provider_fk int8 not null
+  constraint "provider_branch_public_provider_id_fk" 
+  references edgenode.provider(id),
+  constraint "provider_branch_public__provider_branch_fk__provider_fk__uniq" unique (provider_branch_fk, provider_fk),
+  modified timestamptz not null default now()
 )
