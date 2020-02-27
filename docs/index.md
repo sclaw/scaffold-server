@@ -202,7 +202,7 @@
         id: int8, serial
         amount: int8, not null
         currency: text, not null, -> enum type (haskell)
-        per: text, not null, -> enum type (haskell)
+        period: text, not null, -> enum type (haskell)
         country: text, not null -> enum type (haskell)
         provider_qualification_fk: int8, not null, refer to edgenode.provider_qualification
 
@@ -210,6 +210,7 @@
       create type unit as enum ('()');
       edgenode.provider_branch_qualification_dependency
         id: int8, serial
+        cluster: int4 not null,
         provider_branch_qualification_fk: int8, not null, refer to edgenode.provider_branch_qualification 
         created: time, not null
         modified: time, nullable

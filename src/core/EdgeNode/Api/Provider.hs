@@ -14,6 +14,8 @@ import EdgeNode.Transport.Extended
 import Servant.API.Generic
 import Servant.API
 import Data.Aeson.Unit
+import Data.Aeson.WithField
+import qualified Data.Text as T
 
 data ProviderApi route = 
      ProviderApi 
@@ -46,9 +48,16 @@ data ProviderApi route =
        :: route
        :- "publish"
        :> Post '[JSON] (Response Unit)
-     , _providerApiCreateQualification
+     , _providerApiBuilderCreateQualification
        :: route 
        :- "qualifiacation"
-       :> "new"
-       :> Put '[JSON] (Response (Id "qual")) 
+       :> "builder"
+       :> "create"
+       :> Put '[JSON] (Response (Id "qualification"))
+     , _providerApiBuilderGetAvailableBranches
+       :: route 
+       :- "qualifiacation"
+       :> "builder"
+       :> "branches" 
+       :> Get '[JSON] (Response [WithId (Id "branch") (OnlyField "title" T.Text)])
      } deriving stock Generic

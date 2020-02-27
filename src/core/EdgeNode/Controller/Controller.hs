@@ -28,6 +28,8 @@ import qualified EdgeNode.Controller.Search as Search
 import qualified EdgeNode.Controller.Auth.SignIn as Auth.SignIn 
 import qualified EdgeNode.Controller.Auth.RefreshAccessToken as Auth.RefreshAccessToken
 import qualified EdgeNode.Controller.Provider.Publish as Provider.Publish
+import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetAvailableBranches as QualificationBuilder.GetAvailableBranches
+import qualified EdgeNode.Controller.Provider.QualificationBuilder.Create as QualificationBuilder.Create
 
 import Katip
 import KatipController
@@ -199,7 +201,24 @@ provider _ user =
        (jWTUserUserId x) 
        Rbac.PermissionProviderAdmin 
        (Provider.SetHQ.controller ident))
-  , _providerApiCreateQualification = undefined
+  , _providerApiBuilderCreateQualification =
+    flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["provider", "qualification", "builder", "create"])    
+     (applyController Nothing user $ \x -> 
+       verifyAuthorization 
+       (jWTUserUserId x) 
+       Rbac.PermissionProviderAdmin
+       (const QualificationBuilder.Create.controller))    
+  , _providerApiBuilderGetAvailableBranches =
+    flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["provider", "qualification", "builder", "getBranches"])    
+     (applyController Nothing user $ \x -> 
+       verifyAuthorization 
+       (jWTUserUserId x) 
+       Rbac.PermissionProviderAdmin
+       QualificationBuilder.GetAvailableBranches.controller)
   , _providerApiPublish =
     flip logExceptionM ErrorS $
     katipAddNamespace 

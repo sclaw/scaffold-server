@@ -1,0 +1,9 @@
+create table edgenode.provider_branch_qualification_tuition_fees (
+  id bigserial primary key,
+  amount int8 not null default 0,
+  currency text not null,
+  period text not null,
+  country text not null, 
+  provider_qualification_fk int8 not null
+  constraint "provider_branch_qualification_tuition_fees__provider_qualification_id_fk" 
+  references edgenode.provider_qualification(id))
