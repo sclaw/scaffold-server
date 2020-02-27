@@ -245,4 +245,4 @@ getQualificationBuilderBranches =
         from edgenode.provider_user as pu
         inner join edgenode.provider_branch as pb
         on pu.provider_id = pb.provider_fk
-        where pu.user_id = $1 :: int8|]
+        where pu.user_id = $1 :: int8 order by pb.title asc|]
