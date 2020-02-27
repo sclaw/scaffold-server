@@ -21,16 +21,16 @@ data ProviderApi route =
      ProviderApi 
      { _providerApiGetBranches
        :: route
-       :- "branch"
+       :- "branches"
        :> Get '[JSON] (Response [GetBranchResp])
      ,  _providerApiCreateBranches
        :: route
-       :- "branch"
+       :- "branches"
        :> ReqBody '[JSON] [MkBranchReq]
        :> Put '[JSON] (Response [Id "branch"])
-     , _providerApiPatchBranch
+     , _providerApiPatchBranches
        :: route
-       :- "branch"
+       :- "branches"
        :> ReqBody '[JSON] [PatchBranchReq]
        :> Patch '[JSON] (Response Unit)
      ,  _providerApiDeleteBranch
@@ -50,13 +50,13 @@ data ProviderApi route =
        :> Post '[JSON] (Response Unit)
      , _providerApiBuilderCreateQualification
        :: route 
-       :- "qualifiacation"
+       :- "qualification"
        :> "builder"
        :> "create"
        :> Put '[JSON] (Response (Id "qualification"))
      , _providerApiBuilderGetAvailableBranches
        :: route 
-       :- "qualifiacation"
+       :- "qualification"
        :> "builder"
        :> "branches" 
        :> Get '[JSON] (Response [WithId (Id "branch") (OnlyField "title" T.Text)])

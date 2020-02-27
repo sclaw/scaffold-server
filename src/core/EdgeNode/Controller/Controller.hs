@@ -174,7 +174,7 @@ provider _ user =
        (jWTUserUserId x) 
        Rbac.PermissionProviderAdmin 
        (Provider.CreateBranches.controller branch))    
-  , _providerApiPatchBranch = \branches ->
+  , _providerApiPatchBranches = \branches ->
     flip logExceptionM ErrorS $
      katipAddNamespace 
      (Namespace ["provider", "branch", "patch"])    
