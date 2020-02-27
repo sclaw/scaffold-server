@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TypeOperators  #-}
 {-# LANGUAGE DataKinds #-}
 
@@ -7,10 +7,19 @@ module EdgeNode.Controller.Provider.QualificationBuilder.GetAvailableBranches (c
 
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Id
+import EdgeNode.Statement.Provider as Provider
 
-import KatipController
 import Data.Aeson.WithField
 import qualified Data.Text as T
+import KatipController
+import Database.Transaction
+import Control.Lens
+import Pretty
+import Katip
 
 controller :: Id "user" -> KatipController (Response [WithId (Id "branch") (OnlyField "title" T.Text)])
-controller _ = undefined
+controller uid = do
+  hasql <- fmap (^.katipEnv.hasqlDbPool) ask 
+  resp <- katipTransaction hasql (statement Provider.getQualificationBuilderBranches uid)
+  $(logTM) DebugS (logStr ("branches: " ++ mkPretty mempty resp))
+  return $ Ok $ resp <&> \(ident, title) -> WithField ident (OnlyField title)

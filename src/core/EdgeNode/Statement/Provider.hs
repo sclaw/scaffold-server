@@ -14,6 +14,7 @@ module EdgeNode.Statement.Provider
        , setHQ
        , updateBranches
        , publish
+       , getQualificationBuilderBranches
        , BranchEncoder
        ) where
 
@@ -38,6 +39,7 @@ import TH.Mk
 import EdgeNode.Country
 import Proto3.Suite.Types
 import qualified Data.Text.Lazy as LT
+import qualified Data.Text as T
 import Data.List
 import Data.Generics.Product.Fields
 import Test.QuickCheck.Extended
@@ -230,3 +232,17 @@ publish =
     address = excluded.address, image_fk = excluded.image_fk, 
     provider_branch_fk = excluded.provider_branch_fk,
     provider_fk = excluded.provider_fk|]
+
+getQualificationBuilderBranches :: HS.Statement (Id "user") [(Id "branch", T.Text)]
+getQualificationBuilderBranches = 
+  lmap (coerce @_ @Int64) $ 
+  statement $ 
+  premap (& _1 %~ (coerce @Int64 @(Id "branch"))) list
+  where 
+    statement = 
+      [foldStatement|
+        select pb.id :: int8, pb.title :: text
+        from edgenode.provider_user as pu
+        inner join edgenode.provider_branch as pb
+        on pu.provider_id = pb.provider_fk
+        where pu.user_id = $1 :: int8|]
