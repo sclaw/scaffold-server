@@ -18,6 +18,7 @@ module TH.Mk
        , mkMigrationSeq
        , mkMigrationTest
        , mkEncoder
+       , mkArbitrary
        )
        where
 
@@ -44,6 +45,7 @@ import Data.List
 import System.IO
 import Control.Monad
 import qualified System.IO.Strict as IOS
+import Test.QuickCheck.Arbitrary.Generic
 
 getConstructorType (RecC _ [(_, _, ConT c)]) = c
 getConstructorType (NormalC _ [(_, ConT c)]) = c
@@ -52,6 +54,13 @@ getConstructorType _ = error "data not supported"
 getConstructorPat (RecC c _) = c
 getConstructorPat (NormalC c _) = c
 getConstructorPat _ = error "data not supported"
+
+
+mkArbitrary :: Name -> Q [Dec]
+mkArbitrary name = 
+  [d|instance Arbitrary $(conT (mkName (nameBase name))) where
+       arbitrary = genericArbitrary
+       shrink = genericShrink|]
 
 mkWrappedForDataWithSingleField :: Name -> Q [Dec]
 mkWrappedForDataWithSingleField name =

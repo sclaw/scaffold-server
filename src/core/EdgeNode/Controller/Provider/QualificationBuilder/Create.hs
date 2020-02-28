@@ -7,8 +7,9 @@ module EdgeNode.Controller.Provider.QualificationBuilder.Create (controller) whe
 
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Id
+import EdgeNode.Transport.Qualification
 
 import KatipController
 
-controller :: KatipController (Response (Id "qualification"))
-controller = undefined
+controller :: QualificationBuilder -> KatipController (Response (Id "qualification"))
+controller _ = undefined

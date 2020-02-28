@@ -22,6 +22,7 @@ import EdgeNode.Transport.Id
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Iso
 import EdgeNode.Transport.Extended (GetBranchResp (..))
+import EdgeNode.Transport.Qualification
 
 import qualified Hasql.Statement as HS
 import Hasql.TH
@@ -33,7 +34,6 @@ import Control.Lens.Iso.Extended
 import Control.Foldl
 import qualified Data.Vector.Extended as V
 import qualified Protobuf.Scalar as Protobuf
-import Protobuf.Scalar (String (..))
 import Database.Transaction
 import TH.Mk
 import EdgeNode.Country
@@ -42,21 +42,15 @@ import qualified Data.Text.Lazy as LT
 import qualified Data.Text as T
 import Data.List
 import Data.Generics.Product.Fields
-import Test.QuickCheck.Extended
-import Prelude hiding (String)
 import Data.Tuple.Ops
 import Data.Generics.Product.Positions
-import Test.QuickCheck.Arbitrary.Generic
 
 mkEncoder ''Branch
-
-instance Arbitrary String where
-  arbitrary = genericArbitrary
-  shrink = genericShrink
-
-instance Arbitrary Branch where
-  arbitrary = genericArbitrary
-  shrink = genericShrink
+mkArbitrary ''Branch
+mkArbitrary ''Qualification
+mkArbitrary ''QualificationBuilder
+mkArbitrary ''TuitionFee
+mkArbitrary ''Dependecy
 
 instance ParamsShow Branch where 
   render x = intercalate ", " $

@@ -201,7 +201,7 @@ provider _ user =
        (jWTUserUserId x) 
        Rbac.PermissionProviderAdmin 
        (Provider.SetHQ.controller ident))
-  , _providerApiBuilderCreateQualification =
+  , _providerApiBuilderCreateQualification = \builder -> 
     flip logExceptionM ErrorS $
      katipAddNamespace 
      (Namespace ["provider", "qualification", "builder", "create"])    
@@ -209,7 +209,7 @@ provider _ user =
        verifyAuthorization 
        (jWTUserUserId x) 
        Rbac.PermissionProviderAdmin
-       (const QualificationBuilder.Create.controller))    
+       (const (QualificationBuilder.Create.controller builder)))    
   , _providerApiBuilderGetAvailableBranches =
     flip logExceptionM ErrorS $
      katipAddNamespace 

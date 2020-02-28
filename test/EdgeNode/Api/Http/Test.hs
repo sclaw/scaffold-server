@@ -10,40 +10,19 @@ import EdgeNode.Api.Provider
 import EdgeNode.Api.Search
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Extended
+import EdgeNode.Statement.Provider ()
 
+import TH.Mk
 import Test.Hspec
 import Data.Proxy
 import Servant.API.Generic
 import Servant.Swagger.Test
-import Test.QuickCheck.Extended
-import Prelude hiding (String)
-import Protobuf.Scalar
 import Data.Aeson.WithField.Extended ()
-import Test.QuickCheck.Arbitrary.Generic
 
-instance Arbitrary ProviderRegistration where
-  arbitrary = genericArbitrary
-  shrink = genericShrink
-
-instance Arbitrary Branch where
-  arbitrary = genericArbitrary
-  shrink = genericShrink
-
-instance Arbitrary String where
-  arbitrary = genericArbitrary
-  shrink = genericShrink
-
-instance Arbitrary GetBranchResp where
-  arbitrary = genericArbitrary
-  shrink = genericShrink
-
-instance Arbitrary MkBranchReq where
-  arbitrary = genericArbitrary
-  shrink = genericShrink
-
-instance Arbitrary PatchBranchReq where
-  arbitrary = genericArbitrary
-  shrink = genericShrink
+mkArbitrary ''ProviderRegistration
+mkArbitrary ''GetBranchResp
+mkArbitrary ''MkBranchReq
+mkArbitrary ''PatchBranchReq
 
 spec_api :: Spec
 spec_api = 

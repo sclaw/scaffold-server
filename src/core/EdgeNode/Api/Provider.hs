@@ -10,6 +10,7 @@ module EdgeNode.Api.Provider (ProviderApi (..)) where
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Extended
+import EdgeNode.Transport.Qualification
 
 import Servant.API.Generic
 import Servant.API
@@ -53,6 +54,7 @@ data ProviderApi route =
        :- "qualification"
        :> "builder"
        :> "create"
+       :> ReqBody '[JSON] QualificationBuilder
        :> Put '[JSON] (Response (Id "qualification"))
      , _providerApiBuilderGetAvailableBranches
        :: route 

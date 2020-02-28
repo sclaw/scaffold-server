@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Test.QuickCheck.Extended
        ( module Test.QuickCheck
@@ -10,11 +11,15 @@ module Test.QuickCheck.Extended
        , genTextN
       ) where
 
+import TH.Mk
 import qualified Data.Text as T
 import Test.QuickCheck
 import Data.Aeson.Unit
 import Generic.Random
 import GHC.Generics
+import Protobuf.Scalar
+import Prelude hiding (String, Bool, Double, Float)
+import Data.Time
 
 -- | Generate arbitrary text.
 genText :: Gen T.Text
@@ -34,3 +39,10 @@ instance ( GArbitrary UnsizedOpts a
          Arbitrary (GenericArbitraryU a) where
   arbitrary = GenericArbitraryU <$> genericArbitraryU
 
+mkArbitrary ''String
+mkArbitrary ''Bool
+mkArbitrary ''Double
+mkArbitrary ''Float
+mkArbitrary ''Int64
+mkArbitrary ''Int32
+mkArbitrary ''Time
