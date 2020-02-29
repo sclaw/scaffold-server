@@ -54,7 +54,7 @@ data ProviderApi route =
        :- "qualification"
        :> "builder"
        :> "create"
-       :> ReqBody '[JSON] QualificationBuilder
+       :> ReqBody '[JSON] (WithField "branch" (Id "branch") QualificationBuilder)
        :> Put '[JSON] (Response (Id "qualification"))
      , _providerApiBuilderGetAvailableBranches
        :: route 

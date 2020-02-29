@@ -26,6 +26,7 @@ import Test.QuickCheck    (Arbitrary)
 import TextShow
 import Database.Transaction (ParamsShow (..))
 import GHC.Types
+import Data.Default.Class
 
 -- | Type for ids that is shared across all the projects.
 -- user id is int64, so it's encrypted as "text" in json,
@@ -69,3 +70,5 @@ instance FromJSON (Id a) where
     (pure . Id) 
     (floatingOrInteger @Double n)
   parseJSON _ = fail "id should be integral value or string"
+
+instance Default (Id a)
