@@ -185,7 +185,7 @@ mkAccessToken jwk uid refresh_token_hash utype = do
         & unregisteredClaims .~ 
           HM.singleton "dat" (toJSON user)            
   t <- liftIO getSystemTime
-  let tm = Time (fromIntegral (systemSeconds t)) 0
+  let tm = Time (systemSeconds t) 0
   (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims
 
 mkRefreshToken :: JWK -> T.Text -> ExceptT JWTError IO SignedJWT

@@ -12,4 +12,4 @@ create table edgenode.provider_branch_public (
   references edgenode.provider(id),
   constraint "provider_branch_public__provider_branch_fk__provider_fk__uniq" unique (provider_branch_fk, provider_fk),
   modified timestamptz not null default now()
-)
+);

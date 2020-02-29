@@ -12,14 +12,10 @@
 module EdgeNode.Transport.Id (Id(..)) where
 
 import Data.Int
-import Control.Lens
 import Data.Aeson
 import Data.Binary
 import Data.Hashable
-import Data.Scientific
 import Data.Swagger
-import Data.Proxy
-import qualified Data.Text as T
 import GHC.Generics
 import Servant.API
 import Test.QuickCheck    (Arbitrary)
@@ -47,28 +43,9 @@ newtype Id (a :: Symbol) = Id Int64
   deriving anyclass ToParamSchema
   deriving newtype FromHttpApiData
   deriving newtype ParamsShow
+  deriving newtype ToJSON
+  deriving newtype FromJSON
 
-instance ToSchema (Id a) where
-  declareNamedSchema _ = do
-    srcSchema <- declareSchemaRef (Proxy :: Proxy String)
-   --  let unique = T.pack $ show (typeOf (undefined :: a))
-    pure $ NamedSchema (Just ("Id(" <> T.pack (show (Proxy @a)) <> ")")) $ mempty
-      & type_ .~ SwaggerString
-      & properties .~ [("id", srcSchema)]
-      & required .~ ["id"]
-
-instance ToJSON (Id a) where
-  toJSON (Id v) = toJSON (T.pack (show v))
-
-instance FromJSON (Id a) where
-  parseJSON (String t) = Id <$> case reads (T.unpack t) of
-    [(x,_)] -> pure x
-    _ -> fail "unable to parse"
-  parseJSON (Number n) = 
-    either 
-    (const (fail "id can't be floating value")) 
-    (pure . Id) 
-    (floatingOrInteger @Double n)
-  parseJSON _ = fail "id should be integral value or string"
+instance ToSchema (Id a)
 
 instance Default (Id a)
