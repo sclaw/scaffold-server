@@ -58,7 +58,7 @@ qualificationBuilder builder = checkTitle *> checkAcademicArea *> checkDegreeVal
         = Failure [AcademicAreaEmpty]
       | otherwise = pure () 
     checkDegreeValue 
-      | checkDegreeValue' (builder^?!field @"qualificationBuilderQualification"._Just)
+      | not $ checkDegreeValue' (builder^?!field @"qualificationBuilderQualification"._Just)
         = Failure [DegreeValueNotFoundAtQualificationDegree]
       | otherwise = pure ()  
 

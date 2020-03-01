@@ -41,6 +41,7 @@ mkParamSchemaEnum ''EdgeNodeCountry
 mkFromHttpApiDataEnum ''EdgeNodeCountry
 
 mkEnumConvertor ''EdgeNodeAcademicArea
+mkEnumConvertor ''EdgeNodeQualificationDegree
 mkToSchemaAndJSON ''EdgeNodeCountry
 mkToSchemaAndJSON ''EdgeNodeQualificationDegree
 
@@ -52,6 +53,7 @@ mkFromHttpApiDataEnum ''EdgeNodeBucket
 mkEnumConvertor ''Transport.Auth.Error
 
 mkArbitrary ''EdgeNodeAcademicArea
+mkArbitrary ''EdgeNodeCountry
 
 instance Arbitrary EdgeNodeBucket where
   arbitrary = oneof [pure Default, pure Provider]

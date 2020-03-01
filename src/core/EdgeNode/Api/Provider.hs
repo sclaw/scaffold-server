@@ -68,23 +68,32 @@ data ProviderApi route =
        :- "qualification"
        :> "builder" 
        :> "dependency"
-       :> "academic-area-to-countries"
+       :> "academic-area"
        :> Capture "area" EdgeNodeAcademicArea
+       :> "countries"
        :> Get '[JSON] (Response [EdgeNodeCountry])
      , _providerApiBuilderGetDependencyCountryToTypes 
        :: route 
        :- "qualification"
        :> "builder" 
        :> "dependency"
-       :> "country-to-types"
+       :> "academic-area"
+       :> Capture "area" EdgeNodeAcademicArea
+       :> "country"
        :> Capture "country" EdgeNodeCountry
+       :> "qualification-degrees"
        :> Get '[JSON] (Response [EdgeNodeQualificationDegree])
      , _providerApiBuilderGetDependencTypeToQualifications 
        :: route 
        :- "qualification"
        :> "builder" 
        :> "dependency"
-       :> "type-to-qualifications"
+       :> "academic-area"
+       :> Capture "area" EdgeNodeAcademicArea
+       :> "country"
+       :> Capture "country" EdgeNodeCountry
+       :> "qualification-degree"       
        :> Capture "type" EdgeNodeQualificationDegree
-       :> Get '[JSON] (Response (WithId (Id "qualification") DegreeTypeToQualification))
+       :> "qualificationa"
+       :> Get '[JSON] (Response [WithId (Id "qualification") DegreeTypeToQualification])
      } deriving stock Generic

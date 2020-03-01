@@ -31,6 +31,8 @@ import qualified EdgeNode.Controller.Provider.Publish as Provider.Publish
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetAvailableBranches as QualificationBuilder.GetAvailableBranches
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.Create as QualificationBuilder.Create
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries as QualificationBuilder.GetAreaToCountries
+import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes as QualificationBuilder.GetCountryToTypes
+import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetTypeToQualifications as QualificationBuilder.GetTypeToQualifications 
 
 import Katip
 import KatipController
@@ -232,12 +234,28 @@ provider _ user =
   , _providerApiBuilderGetDependencyAreaToCountries = \area ->
     flip logExceptionM ErrorS $
     katipAddNamespace 
-     (Namespace ["provider", "qualification", "builder", "areaToCountries" ])    
+     (Namespace ["provider", "qualification", "builder", "areaToCountries"])    
      (applyController Nothing user $ \x -> 
       verifyAuthorization 
       (jWTUserUserId x) 
       Rbac.PermissionProviderAdmin
-      (QualificationBuilder.GetAreaToCountries.controller area))    
-  , _providerApiBuilderGetDependencyCountryToTypes = undefined
-  , _providerApiBuilderGetDependencTypeToQualifications = undefined
+      (const (QualificationBuilder.GetAreaToCountries.controller area))) 
+  , _providerApiBuilderGetDependencyCountryToTypes = \area cntry ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace 
+     (Namespace ["provider", "qualification", "builder", "CountryToTypes"])    
+     (applyController Nothing user $ \x -> 
+      verifyAuthorization 
+      (jWTUserUserId x) 
+      Rbac.PermissionProviderAdmin
+      (const (QualificationBuilder.GetCountryToTypes.controller area cntry)))
+  , _providerApiBuilderGetDependencTypeToQualifications = \area cntry degree ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace 
+     (Namespace ["provider", "qualification", "builder", "TypeToQualifications"])    
+     (applyController Nothing user $ \x -> 
+      verifyAuthorization 
+      (jWTUserUserId x) 
+      Rbac.PermissionProviderAdmin
+      (const (QualificationBuilder.GetTypeToQualifications.controller area cntry degree)))
   }

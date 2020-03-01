@@ -20,6 +20,8 @@ module EdgeNode.Statement.Provider
        , getQualificationBuilderBranches
        , saveQualification
        , getAreaToCountries
+       , getCountryToTypes
+       , getTypeToQualifications
        ) where
 
 import EdgeNode.Transport.Id
@@ -53,6 +55,7 @@ import Data.Time
 import Data.Maybe
 import Control.Lens.Each.Extended
 import Data.Word
+import Data.Aeson.WithField
 
 mkEncoder ''Branch
 mkArbitrary ''Branch
@@ -299,17 +302,60 @@ saveQualification = dimap mkEncoder (coerce @Int64 @(Id "qualification")) statem
 instance ParamsShow EdgeNodeAcademicArea where
   render x = x^.isoEdgeNodeAcademicArea
 
-getAreaToCountries :: HS.Statement (EdgeNodeAcademicArea, Id "user") [EdgeNodeCountry]
+getAreaToCountries :: HS.Statement EdgeNodeAcademicArea [EdgeNodeCountry]
 getAreaToCountries = 
-  lmap (bimap (^.isoEdgeNodeAcademicArea.stext) 
-  (coerce @_ @Int64)) $
+  lmap (^.isoEdgeNodeAcademicArea.stext) $
   [foldStatement|
     select distinct on (pb.country) pb.country :: text 
-    from edgenode.provider_user as pu
-    inner join edgenode.provider_branch as pb 
-    on pu.provider_id = pb.provider_fk 
+    from edgenode.provider_branch as pb 
     left join edgenode.provider_branch_qualification as pbq 
     on pb.id = pbq.provider_branch_fk
-    where pu.user_id = $2 :: int8 
-          and array[$1 :: text] :: text[] <@ pbq.academic_area|] $ 
+    where array[$1 :: text] :: text[] <@ pbq.academic_area|] $ 
   premap (^.from stext.from isoEdgeNodeCountry) list
+
+instance ParamsShow EdgeNodeCountry where
+  render x = x^.isoEdgeNodeCountry
+
+getCountryToTypes :: HS.Statement (EdgeNodeAcademicArea, EdgeNodeCountry) [EdgeNodeQualificationDegree]
+getCountryToTypes =
+  lmap (\x -> 
+    x & _1 %~ (^.isoEdgeNodeAcademicArea.stext)
+      & _2 %~  (^.isoEdgeNodeCountry.stext)) $
+  [foldStatement|
+    select distinct on (pbq.type) pbq.type :: text
+    from edgenode.provider_branch as pb 
+    left join edgenode.provider_branch_qualification as pbq 
+    on pb.id = pbq.provider_branch_fk
+    where array[$1 :: text] :: text[] <@ pbq.academic_area
+          and pb.country = $2 :: text|] $
+  premap (^.from stext.from isoEdgeNodeQualificationDegree) list
+
+instance ParamsShow EdgeNodeQualificationDegree where
+  render x = x^.isoEdgeNodeQualificationDegree
+
+getTypeToQualifications 
+  :: HS.Statement 
+     (EdgeNodeAcademicArea, 
+      EdgeNodeCountry, 
+      EdgeNodeQualificationDegree) 
+     [WithId (Id "qualification") DegreeTypeToQualification]
+getTypeToQualifications =
+  lmap (\x -> 
+    x & _1 %~ (^.isoEdgeNodeAcademicArea.stext)
+      & _2 %~  (^.isoEdgeNodeCountry.stext)
+      & _3 %~  (^.isoEdgeNodeQualificationDegree.stext)) $
+  [foldStatement|
+    select pbq.id :: int8, pbq.title :: text, 
+    pbq.min_degree_value :: text? 
+    from edgenode.provider_branch as pb 
+    left join edgenode.provider_branch_qualification as pbq 
+    on pb.id = pbq.provider_branch_fk
+    where array[$1 :: text] :: text[] <@ pbq.academic_area
+          and pb.country = $2 :: text and pbq.type = $3 :: text|] $
+    premap mkDecoder list
+  where
+    mkDecoder x = 
+      WithField (coerce (x^._1)) $ 
+       DegreeTypeToQualification 
+       (x^._2.from lazytext) 
+       (x^?_3._Just.from lazytext.to Protobuf.String)
