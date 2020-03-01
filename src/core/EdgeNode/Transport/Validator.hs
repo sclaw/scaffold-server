@@ -6,7 +6,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module EdgeNode.Transport.Validator 
-       (qualificationBuilder) where
+       ( qualificationBuilder
+       , degreeToValues) where
 
 import EdgeNode.Transport.Qualification
 import EdgeNode.Transport.Error
@@ -68,13 +69,15 @@ checkDegreeValue' Qualification  {..} = check qualificationDegreeValue
     degree = qualificationDegreeType^?!field @"enumerated"._Right
     check Nothing = True
     check (Just x) = elem (x^.field @"stringValue") (fromJust (lookup degree degreeToValues)) 
-    degreeToValues = 
-      [ (QualificationDegreeUnifiedStateExam, map (LT.fromStrict . showt) [1 .. 100 :: Int])
-      , (QualificationDegreeAdvancedLevelGCE, ["A*", "A", "B", "C", "D", "E"])
-      , (QualificationDegreeMagistr, ["Maj", "Std"])
-      , (QualificationDegreeBakalavr, ["Maj", "Std"])
-      , (QualificationDegreeBSc, ["1", "2:1", "2:2", "3"])
-      , (QualificationDegreeBA, ["1", "2:1", "2:2", "3"])
-      , (QualificationDegreeMSc, ["1", "2:1", "2:2", "3"])
-      , (QualificationDegreeMA, ["1", "2:1", "2:2", "3"])
-      , (QualificationDegreeMRes, ["1", "2:1", "2:2", "3"])]
+
+degreeToValues :: [(QualificationDegree, [LT.Text])]
+degreeToValues = 
+  [ (QualificationDegreeUnifiedStateExam, map (LT.fromStrict . showt) [1 .. 100 :: Int])
+  , (QualificationDegreeAdvancedLevelGCE, ["A*", "A", "B", "C", "D", "E"])
+  , (QualificationDegreeMagistr, ["Maj", "Std"])
+  , (QualificationDegreeBakalavr, ["Maj", "Std"])
+  , (QualificationDegreeBSc, ["1", "2:1", "2:2", "3"])
+  , (QualificationDegreeBA, ["1", "2:1", "2:2", "3"])
+  , (QualificationDegreeMSc, ["1", "2:1", "2:2", "3"])
+  , (QualificationDegreeMA, ["1", "2:1", "2:2", "3"])
+  , (QualificationDegreeMRes, ["1", "2:1", "2:2", "3"])]

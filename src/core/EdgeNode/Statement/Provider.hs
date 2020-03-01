@@ -29,6 +29,7 @@ import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Iso
 import EdgeNode.Transport.Extended
 import EdgeNode.Transport.Qualification
+import EdgeNode.Transport.Validator (degreeToValues)
 
 import TH.Proto
 import qualified Hasql.Statement as HS
@@ -346,7 +347,7 @@ getTypeToQualifications =
       & _3 %~  (^.isoEdgeNodeQualificationDegree.stext)) $
   [foldStatement|
     select pbq.id :: int8, pbq.title :: text, 
-    pbq.min_degree_value :: text? 
+    pbq.min_degree_value :: text?, pbq.type :: text 
     from edgenode.provider_branch as pb 
     left join edgenode.provider_branch_qualification as pbq 
     on pb.id = pbq.provider_branch_fk
@@ -358,4 +359,9 @@ getTypeToQualifications =
       WithField (coerce (x^._1)) $ 
        DegreeTypeToQualification 
        (x^._2.from lazytext) 
-       (x^?_3._Just.from lazytext.to Protobuf.String)
+       (V.fromList $ fromMaybe [] $ do  
+         vs <- Data.List.lookup 
+               (x^._4.from stext.from isoQualificationDegree) 
+               degreeToValues
+         v <- x^?_3._Just.from lazytext
+         pure $ dropWhile (/= v) vs)
