@@ -14,6 +14,7 @@ module EdgeNode.Transport.Extended
 
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Id
+
 import GHC.Generics
 import TH.Mk
 
@@ -40,7 +41,6 @@ data PatchBranchReq =
      , patchBranchReqImg :: !(Maybe (Id "img"))
      , patchBranchReqBranch :: !Branch 
      } deriving (Generic, Show)
-
 
 mkToSchemaAndJSON ''GetBranchResp
 mkToSchemaAndJSON ''MkBranchReq

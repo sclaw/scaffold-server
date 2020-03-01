@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -5,6 +7,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module EdgeNode.Statement.Provider 
        ( getBranches
@@ -15,15 +18,16 @@ module EdgeNode.Statement.Provider
        , updateBranches
        , publish
        , getQualificationBuilderBranches
-       , BranchEncoder
+       , saveQualification
        ) where
 
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Iso
-import EdgeNode.Transport.Extended (GetBranchResp (..))
+import EdgeNode.Transport.Extended
 import EdgeNode.Transport.Qualification
 
+import TH.Proto
 import qualified Hasql.Statement as HS
 import Hasql.TH
 import Data.Aeson.WithField.Extended
@@ -44,6 +48,10 @@ import Data.List
 import Data.Generics.Product.Fields
 import Data.Tuple.Ops
 import Data.Generics.Product.Positions
+import Data.Time
+import Data.Maybe
+import Control.Lens.Each.Extended
+import Data.Word
 
 mkEncoder ''Branch
 mkArbitrary ''Branch
@@ -51,6 +59,8 @@ mkArbitrary ''Qualification
 mkArbitrary ''QualificationBuilder
 mkArbitrary ''TuitionFee
 mkArbitrary ''Dependecy
+mkEncoder ''QualificationBuilder
+mkEncoder ''Qualification
 
 instance ParamsShow Branch where 
   render x = intercalate ", " $
@@ -240,3 +250,24 @@ getQualificationBuilderBranches =
         inner join edgenode.provider_branch as pb
         on pu.provider_id = pb.provider_fk
         where pu.user_id = $1 :: int8 order by pb.title asc|]
+
+instance ParamsShow QualificationBuilder where 
+  render x = intercalate ", " $
+    (mkEncoderQualification qual
+     & _1 %~ (^.lazytext.from stext)
+     & _2 %~ (\x -> "[" ++ intercalate ", " (x^..traversed.academicArea.from stext) ++ "]")
+     & _3 %~ show
+     & _4 %~ show
+     & _5 %~ show
+     & _6 %~ show
+     & _7 %~ (^.qualCategory.from stext)
+     & _8 %~ (^.qualStudyTime.from stext)
+     & _9 %~ (^.qualQualificationDegree.from stext)
+     & _10 %~ (fromMaybe mempty . fmap (^.field @"stringValue".lazytext.from stext)))^..each
+    where qual = fromJust (qualificationBuilderQualification x)
+
+saveQualification :: HS.Statement (WithField "branch" (Id "branch") QualificationBuilder) (Id "qualification")
+saveQualification = dimap mkEncoder (coerce @Int64 @(Id "qualification")) statement
+  where 
+    mkEncoder = undefined
+    statement = undefined

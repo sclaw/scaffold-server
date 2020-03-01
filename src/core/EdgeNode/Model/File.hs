@@ -5,7 +5,7 @@ module EdgeNode.Model.File (Hash (..), Name (..), Mime (..), UnicodeText (..), B
 
 import Test.QuickCheck.Extended
 import Database.Transaction
-import Text
+import Data.Text.Extended
 
 newtype Hash = Hash UnicodeText 
   deriving newtype (Arbitrary, ParamsShow)

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d167c37a59fce18e9f848f3ed6b2ac47d66aadb7770fec59cb9c4fe008607a49
+-- hash: 09a708058c3e8b8f1ca37c1134addffcd0acae3abf055ff02fed57ee741d4de6
 
 name:           edgenode
 version:        0.1.0.0
@@ -81,10 +81,10 @@ library
       Servant.Multipart.File
       Servant.Swagger.KatipController
       Servant.Swagger.RawM
-      Text
       TH.Mk
       TH.Proto
       Web.Google.Translator
+      Control.Lens.Each.Extended
       Control.Lens.Extended
       Control.Lens.Iso.Extended
       Data.Aeson.Extended
@@ -93,6 +93,7 @@ library
       Data.Default.Class.Extended
       Data.HList.HList.Extended
       Data.Swagger.Schema.Extended
+      Data.Text.Extended
       Data.Tree.Extended
       Data.Vector.Extended
       Servant.API.Extended

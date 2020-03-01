@@ -1,4 +1,4 @@
-module Text (UnicodeText(..)) where
+module Data.Text.Extended (UnicodeText(..), module T) where
 
 import qualified Data.Text as T
 import Test.QuickCheck.Extended

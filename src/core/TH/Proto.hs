@@ -13,6 +13,7 @@ import EdgeNode.Lang
 import EdgeNode.Country
 import EdgeNode.Minio
 import qualified EdgeNode.Transport.Auth as Transport.Auth
+import EdgeNode.Transport.Qualification
 
 import TH.Mk
 import GHC.Generics
@@ -23,6 +24,10 @@ import Database.Transaction
 mkEnumConvertor ''Language
 mkEnumConvertor ''Country
 mkEnumConvertor ''Bucket
+mkEnumConvertor ''QualificationCategory
+mkEnumConvertor ''QualificationDegree
+mkEnumConvertor ''StudyTime
+mkEnumConvertor ''AcademicArea
 
 mkSRGEqEnum ''Country "EdgeNode"
 mkEnumConvertor ''EdgeNodeCountry

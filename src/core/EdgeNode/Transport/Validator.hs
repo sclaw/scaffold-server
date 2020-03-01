@@ -8,16 +8,13 @@
 module EdgeNode.Transport.Validator 
        (qualificationBuilder) where
 
-import EdgeNode.Transport.Id
 import EdgeNode.Transport.Qualification
 import EdgeNode.Transport.Error
 
-import Data.Aeson.WithField
 import Data.Validation
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
 import Data.Maybe
-import Data.Generics.Product.Positions
 import Control.Lens
 import Data.Generics.Product.Fields
 import qualified Data.Vector as V
@@ -36,15 +33,10 @@ instance AsError QualificationBuilderError where
   asError DegreeValueNotFoundAtQualificationDegree = asError @T.Text "degree value mismatches given qualification degree"
   asError QualificationNotFound = asError @T.Text "qualification not found"
 
-qualificationBuilder 
-  :: WithField "branch" 
-     (Id "branch") 
-     QualificationBuilder 
-  -> Validation [QualificationBuilderError] ()
+qualificationBuilder :: QualificationBuilder -> Validation [QualificationBuilderError] ()
 qualificationBuilder builder 
   | isNothing (
       builder^.
-      position @2.
       field @"qualificationBuilderQualification") 
     = Failure [QualificationNotFound]   
 qualificationBuilder builder = checkTitle *> checkAcademicArea *> checkDegreeValue
@@ -52,7 +44,6 @@ qualificationBuilder builder = checkTitle *> checkAcademicArea *> checkDegreeVal
     checkTitle 
       | LT.null (
         builder^?!
-        position @2.
         field @"qualificationBuilderQualification".
         _Just.
         field @"qualificationTitle") 
@@ -61,14 +52,13 @@ qualificationBuilder builder = checkTitle *> checkAcademicArea *> checkDegreeVal
     checkAcademicArea 
       | V.null (
         builder^?!
-        position @2.
         field @"qualificationBuilderQualification".
         _Just.
         field @"qualificationAreas") 
         = Failure [AcademicAreaEmpty]
       | otherwise = pure () 
     checkDegreeValue 
-      | checkDegreeValue' (builder^?!position @2.field @"qualificationBuilderQualification"._Just)
+      | checkDegreeValue' (builder^?!field @"qualificationBuilderQualification"._Just)
         = Failure [DegreeValueNotFoundAtQualificationDegree]
       | otherwise = pure ()  
 

@@ -308,9 +308,8 @@ mkEncoder name = do
   let types = flip map xs $ \(_, _, ty) ->
         case ty of 
           ConT t -> mkType t
-          AppT (ConT x) (ConT y) -> AppT (ConT (mkName (nameBase x))) (mkType y)
-          AppT (ConT x) (LitT (StrTyLit s)) ->  AppT (ConT (mkName (nameBase x))) (LitT (StrTyLit s))
-          _ -> undefined 
+          AppT (ConT x) (ConT y) -> AppT (ConT x) (mkType y)
+          _ -> ty
   let mkTpl [] tpl = tpl 
       mkTpl (t:ts) app = mkTpl ts (AppT app t) 
   let mkTypeSyn = 

@@ -77,7 +77,8 @@ explainTests =
     , "createFiles" =>> EdgeNode.Statement.Provider.createFiles
     , "updateBranches" =>> EdgeNode.Statement.Provider.updateBranches
     , "publish" =>> EdgeNode.Statement.Provider.publish
-    , "getQualificationBuilderBranches" =>> EdgeNode.Statement.Provider.getQualificationBuilderBranches]
+    , "getQualificationBuilderBranches" =>> EdgeNode.Statement.Provider.getQualificationBuilderBranches
+    , "saveQualification" =>> EdgeNode.Statement.Provider.saveQualification]
   , "EdgeNode.Statement.Auth" ==> 
     [ "getUserCred" =>> EdgeNode.Statement.Auth.getUserCred
     , "putRefreshToken" =>> EdgeNode.Statement.Auth.putRefreshToken
