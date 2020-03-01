@@ -32,7 +32,6 @@ import Data.Int
 import Data.Maybe
 import Data.Coerce
 import qualified Protobuf.Scalar as Protobuf
-import Protobuf.Scalar (UInt64 (..)) 
 import Data.Generics.Product.Fields
 import Data.HList.HList.Extended
 import Data.Aeson.TH.Extended
@@ -54,10 +53,6 @@ instance Arbitrary FullDay where
   shrink = genericShrink
 
 instance Arbitrary User where
-  arbitrary = genericArbitrary
-  shrink = genericShrink
-
-instance Arbitrary UInt64 where
   arbitrary = genericArbitrary
   shrink = genericShrink
 

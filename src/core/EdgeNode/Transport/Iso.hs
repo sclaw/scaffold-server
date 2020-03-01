@@ -31,10 +31,10 @@ qualStudyTime = isoEnum fromStudyTime toStudyTime
 qualQualificationDegree :: Iso' (Enumerated QualificationDegree) T.Text
 qualQualificationDegree = isoEnum fromQualificationDegree toQualificationDegree
 
-isoEnum :: Show a => (a -> String) -> (String -> a) -> Iso' (Enumerated a) T.Text
-isoEnum f t = iso fromEnum toEnum
-  where fromEnum x =
+isoEnum :: (Enum a, Show a) => (a -> String) -> (String -> a) -> Iso' (Enumerated a) T.Text
+isoEnum f t = iso fromEnuma toEnuma
+  where fromEnuma x =
           case x of 
             Enumerated (Right x) -> f x^.stext
-            _ -> error $ "wrong data: " ++ show x
-        toEnum x = Enumerated $ Right (t (x^.from stext))
+            Enumerated (Left _) -> f (toEnum 1)^.stext
+        toEnuma x = Enumerated $ Right (t (x^.from stext))

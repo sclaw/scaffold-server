@@ -46,3 +46,4 @@ mkArbitrary ''Float
 mkArbitrary ''Int64
 mkArbitrary ''Int32
 mkArbitrary ''Time
+mkArbitrary ''UInt64

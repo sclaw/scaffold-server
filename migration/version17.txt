@@ -1,0 +1,3 @@
+alter table edgenode.provider_branch_qualification alter column application_deadline type timestamptz;
+alter table edgenode.provider_branch_qualification alter column start type timestamptz;
+alter table edgenode.provider_branch_qualification alter column finish type timestamptz;

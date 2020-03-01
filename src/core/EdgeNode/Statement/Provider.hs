@@ -269,5 +269,28 @@ instance ParamsShow QualificationBuilder where
 saveQualification :: HS.Statement (WithField "branch" (Id "branch") QualificationBuilder) (Id "qualification")
 saveQualification = dimap mkEncoder (coerce @Int64 @(Id "qualification")) statement
   where 
-    mkEncoder = undefined
-    statement = undefined
+    mkEncoder x =
+      consT (coerce @_ @Int64 (x^.position @1))
+      (mkEncoderQualification
+       (x^?!position @2.field @"qualificationBuilderQualification"._Just)
+       & _1 %~ (^.lazytext)
+       & _2 %~ V.imap (\_ x -> (x^.academicArea))
+       & _3 %~ fmap (fromIntegral @_ @Int64 . (^.field @"uint64Value"))
+       & _4 %~ fmap (fromIntegral @_ @Int64 . (^.field @"uint64Value"))
+       & _5 %~ fmap (^.field @"boolValue")
+       & _6 %~ fmap (fromIntegral @_ @Int64 . (^.field @"uint64Value"))
+       & _7 %~ (^.qualCategory)
+       & _8 %~ (^.qualStudyTime)
+       & _9 %~ (^.qualQualificationDegree)
+       & _10 %~ (^?_Just.field @"stringValue".lazytext))
+    statement = 
+      [singletonStatement|
+        insert into edgenode.provider_branch_qualification
+        (title, academic_area, start, finish, 
+         is_repeated, application_deadline, category,
+         type, study_time, created, provider_branch_fk, 
+         min_degree_value) values 
+        ($2 :: text, $3 :: text[], to_timestamp($4 :: int8?), 
+         to_timestamp($5 :: int8?), $6 :: bool?,
+         to_timestamp($7 :: int8?), $8 :: text, $9 :: text, 
+         $10 :: text, now(), $1 :: int8, $11 :: text?) returning id :: int8|]
