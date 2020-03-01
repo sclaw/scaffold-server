@@ -29,10 +29,20 @@ mkEnumConvertor ''QualificationDegree
 mkEnumConvertor ''StudyTime
 mkEnumConvertor ''AcademicArea
 
+mkSRGEqEnum ''AcademicArea "EdgeNode"
+mkFromHttpApiDataEnum ''EdgeNodeAcademicArea
+mkParamSchemaEnum ''EdgeNodeAcademicArea
+mkSRGEqEnum ''QualificationDegree "EdgeNode"
+mkFromHttpApiDataEnum ''EdgeNodeQualificationDegree
+mkParamSchemaEnum ''EdgeNodeQualificationDegree
 mkSRGEqEnum ''Country "EdgeNode"
 mkEnumConvertor ''EdgeNodeCountry
 mkParamSchemaEnum ''EdgeNodeCountry
 mkFromHttpApiDataEnum ''EdgeNodeCountry
+
+mkEnumConvertor ''EdgeNodeAcademicArea
+mkToSchemaAndJSON ''EdgeNodeCountry
+mkToSchemaAndJSON ''EdgeNodeQualificationDegree
 
 mkSRGEqEnum ''Bucket "EdgeNode"
 mkEnumConvertor ''EdgeNodeBucket
@@ -40,6 +50,8 @@ mkParamSchemaEnum ''EdgeNodeBucket
 mkFromHttpApiDataEnum ''EdgeNodeBucket
 
 mkEnumConvertor ''Transport.Auth.Error
+
+mkArbitrary ''EdgeNodeAcademicArea
 
 instance Arbitrary EdgeNodeBucket where
   arbitrary = oneof [pure Default, pure Provider]

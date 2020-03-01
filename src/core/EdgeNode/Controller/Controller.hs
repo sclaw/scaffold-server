@@ -30,6 +30,7 @@ import qualified EdgeNode.Controller.Auth.RefreshAccessToken as Auth.RefreshAcce
 import qualified EdgeNode.Controller.Provider.Publish as Provider.Publish
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetAvailableBranches as QualificationBuilder.GetAvailableBranches
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.Create as QualificationBuilder.Create
+import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries as QualificationBuilder.GetAreaToCountries
 
 import Katip
 import KatipController
@@ -222,10 +223,21 @@ provider _ user =
   , _providerApiPublish =
     flip logExceptionM ErrorS $
     katipAddNamespace 
-     (Namespace ["provider", "branch", "list"])    
+     (Namespace ["provider", "branch", "publish"])    
      (applyController Nothing user $ \x -> 
       verifyAuthorization 
       (jWTUserUserId x) 
-      Rbac.PermissionProviderGuest 
+      Rbac.PermissionProviderAdmin
       Provider.Publish.controller)
+  , _providerApiBuilderGetDependencyAreaToCountries = \area ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace 
+     (Namespace ["provider", "qualification", "builder", "areaToCountries" ])    
+     (applyController Nothing user $ \x -> 
+      verifyAuthorization 
+      (jWTUserUserId x) 
+      Rbac.PermissionProviderAdmin
+      (QualificationBuilder.GetAreaToCountries.controller area))    
+  , _providerApiBuilderGetDependencyCountryToTypes = undefined
+  , _providerApiBuilderGetDependencTypeToQualifications = undefined
   }

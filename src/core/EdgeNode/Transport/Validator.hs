@@ -69,7 +69,7 @@ checkDegreeValue' Qualification  {..} = check qualificationDegreeValue
     check Nothing = True
     check (Just x) = elem (x^.field @"stringValue") (fromJust (lookup degree degreeToValues)) 
     degreeToValues = 
-      [ (QualificationDegreeUnifiedStateExam, map (LT.fromStrict . showt) [1 .. 10 :: Int])
+      [ (QualificationDegreeUnifiedStateExam, map (LT.fromStrict . showt) [1 .. 100 :: Int])
       , (QualificationDegreeAdvancedLevelGCE, ["A*", "A", "B", "C", "D", "E"])
       , (QualificationDegreeMagistr, ["Maj", "Std"])
       , (QualificationDegreeBakalavr, ["Maj", "Std"])

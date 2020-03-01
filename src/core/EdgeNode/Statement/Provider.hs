@@ -19,6 +19,7 @@ module EdgeNode.Statement.Provider
        , publish
        , getQualificationBuilderBranches
        , saveQualification
+       , getAreaToCountries
        ) where
 
 import EdgeNode.Transport.Id
@@ -263,7 +264,7 @@ instance ParamsShow QualificationBuilder where
      & _7 %~ (^.qualCategory.from stext)
      & _8 %~ (^.qualStudyTime.from stext)
      & _9 %~ (^.qualQualificationDegree.from stext)
-     & _10 %~ (fromMaybe mempty . fmap (^.field @"stringValue".lazytext.from stext)))^..each
+     & _10 %~ (maybe mempty (^.field @"stringValue".lazytext.from stext)))^..each
     where qual = fromJust (qualificationBuilderQualification x)
 
 saveQualification :: HS.Statement (WithField "branch" (Id "branch") QualificationBuilder) (Id "qualification")
@@ -294,3 +295,21 @@ saveQualification = dimap mkEncoder (coerce @Int64 @(Id "qualification")) statem
          to_timestamp($5 :: int8?), $6 :: bool?,
          to_timestamp($7 :: int8?), $8 :: text, $9 :: text, 
          $10 :: text, now(), $1 :: int8, $11 :: text?) returning id :: int8|]
+
+instance ParamsShow EdgeNodeAcademicArea where
+  render x = x^.isoEdgeNodeAcademicArea
+
+getAreaToCountries :: HS.Statement (EdgeNodeAcademicArea, Id "user") [EdgeNodeCountry]
+getAreaToCountries = 
+  lmap (bimap (^.isoEdgeNodeAcademicArea.stext) 
+  (coerce @_ @Int64)) $
+  [foldStatement|
+    select distinct on (pb.country) pb.country :: text 
+    from edgenode.provider_user as pu
+    inner join edgenode.provider_branch as pb 
+    on pu.provider_id = pb.provider_fk 
+    left join edgenode.provider_branch_qualification as pbq 
+    on pb.id = pbq.provider_branch_fk
+    where pu.user_id = $2 :: int8 
+          and array[$1 :: text] :: text[] <@ pbq.academic_area|] $ 
+  premap (^.from stext.from isoEdgeNodeCountry) list

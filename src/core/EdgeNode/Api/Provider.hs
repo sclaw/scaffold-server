@@ -17,6 +17,7 @@ import Servant.API
 import Data.Aeson.Unit
 import Data.Aeson.WithField
 import qualified Data.Text as T
+import TH.Proto
 
 data ProviderApi route = 
      ProviderApi 
@@ -62,4 +63,28 @@ data ProviderApi route =
        :> "builder"
        :> "branches" 
        :> Get '[JSON] (Response [WithId (Id "branch") (OnlyField "title" T.Text)])
+     , _providerApiBuilderGetDependencyAreaToCountries
+       :: route 
+       :- "qualification"
+       :> "builder" 
+       :> "dependency"
+       :> "academic-area-to-countries"
+       :> Capture "area" EdgeNodeAcademicArea
+       :> Get '[JSON] (Response [EdgeNodeCountry])
+     , _providerApiBuilderGetDependencyCountryToTypes 
+       :: route 
+       :- "qualification"
+       :> "builder" 
+       :> "dependency"
+       :> "country-to-types"
+       :> Capture "country" EdgeNodeCountry
+       :> Get '[JSON] (Response [EdgeNodeQualificationDegree])
+     , _providerApiBuilderGetDependencTypeToQualifications 
+       :: route 
+       :- "qualification"
+       :> "builder" 
+       :> "dependency"
+       :> "type-to-qualifications"
+       :> Capture "type" EdgeNodeQualificationDegree
+       :> Get '[JSON] (Response (WithId (Id "qualification") DegreeTypeToQualification))
      } deriving stock Generic
