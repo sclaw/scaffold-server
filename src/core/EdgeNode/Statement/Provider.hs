@@ -292,7 +292,7 @@ saveQualification = dimap mkEncoder (coerce @Int64 @(Id "qualification")) statem
         insert into edgenode.provider_branch_qualification
         (title, academic_area, start, finish, 
          is_repeated, application_deadline, category,
-         type, study_time, created, provider_branch_fk, 
+         study_time, type, created, provider_branch_fk, 
          min_degree_value) values 
         ($2 :: text, $3 :: text[], to_timestamp($4 :: int8?), 
          to_timestamp($5 :: int8?), $6 :: bool?,

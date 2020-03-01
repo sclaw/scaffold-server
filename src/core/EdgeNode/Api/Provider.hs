@@ -94,6 +94,6 @@ data ProviderApi route =
        :> Capture "country" EdgeNodeCountry
        :> "qualification-degree"       
        :> Capture "type" EdgeNodeQualificationDegree
-       :> "qualificationa"
+       :> "qualifications"
        :> Get '[JSON] (Response [WithId (Id "qualification") DegreeTypeToQualification])
      } deriving stock Generic
