@@ -16,7 +16,6 @@ import EdgeNode.Model.User
 import Katip
 import KatipController
 import Control.Lens
-import Default ()
 import Database.Transaction
 import Data.Traversable
 import Data.Maybe

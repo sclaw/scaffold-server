@@ -97,6 +97,7 @@ extra-deps:
  - elocrypt-2.1.0@sha256:2bf49f367186e82b36c434f5304063f5443a0f9e8e00b83636ba5ee62bc39111,2709
  - template-haskell-compat-v0208-0.1.2.1@sha256:039deac4225c1d2fa7ac349f09d2050f8a7b932a892fa040e11d639a12851dc5,1524
  - pretty-simple-3.2.1.0
+ - servant-swagger-tags-0.1.0.0@sha256:ffd61b869e56a7543f0641fe017647cf05fb57a76cb2d2acd045fc47bfbafb07,1079
 
 
 # - acme-missiles-0.3

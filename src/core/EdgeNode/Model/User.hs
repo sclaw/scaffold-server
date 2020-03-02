@@ -24,7 +24,7 @@ import qualified Data.Text.Lazy as LT
 import Data.Word
 import Data.Time
 import Proto3.Suite.Types
-import Test.QuickCheck.Extended
+import Test.QuickCheck.Extended ()
 import Control.Lens.Iso.Extended
 import Control.Lens
 import qualified Data.Text as T
@@ -37,9 +37,7 @@ import Data.HList.HList.Extended
 import Data.Aeson.TH.Extended
 import Data.Swagger
 import GHC.Generics
-import Test.QuickCheck.Arbitrary.Generic
-import Data.Default.Class
-import Default ()
+import Data.Default.Class.Extended
 
 mkEncoder ''User
 mkEncoder ''FullDay
@@ -48,13 +46,8 @@ instance Default Gender where def = toEnum 0
 instance Default User
 instance Default FullDay
 
-instance Arbitrary FullDay where
-  arbitrary = genericArbitrary
-  shrink = genericShrink
-
-instance Arbitrary User where
-  arbitrary = genericArbitrary
-  shrink = genericShrink
+mkArbitrary ''FullDay
+mkArbitrary ''User 
 
 data UserRole = Primary | Secondary deriving stock (Show, Generic)
 

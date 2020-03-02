@@ -183,6 +183,7 @@ library:
     - ghc-prim
     - base64-bytestring
     - generic-arbitrary
+    - servant-swagger-tags
 
   source-dirs:
     - src/core

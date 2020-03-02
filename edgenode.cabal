@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 777a2dd384365b8b3813dc2131329b95770e080d359baa66b69632e5ca61fb3e
+-- hash: a0de522ac4ed0eb47497cc7828b06ffd39deca01ccfa9c1e388cf915b54636a7
 
 name:           edgenode
 version:        0.1.0.0
@@ -27,7 +27,6 @@ library
       Database.Migration.Batch
       Database.Migration.Test
       Database.Transaction
-      Default
       EdgeNode.Api
       EdgeNode.Api.Admin
       EdgeNode.Api.Api
@@ -78,7 +77,6 @@ library
       Hash
       KatipController
       Middleware
-      Orphan
       Pretty
       Servant.Ip
       Servant.Multipart.File
@@ -218,6 +216,7 @@ library
     , servant-rawm
     , servant-server
     , servant-swagger
+    , servant-swagger-tags
     , servant-swagger-ui
     , servant-swagger-ui-core
     , servant-websockets

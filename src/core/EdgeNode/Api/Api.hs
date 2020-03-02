@@ -29,45 +29,53 @@ import Servant.Ip
 import Servant.API.Generic
 import Servant.API
 import Servant.Auth.Server
+import Servant.Swagger.Tags
 
 data HttpApi route = 
      HttpApi 
      { _httpApiAuth
-       :: route 
-       :- "auth"
+       :: route
+       :- Tags "auth" 
+       :> "auth"
        :> HeaderIP 
        :> ToServant AuthApi AsApi
      , _httpApiUser
        :: route
-       :- "user"
+       :- Tags "user"
+       :> "user"
        :> HeaderIP
        :> Auth '[AppJwt] JWTUser
        :> ToServant UserApi AsApi
      , _httpApiService
        :: route
-       :- "service"
+       :- Tags "service"
+       :> "service"
        :> HeaderIP
        :> Auth '[AppJwt] JWTUser
        :> ToServant ServiceApi AsApi
      , _httpApiSearch
        :: route 
-       :- "search"
+       :- Tags "search"
+       :> "search"
        :> HeaderIP
        :> ToServant SearchApi AsApi
      , _httpApiFile  
        :: route 
-       :- "file"
+       :- Tags "file"
+       :> "file"
        :> HeaderIP
        :> ToServant FileApi AsApi
      , _httpApiAdmin
-       :: route 
-       :- "admin"
+       :: route
+       :- Tags "admin" 
+       :> "admin"
        :> HeaderIP
        :> Auth '[Servant.Auth.Server.BasicAuth] BasicUser
        :> ToServant AdminApi AsApi
      , _httpApiProvider
        :: route 
-       :- "provider"
+       :- Tags "provider"
+       :> "provider"
        :> HeaderIP
        :> Auth '[AppJwt] JWTUser
        :> ToServant ProviderApi AsApi              
