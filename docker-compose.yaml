@@ -28,7 +28,6 @@ services:
     links:
       - database
       - storage
-      - elk
     depends_on:
       - database
       - storage
@@ -61,21 +60,7 @@ services:
     networks:
       edgeNode:
         ipv4_address: ${FILE_STORAGE_HOST}
-
-  elk:
-    image: sebp/elk:latest
-    container_name: "edge-node-elk"
-    ports:
-      - "5601:5601"
-      - "9200:9200"
-      - "5044:5044"
-    volumes:
-      - ./deploy/logstash/config:/etc/logstash/conf.d
-      - elk_data:/var/lib/elasticsearch
-    networks:
-      edgeNode:
-        ipv4_address: ${ELK_HOST}
-
+        
 networks:
   edgeNode:
     driver: bridge
@@ -86,6 +71,5 @@ networks:
 volumes:
   pg_data_db: {}
   minio_data: {}
-  elk_data: {}
 
 # vim: et:sw=2
