@@ -356,12 +356,15 @@ getTypeToQualifications =
     premap mkDecoder list
   where
     mkDecoder x = 
-      WithField (coerce (x^._1)) $ 
-       DegreeTypeToQualification 
-       (x^._2.from lazytext) 
-       (V.fromList $ fromMaybe [] $ do  
-         vs <- Data.List.lookup 
-               (x^._4.from stext.from isoQualificationDegree) 
-               degreeToValues
-         v <- x^?_3._Just.from lazytext
-         pure $ dropWhile (/= v) vs)
+      let vs = 
+            fromJust $ 
+            Data.List.lookup 
+            (x^._4.from stext.from isoQualificationDegree) 
+            degreeToValues
+      in WithField (coerce (x^._1)) $ 
+          DegreeTypeToQualification 
+          (x^._2.from lazytext) 
+          (V.fromList $ 
+           maybe vs
+           (\v -> dropWhile (/= v) vs) 
+           (x^?_3._Just.from lazytext))
