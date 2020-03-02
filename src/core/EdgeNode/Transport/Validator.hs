@@ -80,4 +80,6 @@ degreeToValues =
   , (QualificationDegreeBA, ["1", "2:1", "2:2", "3"])
   , (QualificationDegreeMSc, ["1", "2:1", "2:2", "3"])
   , (QualificationDegreeMA, ["1", "2:1", "2:2", "3"])
-  , (QualificationDegreeMRes, ["1", "2:1", "2:2", "3"])]
+  , (QualificationDegreeMRes, ["1", "2:1", "2:2", "3"])
+  , (QualificationDegreeTOEFL, map (LT.fromStrict . showt) [0 .. 120 :: Int])
+  , (QualificationDegreeIELTS, map (LT.fromStrict . showt) [0, 0.5 .. 9 :: Double])]

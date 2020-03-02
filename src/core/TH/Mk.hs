@@ -24,9 +24,8 @@ module TH.Mk
 
 import Control.Lens
 import Language.Haskell.TH
-import Data.Aeson.Extended          (deriveJSON', deriveJSON)
+import Data.Aeson.Extended
 import Data.Swagger.Schema.Extended
-import Data.Aeson
 import Data.Swagger
 import Data.Scientific as Scientific
 import Data.Maybe
@@ -37,7 +36,6 @@ import Text.Casing (quietSnake)
 import Servant.API
 import Data.Char
 import qualified Data.Text as T
-import Text.Read (readMaybe)
 import Control.Monad.IO.Class
 import System.Directory
 import System.FilePath.Posix
@@ -46,6 +44,8 @@ import System.IO
 import Control.Monad
 import qualified System.IO.Strict as IOS
 import Test.QuickCheck.Arbitrary.Generic
+
+import Debug.Trace
 
 getConstructorType (RecC _ [(_, _, ConT c)]) = c
 getConstructorType (NormalC _ [(_, ConT c)]) = c
@@ -215,27 +215,25 @@ mkFromHttpApiDataIdent name = do
           where sx = x^.from stext
    |]
 
-mkFromHttpApiDataEnum :: Name -> Q [Dec]
-mkFromHttpApiDataEnum name = do
+mkFromHttpApiDataEnum :: Name -> Q Exp -> Q [Dec]
+mkFromHttpApiDataEnum name iso = do
   reified <- reify name
   let base = nameBase name
   [d| instance FromHttpApiData $(conT name) where
         parseUrlPiece :: T.Text -> Either T.Text $(conT name)
-        parseUrlPiece x = 
-          maybe 
-          (Left ( "parseUrlPiece error: " <> x)) 
-          Right 
-          (readMaybe (toUpper y : ys)) 
-          where (y:ys) = x^.from stext
+        parseUrlPiece x = trace (show x) $ view $iso x
    |]
 
 mkParamSchemaEnum :: Name -> Q [Dec]
 mkParamSchemaEnum name = do 
-  TyConI (DataD _ _ _ _ xs _) <- reify name
-  let mkTitle (NormalC n _) = nameBase n & _head %~ toLower
-  let xs' = map mkTitle xs
+  TyConI (DataD _ _ _ _ old _) <- reify name
+  let mkTitle (NormalC n _) = 
+        intercalate "_" $ 
+        splitCamelWords (nameBase n) <&> 
+        \x -> x & _head %~ toLower 
+  let new = map mkTitle old
   [d| instance ToParamSchema $(conT name) where
-       toParamSchema _ = mempty & type_ .~ SwaggerString & enum_ ?~ xs'
+       toParamSchema _ = mempty & type_ .~ SwaggerString & enum_ ?~ new
    |]
 
 loadMigrationList :: IO [(Integer, String)]

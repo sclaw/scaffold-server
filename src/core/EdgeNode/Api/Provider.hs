@@ -11,6 +11,10 @@ import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Extended
 import EdgeNode.Transport.Qualification
+import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes 
+       (EdgeNodeQualificationDegreeCapture)
+import EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries
+       (EdgeNodeCountryCapture)
 
 import Servant.API.Generic
 import Servant.API
@@ -71,7 +75,7 @@ data ProviderApi route =
        :> "academic-area"
        :> Capture "area" EdgeNodeAcademicArea
        :> "countries"
-       :> Get '[JSON] (Response [EdgeNodeCountry])
+       :> Get '[JSON] (Response [EdgeNodeCountryCapture])
      , _providerApiBuilderGetDependencyCountryToTypes 
        :: route 
        :- "qualification"
@@ -82,7 +86,7 @@ data ProviderApi route =
        :> "country"
        :> Capture "country" EdgeNodeCountry
        :> "qualification-degrees"
-       :> Get '[JSON] (Response [EdgeNodeQualificationDegree])
+       :> Get '[JSON] (Response [EdgeNodeQualificationDegreeCapture])
      , _providerApiBuilderGetDependencTypeToQualifications 
        :: route 
        :- "qualification"

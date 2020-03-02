@@ -10,10 +10,12 @@ module Web.Google.Translator (Items (..), GoogleLanguage (..)) where
 import Web.Google.Translator.Country
 
 import TH.Mk
-import GHC.Generics
+import GHC.Generics hiding (from, to)
 import qualified Data.Text as T
 import Data.Aeson
 import qualified Data.Vector as V
+import Control.Lens
+import Control.Lens.Iso.Extended
 
 newtype Items = Items [T.Text]
   
@@ -29,5 +31,6 @@ instance FromJSON Items where
     (Items . T.splitOn ",") `fmap` withArray "Items.stage2" f o''
 
 mkSRGEqEnum ''Language "Google"
-mkFromHttpApiDataEnum ''GoogleLanguage
+mkEnumConvertor ''GoogleLanguage
+mkFromHttpApiDataEnum ''GoogleLanguage [|from stext.from isoGoogleLanguage.to Right|]
 mkParamSchemaEnum ''GoogleLanguage

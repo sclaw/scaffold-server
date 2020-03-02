@@ -2,15 +2,14 @@
 {-# LANGUAGE TypeFamilies        #-}
 
 module Data.Aeson.Extended
-       (
-           module Data.Aeson
-         , aesonOptions
-         , parsejsonoundedEnum
-         , deriveJSON'
-         , deriveJSON
-         , toLowerCamelCase
-       )
-       where
+       ( module Data.Aeson
+       , aesonOptions
+       , parsejsonoundedEnum
+       , deriveJSON'
+       , deriveJSON
+       , toLowerCamelCase
+       , splitCamelWords
+       ) where
 
 import           Data.Aeson
 import           Data.Aeson.TH (deriveJSON)
