@@ -20,14 +20,21 @@ import Katip
 import TH.Proto
 import Data.Coerce 
 import Data.Swagger.Internal.Schema
-import GHC.Generics hiding (from)
+import GHC.Generics hiding (from, to)
 import Data.Aeson
 import Control.Lens.Iso.Extended
+import Data.Proxy
+import Data.Swagger hiding (Response)
 
 newtype EdgeNodeQualificationDegreeCapture = EdgeNodeQualificationDegreeCapture EdgeNodeQualificationDegree
   deriving newtype Generic
 
-instance ToSchema EdgeNodeQualificationDegreeCapture
+instance ToSchema EdgeNodeQualificationDegreeCapture where
+  declareNamedSchema _ = do
+    stringSchema <- declareSchemaRef (Proxy :: Proxy String)
+    return $ NamedSchema (Just "EdgeNodeQualificationDegreeCapture") $ mempty
+      & type_ .~ SwaggerString 
+      & enum_ ?~ map (^.isoEdgeNodeQualificationDegree.stext.to String) [BSc .. IELTS]
 
 instance ToJSON EdgeNodeQualificationDegreeCapture where
   toJSON x = String $ x^.coerced.isoEdgeNodeQualificationDegree.stext

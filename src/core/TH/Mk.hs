@@ -45,8 +45,6 @@ import Control.Monad
 import qualified System.IO.Strict as IOS
 import Test.QuickCheck.Arbitrary.Generic
 
-import Debug.Trace
-
 getConstructorType (RecC _ [(_, _, ConT c)]) = c
 getConstructorType (NormalC _ [(_, ConT c)]) = c
 getConstructorType _ = error "data not supported"
@@ -158,6 +156,7 @@ mkSRGEqEnum name prefix =
      let showi = DerivClause (Just StockStrategy) [ConT (mkName "Show")]
      let read = DerivClause (Just StockStrategy) [ConT (mkName "Read")]
      let eq = DerivClause (Just StockStrategy) [ConT (mkName "Eq")]
+     let enum = DerivClause (Just StockStrategy) [ConT (mkName "Enum")]
      let capitalizeHead x = x & _head %~ toUpper 
      let purgeNamePrefix (NormalC n xs) = 
           ((`NormalC` xs) . mkName . capitalizeHead . (^.from stext)) `fmap`
@@ -166,7 +165,7 @@ mkSRGEqEnum name prefix =
           (nameBase n^.stext)
      let err = error $ "error: " <> show name
      let ys' = map (fromMaybe err . purgeNamePrefix) ys
-     return [DataD ctx new xs kind ys' ([geni, showi, read, eq] ++ cl)]
+     return [DataD ctx new xs kind ys' ([geni, showi, read, eq, enum] ++ cl)]
 
 mkEnumConvertor :: Name -> Q [Dec]
 mkEnumConvertor name = 
@@ -221,7 +220,7 @@ mkFromHttpApiDataEnum name iso = do
   let base = nameBase name
   [d| instance FromHttpApiData $(conT name) where
         parseUrlPiece :: T.Text -> Either T.Text $(conT name)
-        parseUrlPiece x = trace (show x) $ view $iso x
+        parseUrlPiece x = view $iso x
    |]
 
 mkParamSchemaEnum :: Name -> Q [Dec]
