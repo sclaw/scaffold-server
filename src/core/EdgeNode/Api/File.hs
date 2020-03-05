@@ -9,6 +9,7 @@ module EdgeNode.Api.File (FileApi (..)) where
 
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
+import EdgeNode.Controller.File.Download (Option)
 
 import Servant.API.Generic
 import Servant.API.Extended
@@ -29,18 +30,19 @@ data FileApi route =
      , _fileApiPatch
        :: route 
        :- Description "patch file by replacing new one"
-       :> Capture "fid" (Id "file")
+       :> Capture "file_id" (Id "file")
        :> MultipartForm Tmp File       
        :> Patch '[JSON] (Response Unit)
      , _fileApiDelete
        :: route
        :- Description "delete file"
-       :> Capture "fid" (Id "file")
+       :> Capture "file_id" (Id "file")
        :> Delete '[JSON] (Response Unit)
      , _fileApiDownload
        :: route
        :- Description "download from server"
        :> "download"
-       :> Capture "fid" (Id "file")
+       :> Capture "option" Option
+       :> Capture "file_id" (Id "file")
        :> RawM
      } deriving stock Generic

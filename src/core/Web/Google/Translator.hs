@@ -33,4 +33,4 @@ instance FromJSON Items where
 mkSRGEqEnum ''Language "Google"
 mkEnumConvertor ''GoogleLanguage
 mkFromHttpApiDataEnum ''GoogleLanguage [|from stext.from isoGoogleLanguage.to Right|]
-mkParamSchemaEnum ''GoogleLanguage
+mkParamSchemaEnum ''GoogleLanguage [|isoGoogleLanguage.stext.to String|]

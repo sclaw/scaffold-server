@@ -139,11 +139,11 @@ file _ =
      katipAddNamespace 
      (Namespace ["file", "delete"]) 
      (File.Delete.controller fid)    
-  , _fileApiDownload = \fid -> 
+  , _fileApiDownload = \option fid -> 
      flip logExceptionM ErrorS $
      katipAddNamespace 
      (Namespace ["file", "download"]) 
-     (File.Download.controller fid)
+     (File.Download.controller option fid)
   }
 
 admin :: Maybe IP4 -> AuthResult BasicUser -> AdminApi (AsServerT KatipController)
