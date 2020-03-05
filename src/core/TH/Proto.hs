@@ -21,6 +21,7 @@ import Control.Lens
 import Test.QuickCheck.Extended
 import Database.Transaction
 import Control.Lens.Iso.Extended
+import Data.Aeson
 
 mkEnumConvertor ''Language
 mkEnumConvertor ''Country
@@ -33,14 +34,14 @@ mkEnumConvertor ''AcademicArea
 mkSRGEqEnum ''AcademicArea "EdgeNode"
 mkEnumConvertor ''EdgeNodeAcademicArea
 mkFromHttpApiDataEnum ''EdgeNodeAcademicArea [|from stext.from isoEdgeNodeAcademicArea.to Right|]
-mkParamSchemaEnum ''EdgeNodeAcademicArea
+mkParamSchemaEnum ''EdgeNodeAcademicArea [|isoEdgeNodeAcademicArea.stext.to String|] 
 mkSRGEqEnum ''QualificationDegree "EdgeNode"
 mkEnumConvertor ''EdgeNodeQualificationDegree
 mkFromHttpApiDataEnum ''EdgeNodeQualificationDegree [|from stext.from isoEdgeNodeQualificationDegree.to Right|]
-mkParamSchemaEnum ''EdgeNodeQualificationDegree
+mkParamSchemaEnum ''EdgeNodeQualificationDegree [|isoEdgeNodeQualificationDegree.stext.to String|]
 mkSRGEqEnum ''Country "EdgeNode"
 mkEnumConvertor ''EdgeNodeCountry
-mkParamSchemaEnum ''EdgeNodeCountry
+mkParamSchemaEnum ''EdgeNodeCountry [|isoEdgeNodeCountry.stext.to String|]
 mkFromHttpApiDataEnum ''EdgeNodeCountry [|from stext.from isoEdgeNodeCountry.to Right|]
 
 mkToSchemaAndJSON ''EdgeNodeCountry
@@ -48,7 +49,7 @@ mkToSchemaAndJSON ''EdgeNodeQualificationDegree
 
 mkSRGEqEnum ''Bucket "EdgeNode"
 mkEnumConvertor ''EdgeNodeBucket
-mkParamSchemaEnum ''EdgeNodeBucket
+mkParamSchemaEnum ''EdgeNodeBucket [|isoEdgeNodeBucket.stext.to String|]
 mkFromHttpApiDataEnum ''EdgeNodeBucket [|from stext.from isoEdgeNodeBucket.to Right|]
 
 mkEnumConvertor ''Transport.Auth.Error

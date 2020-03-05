@@ -4,10 +4,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE RankNTypes #-}
 
 module TH.Mk
-       ( mkWrappedForDataWithSingleField
-       , mkToSchemaAndJSON
+       ( mkToSchemaAndJSON
        , mkToSchemaAndJSONProtoIdent
        , mkSRGEqEnum
        , mkToSchemaAndDefJSON
@@ -44,6 +44,8 @@ import System.IO
 import Control.Monad
 import qualified System.IO.Strict as IOS
 import Test.QuickCheck.Arbitrary.Generic
+import Language.Haskell.TH.Syntax
+import Data.Coerce
 
 getConstructorType (RecC _ [(_, _, ConT c)]) = c
 getConstructorType (NormalC _ [(_, ConT c)]) = c
@@ -59,21 +61,6 @@ mkArbitrary name =
   [d|instance Arbitrary $(conT (mkName (nameBase name))) where
        arbitrary = genericArbitrary
        shrink = genericShrink|]
-
-mkWrappedForDataWithSingleField :: Name -> Q [Dec]
-mkWrappedForDataWithSingleField name =
-  do
-    TyConI (DataD _ _ _ _ [c] _) <- reify name
-    let constructor = getConstructorType c
-    let x = mkName "x"
-    let t = mkName $ nameBase name
-    let from = lamE [conP t [varP x]] (varE x)
-    let to = lamE [varP x] (appE (conE t) (varE x))
-    [d|
-      instance Wrapped $(conT t) where
-        type Unwrapped $(conT t) = $(conT constructor)
-        _Wrapped' = iso $from $to
-     |]        
 
 mkToSchemaAndJSON :: Name -> Q [Dec]
 mkToSchemaAndJSON name = do
@@ -223,16 +210,19 @@ mkFromHttpApiDataEnum name iso = do
         parseUrlPiece x = view $iso x
    |]
 
-mkParamSchemaEnum :: Name -> Q [Dec]
-mkParamSchemaEnum name = do 
-  TyConI (DataD _ _ _ _ old _) <- reify name
-  let mkTitle (NormalC n _) = 
-        intercalate "_" $ 
-        splitCamelWords (nameBase n) <&> 
-        \x -> x & _head %~ toLower 
-  let new = map mkTitle old
+newtype ParamSchemaEnumCon = ParamSchemaEnumCon Con
+
+instance Lift ParamSchemaEnumCon where 
+  lift (ParamSchemaEnumCon (NormalC n _)) = pure $ ConE n
+  lift _ = error "unsupported constructor"
+
+mkParamSchemaEnum :: Name -> Q Exp-> Q [Dec]
+mkParamSchemaEnum name iso = do
+  r <- reify name
+  TyConI (DataD _ _ _ _ old_xs _) <- reify name
+  let new_xs = coerce old_xs :: [ParamSchemaEnumCon]
   [d| instance ToParamSchema $(conT name) where
-       toParamSchema _ = mempty & type_ .~ SwaggerString & enum_ ?~ new
+       toParamSchema _ = mempty & type_ .~ SwaggerString & enum_ ?~ (new_xs <&> \x -> (view $iso (coerce x)))
    |]
 
 loadMigrationList :: IO [(Integer, String)]
