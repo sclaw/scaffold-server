@@ -19,6 +19,8 @@ proto:
   stage: build_proto
   #image: haskell
   image: nixos/nix:latest
+  tags:
+    - edgenode
   script:
     - nix-env -iA nixpkgs.gitAndTools.gitFull
     - nix-env -iA nixpkgs.gnutar
@@ -38,6 +40,7 @@ proto:
   environment:
     name: $CI_JOB_NAME
     url: http://$CI_JOB_NAME
+
 
 server:
   stage: build_server
