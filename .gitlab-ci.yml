@@ -28,6 +28,7 @@ proto:
     - export PATH="$PATH:/usr/local/bin:/builds/edgenode2/server/bin"
     - wget -qO- https://get.haskellstack.org/ | sh
     - git submodule update --init
+    - echo 'resolver: lts-13.28' > /builds/.stack/global-project/stack.yaml
     - stack install --fast -j12 proto3-suite
     - scripts/generate-proto-haskell_python.sh
   cache:
