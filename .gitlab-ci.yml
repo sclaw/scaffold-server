@@ -15,7 +15,7 @@ stages:
 services:
   - docker:dind
 
-buidl-proto3-suite:
+build-proto3-suite:
   stage: build_proto3
   #image: haskell
   image: nixos/nix:latest
@@ -72,7 +72,7 @@ deploy-prod:
     - docker-compose up -d
   environment:
     name: Production
-    url: https://edgenode.org
+    url: http://136.243.173.173
   tags:
     - docker-prod
   #only:
