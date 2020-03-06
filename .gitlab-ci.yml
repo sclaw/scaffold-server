@@ -15,8 +15,8 @@ stages:
 services:
   - docker:dind
 
-haskell:
-  stage: build_haskell
+buidl-proto3-suite:
+  stage: build_proto3
   #image: haskell
   image: nixos/nix:latest
   script:
@@ -25,7 +25,7 @@ haskell:
     - nix-env -iA nixpkgs.python3
     - export PATH="$PATH:/usr/local/bin:/builds/edgenode2/server/bin"
     - wget -qO- https://get.haskellstack.org/ | sh
-    - stack install ghc-8.6.5
+    - stack install ghc-8.6.5 --resolver lts-13.28
     - git submodule update --init
     - stack install --fast -j12 proto3-suite
     - scripts/generate-proto-haskell_python.sh
@@ -39,8 +39,8 @@ haskell:
     name: $CI_JOB_NAME
     url: http://$CI_JOB_NAME
 
-build:
-  stage: build_image
+build-server:
+  stage: build_server
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
