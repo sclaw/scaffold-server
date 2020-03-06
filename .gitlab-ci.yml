@@ -27,9 +27,8 @@ proto:
     - nix-env -iA nixpkgs.python3
     - export PATH="$PATH:/usr/local/bin:/builds/edgenode2/server/bin"
     - wget -qO- https://get.haskellstack.org/ | sh
-    - stack install ghc-8.6.5 --resolver lts-13.28
     - git submodule update --init
-    - stack install --fast -j12 proto3-suite
+    - stack install --fast -j12 --resolver lts-13.28 proto3-suite
     - scripts/generate-proto-haskell_python.sh
   cache:
     paths:
@@ -44,6 +43,8 @@ proto:
 
 server:
   stage: build_server
+  tags:
+    - edgenode
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
@@ -60,6 +61,8 @@ server:
 
 deploy-prod:
   stage: deploy
+  tags:
+    - edgenode
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - apk add --no-cache py-pip python-dev libffi-dev openssl-dev gcc libc-dev make
