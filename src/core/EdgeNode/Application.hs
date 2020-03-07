@@ -38,10 +38,8 @@ import Servant.Swagger.UI
 import Servant.Auth.Server
 import Crypto.JOSE.JWK
 import Control.Concurrent.Async
-import Control.Monad (when, void)
 import Network.Wai
-import Control.Lens.Iso.Extended
-import GHC.Exception.Type (SomeException) 
+import Control.Lens.Iso.Extended 
 import qualified Middleware
 import Control.Monad.RWS.Strict as RWS
 import Control.Monad.Base (MonadBase)

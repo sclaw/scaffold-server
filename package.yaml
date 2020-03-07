@@ -23,7 +23,6 @@ ghc-options:
   - -Wunused-pattern-binds
   - -Wtabs
   - -Wmissing-pattern-synonym-signatures
-  - -XMonadFailDesugaring
   - -XOverloadedStrings
  #  - -ddump-splices
 
@@ -70,9 +69,6 @@ library:
     - bytestring
     - containers
     - template-haskell
-    - hslogger
-    - hspec-pg-transact
-    - ginger
     - yaml
     - extra
     - colorful-monoids
@@ -98,8 +94,6 @@ library:
     - doctest
     - doctest-discover
     - tasty-discover
-    # - servant-websockets
-    # - websockets
     - hasql
     - hasql-th == 0.4.0.4
     - ekg

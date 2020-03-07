@@ -40,7 +40,6 @@ module KatipController
        ) where
 
 import Control.Lens
-import Control.Lens.TH (makeFields)
 import Control.Monad.IO.Class
 import Control.Monad.Reader
 import Control.Monad.Reader.Class as R
@@ -52,8 +51,7 @@ import Control.Monad.Base (MonadBase)
 import Control.Monad.Error.Class
 import Servant.Server.Internal.ServerError
 import Data.Monoid.Colorful (Term)
-import Control.Monad.Catch hiding (Handler) 
-import Control.Exception.Safe (MonadMask)
+import Control.Monad.Catch hiding (Handler)
 import Data.Default.Class
 import Control.DeepSeq
 import Network.HTTP.Client

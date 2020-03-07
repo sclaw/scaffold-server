@@ -6,7 +6,6 @@ module Test.Hspec.DB.Hasql (TestDBHasql, itHasql, describeHasql, session) where
 
 import Control.Exception (bracketOnError, finally)
 import Control.Monad
-import qualified Data.ByteString.Char8  as Char8          
 import qualified Database.Postgres.Temp as Temp
 import qualified Hasql.Connection as Hasql
 import qualified Hasql.Session as Hasql
@@ -33,13 +32,13 @@ setupDBHasql
   -> IO TestDBHasql
 setupDBHasql migrations mpopulate =
   bracketOnError
-      (Temp.start [] >>= \case
+      (Temp.start >>= \case
         Left e -> error $ "Error during db initialization: " <> show e
         Right x -> pure x
       )
       Temp.stop
     $ \tempDB -> do
-        let connStr = Char8.pack (Temp.connectionString tempDB)
+        let connStr = Temp.toConnectionString tempDB
         Hasql.acquire connStr >>= \case
           Left e -> error $ "Error connecting to db" <> show e
           Right conn ->

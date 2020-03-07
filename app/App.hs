@@ -23,7 +23,6 @@ import qualified Database.Migration as Migration
 import Control.Lens hiding (Wrapped, Unwrapped) 
 import Data.Monoid.Colorful (hGetTerm)
 import Katip
-import System.IO (stdout)
 import qualified Hasql.Connection as HasqlConn
 import Control.Lens.Iso.Extended
 import Control.Monad
@@ -32,7 +31,6 @@ import System.Remote.Monitoring
 import Data.Aeson (eitherDecode)
 import Data.Either.Combinators
 import qualified Data.ByteString.Lazy  as B
-import GHC.IO.Handle (BufferMode (NoBuffering), hSetBuffering)
 import Data.Default.Class
 import Control.Monad.RWS.Strict (evalRWST)
 import qualified Network.HTTP.Client.TLS as Http
@@ -41,7 +39,6 @@ import Network.HTTP.Client
          ( managerConnCount
          , managerResponseTimeout)
        , responseTimeoutMicro)
-import GHC.Generics (Generic)
 import Options.Generic
 import Data.Maybe
 import System.FilePath.Posix 

@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.32.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 932e763cb4e9df09c98da836aa8e2b51c94f42913cc7afec1fce34b8872b9734
+-- hash: a91df53ad78b2cc2c75d13b6f29e27dfe4a30bb97f29b767ec614082fd1689fa
 
 name:           edgenode
 version:        0.1.0.0
@@ -125,7 +125,7 @@ library
       src/proto
       test
       app
-  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -XMonadFailDesugaring -XOverloadedStrings
+  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -XOverloadedStrings
   build-depends:
       HList
     , QuickCheck
@@ -163,15 +163,12 @@ library
     , generic-lens
     , generic-random
     , ghc-prim
-    , ginger
     , hashable
     , hashing
     , hasql
     , hasql-th ==0.4.0.4
-    , hslogger
     , hspec
     , hspec-expectations-lifted
-    , hspec-pg-transact
     , http-client
     , http-client-tls
     , http-types
@@ -257,7 +254,7 @@ executable edge-node-server
       Paths_edgenode
   hs-source-dirs:
       prog
-  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -XMonadFailDesugaring -XOverloadedStrings
+  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -XOverloadedStrings
   build-depends:
       base >=4.7 && <5
     , edgenode
@@ -270,7 +267,7 @@ test-suite doctest
       Paths_edgenode
   hs-source-dirs:
       prog
-  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -XMonadFailDesugaring -XOverloadedStrings
+  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -XOverloadedStrings
   build-depends:
       base >=4.7 && <5
     , doctest-discover
@@ -284,7 +281,7 @@ test-suite tasty
       Paths_edgenode
   hs-source-dirs:
       prog
-  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -XMonadFailDesugaring -XOverloadedStrings
+  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -XOverloadedStrings
   build-depends:
       base >=4.7 && <5
     , edgenode
