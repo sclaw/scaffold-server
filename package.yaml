@@ -98,8 +98,8 @@ library:
     - doctest
     - doctest-discover
     - tasty-discover
-    - servant-websockets
-    - websockets
+    # - servant-websockets
+    # - websockets
     - hasql
     - hasql-th == 0.4.0.4
     - ekg
@@ -114,10 +114,7 @@ library:
     - swagger2
     - wai-app-static
     - aeson-injector
-    - exception-hierarchy
-    - servant-auth
     - servant-auth-server
-    - servant-auth-swagger
     - jose
     - either
     - generic-lens
@@ -155,8 +152,6 @@ library:
     - hashing
     - strict
     - optparse-generic
-    - smtp-mail
-    - mime-mail
     - hspec-expectations-lifted
     - split
     - minio-hs
@@ -183,7 +178,8 @@ library:
     - ghc-prim
     - base64-bytestring
     - generic-arbitrary
-    - servant-swagger-tags
+    - servant-mock
+    - insert-ordered-containers 
 
   source-dirs:
     - src/core

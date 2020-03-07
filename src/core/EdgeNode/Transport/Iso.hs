@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module EdgeNode.Transport.Iso where
 
@@ -13,22 +14,22 @@ import qualified Data.Text as T
 import Proto3.Suite.Types
 import Control.Lens.Iso.Extended
 
-country :: Iso' (Enumerated Country) T.Text
+country :: Enum Country => Iso' (Enumerated Country) T.Text
 country =  isoEnum fromCountry toCountry
 
-language :: Iso' (Enumerated Language) T.Text
+language :: Enum Language => Iso' (Enumerated Language) T.Text
 language =  isoEnum fromLanguage toLanguage
 
-academicArea :: Iso' (Enumerated AcademicArea) T.Text
+academicArea :: Enum AcademicArea => Iso' (Enumerated AcademicArea) T.Text
 academicArea = isoEnum fromAcademicArea toAcademicArea
 
-qualCategory :: Iso' (Enumerated QualificationCategory) T.Text
+qualCategory :: Enum QualificationCategory => Iso' (Enumerated QualificationCategory) T.Text
 qualCategory = isoEnum fromQualificationCategory toQualificationCategory
 
-qualStudyTime :: Iso' (Enumerated StudyTime) T.Text
+qualStudyTime :: Enum StudyTime => Iso' (Enumerated StudyTime) T.Text
 qualStudyTime = isoEnum fromStudyTime toStudyTime
 
-qualQualificationDegree :: Iso' (Enumerated QualificationDegree) T.Text
+qualQualificationDegree :: Enum QualificationDegree => Iso' (Enumerated QualificationDegree) T.Text
 qualQualificationDegree = isoEnum fromQualificationDegree toQualificationDegree
 
 isoEnum :: (Enum a, Show a) => (a -> String) -> (String -> a) -> Iso' (Enumerated a) T.Text

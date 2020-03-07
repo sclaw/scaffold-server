@@ -9,7 +9,7 @@
 # to be used for project dependencies. For example:
 #
 # resolver: lts-3.5
-resolver: lts-13.28
+resolver: lts-14.27
 
 allow-newer: true
 
@@ -54,25 +54,17 @@ extra-deps:
  - word-wrap-0.4.1@sha256:f72233b383ef569c557bfd9812cbb8e306c415ce509082c0bd15ee51c0239ccc,1606
  - megaparsec-7.0.4@sha256:a7397151601cbe6b8f831f8bdad1a10118dcd6d9a7ee50d6bbdcfbd1181b4ba2,6202
  - rotating-log-0.4.3@sha256:ae14ce4b89df481746ffa4edb269b25b0479f7fb4cd08e457541ccef3f8052d4
+ - proto3-suite-0.4.0.0@sha256:51545a2592f22d1bf612a2f55ca3af8b0083fb5c620c8996bc6d48f742d1faa1,5720
+ - proto3-wire-1.1.0@sha256:a8fe11ec7c8d01ded2224a1ca43c53cdc09adefd197a3b21ab14b543923840f3,1993
  - git: https://github.com/sclaw/doctest-discover.git
-   commit: 62ecf0786d0cf28644c5cc106004e259d1388b4a
- - servant-websockets-1.1.0
+   commit: d58d7ed698ed219cbb0fd4bc4d0be8c6569a51a3
  - pretty-tree-0.1.0.0@sha256:49b0e17008f9d30328db2bcc2958f3a7b78d154d2335c2dbaa2073e237b524ae   
  - password-1.0.0.0@sha256:2ec79cb64be80a5254324c67a1e1aa16fc2e015dee9505ce598f4522efcf8899,1824
  - servant-ekg-0.3@sha256:1a578afd662b2f9133455daff50a3822c568e2e106108cf64daa4481a6d585a6
  - ginger-0.9.0.0@sha256:c3e67555f47fbd83d92ff56f66bc7897619a1a92dc8fd2203ddbbaffca726265
- - aeson-injector-1.1.1.0@sha256:499122221731ffa2ef0be90c7eff9e641ccbafd5e1f9e90dc16565af8e7dbcc1
- - git: https://github.com/sclaw/exception-hierarchy.git
-   commit: 9297b4ebce587a6b710a1cd7e2f8a290fb4b767c
- - proto3-suite-0.3.0.0@sha256:a89fd56f04bff5a9365a1e8f19b73a021c8153ac7763cc7436546d2b154fae39,5507
- - proto3-wire-1.0.0@sha256:8f59b61300cde2f1836d139145b65fe19c2a471f5f1b80ed585817800decc5c0,1887
+ - aeson-injector-1.1.2.0@sha256:2220abadf41f42d7ff1a8671560f12280c5066d9462d2d8cecc5f7136e55024b,1695
  - postgresql-error-codes-1.0.1@sha256:34ce40401dc21762996dadd38336436f40a09da95ad3309ba6dc506d707cff11,1413
  - string-interpolate-0.1.0.1@sha256:6efbc888a2986ee80ddd014fded600de113554684fe5eaca87cf02ab59cfa95c,1999
- - servant-auth-0.2.7.0@sha256:c7fb459e0aca57fb898a765973932537bf23f13f32187a970b78d1f9b58cf87a,3098
- - git: https://github.com/haskell-servant/servant-auth.git
-   commit: 27e2e237e3cbd4359fe345aab6364e007aaef81e
-   subdirs: 
-    - servant-auth-swagger
  - data-hash-0.2.0.1@sha256:0277d99cb8b535ecc375c59e55f1c91faab966d9167a946ef18445dd468ba727,1135
  - either-unwrap-1.1@sha256:bd9a8cc3ce127b0f922db4da0b3eb25036034406dd40c954d3f8aa6fe5aab313,605
  - hashing-0.1.0.1@sha256:98861f16791946cdf28e3c7a6ee9ac8b72d546d6e33c569c7087ef18253294e7,2816 
@@ -97,7 +89,6 @@ extra-deps:
  - elocrypt-2.1.0@sha256:2bf49f367186e82b36c434f5304063f5443a0f9e8e00b83636ba5ee62bc39111,2709
  - template-haskell-compat-v0208-0.1.2.1@sha256:039deac4225c1d2fa7ac349f09d2050f8a7b932a892fa040e11d639a12851dc5,1524
  - pretty-simple-3.2.1.0
- - servant-swagger-tags-0.1.0.0@sha256:ffd61b869e56a7543f0641fe017647cf05fb57a76cb2d2acd045fc47bfbafb07,1079
 
 
 # - acme-missiles-0.3
@@ -129,7 +120,7 @@ extra-deps:
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
-    
+
 nix:
   enable: true
   pure: true

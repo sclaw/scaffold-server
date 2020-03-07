@@ -222,7 +222,7 @@ mkParamSchemaEnum name iso = do
   TyConI (DataD _ _ _ _ old_xs _) <- reify name
   let new_xs = coerce old_xs :: [ParamSchemaEnumCon]
   [d| instance ToParamSchema $(conT name) where
-       toParamSchema _ = mempty & type_ .~ SwaggerString & enum_ ?~ (new_xs <&> \x -> (view $iso (coerce x)))
+       toParamSchema _ = mempty & type_ ?~ SwaggerString & enum_ ?~ (new_xs <&> \x -> (view $iso (coerce x)))
    |]
 
 loadMigrationList :: IO [(Integer, String)]

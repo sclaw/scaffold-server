@@ -33,7 +33,7 @@ instance ToSchema EdgeNodeCountryCapture where
   declareNamedSchema _ = do
     stringSchema <- declareSchemaRef (Proxy :: Proxy String)
     return $ NamedSchema (Just "EdgeNodeCountryCapture") $ mempty
-      & type_ .~ SwaggerString 
+      & type_ ?~ SwaggerString 
       & enum_ ?~ map (^.isoEdgeNodeCountry.stext.to String) [Russia .. UnitedKingdom]
         
 instance ToJSON EdgeNodeCountryCapture where

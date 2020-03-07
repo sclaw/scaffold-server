@@ -33,7 +33,7 @@ instance ToSchema EdgeNodeQualificationDegreeCapture where
   declareNamedSchema _ = do
     stringSchema <- declareSchemaRef (Proxy :: Proxy String)
     return $ NamedSchema (Just "EdgeNodeQualificationDegreeCapture") $ mempty
-      & type_ .~ SwaggerString 
+      & type_ ?~ SwaggerString 
       & enum_ ?~ map (^.isoEdgeNodeQualificationDegree.stext.to String) [BSc .. IELTS]
 
 instance ToJSON EdgeNodeQualificationDegreeCapture where

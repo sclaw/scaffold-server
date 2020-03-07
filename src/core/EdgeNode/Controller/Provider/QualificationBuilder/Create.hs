@@ -3,6 +3,7 @@
 {-# LANGUAGE TypeOperators  #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module EdgeNode.Controller.Provider.QualificationBuilder.Create (controller) where
 

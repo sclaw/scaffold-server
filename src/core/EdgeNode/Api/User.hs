@@ -8,7 +8,6 @@
 module EdgeNode.Api.User (UserApi (..)) where
 
 import Servant.API.Generic
-import Servant.API.WebSocket ()
 import Servant.API
 
 data UserApi route = 

@@ -4,6 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module EdgeNode.Controller.Controller (controller) where
 
@@ -32,7 +33,7 @@ import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetAvailableB
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.Create as QualificationBuilder.Create
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries as QualificationBuilder.GetAreaToCountries
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes as QualificationBuilder.GetCountryToTypes
-import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetTypeToQualifications as QualificationBuilder.GetTypeToQualifications 
+import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetTypeToQualifications as QualificationBuilder.GetTypeToQualifications
 
 import Katip
 import KatipController
@@ -156,7 +157,10 @@ admin _ user =
      (withUser user (Admin.ProviderRegister.controller provider))
   }
 
-provider :: Maybe IP4 -> AuthResult JWTUser -> ProviderApi (AsServerT KatipController)
+provider  
+ :: Maybe IP4 
+ -> AuthResult JWTUser 
+ -> ProviderApi (AsServerT KatipController)
 provider _ user = 
   ProviderApi
   { _providerApiGetBranches = 

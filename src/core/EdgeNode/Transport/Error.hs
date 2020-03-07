@@ -95,7 +95,7 @@ instance ToSchema Error where
     tSchema <- declareSchemaRef (Proxy @T.Text)
     oSchema <- declareSchemaRef (Proxy @Object)
     pure $ NamedSchema (Just $ "Error") $ mempty
-         & type_ .~ SwaggerObject
+         & type_ ?~ SwaggerObject
          & properties .~ [("message", tSchema), ("meta", oSchema)]
          & required .~ ["message"]
 

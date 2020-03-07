@@ -12,6 +12,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Auth 
       ( JWTUser (..)
@@ -39,8 +40,6 @@ import Servant.Auth.Server
 import Control.Lens.Iso.Extended
 import Control.Lens
 import Servant.Auth.Server.Internal.Class
-import Servant.Auth.Swagger
-import Data.Swagger hiding (HasSecurity, Response)
 import qualified Crypto.JWT as Jose
 import Data.ByteArray (constEq)
 import qualified Data.ByteString as BS
@@ -71,6 +70,8 @@ import Hasql.TH
 import TH.Mk
 import Data.Coerce
 import Data.Maybe
+import Servant.API
+import Servant.Swagger
 
 data AppJwt
 
@@ -93,13 +94,11 @@ instance ToJWT JWTUser
 instance FromJWT (Id "user")
 instance ToJWT (Id "user")
 
-instance HasSecurity AppJwt where
-  securityName _ = "AppJwtSecurity"
-  securityScheme _ = 
-   SecurityScheme 
-   (SecuritySchemeApiKey 
-    (ApiKeyParams "Authorization" ApiKeyHeader)) 
-   (Just "JSON Web Token-based API key")
+instance HasSwagger (Auth '[AppJwt] JWTUser :> api) where
+   toSwagger _ = undefined 
+
+instance HasSwagger (Auth '[Servant.Auth.Server.BasicAuth] BasicUser :> api) where 
+  toSwagger _ = undefined
   
 instance IsAuth AppJwt JWTUser where
   type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, Id "user", Pool.Pool Hasql.Connection, Bool]

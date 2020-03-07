@@ -8,6 +8,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module EdgeNode.Statement.Provider 
        ( getBranches
@@ -57,6 +59,13 @@ import Data.Maybe
 import Control.Lens.Each.Extended
 import Data.Word
 import Data.Aeson.WithField
+
+
+deriving instance Enum QualificationDegree
+deriving instance Enum Country
+deriving instance Enum StudyTime
+deriving instance Enum QualificationCategory
+deriving instance Enum AcademicArea
 
 mkEncoder ''Branch
 mkArbitrary ''Branch
@@ -271,7 +280,13 @@ instance ParamsShow QualificationBuilder where
      & _10 %~ (maybe mempty (^.field @"stringValue".lazytext.from stext)))^..each
     where qual = fromJust (qualificationBuilderQualification x)
 
-saveQualification :: HS.Statement (WithField "branch" (Id "branch") QualificationBuilder) (Id "qualification")
+saveQualification  
+  :: HS.Statement 
+     (WithField 
+      "branch" 
+      (Id "branch") 
+      QualificationBuilder) 
+     (Id "qualification")
 saveQualification = dimap mkEncoder (coerce @Int64 @(Id "qualification")) statement
   where 
     mkEncoder x =

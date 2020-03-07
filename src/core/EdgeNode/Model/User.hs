@@ -7,6 +7,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module EdgeNode.Model.User 
        ( User
@@ -42,6 +43,7 @@ import Data.Default.Class.Extended
 mkEncoder ''User
 mkEncoder ''FullDay
 
+deriving instance Enum Gender
 instance Default Gender where def = toEnum 0
 instance Default User
 instance Default FullDay
@@ -69,6 +71,6 @@ encoder x = (hToTuple . hConcat . hFromTuple) tpl
       & _4 %~ (hFromTuple . (& each %~ fromIntegral @_ @Int32) . mkEncoderFullDay . fromMaybe def)
       & _5 %~ (hEnd . hBuild . (^.lazytext))
       & _6 %~ (hEnd . hBuild . (^? _Just.field @"uint64Value".(integral @_ @Int64)))
-      & _7 %~ (hEnd . hBuild . (either (const (0 :: Int32)) (fromIntegral . fromEnum)  . coerce @_ @(Either Int Gender)))
+      & _7 %~ (hEnd . hBuild . (either (const (0 :: Int32)) (fromIntegral . fromEnum)  . coerce @_ @(Either Int32 Gender)))
 
 deriveJSON defaultOptions ''UserRole

@@ -50,5 +50,5 @@ instance (Typeable a, HasSwagger sub) => HasSwagger (MultipartForm tag a :> sub)
           (mempty
            & Swagger.in_ .~ Swagger.ParamFormData
            & Swagger.paramSchema .~ 
-             (mempty & Swagger.type_ .~ 
+             (mempty & Swagger.type_ ?~ 
              Swagger.SwaggerFile))

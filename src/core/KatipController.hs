@@ -50,7 +50,7 @@ import Servant.Server (Handler)
 import Control.Monad.Trans.Control (MonadBaseControl)
 import Control.Monad.Base (MonadBase)
 import Control.Monad.Error.Class
-import Servant.Server.Internal.ServantErr
+import Servant.Server.Internal.ServerError
 import Data.Monoid.Colorful (Term)
 import Control.Monad.Catch hiding (Handler) 
 import Control.Exception.Safe (MonadMask)
@@ -127,7 +127,7 @@ newtype KatipController a =
   deriving newtype (MonadWriter KatipControllerWriter)
   deriving newtype (MonadBase IO)
   deriving newtype (MonadBaseControl IO)
-  deriving newtype (MonadError ServantErr)
+  deriving newtype (MonadError ServerError)
   deriving newtype MonadCatch
   deriving newtype MonadThrow
   deriving newtype MonadMask 

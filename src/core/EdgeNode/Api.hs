@@ -29,12 +29,10 @@ import EdgeNode.Api.Api
 import BuildInfo
 import Servant.API
 import Servant.API.Generic
-import Servant.API.WebSocket ()
 import Data.Proxy
 import Servant.Swagger
 import Data.Swagger
 import Control.Lens
-import Servant.Auth.Swagger ()
 import Control.Lens.Iso.Extended
 import Servant.Swagger.RawM ()
 
