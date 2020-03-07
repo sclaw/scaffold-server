@@ -27,6 +27,7 @@ proto:
     - nix-env -iA nixpkgs.python3
     - export PATH="$PATH:/usr/local/bin:/builds/edgenode2/server/bin"
     - wget -qO- https://get.haskellstack.org/ | sh
+    - stack install ghc-8.6.5
     - git submodule update --init
     - stack install --fast -j12 proto3-suite-0.4.0.0
     - scripts/generate-proto-haskell_python.sh
