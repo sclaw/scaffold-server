@@ -52,7 +52,7 @@ extra-deps:
   - text-zipper-0.10.1@sha256:8b73a97a3717a17df9b0a722b178950c476ff2268ca5c583e99d010c94af849e,1471
   - word-wrap-0.4.1@sha256:f72233b383ef569c557bfd9812cbb8e306c415ce509082c0bd15ee51c0239ccc,1606
   - rotating-log-0.4.3@sha256:ae14ce4b89df481746ffa4edb269b25b0479f7fb4cd08e457541ccef3f8052d4
-  - git: git@github.com:sclaw/proto3-suite.git
+  - git: https://github.com/sclaw/proto3-suite.git
     commit: 3aba34f4ec672e92d4daaa8186b1da3be42444f6
   - proto3-wire-1.1.0@sha256:a8fe11ec7c8d01ded2224a1ca43c53cdc09adefd197a3b21ab14b543923840f3,1993
   - git: https://github.com/sclaw/doctest-discover.git
