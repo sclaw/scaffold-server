@@ -45,7 +45,7 @@ packages:
 local-bin-path: bin
 
 extra-deps:
- - tasty-html-0.4.1.2
+ - tasty-html-0.4.1.2@sha256:7c8be5359940fcbd0228b9a1f5dc9a1113a9a5e03dc9b9ae018eb17f870aef13,1241
  - brick-0.41.3@sha256:c4a2f8736c1700d159e8b3d44dd41490b03322dfee0bdd15f76fad0d11957dd9,13166
  - config-ini-0.2.4.0@sha256:38a6d484d471c6fac81445de2eac8c4e8c82760962fca5491ae1c3bfca9c4047,3232
  - data-clist-0.1.2.1@sha256:0bc647a0a1414cb66523f06879f64fefe9567a0dfbfa88207344142db20d8cf7,936
@@ -58,6 +58,10 @@ extra-deps:
  - proto3-wire-1.1.0@sha256:a8fe11ec7c8d01ded2224a1ca43c53cdc09adefd197a3b21ab14b543923840f3,1993
  - git: https://github.com/sclaw/doctest-discover.git
    commit: d58d7ed698ed219cbb0fd4bc4d0be8c6569a51a3
+ - git: https://github.com/haskell-servant/servant-auth.git
+   commit: 27e2e237e3cbd4359fe345aab6364e007aaef81e
+   subdirs: 
+    - servant-auth-swagger
  - pretty-tree-0.1.0.0@sha256:49b0e17008f9d30328db2bcc2958f3a7b78d154d2335c2dbaa2073e237b524ae   
  - password-1.0.0.0@sha256:2ec79cb64be80a5254324c67a1e1aa16fc2e015dee9505ce598f4522efcf8899,1824
  - servant-ekg-0.3@sha256:1a578afd662b2f9133455daff50a3822c568e2e106108cf64daa4481a6d585a6
@@ -120,11 +124,11 @@ extra-deps:
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
-
-nix:
-  enable: true
-  pure: true
-  shell-file: shell.nix
+    
+# nix:
+#   enable: true
+#   pure: true
+#   shell-file: shell.nix
 
 # docker:
 #   enable: true

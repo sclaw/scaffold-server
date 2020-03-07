@@ -13,6 +13,8 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE OverloadedLists #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Auth 
       ( JWTUser (..)
@@ -70,8 +72,8 @@ import Hasql.TH
 import TH.Mk
 import Data.Coerce
 import Data.Maybe
-import Servant.API
-import Servant.Swagger
+import Servant.Auth.Swagger
+import Data.Swagger hiding (HasSecurity, Response)
 
 data AppJwt
 
@@ -94,12 +96,14 @@ instance ToJWT JWTUser
 instance FromJWT (Id "user")
 instance ToJWT (Id "user")
 
-instance HasSwagger (Auth '[AppJwt] JWTUser :> api) where
-   toSwagger _ = undefined 
+instance HasSecurity AppJwt where
+  securityName _ = "JWT Security"
+  securityScheme _ = 
+   SecurityScheme 
+   (SecuritySchemeApiKey 
+    (ApiKeyParams "Authorization" ApiKeyHeader)) 
+   (Just "JSON Web Token-based API key")
 
-instance HasSwagger (Auth '[Servant.Auth.Server.BasicAuth] BasicUser :> api) where 
-  toSwagger _ = undefined
-  
 instance IsAuth AppJwt JWTUser where
   type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, Id "user", Pool.Pool Hasql.Connection, Bool]
   runAuth _ _ cfg log uid pool = 

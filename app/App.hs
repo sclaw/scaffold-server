@@ -108,7 +108,7 @@ main =
              jsonFormat 
              ColorIfTerminal 
              stdout
-             (cfg^.katip.severity.undefined) 
+             (permitItem (cfg^.katip.severity.from stringify)) 
              (cfg^.katip.verbosity.from stringify)
       tm <- getCurrentTime
       let katipFilePath = cfg^.katip.path <> "/" <> show tm <> ".log"
@@ -119,7 +119,7 @@ main =
       file <- mkHandleScribe
               (ColorLog True) 
               fileHdl
-              (cfg^.katip.severity.from undefined) 
+              (permitItem (cfg^.katip.severity.from stringify)) 
               (cfg^.katip.verbosity.from stringify)  
       let mkNm = Namespace [("<" ++ $(gitLatestCommitHash) ++ ">")^.stext]
       init_env <- initLogEnv mkNm (cfg^.katip.EdgeNode.Config.env.stext.coerced)

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c7ff157b87c83498db430c2ebe0823ce011ce92a5d7b5f1f7b2e98c1b8677bfd
+-- hash: 932e763cb4e9df09c98da836aa8e2b51c94f42913cc7afec1fce34b8872b9734
 
 name:           edgenode
 version:        0.1.0.0
@@ -208,6 +208,7 @@ library
     , scientific
     , servant
     , servant-auth-server
+    , servant-auth-swagger
     , servant-client-core
     , servant-mock
     , servant-multipart
