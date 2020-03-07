@@ -15,9 +15,6 @@ stages:
 services:
   - docker:dind
 
-before_script:
-  - docker info
-
 proto:
   stage: build_proto
   #image: haskell
@@ -49,6 +46,7 @@ server:
   tags:
     - edgenode
   before_script:
+    - docker info
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - cd /builds/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}
