@@ -6,7 +6,7 @@ variables:
   CONTAINER_IMAGE: registry.gitlab.com/$CI_PROJECT_PATH
   GIT_SUBMODULE_STRATEGY: normal
   STACK_ROOT: /builds/.stack
-  
+
 stages:
   - build_proto
   - build_server
@@ -14,6 +14,9 @@ stages:
 
 services:
   - docker:dind
+
+before_script:
+  - docker info
 
 proto:
   stage: build_proto
