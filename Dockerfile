@@ -23,7 +23,7 @@ RUN touch .bash_profile && \
   curl https://nixos.org/nix/install | sh
 
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
-      stack install --fast -j12 --test --stack-yaml build-8.6.5
+      stack install --fast -j12 --test --stack-yaml build-8.6.5.yaml
 
 COPY --chown=nix:nix deploy deploy
 
