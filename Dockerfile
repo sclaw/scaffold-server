@@ -13,7 +13,7 @@ USER nix
 ENV USER nix
 WORKDIR /home/nix
 
-COPY --chown=nix:nix config.json package.yaml Setup.hs shell.nix build-8.8.2.yaml README.md ChangeLog.md ./
+COPY --chown=nix:nix config.json package.yaml Setup.hs shell.nix stack.yaml README.md ChangeLog.md ./
 COPY --chown=nix:nix src src
 COPY --chown=nix:nix app app 
 COPY --chown=nix:nix migration migration 
@@ -25,7 +25,7 @@ RUN touch .bash_profile && \
   curl https://nixos.org/nix/install | sh
 
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
-      stack install --fast -j12 --test --stack-yaml build-8.8.2.yaml
+      stack install --fast -j12 --test
 
 COPY --chown=nix:nix deploy deploy
 

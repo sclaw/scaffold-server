@@ -29,7 +29,7 @@ proto:
     - wget -qO- https://get.haskellstack.org/ | sh
     - stack upgrade --github-repo https://github.com/commercialhaskell/stack.git
     - git submodule update --init
-    - stack install --fast -j12 proto3-suite --stack-yaml build-8.8.2.yaml
+    - stack install --fast -j12 proto3-suite
     - scripts/generate-proto-haskell_python.sh
   cache:
     paths:
