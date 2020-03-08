@@ -28,7 +28,10 @@ proto:
     - export PATH="$PATH:/usr/local/bin:/builds/edgenode2/server/bin"
     - wget -qO- https://get.haskellstack.org/ | sh
     - git submodule update --init
-    - git clone https://github.com/sclaw/proto3-suite.git && cd proto3-suite && stack install --fast -j12 && cd ..
+    - git clone https://github.com/sclaw/proto3-suite.git
+    - proto3-suite 
+    - stack install --fast -j12
+    - cd ..
     - scripts/generate-proto-haskell_python.sh
   cache:
     paths:
