@@ -32,7 +32,7 @@ setupDBHasql
   -> IO TestDBHasql
 setupDBHasql migrations mpopulate =
   bracketOnError
-      (Temp.start >>= \case
+      (Temp.startConfig Temp.verboseConfig >>= \case
         Left e -> error $ "Error during db initialization: " <> show e
         Right x -> pure x
       )

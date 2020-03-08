@@ -26,11 +26,9 @@ proto:
     - nix-env -iA nixpkgs.gnutar
     - nix-env -iA nixpkgs.python3
     - export PATH="$PATH:/usr/local/bin:/builds/edgenode2/server/bin"
+    - wget -qO- https://get.haskellstack.org/ | sh
     - git submodule update --init
-    - git clone https://github.com/awakesecurity/proto3-suite.git
-    - cd proto3-suite
-    - nix-env --install --attr proto3-suite -f release.nix
-    - cd ..
+    - stack install --fast -j12 proto3-suite
     - scripts/generate-proto-haskell_python.sh
   cache:
     paths:
