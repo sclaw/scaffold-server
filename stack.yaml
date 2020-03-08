@@ -9,7 +9,7 @@
 # to be used for project dependencies. For example:
 #
 # resolver: lts-3.5
-resolver: lts-15.2
+resolver: lts-14.27
 
 allow-newer: true
 
@@ -94,7 +94,7 @@ extra-deps:
   - ekg-0.4.0.15@sha256:f35b2c6d80415314f84056afaba6e622bf8d90eb01d0504c87f04c64cb105e04,2030
   - ekg-core-0.1.1.6@sha256:7635308e37d5787994803e24fcb609167fd6c2cbe2fb26c76f22402f8fa49419,1937
   - ekg-json-0.1.0.6@sha256:4ff2e9cac213a5868ae8b4a7c72a16a9a76fac14d944ae819b3d838a9725569b,1050
-
+  - vty-5.27
 
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git
@@ -126,10 +126,10 @@ extra-deps:
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
     
-nix:
-  enable: true
-  pure: true
-  shell-file: shell.nix
+# nix:
+#   enable: true
+#   pure: true
+#   shell-file: shell.nix
 
 # docker:
 #   enable: true
