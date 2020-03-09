@@ -20,7 +20,7 @@ COPY --chown=nix:nix prog prog
 COPY --chown=nix:nix test test
 COPY --chown=nix:nix .git .git
 COPY --chown=nix:nix sub sub
-COPY --chown=nix:nix script script
+COPY --chown=nix:nix scripts scripts
  
 RUN touch .bash_profile && \
   curl https://nixos.org/nix/install | sh
