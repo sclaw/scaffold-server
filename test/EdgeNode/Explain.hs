@@ -69,7 +69,9 @@ explainTests =
     , "getHashWithBucket" =>> EdgeNode.Statement.File.getHashWithBucket
     , "patch" =>> EdgeNode.Statement.File.patch]
   , "EdgeNode.Statement.User" ==> ["new" =>> EdgeNode.Statement.User.new]
-  , "EdgeNode.Statement.Admin" ==> ["newProvider" =>> EdgeNode.Statement.Admin.newProvider]
+  , "EdgeNode.Statement.Admin" ==> 
+    [ "newProvider" =>> EdgeNode.Statement.Admin.newProvider
+    , "resetPassword" =>> EdgeNode.Statement.Admin.resetPassword]
   , "EdgeNode.Statement.Provider" ==>
     [ "getBranches" =>> EdgeNode.Statement.Provider.getBranches
     , "checkHQ" =>> EdgeNode.Statement.Provider.checkHQ

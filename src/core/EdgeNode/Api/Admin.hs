@@ -13,7 +13,7 @@ import EdgeNode.Transport.Response
 
 import Servant.API.Generic
 import Servant.API
-import Data.Aeson.Unit
+import qualified Data.Text as T
 
 data AdminApi route = 
      AdminApi 
@@ -22,5 +22,14 @@ data AdminApi route =
        :- "provider"
        :> "register"
        :> ReqBody '[JSON] ProviderRegistration 
-       :> Put '[JSON] (Response Unit)  
+       :> Put '[JSON] (Response T.Text)
+     , _adminApiResetPassword
+       :: route
+       :- "provider"
+       :> Capture "provider_id" T.Text
+       :> "email"
+       :> Capture "email" T.Text
+       :> "password"
+       :> "reset" 
+       :> Post '[JSON] (Response T.Text)
      } deriving stock Generic

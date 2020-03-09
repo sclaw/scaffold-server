@@ -19,7 +19,8 @@ import qualified EdgeNode.Controller.File.Upload as File.Upload
 import qualified EdgeNode.Controller.File.Download as File.Download
 import qualified EdgeNode.Controller.File.Delete as File.Delete
 import qualified EdgeNode.Controller.File.Patch as File.Patch
-import qualified EdgeNode.Controller.Admin.ProviderRegister as Admin.ProviderRegister 
+import qualified EdgeNode.Controller.Admin.ProviderRegister as Admin.ProviderRegister
+import qualified EdgeNode.Controller.Admin.ResetPassword as Admin.ResetPassword 
 import qualified EdgeNode.Controller.Provider.GetBranches as Provider.GetBranches 
 import qualified EdgeNode.Controller.Provider.CreateBranches as Provider.CreateBranches 
 import qualified EdgeNode.Controller.Provider.PatchBranch as Provider.PatchBranch 
@@ -155,6 +156,11 @@ admin _ user =
      katipAddNamespace 
      (Namespace ["admin", "provider", "register"])
      (withUser user (Admin.ProviderRegister.controller provider))
+  , _adminApiResetPassword = \provider_id user_id ->
+    flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["admin", "provider", "password", "reset"])
+     (withUser user (const (Admin.ResetPassword.controller provider_id user_id)))
   }
 
 provider  

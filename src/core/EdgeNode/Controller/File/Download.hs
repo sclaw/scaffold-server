@@ -37,6 +37,7 @@ import Data.Text.Encoding
 import qualified Data.ByteString.Base64 as B64
 import TH.Mk
 import Network.HTTP.Types.Header
+import Hash
 
 data Option = Embedded | Raw
 
@@ -94,5 +95,5 @@ raw _ resp (Right minio) = resp $
   [ (hContentType, (minio^._4.textbs))
   , (hContentDisposition, 
     "attachment;filename=" <> 
-    (minio^._3.textbs))] $ (minio^._1.from bytesLazy)
+    (mkHash (minio^._3)^.textbs))] $ (minio^._1.from bytesLazy)
 raw _ resp _ = resp $ responseLBS status404 [] mempty

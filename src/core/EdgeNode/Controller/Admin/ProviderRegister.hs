@@ -17,7 +17,6 @@ import EdgeNode.Model.Rbac
 import Auth
 import Katip
 import KatipController
-import Data.Aeson.Unit
 import Control.Lens
 import Data.Generics.Product.Fields
 import Control.Lens.Iso.Extended
@@ -28,11 +27,12 @@ import Database.Transaction
 import Data.Foldable
 import Data.Coerce
 import Data.Password
+import qualified Data.Text as T
 
-controller :: ProviderRegistration -> BasicUser -> KatipController (Response Unit)
+controller :: ProviderRegistration -> BasicUser -> KatipController (Response T.Text)
 controller provider user = do 
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  (password, _) <- liftIO $ fmap (genPassword 8 (GenOptions True True True)) newStdGen
+  (password, _) <- liftIO $ fmap (genPassword 16 (GenOptions True True True)) newStdGen
   $(logTM) DebugS (logStr ("admin password: " <> password))
   salt <- newSalt
   let hashedPassword = hashPassWithSalt salt (mkPass (password^.stext)) 
@@ -43,6 +43,6 @@ controller provider user = do
         (unPassHash hashedPassword^.from lazytext)
         (Secondary^.isoUserRole.stextl)
         (Active^.isoRegisterStatus.stextl)
-  fmap (const (Ok Unit)) $ katipTransaction hasql $ do 
+  fmap (const (Ok (password^.stext ))) $ katipTransaction hasql $ do 
     ident <- statement Admin.newProvider providerExt
     for_ ident $ \x -> statement Rbac.assignRoleToUser (x, RoleProvider, coerce (basicUserUserId user))

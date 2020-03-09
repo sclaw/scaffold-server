@@ -8,7 +8,8 @@
 
 module EdgeNode.Statement.Admin 
        ( ProviderRegistrationExt (..) 
-       , newProvider)
+       , newProvider
+       , resetPassword)
         where
 
 import qualified Hasql.Statement as HS
@@ -16,6 +17,7 @@ import Hasql.TH
 import Control.Lens
 import TH.Mk
 import qualified Data.Text.Lazy as LT
+import qualified Data.Text as T
 import Control.Lens.Iso.Extended
 import Database.Transaction
 import Data.Generics.Product.Fields
@@ -72,3 +74,16 @@ newProvider = lmap ((\x -> x & each %~ (^.lazytext) & _3 %~ (^.textbs)) . mkEnco
         (select p.id as pi, u.id as ui 
          from getProvider as p inner join getUser as u on p.m = u.m) as t
         returning (select id from getUser) :: int8|]
+
+resetPassword :: HS.Statement (T.Text, T.Text, T.Text) Int64
+resetPassword = 
+  lmap (& _3 %~ (^.textbs)) $
+  [rowsAffectedStatement|
+   update auth.user set 
+   password = $3 :: bytea,
+   modified = now()
+   where id =
+     (select pu.user_id from edgenode.provider_user as pu  
+      inner join edgenode.provider as p 
+      on pu.provider_id = p.id
+      where pu.email = $2 :: text and p.uid = $1 :: text)|]
