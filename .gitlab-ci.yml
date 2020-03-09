@@ -68,7 +68,7 @@ deploy:
     - echo "current user -> $(whoami)"
     - echo  "current dir -> $(pwd)"
     - echo  "dir content -> $(ls -la)"
-    - echo "PWD"="$(pwd)" >> .env
+    - echo  "dir content -> $(ls -la deploy/db/docker-entrypoint-initdb.d)"
     - docker-compose down
     - docker-compose up -d
   environment:

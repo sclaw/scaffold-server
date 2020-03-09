@@ -16,7 +16,7 @@ services:
       - POSTGRES_PASSWORD=264c0424e4bd463a7d02b9db6896143e1a96cd1c52511119f839d2bc9c934241
       - POSTGRES_USER=postgres
     volumes:
-      - ${PWD}/deploy/db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
+      - deploy/db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
       - pg_data_db:/var/lib/postgresql/data
     networks:
       edgeNode:
