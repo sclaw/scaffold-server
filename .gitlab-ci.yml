@@ -8,15 +8,15 @@ variables:
   STACK_ROOT: /builds/.stack
 
 stages:
-  - build_proto
+  - prepare_proto
   - build_server
-  - deploy
+  - deploy_server
 
 services:
   - docker:dind
 
 proto:
-  stage: build_proto
+  stage: prepare_proto
   #image: haskell
   image: nixos/nix:latest
   tags:
@@ -54,8 +54,8 @@ server:
   #only:
   #  - tags
 
-deploy-prod:
-  stage: deploy
+deploy:
+  stage: deploy_server
   tags:
     - edgenode
   before_script:
@@ -74,7 +74,5 @@ deploy-prod:
   environment:
     name: Production
     url: http://136.243.173.173
-  tags:
-    - docker-prod
   #only:
   #  - tags
