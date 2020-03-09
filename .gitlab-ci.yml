@@ -68,7 +68,7 @@ deploy:
     - echo "current user -> $(whoami)"
     - echo  "current dir -> $(pwd)"
     - echo  "dir content -> $(ls -la)"
-    - echo "PWD"="$(pwd)" > .env
+    - echo "PWD"="$(pwd)" >> .env
     - docker-compose down
     - docker-compose up -d
   environment:
