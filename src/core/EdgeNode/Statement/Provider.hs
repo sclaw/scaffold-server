@@ -59,7 +59,7 @@ import Data.Maybe
 import Control.Lens.Each.Extended
 import Data.Word
 import Data.Aeson.WithField
-
+import Data.Default.Class.Extended
 
 deriving instance Enum QualificationDegree
 deriving instance Enum Country
@@ -75,6 +75,8 @@ mkArbitrary ''TuitionFee
 mkArbitrary ''Dependecy
 mkEncoder ''QualificationBuilder
 mkEncoder ''Qualification
+
+instance Default Qualification
 
 instance ParamsShow Branch where 
   render x = intercalate ", " $
@@ -292,7 +294,9 @@ saveQualification = dimap mkEncoder (coerce @Int64 @(Id "qualification")) statem
     mkEncoder x =
       consT (coerce @_ @Int64 (x^.position @1))
       (mkEncoderQualification
-       (x^?!position @2.field @"qualificationBuilderQualification"._Just)
+       -- NOTE: fromMaybe used only for testing
+       --  qualififcation shouldn't be empty 
+       (fromMaybe def (x^?!position @2.field @"qualificationBuilderQualification"))
        & _1 %~ (^.lazytext)
        & _2 %~ V.imap (\_ x -> (x^.academicArea))
        & _3 %~ fmap (fromIntegral @_ @Int64 . (^.field @"uint64Value"))

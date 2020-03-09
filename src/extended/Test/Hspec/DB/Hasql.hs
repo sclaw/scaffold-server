@@ -30,9 +30,10 @@ setupDBHasql
   -> Maybe (Hasql.Session ())
      -- ^ Data population.
   -> IO TestDBHasql
-setupDBHasql migrations mpopulate =
+setupDBHasql migrations mpopulate = do
+  print $ "temp db config: " <> Temp.prettyPrintConfig (Temp.autoExplainConfig 0)
   bracketOnError
-      (Temp.startConfig Temp.verboseConfig >>= \case
+      (Temp.startConfig (Temp.autoExplainConfig 0) >>= \case
         Left e -> error $ "Error during db initialization: " <> show e
         Right x -> pure x
       )
