@@ -21,9 +21,11 @@ COPY --chown=nix:nix test test
 COPY --chown=nix:nix .git .git
 COPY --chown=nix:nix sub sub
 COPY --chown=nix:nix scripts scripts
- 
+
 RUN touch .bash_profile && \
   curl https://nixos.org/nix/install | sh
+
+ENV PATH="/home/nix/bin:${PATH}"
 
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       stack install proto3-suite --fast -j12 && \ 
