@@ -16,4 +16,4 @@ def remove_prefix(text, prefix):
     return text[len(prefix):] if text.startswith(prefix) else text
 
 for file in find_files('sub/proto', '*.proto'):
-    subprocess.call(['compile-proto-file', '--out', 'src/proto/', '--includeDir', 'sub/proto/', '--proto', remove_prefix(file, 'sub/proto/')])
+    subprocess.call(['/home/sonny/edgeNode/bin/compile-proto-file', '--out', 'src/proto/', '--includeDir', 'sub/proto/', '--proto', remove_prefix(file, 'sub/proto/')])

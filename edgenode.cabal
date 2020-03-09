@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a91df53ad78b2cc2c75d13b6f29e27dfe4a30bb97f29b767ec614082fd1689fa
+-- hash: e85b22357ba5145f17821366e9e7c5d67aefd76234eb2ef8d35e24cf756dce9e
 
 name:           edgenode
 version:        0.1.0.0
@@ -101,7 +101,6 @@ library
       Servant.Swagger.Tags
       Test.Hspec.DB.Hasql
       Test.QuickCheck.Extended
-      Data.Time
       EdgeNode.Country
       EdgeNode.Lang
       EdgeNode.Minio

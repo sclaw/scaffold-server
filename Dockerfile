@@ -1,6 +1,5 @@
 FROM fpco/stack-build:latest
 
-RUN stack --version
 
 RUN addgroup --system nixbld && \
   adduser --home /home/nix --disabled-password --gecos "" --shell /bin/bash nix && \
@@ -25,6 +24,8 @@ RUN touch .bash_profile && \
   curl https://nixos.org/nix/install | sh
 
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
+      stack install proto3-suite --fast -j12 && \ 
+      scripts/generate-proto-haskell_python.sh &&\
       stack install --fast -j12 --test
 
 COPY --chown=nix:nix deploy deploy
