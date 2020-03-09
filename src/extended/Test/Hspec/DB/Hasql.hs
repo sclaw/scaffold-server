@@ -31,7 +31,7 @@ setupDBHasql
      -- ^ Data population.
   -> IO TestDBHasql
 setupDBHasql migrations mpopulate = do
-  print $ "temp db config: " <> Temp.prettyPrintConfig (Temp.autoExplainConfig 0)
+  putStrLn $ "temp db config: " <> Temp.prettyPrintConfig (Temp.autoExplainConfig 0)
   bracketOnError
       (Temp.startConfig (Temp.autoExplainConfig 0) >>= \case
         Left e -> error $ "Error during db initialization: " <> show e
