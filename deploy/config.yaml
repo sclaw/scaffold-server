@@ -7,7 +7,7 @@ configDb:
 
 configPorts: 12000
 
-configHosts: localhost
+configHosts: 136.243.173.173
 
 configGroundhog: 50
 
@@ -23,7 +23,7 @@ configKatip:
   katipEnv: production
 
 configEkg:
-  ekgHost: localhost
+  ekgHost: 136.243.173.173
   ekgPort: 8000
 
 configAuth: 
