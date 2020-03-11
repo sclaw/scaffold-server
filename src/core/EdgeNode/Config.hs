@@ -13,9 +13,8 @@ module EdgeNode.Config
        , Auth (..)
        , Service (..)
        , ApiKeys (..)
-       , Hosts (..)
+       , Swagger (..)
        , db
-       , ports
        , pass
        , port
        , database
@@ -26,7 +25,6 @@ module EdgeNode.Config
        , hasql
        , resPerStripe
        , katip
-       , ekg
          -- * load config
        , load
        , path
@@ -37,12 +35,12 @@ module EdgeNode.Config
        , jwk
        , isAuthEnabled
        , service
-       , hosts
        , userId
        , accessKey
        , secretKey
        , minio
        , bucketPrefix
+       , swagger
        ) 
        where
 
@@ -63,13 +61,8 @@ data Db = Db
      , dbDatabase :: !String
      } deriving Show
 
-newtype Ports = Ports { portsPort :: Int } 
-  deriving Show 
-  deriving newtype FromJSON
-
-newtype Hosts = Hosts { hostsSwagger :: String }
-  deriving Show 
-  deriving newtype FromJSON
+data Swagger = Swagger { swaggerHost :: String, swaggerPort :: Int }
+  deriving Show
 
 data HasqlSettings = 
      HasqlSettings 
@@ -116,24 +109,22 @@ data Minio =
 data Config = 
      Config 
      { configDb :: !Db 
-     , configPorts :: !Ports
+     , configSwagger :: !Swagger
      , configHasql :: !HasqlSettings
      , configKatip :: !Katip
-     , configEkg :: !Ekg
      , configAuth :: !Auth
      , configService :: !Service
-     , configHosts :: !Hosts
      , configMinio :: !Minio
      } deriving Show
 
 makeFields ''Config
-makeFields ''Ports
 makeFields ''Db
 makeFields ''HasqlSettings
 makeFields ''Ekg
 makeFields ''Katip
 makeFields ''Auth
 makeFields ''Minio
+makeFields ''Swagger
 
 -- Load program configuration from file (server.yaml), or
 -- raise YamlException and terminate program.
@@ -149,3 +140,4 @@ deriveFromJSON defaultOptions ''Auth
 deriveFromJSON defaultOptions ''ApiKeys
 deriveFromJSON defaultOptions ''Service
 deriveFromJSON defaultOptions ''Minio
+deriveFromJSON defaultOptions ''Swagger

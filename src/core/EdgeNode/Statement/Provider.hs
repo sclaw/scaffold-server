@@ -72,7 +72,7 @@ mkArbitrary ''Branch
 mkArbitrary ''Qualification
 mkArbitrary ''QualificationBuilder
 mkArbitrary ''TuitionFee
-mkArbitrary ''Dependecy
+mkArbitrary ''Dependency
 mkEncoder ''QualificationBuilder
 mkEncoder ''Qualification
 

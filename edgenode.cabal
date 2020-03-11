@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b8e484a32bf49c071ebf96f25613a6770ca80d27d90dbdcbfd78d94d5617af1b
+-- hash: 7ab644d76cf7d8f0333fa62edcbd86ebb4b03fcb4b7535063cdfc029e4eb827d
 
 name:           edgenode
 version:        0.1.0.0
@@ -152,7 +152,6 @@ library
     , doctest-discover
     , either
     , either-unwrap
-    , ekg
     , elocrypt
     , errors
     , exceptions

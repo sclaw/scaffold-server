@@ -96,7 +96,6 @@ library:
     - tasty-discover
     - hasql
     - hasql-th == 0.4.0.4
-    - ekg
     - exceptions
     - regex-with-pcre
     - validation

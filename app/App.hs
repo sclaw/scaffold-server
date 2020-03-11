@@ -27,7 +27,6 @@ import qualified Hasql.Connection as HasqlConn
 import Control.Lens.Iso.Extended
 import Control.Monad
 import Data.Time.Clock (getCurrentTime)
-import System.Remote.Monitoring
 import Data.Aeson (eitherDecode)
 import Data.Either.Combinators
 import qualified Data.ByteString.Lazy  as B
@@ -55,15 +54,15 @@ data Cmd w =
      Cmd 
      { cfgPath :: w ::: FilePath <?> "config file path"
      , localhost :: w ::: Maybe String <?> "override db host if needed, used along with port"
-     , localport :: w ::: Maybe Int <?> "override db port if needed" 
-     , ekgHost :: w ::: Maybe String <?> "ekg host"
+     , localport :: w ::: Maybe Int <?> "override db port if needed"
      , isAuth :: w ::: Maybe Bool <?> "is auth turn on"
      , pathToKatip :: w ::: Maybe FilePath <?> "path to katip log"
      , pathToJwk :: w ::: Maybe FilePath <?> "path to jwk"
-     , swaggerHost :: w ::: Maybe FilePath <?> "swagger host"
      , minioHost :: w ::: Maybe String <?> "minio host"
      , minioPort :: w ::: Maybe String <?> "minio port"
      , user :: w ::: Maybe Int64 <?> "user"
+     , swaggerHost :: w ::: Maybe String <?> "swagger host"
+     , swaggerPort :: w ::: Maybe Int <?> "swagger port"
      } deriving stock Generic
     
 instance ParseRecord (Cmd Wrapped)
@@ -77,18 +76,16 @@ main =
       let cfg = 
             rawCfg 
             & db.host %~ (`fromMaybe` localhost) 
-            & db.port %~ (`fromMaybe` localport) 
-            & ekg.host %~ (`fromMaybe` ekgHost)
+            & db.port %~ (`fromMaybe` localport)
             & auth.isAuthEnabled %~ (`fromMaybe` isAuth)
             & auth.userId %~ (`fromMaybe` user)
             & katip.path %~ (\path -> maybe path (</> path) pathToKatip)
             & auth.EdgeNode.Config.jwk %~ (\path -> maybe path (</> path) pathToJwk)
-            & hosts %~ (`fromMaybe` fmap Hosts swaggerHost)
             & EdgeNode.Config.minio.host %~ (`fromMaybe` minioHost)
             & EdgeNode.Config.minio.port %~ (`fromMaybe` minioPort)
+            & swagger.host %~ (`fromMaybe` swaggerHost)
+            & swagger.port %~ (`fromMaybe` swaggerPort)
       pPrint cfg
-
-      void $ forkServer (cfg^.ekg.host.stext.textbs) (cfg^.ekg.port)
 
       term <- hGetTerm stdout
       hSetBuffering stdout NoBuffering 
@@ -128,8 +125,8 @@ main =
       jwke `whenLeft` (error . (<>) "jwk decode error: ")
       let appCfg = 
            App.Cfg 
-           (cfg^.hosts.coerced) 
-           (cfg^.ports.port) 
+           (cfg^.swagger.host.coerced) 
+           (cfg^.swagger.port) 
            (fromRight' jwke) 
            (cfg^.auth.isAuthEnabled)
            (cfg^.auth.userId.coerced)                    

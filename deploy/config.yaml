@@ -5,11 +5,9 @@ configDb:
   dbPass: 3190d261d186aeead3a8deec202737c7775af5c8d455a9e5ba958c48b5fd3f59
   dbDatabase: edgenode
 
-configPorts: 12000
-
-configHosts: 136.243.173.173
-
-configGroundhog: 50
+configSwagger: 
+  swaggerHost: 136.243.173.173
+  swaggerPort: 12000
 
 configHasql:
   hasqlSettingsPoolN: 50
@@ -21,10 +19,6 @@ configKatip:
   katipSeverity: DebugS
   katipVerbosity: V3 
   katipEnv: production
-
-configEkg:
-  ekgHost: 136.243.173.173
-  ekgPort: 8000
 
 configAuth: 
   authJwk: symmetric.jwk

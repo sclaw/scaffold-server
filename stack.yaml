@@ -63,7 +63,6 @@ extra-deps:
      - servant-auth-swagger
   - pretty-tree-0.1.0.0@sha256:49b0e17008f9d30328db2bcc2958f3a7b78d154d2335c2dbaa2073e237b524ae   
   - password-1.0.0.0@sha256:2ec79cb64be80a5254324c67a1e1aa16fc2e015dee9505ce598f4522efcf8899,1824
-  - servant-ekg-0.3@sha256:1a578afd662b2f9133455daff50a3822c568e2e106108cf64daa4481a6d585a6
   - aeson-injector-1.1.2.0@sha256:2220abadf41f42d7ff1a8671560f12280c5066d9462d2d8cecc5f7136e55024b,1695
   - postgresql-error-codes-1.0.1@sha256:34ce40401dc21762996dadd38336436f40a09da95ad3309ba6dc506d707cff11,1413
   - string-interpolate-0.1.0.1@sha256:6efbc888a2986ee80ddd014fded600de113554684fe5eaca87cf02ab59cfa95c,1999
@@ -91,9 +90,6 @@ extra-deps:
   - elocrypt-2.1.0@sha256:2bf49f367186e82b36c434f5304063f5443a0f9e8e00b83636ba5ee62bc39111,2709
   - template-haskell-compat-v0208-0.1.2.1@sha256:039deac4225c1d2fa7ac349f09d2050f8a7b932a892fa040e11d639a12851dc5,1524
   - pretty-simple-3.2.1.0
-  - ekg-0.4.0.15@sha256:f35b2c6d80415314f84056afaba6e622bf8d90eb01d0504c87f04c64cb105e04,2030
-  - ekg-core-0.1.1.6@sha256:7635308e37d5787994803e24fcb609167fd6c2cbe2fb26c76f22402f8fa49419,1937
-  - ekg-json-0.1.0.6@sha256:4ff2e9cac213a5868ae8b4a7c72a16a9a76fac14d944ae819b3d838a9725569b,1050
 
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git
