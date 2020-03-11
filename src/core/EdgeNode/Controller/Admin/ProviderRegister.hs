@@ -38,8 +38,9 @@ controller provider user = do
   let hashedPassword = hashPassWithSalt salt (mkPass (password^.stext)) 
   let providerExt = 
         ProviderRegistrationExt 
-        (provider^.field @"providerRegistrationProviderUID")
         (provider^.field @"providerRegistrationAdminEmail")
+        (provider^.field @"providerRegistrationProviderUID")
+        (provider^.field @"providerRegistrationTitle")
         (unPassHash hashedPassword^.from lazytext)
         (Secondary^.isoUserRole.stextl)
         (Active^.isoRegisterStatus.stextl)
