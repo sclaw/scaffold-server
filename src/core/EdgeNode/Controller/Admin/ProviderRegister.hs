@@ -13,6 +13,7 @@ import EdgeNode.Statement.Admin as Admin
 import EdgeNode.Model.User
 import EdgeNode.Statement.Rbac as Rbac
 import EdgeNode.Model.Rbac
+import qualified EdgeNode.Transport.Error as Error
 
 import Auth
 import Katip
@@ -24,10 +25,15 @@ import System.Random
 import Control.Monad.IO.Class
 import Data.Elocrypt
 import Database.Transaction
-import Data.Foldable
 import Data.Coerce
 import Data.Password
 import qualified Data.Text as T
+import Data.Traversable
+
+data ProviderRegistrationError = ProviderAlreadyExist
+
+instance Error.AsError ProviderRegistrationError where 
+  asError ProviderAlreadyExist = Error.asError @T.Text "provider already registered"
 
 controller :: ProviderRegistration -> BasicUser -> KatipController (Response T.Text)
 controller provider user = do 
@@ -44,6 +50,7 @@ controller provider user = do
         (unPassHash hashedPassword^.from lazytext)
         (Secondary^.isoUserRole.stextl)
         (Active^.isoRegisterStatus.stextl)
-  fmap (const (Ok (password^.stext ))) $ katipTransaction hasql $ do 
-    ident <- statement Admin.newProvider providerExt
-    for_ ident $ \x -> statement Rbac.assignRoleToUser (x, RoleProvider, coerce (basicUserUserId user))
+  fmap (maybe (Error (Error.asError ProviderAlreadyExist)) (const (Ok (password^.stext)))) $ 
+    katipTransaction hasql $ do 
+      ident <- statement Admin.newProvider providerExt
+      for ident $ \x -> statement Rbac.assignRoleToUser (x, RoleProvider, coerce (basicUserUserId user))
