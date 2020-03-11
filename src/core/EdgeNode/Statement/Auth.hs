@@ -66,7 +66,7 @@ getUserCred = dimap (initT . mkTpl . mkEncoderSigninReq) decoder statement
           "user_type" :: text,
           password :: bytea
         from auth.user 
-        where identifier = md5($1 :: text || $2 :: text)|]
+        where identifier = md5($2 :: text || $1 :: text)|]
     decoder x =  
       x  & _Just._1 %~ coerce 
          & _Just._2 %~ (^.from stext.from isoUserRole) 
