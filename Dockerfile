@@ -1,5 +1,8 @@
-FROM fpco/stack-build:lts-15.2
+FROM fpco/stack-build:latest
 
+RUN whereis libm
+
+RUN ln -s /usr/lib/x86_64-linux-gnu/libm.so /usr/lib/x86_64-linux-gnu/libm.so.6
 
 RUN addgroup --system nixbld && \
   adduser --home /home/nix --disabled-password --gecos "" --shell /bin/bash nix && \
