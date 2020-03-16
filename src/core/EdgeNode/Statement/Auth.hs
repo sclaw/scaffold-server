@@ -12,6 +12,7 @@ module EdgeNode.Statement.Auth
        ( getUserCred
        , putRefreshToken
        , checkRefreshToken
+       , mkTokenInvalid
        ) where
 
 import EdgeNode.Transport.Auth
@@ -87,11 +88,16 @@ putRefreshToken = lmap (& _1 %~ coerce) statement
         (created, user_fk, refresh_token_hash, "unique") 
         values (now(), $1 :: int8, $2 :: text, $3 :: text)|] 
 
-checkRefreshToken :: HS.Statement (T.Text, Id "user") (Maybe UserRole)
-checkRefreshToken = dimap (& _2 %~ coerce) (fmap (^.from stext.from isoUserRole)) $
+checkRefreshToken :: HS.Statement (T.Text, Id "user") (Maybe (Int64, UserRole))
+checkRefreshToken = dimap (& _2 %~ coerce) (fmap (& _2 %~ (^.from stext.from isoUserRole))) $
   [maybeStatement|
-    select "user_type" :: text
+    select at.id :: int8, "user_type" :: text
     from auth.token as at
     inner join auth.user as au
     on at."user_fk" = au.id
-    where "unique" = $1 :: text and "user_fk" = $2 :: int8|]
+    where "unique" = $1 :: text    
+    and "user_fk" = $2 :: int8 
+    and is_valid|]
+
+mkTokenInvalid :: HS.Statement Int64 ()
+mkTokenInvalid = [resultlessStatement|update auth.token set is_valid = false where id = $1 :: int8|]

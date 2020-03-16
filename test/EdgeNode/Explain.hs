@@ -86,7 +86,8 @@ explainTests =
   , "EdgeNode.Statement.Auth" ==> 
     [ "getUserCred" =>> EdgeNode.Statement.Auth.getUserCred
     , "putRefreshToken" =>> EdgeNode.Statement.Auth.putRefreshToken
-    , "checkRefreshToken" =>> EdgeNode.Statement.Auth.checkRefreshToken]  
+    , "checkRefreshToken" =>> EdgeNode.Statement.Auth.checkRefreshToken
+    , "mkTokenInvalid" =>> EdgeNode.Statement.Auth.mkTokenInvalid]  
   ]
   
 (==>) a b = (a, b)

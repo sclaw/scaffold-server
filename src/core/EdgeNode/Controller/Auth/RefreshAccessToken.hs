@@ -11,7 +11,7 @@ import EdgeNode.Transport.Response hiding (Error)
 import qualified EdgeNode.Transport.Error as Error
 import qualified EdgeNode.Statement.Auth as Auth
 import EdgeNode.Transport.Id
-import EdgeNode.Controller.Auth.SignIn (mkTokens)
+import EdgeNode.Controller.Auth.SignIn ()
 
 import TH.Proto
 import Katip
@@ -27,10 +27,10 @@ import Data.Traversable
 import qualified Crypto.JWT as JWT
 import Database.Transaction
 import Data.Aeson
-import Data.Generics.Product.Positions
 import Control.Lens.Iso.Extended
 import Data.Foldable
 import Pretty
+import Hash
 
 controller :: Token -> Id "user" -> KatipController (Response Tokens)
 controller req user_id = do
@@ -42,19 +42,24 @@ controller req user_id = do
   fmap (fromEither . first (Error.asError @T.Text) . join) $ 
     for (first mkJWTError verify_result) $ \claims -> do 
       hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-      let uqm = claims^.JWT.unregisteredClaims.at "dat".to (fmap fromJSON)
+      key <- fmap (^.katipEnv.jwk) ask
+      let uqm = claims^.JWT.unregisteredClaims.at "dat".to (fmap fromJSON) 
       case uqm of 
-        Just (Success uq) -> do
-          user_role_m <- katipTransaction hasql $ 
-            statement Auth.checkRefreshToken (uq, user_id)
-          case user_role_m of
-            Just user_role -> 
-              fmap (second (^.position @2.position @2)) $ 
-              mkTokens (user_id, user_role)
-            Nothing -> pure $ Left "token not found"
-        Just (Error e) -> do 
-          $(logTM) ErrorS (logStr (mkPretty "dat json decoding error: " e))  
-          pure $ Left "dat json decoding error"  
+        Just (Success uq) -> 
+          katipTransaction hasql $ do
+            tpl_m <- statement Auth.checkRefreshToken (uq, user_id)
+            case tpl_m of
+              Just (ident, user_role) -> do
+                log <- ask
+                tokens_e <- liftIO $ Auth.mkTokens key (user_id, user_role) log
+                void $ statement Auth.mkTokenInvalid ident
+                for tokens_e $ \(uq, a, r) -> do 
+                  void $ statement Auth.putRefreshToken (user_id, mkHash r, uq)
+                  pure $ 
+                    def & field @"tokensAccessToken" .~ (a^._1)
+                        & field @"tokensRefreshToken" .~ r
+                        & field @"tokensLifetime" ?~ (a^._2)
+              Nothing -> pure $ Left "token not found"  
         Nothing -> pure $ Left "dat not found"
 
 mkJWTError :: JWT.JWTError -> T.Text
