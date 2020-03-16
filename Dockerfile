@@ -1,4 +1,4 @@
-FROM fpco/stack-build:latest
+FROM fpco/stack-build:lts-15.2
 
 
 RUN addgroup --system nixbld && \
