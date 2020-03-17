@@ -1,4 +1,4 @@
-FROM fpco/stack-build:lts-15.2
+FROM fpco/stack-build:latest
 
 RUN addgroup --system nixbld && \
   adduser --home /home/nix --disabled-password --gecos "" --shell /bin/bash nix && \

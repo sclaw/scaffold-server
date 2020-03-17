@@ -24,6 +24,7 @@ module EdgeNode.Statement.Provider
        , getAreaToCountries
        , getCountryToTypes
        , getTypeToQualifications
+       , saveDependencies
        ) where
 
 import EdgeNode.Transport.Id
@@ -75,6 +76,7 @@ mkArbitrary ''TuitionFee
 mkArbitrary ''Dependency
 mkEncoder ''QualificationBuilder
 mkEncoder ''Qualification
+mkEncoder ''Dependency
 
 instance Default Qualification
 
@@ -267,9 +269,9 @@ getQualificationBuilderBranches =
         on pu.provider_id = pb.provider_fk
         where pu.user_id = $1 :: int8 order by pb.title asc|]
 
-instance ParamsShow QualificationBuilder where 
+instance ParamsShow Qualification where 
   render x = intercalate ", " $
-    (mkEncoderQualification qual
+    (mkEncoderQualification x
      & _1 %~ (^.lazytext.from stext)
      & _2 %~ (\x -> "[" ++ intercalate ", " (x^..traversed.academicArea.from stext) ++ "]")
      & _3 %~ show
@@ -280,23 +282,20 @@ instance ParamsShow QualificationBuilder where
      & _8 %~ (^.qualStudyTime.from stext)
      & _9 %~ (^.qualQualificationDegree.from stext)
      & _10 %~ (maybe mempty (^.field @"stringValue".lazytext.from stext)))^..each
-    where qual = fromJust (qualificationBuilderQualification x)
-
+    
 saveQualification  
   :: HS.Statement 
      (WithField 
       "branch" 
       (Id "branch") 
-      QualificationBuilder) 
+      Qualification) 
      (Id "qualification")
 saveQualification = dimap mkEncoder (coerce @Int64 @(Id "qualification")) statement
   where 
     mkEncoder x =
       consT (coerce @_ @Int64 (x^.position @1))
       (mkEncoderQualification
-       -- NOTE: fromMaybe used only for testing
-       --  qualififcation shouldn't be empty 
-       (fromMaybe def (x^?!position @2.field @"qualificationBuilderQualification"))
+       (x^.position @2)
        & _1 %~ (^.lazytext)
        & _2 %~ V.imap (\_ x -> (x^.academicArea))
        & _3 %~ fmap (fromIntegral @_ @Int64 . (^.field @"uint64Value"))
@@ -387,3 +386,24 @@ getTypeToQualifications =
            maybe vs
            (\v -> dropWhile (/= v) vs) 
            (x^?_3._Just.from lazytext))
+
+instance ParamsShow Dependency where
+  render x = intercalate ", " $
+    (mkEncoderDependency x
+    & _1 %~ show 
+    & _2 %~ show 
+    & _3 %~ (^.lazytext.from stext))^..each
+
+saveDependencies :: HS.Statement (Id "qualification", V.Vector Dependency) ()
+saveDependencies = 
+  lmap mkEncoder 
+  [resultlessStatement|
+    insert into edgenode.provider_branch_qualification_dependency 
+    (cluster, required_degree, 
+     provider_branch_qualification_fk, dependency_fk) 
+    select cluster, req_degree, qual_fk, $1 :: int8 
+    from unnest($2 :: int4[], $4 :: text[], $3 :: int8[]) 
+    as x(cluster, req_degree, qual_fk)|]
+  where 
+    mkEncoder (ident, v) = consT (coerce ident) (V.unzip3 (V.map mkTpl v))
+    mkTpl x = (mkEncoderDependency x) & _1 %~ fromIntegral & _2 %~ fromIntegral & _3 %~ (^.lazytext)

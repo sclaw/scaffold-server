@@ -39,7 +39,6 @@ import Control.Exception (throwIO)
 import Control.Lens
 import Control.Lens.Iso.Extended
 import Data.Int
-import Data.Coerce
 import Data.List
 import qualified Data.ByteString.Char8 as B
 import Data.Generics.Sum.Constructors
@@ -47,6 +46,7 @@ import Data.Generics.Product.Positions
 import GHC.Generics
 import PostgreSQL.ErrorCodes
 import qualified Data.Text as T
+import qualified Data.Vector.Extended as V
 
 newtype QueryErrorWrapper = QueryErrorWrapper Hasql.QueryError 
   deriving Show
@@ -145,7 +145,8 @@ instance {-# OVERLAPS #-} (ParamsShow a, ParamsShow b, ParamsShow c, ParamsShow 
   render x = render (x^._1) <> ", " <> render (x^._2) <> ", " <> render (x^._3) <> ", " <> render (x^._4)     
 instance ParamsShow a => ParamsShow [a] where 
   render xs = intercalate ", " $ map render xs
-instance {-# OVERLAPS #-} (Coercible a b, Show b) => ParamsShow a where render = show . coerce @a @b
+instance ParamsShow a => ParamsShow (V.Vector a) where 
+  render v = intercalate ", " $ map render (V.toList v)
 
 statement :: ParamsShow a => Hasql.Statement a b -> a -> ReaderT KatipLoggerIO Session b
 statement s@(Hasql.Statement sql _ _ _) a = do

@@ -22,6 +22,8 @@ import Database.Transaction
 import Control.Lens
 import Data.Aeson.WithField
 import Data.Generics.Product.Positions
+import Data.Generics.Product.Fields
+import Data.Maybe
 
 controller 
   :: (WithField 
@@ -33,6 +35,15 @@ controller builder = do
   $(logTM) DebugS (logStr ("builder: " ++ mkPretty mempty builder))
   let save = do
         hasql <- fmap (^.katipEnv.hasqlDbPool) ask 
-        katipTransaction hasql (statement Provider.saveQualification builder)
+        katipTransaction hasql $ do 
+          let qualification = 
+                builder 
+                & position @2 %~ 
+                  (fromJust . 
+                   (^.field @"qualificationBuilderQualification"))
+          let deps = builder^.position @2.field @"qualificationBuilderDependencies"         
+          ident <- statement Provider.saveQualification qualification
+          statement Provider.saveDependencies (ident, deps)
+          return ident
   fromValidation . (first (map asError)) <$> 
     for (Validator.qualificationBuilder (builder^.position @2)) (const save)
