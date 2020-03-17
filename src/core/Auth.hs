@@ -256,16 +256,16 @@ withUser user controller = do
     Authenticated resp -> return resp
     _ -> throwError err403
 
-mkTokens :: JWK -> (Id "user", UserRole) -> KatipLoggerIO -> IO (Either T.Text (T.Text, (ByteString, Time), ByteString))
+mkTokens :: JWK -> (Id "user", UserRole) -> KatipLoggerIO -> IO (Either T.Text (T.Text, (ByteString, Time), ByteString, T.Text))
 mkTokens key cred log = do 
   uq <- fmap mkHash $ uniformW64 =<< createSystemRandom
   tokens_e <- runExceptT $ do
     refresh <- mkRefreshToken key uq
     access <- mkAccessToken key (cred^._1) (mkHash refresh) (cred^._2)
-    pure $ (uq, access, refresh)
+    pure $ (uq, access, refresh, mkHash refresh)
   let encode x = x^.to Jose.encodeCompact.bytesLazy
   let mkError err = show err^.stext  
-  fmap (first mkError) $ for tokens_e $ \(uq, access, refresh) -> do 
+  fmap (first mkError) $ for tokens_e $ \(uq, access, refresh, hash) -> do 
     log DebugS (logStr (mkPretty "access token: " (first encode access))) 
     log DebugS (logStr (mkPretty "refresh token: " (encode refresh)))
-    pure (uq, first encode access, encode refresh)
+    pure (uq, first encode access, encode refresh, hash)

@@ -23,7 +23,6 @@ import qualified Data.Text as T
 import Data.Password
 import Data.Generics.Product.Fields
 import Control.Lens.Iso.Extended
-import Hash
 import Control.Monad.IO.Class
 import qualified Auth as Auth
 import Control.Monad.Except
@@ -46,11 +45,11 @@ controller req = do
           key <- fmap (^.katipEnv.jwk) ask
           log <- askLoggerIO
           tokens_e <- liftIO $ Auth.mkTokens key (initT cred) log
-          for tokens_e $ \tpl@(uq, a, r) -> do
+          for tokens_e $ \tpl@(uq, a, r, h) -> do
             hasql <- fmap (^.katipEnv.hasqlDbPool) ask
             void $ katipTransaction hasql $ 
               statement Auth.putRefreshToken
-              (cred^._1, mkHash r, uq)
+              (cred^._1, h, uq)
             pure $ WithField (cred^._1) $
                    WithField (cred^._2) $
                    def & field @"tokensAccessToken" .~ (a^._1)

@@ -30,7 +30,6 @@ import Data.Aeson
 import Control.Lens.Iso.Extended
 import Data.Foldable
 import Pretty
-import Hash
 
 controller :: Token -> Id "user" -> KatipController (Response Tokens)
 controller req user_id = do
@@ -53,8 +52,8 @@ controller req user_id = do
                 log <- ask
                 tokens_e <- liftIO $ Auth.mkTokens key (user_id, user_role) log
                 void $ statement Auth.mkTokenInvalid ident
-                for tokens_e $ \(uq, a, r) -> do 
-                  void $ statement Auth.putRefreshToken (user_id, mkHash r, uq)
+                for tokens_e $ \(uq, a, r, h) -> do 
+                  void $ statement Auth.putRefreshToken (user_id, h, uq)
                   pure $ 
                     def & field @"tokensAccessToken" .~ (a^._1)
                         & field @"tokensRefreshToken" .~ r
