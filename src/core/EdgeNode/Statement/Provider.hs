@@ -25,6 +25,7 @@ module EdgeNode.Statement.Provider
        , getCountryToTypes
        , getTypeToQualifications
        , saveDependencies
+       , saveTuitionFees
        ) where
 
 import EdgeNode.Transport.Id
@@ -61,22 +62,27 @@ import Control.Lens.Each.Extended
 import Data.Word
 import Data.Aeson.WithField
 import Data.Default.Class.Extended
+import Data.Aeson
 
 deriving instance Enum QualificationDegree
 deriving instance Enum Country
 deriving instance Enum StudyTime
 deriving instance Enum QualificationCategory
 deriving instance Enum AcademicArea
+deriving instance Enum Currency
+deriving instance Enum Period
 
 mkEncoder ''Branch
 mkArbitrary ''Branch
 mkArbitrary ''Qualification
+mkArbitrary ''Cluster
 mkArbitrary ''QualificationBuilder
-mkArbitrary ''TuitionFee
+mkArbitrary ''TuitionFees
 mkArbitrary ''Dependency
 mkEncoder ''QualificationBuilder
 mkEncoder ''Qualification
 mkEncoder ''Dependency
+mkEncoder ''TuitionFees
 
 instance Default Qualification
 
@@ -390,20 +396,59 @@ getTypeToQualifications =
 instance ParamsShow Dependency where
   render x = intercalate ", " $
     (mkEncoderDependency x
-    & _1 %~ show 
-    & _2 %~ show 
+    & _1 %~ (^.academicArea.from stext)
+    & _2 %~ show
     & _3 %~ (^.lazytext.from stext))^..each
 
-saveDependencies :: HS.Statement (Id "qualification", V.Vector Dependency) ()
+instance ParamsShow Cluster where
+  render (Cluster v) = intercalate ", " $ V.foldl (\xs e -> xs ++ ["[" ++ render e ++ "]"]) [] v
+
+saveDependencies :: HS.Statement (Id "qualification", V.Vector Cluster) ()
 saveDependencies = 
-  lmap mkEncoder 
+  lmap mkEncoder
   [resultlessStatement|
     insert into edgenode.provider_branch_qualification_dependency 
-    (cluster, required_degree, 
-     provider_branch_qualification_fk, dependency_fk) 
-    select cluster, req_degree, qual_fk, $1 :: int8 
-    from unnest($2 :: int4[], $4 :: text[], $3 :: int8[]) 
-    as x(cluster, req_degree, qual_fk)|]
+    (cluster, position, academic_area, 
+     provider_branch_qualification_fk, 
+     dependency_fk, required_degree) 
+    select cluster, pos, ac_area, qual_fk, $1 :: int8, req_degree
+    from unnest($2 :: int4[], $3 :: int4[], $4 :: text[], $5 :: int8[], $6 :: text[]) 
+    as x(cluster, pos, ac_area, qual_fk, req_degree)|]
   where 
-    mkEncoder (ident, v) = consT (coerce ident) (V.unzip3 (V.map mkTpl v))
-    mkTpl x = (mkEncoderDependency x) & _1 %~ fromIntegral & _2 %~ fromIntegral & _3 %~ (^.lazytext)
+    mkEncoder (ident, v) = consT (coerce ident) (V.unzip5 (V.concat (V.foldl go [] (V.indexed v))))
+    go xs (idx, Cluster v) = xs ++ [V.map (mkTpl idx) (V.indexed v)]
+    mkTpl idx (pos, x) = 
+      consT (fromIntegral idx) $ 
+      consT (fromIntegral pos) $ 
+      ((mkEncoderDependency x) & _1 %~ (^.academicArea)  & _2 %~ fromIntegral & _3 %~ (^.lazytext))
+
+instance ParamsShow TuitionFees where 
+  render x = intercalate ", " $
+    (mkEncoderTuitionFees x
+     & _1 %~ show 
+     & _2 %~ (^.currency.from stext)
+     & _3 %~ (^.period.from stext)
+     & _4 %~ (\xs -> "[ " ++ intercalate ", " (Prelude.foldMap ((:[]) . (^.country.from stext)) xs) ++ "]")
+     & _5 %~ (\xs -> "[ " ++ intercalate ", " (Prelude.foldMap ((:[]) . (^.country.from stext)) xs) ++ "]"))^..each
+
+saveTuitionFees :: HS.Statement (Id "qualification", V.Vector TuitionFees) ()
+saveTuitionFees =
+  lmap mkEncoder
+  [resultlessStatement|
+    insert into edgenode.provider_branch_qualification_tuition_fees
+    (position, amount, currency, period, 
+     provider_branch_qualification_fk)
+    select pos, am, curr, per, $1 :: int8
+    from unnest(
+      $2 :: int4[], $3 :: float8[], $4 :: text[], 
+      $5 :: text[], $6 :: jsonb[], $7 :: jsonb[]) 
+    as x(pos, am, curr, per, c_only, c_except)|]
+  where 
+    mkEncoder (ident, v) = consT (coerce ident) (V.unzip6 (V.map go (V.indexed v)))
+    go (pos, x) = 
+      consT (fromIntegral pos) $ 
+      (mkEncoderTuitionFees x
+       & _2 %~ (^.currency)
+       & _3 %~ (^.period)
+       & _4 %~ (toJSON . (V.map (^.country)))
+       & _5 %~ toJSON . (V.map (^.country)))

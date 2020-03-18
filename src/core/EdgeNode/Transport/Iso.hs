@@ -32,6 +32,12 @@ qualStudyTime = isoEnum fromStudyTime toStudyTime
 qualQualificationDegree :: Enum QualificationDegree => Iso' (Enumerated QualificationDegree) T.Text
 qualQualificationDegree = isoEnum fromQualificationDegree toQualificationDegree
 
+currency :: Enum Currency => Iso' (Enumerated Currency) T.Text
+currency = isoEnum fromCurrency toCurrency
+
+period :: Enum Period => Iso' (Enumerated Period) T.Text
+period = isoEnum fromPeriod toPeriod
+
 isoEnum :: (Enum a, Show a) => (a -> String) -> (String -> a) -> Iso' (Enumerated a) T.Text
 isoEnum f t = iso fromEnuma toEnuma
   where fromEnuma x =

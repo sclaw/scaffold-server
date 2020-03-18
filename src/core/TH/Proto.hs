@@ -30,6 +30,8 @@ mkEnumConvertor ''QualificationCategory
 mkEnumConvertor ''QualificationDegree
 mkEnumConvertor ''StudyTime
 mkEnumConvertor ''AcademicArea
+mkEnumConvertor ''Currency
+mkEnumConvertor ''Period
 
 mkSRGEqEnum ''AcademicArea "EdgeNode"
 mkEnumConvertor ''EdgeNodeAcademicArea

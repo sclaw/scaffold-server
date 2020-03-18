@@ -41,9 +41,11 @@ controller builder = do
                 & position @2 %~ 
                   (fromJust . 
                    (^.field @"qualificationBuilderQualification"))
-          let deps = builder^.position @2.field @"qualificationBuilderDependencies"         
+          let clusters = builder^.position @2.field @"qualificationBuilderClusters"
+          let fees = builder^.position @2.field @"qualificationBuilderFees"         
           ident <- statement Provider.saveQualification qualification
-          statement Provider.saveDependencies (ident, deps)
+          statement Provider.saveDependencies (ident, clusters)
+          statement Provider.saveTuitionFees (ident, fees)
           return ident
   fromValidation . (first (map asError)) <$> 
     for (Validator.qualificationBuilder (builder^.position @2)) (const save)
