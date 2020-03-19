@@ -78,6 +78,7 @@ mkArbitrary ''Cluster
 mkArbitrary ''QualificationBuilder
 mkArbitrary ''TuitionFees
 mkArbitrary ''Dependency
+mkArbitrary ''EdgeNodeQualificationDegree
 mkEncoder ''QualificationBuilder
 mkEncoder ''Qualification
 mkEncoder ''Dependency
@@ -358,7 +359,7 @@ getCountryToTypes =
 instance ParamsShow EdgeNodeQualificationDegree where
   render x = x^.isoEdgeNodeQualificationDegree
 
-getTypeToQualifications 
+getTypeToQualifications
   :: HS.Statement 
      (EdgeNodeAcademicArea, 
       EdgeNodeCountry, 
@@ -375,8 +376,12 @@ getTypeToQualifications =
     from edgenode.provider_branch as pb 
     left join edgenode.provider_branch_qualification as pbq 
     on pb.id = pbq.provider_branch_fk
-    where array[$1 :: text] :: text[] <@ pbq.academic_area
-          and pb.country = $2 :: text and pbq.type = $3 :: text|] $
+    where $1 :: text in 
+          (select * from 
+           jsonb_array_elements_text
+           (pbq.academic_area))
+          and pb.country = $2 :: text 
+          and pbq.type = $3 :: text|] $
     premap mkDecoder list
   where
     mkDecoder x = 

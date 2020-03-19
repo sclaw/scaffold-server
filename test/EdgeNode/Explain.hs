@@ -83,6 +83,7 @@ explainTests =
     , "saveQualification" =>> EdgeNode.Statement.Provider.saveQualification
     , "getAreaToCountries" =>> EdgeNode.Statement.Provider.getAreaToCountries
     , "getCountryToTypes" =>> EdgeNode.Statement.Provider.getCountryToTypes
+    , "getTypeToQualifications" =>> EdgeNode.Statement.Provider.getTypeToQualifications
     , "saveDependencies" =>> EdgeNode.Statement.Provider.saveDependencies
     , "saveTuitionFees" =>> EdgeNode.Statement.Provider.saveTuitionFees]
   , "EdgeNode.Statement.Auth" ==> 
