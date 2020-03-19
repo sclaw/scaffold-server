@@ -14,6 +14,7 @@ import EdgeNode.Country
 import EdgeNode.Minio
 import qualified EdgeNode.Transport.Auth as Transport.Auth
 import EdgeNode.Transport.Qualification
+import EdgeNode.Transport.Provider
 
 import TH.Mk
 import GHC.Generics hiding (from, to)
@@ -26,7 +27,7 @@ import Data.Aeson
 mkEnumConvertor ''Language
 mkEnumConvertor ''Country
 mkEnumConvertor ''Bucket
-mkEnumConvertor ''QualificationCategory
+mkEnumConvertor ''ProviderCategory
 mkEnumConvertor ''QualificationDegree
 mkEnumConvertor ''StudyTime
 mkEnumConvertor ''AcademicArea

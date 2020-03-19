@@ -67,7 +67,6 @@ import Data.Aeson
 deriving instance Enum QualificationDegree
 deriving instance Enum Country
 deriving instance Enum StudyTime
-deriving instance Enum QualificationCategory
 deriving instance Enum AcademicArea
 deriving instance Enum Currency
 deriving instance Enum Period
@@ -284,10 +283,9 @@ instance ParamsShow Qualification where
      & _4 %~ show
      & _5 %~ show
      & _6 %~ show
-     & _7 %~ (^.qualCategory.from stext)
-     & _8 %~ (^.qualStudyTime.from stext)
-     & _9 %~ (^.qualQualificationDegree.from stext)
-     & _10 %~ (maybe mempty (^.field @"stringValue".lazytext.from stext)))^..each
+     & _7 %~ (^.qualStudyTime.from stext)
+     & _8 %~ (^.qualQualificationDegree.from stext)
+     & _9 %~ (maybe mempty (^.field @"stringValue".lazytext.from stext)))^..each
     
 saveQualification  
   :: HS.Statement 
@@ -308,21 +306,20 @@ saveQualification = dimap mkEncoder (coerce @Int64 @(Id "qualification")) statem
        & _4 %~ fmap (fromIntegral @_ @Int64 . (^.field @"uint64Value"))
        & _5 %~ fmap (^.field @"boolValue")
        & _6 %~ fmap (fromIntegral @_ @Int64 . (^.field @"uint64Value"))
-       & _7 %~ (^.qualCategory)
-       & _8 %~ (^.qualStudyTime)
-       & _9 %~ (^.qualQualificationDegree)
-       & _10 %~ (^?_Just.field @"stringValue".lazytext))
+       & _7 %~ (^.qualStudyTime)
+       & _8 %~ (^.qualQualificationDegree)
+       & _9 %~ (^?_Just.field @"stringValue".lazytext))
     statement = 
       [singletonStatement|
         insert into edgenode.provider_branch_qualification
         (title, academic_area, start, finish, 
-         is_repeated, application_deadline, category,
+         is_repeated, application_deadline,
          study_time, type, created, provider_branch_fk, 
          min_degree_value) values 
         ($2 :: text, $3 :: jsonb, to_timestamp($4 :: int8?), 
          to_timestamp($5 :: int8?), $6 :: bool?,
-         to_timestamp($7 :: int8?), $8 :: text, $9 :: text, 
-         $10 :: text, now(), $1 :: int8, $11 :: text?) returning id :: int8|]
+         to_timestamp($7 :: int8?), $8 :: text, 
+         $9 :: text, now(), $1 :: int8, $10 :: text?) returning id :: int8|]
 
 instance ParamsShow EdgeNodeAcademicArea where
   render x = x^.isoEdgeNodeAcademicArea

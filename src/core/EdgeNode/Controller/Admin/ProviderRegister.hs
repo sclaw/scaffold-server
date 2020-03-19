@@ -3,6 +3,7 @@
 {-# LANGUAGE TypeOperators  #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module EdgeNode.Controller.Admin.ProviderRegister (controller) where
 
@@ -14,6 +15,7 @@ import EdgeNode.Model.User
 import EdgeNode.Statement.Rbac as Rbac
 import EdgeNode.Model.Rbac
 import qualified EdgeNode.Transport.Error as Error
+import EdgeNode.Transport.Iso
 
 import Auth
 import Katip
@@ -32,6 +34,8 @@ import Data.Traversable
 
 data ProviderRegistrationError = ProviderAlreadyExist
 
+deriving instance Enum ProviderCategory
+
 instance Error.AsError ProviderRegistrationError where 
   asError ProviderAlreadyExist = Error.asError @T.Text "provider already registered"
 
@@ -47,6 +51,7 @@ controller provider user = do
         (provider^.field @"providerRegistrationAdminEmail")
         (provider^.field @"providerRegistrationProviderUID")
         (provider^.field @"providerRegistrationTitle")
+        (provider^.field @"providerRegistrationCategory".providerCategory.from lazytext)
         (unPassHash hashedPassword^.from lazytext)
         (Secondary^.isoUserRole.stextl)
         (Active^.isoRegisterStatus.stextl)

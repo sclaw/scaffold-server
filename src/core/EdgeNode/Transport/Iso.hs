@@ -7,6 +7,7 @@ module EdgeNode.Transport.Iso where
 import EdgeNode.Country
 import EdgeNode.Lang
 import EdgeNode.Transport.Qualification
+import EdgeNode.Transport.Provider
 
 import TH.Proto
 import Control.Lens
@@ -23,8 +24,8 @@ language =  isoEnum fromLanguage toLanguage
 academicArea :: Enum AcademicArea => Iso' (Enumerated AcademicArea) T.Text
 academicArea = isoEnum fromAcademicArea toAcademicArea
 
-qualCategory :: Enum QualificationCategory => Iso' (Enumerated QualificationCategory) T.Text
-qualCategory = isoEnum fromQualificationCategory toQualificationCategory
+providerCategory :: Enum ProviderCategory => Iso' (Enumerated ProviderCategory) T.Text
+providerCategory = isoEnum fromProviderCategory toProviderCategory
 
 qualStudyTime :: Enum StudyTime => Iso' (Enumerated StudyTime) T.Text
 qualStudyTime = isoEnum fromStudyTime toStudyTime
