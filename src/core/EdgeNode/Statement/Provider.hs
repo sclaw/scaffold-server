@@ -303,7 +303,7 @@ saveQualification = dimap mkEncoder (coerce @Int64 @(Id "qualification")) statem
       (mkEncoderQualification
        (x^.position @2)
        & _1 %~ (^.lazytext)
-       & _2 %~ V.imap (\_ x -> (x^.academicArea))
+       & _2 %~ (toJSON . V.map (^.academicArea))
        & _3 %~ fmap (fromIntegral @_ @Int64 . (^.field @"uint64Value"))
        & _4 %~ fmap (fromIntegral @_ @Int64 . (^.field @"uint64Value"))
        & _5 %~ fmap (^.field @"boolValue")
@@ -319,7 +319,7 @@ saveQualification = dimap mkEncoder (coerce @Int64 @(Id "qualification")) statem
          is_repeated, application_deadline, category,
          study_time, type, created, provider_branch_fk, 
          min_degree_value) values 
-        ($2 :: text, $3 :: text[], to_timestamp($4 :: int8?), 
+        ($2 :: text, $3 :: jsonb, to_timestamp($4 :: int8?), 
          to_timestamp($5 :: int8?), $6 :: bool?,
          to_timestamp($7 :: int8?), $8 :: text, $9 :: text, 
          $10 :: text, now(), $1 :: int8, $11 :: text?) returning id :: int8|]
@@ -335,7 +335,7 @@ getAreaToCountries =
     from edgenode.provider_branch as pb 
     left join edgenode.provider_branch_qualification as pbq 
     on pb.id = pbq.provider_branch_fk
-    where array[$1 :: text] :: text[] <@ pbq.academic_area|] $ 
+    where $1 :: text in (select * from jsonb_array_elements_text(pbq.academic_area))|] $ 
   premap (^.from stext.from isoEdgeNodeCountry) list
 
 instance ParamsShow EdgeNodeCountry where
@@ -351,7 +351,10 @@ getCountryToTypes =
     from edgenode.provider_branch as pb 
     left join edgenode.provider_branch_qualification as pbq 
     on pb.id = pbq.provider_branch_fk
-    where array[$1 :: text] :: text[] <@ pbq.academic_area
+    where $1 :: text in 
+          (select * from 
+           jsonb_array_elements_text
+           (pbq.academic_area))
           and pb.country = $2 :: text|] $
   premap (^.from stext.from isoEdgeNodeQualificationDegree) list
 

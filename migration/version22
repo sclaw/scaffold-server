@@ -1,0 +1,2 @@
+alter table edgenode.provider_branch_qualification drop column academic_area;
+alter table edgenode.provider_branch_qualification add column academic_area jsonb not null;
