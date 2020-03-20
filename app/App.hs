@@ -17,7 +17,7 @@ import EdgeNode.Config
 import EdgeNode.Transport.Id
 
 import KatipController
-import BuildInfo (gitLatestCommitHash)
+import BuildInfo (gitCommit)
 import Pretty
 import qualified Database.Migration as Migration
 import Control.Lens hiding (Wrapped, Unwrapped) 
@@ -115,7 +115,7 @@ main =
               fileHdl
               (permitItem (cfg^.katip.severity.from stringify)) 
               (cfg^.katip.verbosity.from stringify)  
-      let mkNm = Namespace [("<" ++ $(gitLatestCommitHash) ++ ">")^.stext]
+      let mkNm = Namespace [("<" ++ $(gitCommit) ++ ">")^.stext]
       init_env <- initLogEnv mkNm (cfg^.katip.EdgeNode.Config.env.stext.coerced)
       let env = do 
             env' <- registerScribe "stdout" std defaultScribeSettings init_env 
