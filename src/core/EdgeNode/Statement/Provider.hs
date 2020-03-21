@@ -471,12 +471,13 @@ getQualifications = lmap (coerce @_ @Int64) $ statement $ premap mkItem list
         from edgenode.provider_user as pu
         inner join edgenode.provider as p
         on pu.provider_id = p.id
-        left join edgenode.provider_branch as pb 
+        left join edgenode.provider_branch as pb
         on p.id = pb.provider_fk
         left join edgenode.provider_branch_qualification as pbq
         on pb.id = pbq.provider_branch_fk
         where pu.user_id = $1 :: int8 
               and pbq.id is not null
+              and not pbq.is_deleted
         order by pb.title, pbq.title|]
     mkItem x = WithField (x^._1.coerced) $ ListItem (x^._2.from lazytext) (x^._3.from qualQualificationDegree) (x^._4.from lazytext)
 
