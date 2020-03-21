@@ -465,14 +465,17 @@ getQualifications = lmap (coerce @_ @Int64) $ statement $ premap mkItem list
   where
     statement = 
       [foldStatement|
-        select pbq.id :: int8, pbq.title :: text, 
-        pbq.type :: text, pb.title :: text
+        select 
+          pbq.id :: int8, pbq.title :: text, 
+          pbq.type :: text, pb.title :: text
         from edgenode.provider_user as pu
-        inner join edgenode.provider_branch as pb 
-        on pu.provider_id = pb.provider_fk
+        inner join edgenode.provider as p
+        on pu.provider_id = p.id
+        left join edgenode.provider_branch as pb 
+        on p.id = pb.provider_fk
         left join edgenode.provider_branch_qualification as pbq
         on pb.id = pbq.provider_branch_fk
-        where pu.id = $1 :: int8
+        where pu.user_id = $1 :: int8
         order by pb.title, pbq.title|]
     mkItem x = WithField (x^._1.coerced) $ ListItem (x^._2.from lazytext) (x^._3.from qualQualificationDegree) (x^._4.from lazytext)
 
