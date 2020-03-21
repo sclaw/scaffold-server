@@ -101,8 +101,15 @@ data ProviderApi route =
        :> Get '[JSON] (Response [WithId (Id "qualification") DegreeTypeToQualification])
      , _providerApiGetQualifications
        :: route
-       :- Description "qualoifications list grouped by branhes"
+       :- Description "qualoifications list grouped by branches"
        :> "qualification"
        :> "list"
        :> Get '[JSON] (Response [WithId (Id "qualification") ListItem])
+     , _providerApiGetQualification
+       :: route
+       :- Description "retrieve qualififcation by its id"
+       :> "qualification"
+       :> Capture "qualification_id" (Id "qualification")
+       :> Get '[JSON] (Response (WithId (Id "qualification") QualificationInfo))
+
      } deriving stock Generic

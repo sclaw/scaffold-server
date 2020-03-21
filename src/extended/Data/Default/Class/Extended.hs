@@ -23,5 +23,3 @@ instance Default a => Default (Enumerated a) where
   def = Enumerated $ Right def
 
 instance Default a => Default (V.Vector a) where def = V.replicate 10 def
-
-instance {-# OVERLAPS #-} Enum a => Default a where def = toEnum 0 

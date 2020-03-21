@@ -10,6 +10,8 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module EdgeNode.Statement.Provider 
        ( getBranches
@@ -36,7 +38,9 @@ import EdgeNode.Transport.Iso
 import EdgeNode.Transport.Extended
 import EdgeNode.Transport.Qualification
 import EdgeNode.Transport.Validator (degreeToValues)
+import qualified EdgeNode.Transport.Error as Error
 
+import Auth
 import TH.Proto
 import qualified Hasql.Statement as HS
 import Hasql.TH
@@ -65,6 +69,8 @@ import Data.Word
 import Data.Aeson.WithField
 import Data.Default.Class.Extended
 import Data.Aeson
+import GHC.Generics hiding (from, to)
+import qualified Data.Vector.Lens as L.V
 
 deriving instance Enum QualificationDegree
 deriving instance Enum Country
@@ -86,7 +92,16 @@ mkEncoder ''Qualification
 mkEncoder ''Dependency
 mkEncoder ''TuitionFees
 
+
+instance Default AcademicArea where def = toEnum 0
+instance Default StudyTime where def = toEnum 0
+instance Default Country where def = toEnum 0
+instance Default QualificationDegree where def = toEnum 0
+
 instance Default Qualification
+instance Default ClusterInfo
+instance Default DependencyInfo
+instance Default QualificationInfo
 
 instance ParamsShow Branch where 
   render x = intercalate ", " $
@@ -475,11 +490,64 @@ getQualifications = lmap (coerce @_ @Int64) $ statement $ premap mkItem list
         on p.id = pb.provider_fk
         left join edgenode.provider_branch_qualification as pbq
         on pb.id = pbq.provider_branch_fk
-        where pu.user_id = $1 :: int8 
+        where pu.user_id = $1 :: int8
               and pbq.id is not null
               and not pbq.is_deleted
         order by pb.title, pbq.title|]
     mkItem x = WithField (x^._1.coerced) $ ListItem (x^._2.from lazytext) (x^._3.from qualQualificationDegree) (x^._4.from lazytext)
 
-getQualificationById :: HS.Statement (Id "qualification") ()
-getQualificationById = undefined
+data GetQualificationByIdError
+     = GetQualificationByIdNF
+     | GetQualificationByIdJsonDecodeError
+     deriving stock Show
+
+instance Error.AsError GetQualificationByIdError where 
+  asError GetQualificationByIdNF = Error.asError @T.Text "qualification not found"
+  asError GetQualificationByIdJsonDecodeError = Error.asError @T.Text "academic area json decode error"
+
+getQualificationById :: HS.Statement (UserId, Id "qualification") (Either GetQualificationByIdError QualificationInfo)
+getQualificationById = 
+  dimap (bimap (coerce @(Id "user") @Int64) (coerce @_ @Int64)) 
+        (maybe (Left GetQualificationByIdNF) mkResp . fmap mkInfo) $ 
+  statement
+  where 
+    statement =
+      [maybeStatement|
+        select 
+          pbq.title :: text, 
+          pbq.academic_area :: jsonb, 
+          date_part('epoch', pbq.start) :: int8?, 
+          date_part('epoch', pbq.finish) :: int8?,
+          pbq.is_repeated :: bool?,
+          date_part('epoch', pbq.application_deadline) :: int8?,
+          pbq.study_time :: text,
+          pbq.type :: text,
+          pbq.min_degree_value :: text?
+        from edgenode.provider_user as pu
+        inner join edgenode.provider as p
+        on pu.provider_id = p.id
+        left join edgenode.provider_branch as pb
+        on p.id = pb.provider_fk
+        left join edgenode.provider_branch_qualification as pbq
+        on pb.id = pbq.provider_branch_fk
+        left join edgenode.provider_branch_qualification_dependency as pbqd
+        on pbqd.provider_branch_qualification_fk = pbq.id
+        where pu.user_id = $1 :: int8 
+              and pbq.id = $2 :: int8 
+              and not pbq.is_deleted|]
+    mkInfo x = flip fmap (fromJSON @[T.Text] (x^._2)) $ \areas -> 
+      (def :: QualificationInfo) 
+      & field @"qualificationInfoQualification" ?~
+        ((def :: Qualification)
+         & field @"qualificationTitle" .~ (x^._1.from lazytext)
+         & field @"qualificationAreas" .~ (areas^..traversed.from academicArea)^.L.V.vector
+         & field @"qualificationStart" .~ fmap (Protobuf.UInt64 . fromIntegral) (x^._3)
+         & field @"qualificationFinish" .~ fmap (Protobuf.UInt64 . fromIntegral) (x^._4)
+         & field @"qualificationIsRepeated" .~ fmap Protobuf.Bool (x^._5)
+         & field @"qualificationApplicationDeadline" .~ fmap (Protobuf.UInt64 . fromIntegral) (x^._6)
+         & field @"qualificationStudyTime" .~ x^._7.from qualStudyTime
+         & field @"qualificationDegreeType" .~ x^._8.from qualQualificationDegree
+         & field @"qualificationDegreeValue" .~ x^?_9._Just.from lazytext.to Protobuf.String)
+      & field @"qualificationInfoClusters" .~ mempty   
+    mkResp (Error _) = Left GetQualificationByIdJsonDecodeError
+    mkResp (Success info) = Right info
