@@ -8,9 +8,7 @@
 
 module EdgeNode.Controller.Controller (controller) where
 
-import Auth
 import EdgeNode.Api
-import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
 import qualified EdgeNode.Model.Rbac as Rbac
 import qualified EdgeNode.Statement.Rbac as Rbac
@@ -35,13 +33,14 @@ import qualified EdgeNode.Controller.Provider.QualificationBuilder.Create as Qua
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries as QualificationBuilder.GetAreaToCountries
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes as QualificationBuilder.GetCountryToTypes
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetTypeToQualifications as QualificationBuilder.GetTypeToQualifications
+import qualified EdgeNode.Controller.Provider.GetQualifications as Provider.GetQualifications 
 
+import Auth
 import Katip
 import KatipController
 import Servant.Server.Generic
 import Servant.API.Generic
 import Servant.Auth.Server
-import Network.IP.Addr
 import Control.Lens
 import Database.Transaction
 import Data.Bool
@@ -50,7 +49,7 @@ import qualified Data.Text as T
 controller :: ApplicationApi (AsServerT KatipController)
 controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
 
-verifyAuthorization :: Id "user" -> Rbac.Permission -> (Id "user" -> KatipController (Response a)) -> KatipController (Response a)
+verifyAuthorization :: UserId -> Rbac.Permission -> (UserId -> KatipController (Response a)) -> KatipController (Response a)
 verifyAuthorization uid perm controller = 
   do
     hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
@@ -64,17 +63,17 @@ verifyAuthorization uid perm controller =
 httpApi :: HttpApi (AsServerT KatipController)
 httpApi = 
   HttpApi 
-  { _httpApiAuth    = toServant . auth
-  , _httpApiUser    = \ip -> (`withAuthResult` (toServant . user ip))
-  , _httpApiService = \ip -> (`withAuthResult` (toServant . service ip))
-  , _httpApiSearch  = toServant . search
-  , _httpApiFile = toServant . file
-  , _httpApiAdmin = \ip -> (`withAuthResult` (toServant . admin ip))
-  , _httpApiProvider = \ip -> (`withAuthResult` (toServant . provider ip))
+  { _httpApiAuth     = toServant auth
+  , _httpApiUser     = (`withAuthResult` (toServant . user))
+  , _httpApiService  = (`withAuthResult` (toServant . service))
+  , _httpApiSearch   = toServant search
+  , _httpApiFile     = toServant file
+  , _httpApiAdmin    = (`withAuthResult` (toServant . admin))
+  , _httpApiProvider = (`withAuthResult` (toServant . provider))
   }
 
-auth :: Maybe IP4 ->  AuthApi (AsServerT KatipController)
-auth _ = 
+auth :: AuthApi (AsServerT KatipController)
+auth = 
   AuthApi 
   { _authApiAuthentication = \req -> 
     flip logExceptionM ErrorS $
@@ -88,8 +87,8 @@ auth _ =
     (Auth.RefreshAccessToken.controller req uid) 
   }
 
-user :: Maybe IP4 -> AuthResult JWTUser -> UserApi (AsServerT KatipController)
-user _ user = 
+user :: AuthResult JWTUser -> UserApi (AsServerT KatipController)
+user user = 
   UserApi 
   { _userApiLoadProfile =
     flip logExceptionM ErrorS $
@@ -98,8 +97,8 @@ user _ user =
     undefined
   }
 
-service :: Maybe IP4 -> AuthResult JWTUser -> ServiceApi (AsServerT KatipController)
-service _ user = ServiceApi { _serviceApiWeb = toServant webApi }
+service :: AuthResult JWTUser -> ServiceApi (AsServerT KatipController)
+service user = ServiceApi { _serviceApiWeb = toServant webApi }
   where
     webApi ::WebApi (AsServerT KatipController)
     webApi = WebApi { _webApiGoogle = toServant googleApi }
@@ -113,8 +112,8 @@ service _ user = ServiceApi { _serviceApiWeb = toServant webApi }
         undefined
       }
       
-search :: Maybe IP4 -> SearchApi (AsServerT KatipController)
-search _ = 
+search :: SearchApi (AsServerT KatipController)
+search = 
   SearchApi 
   { _searchApiSearch = \query ->
     flip logExceptionM ErrorS $
@@ -123,8 +122,8 @@ search _ =
      (Search.controller query)
   }
 
-file :: Maybe IP4 -> FileApi (AsServerT KatipController)
-file _ = 
+file :: FileApi (AsServerT KatipController)
+file = 
   FileApi 
   { _fileApiUpload = \bucket files -> 
     flip logExceptionM ErrorS $
@@ -148,8 +147,8 @@ file _ =
      (File.Download.controller option fid)
   }
 
-admin :: Maybe IP4 -> AuthResult BasicUser -> AdminApi (AsServerT KatipController)
-admin _ user = 
+admin :: AuthResult BasicUser -> AdminApi (AsServerT KatipController)
+admin user = 
   AdminApi 
   { _adminApiProviderRegister = \provider -> 
     flip logExceptionM ErrorS $
@@ -163,11 +162,8 @@ admin _ user =
      (withUser user (const (Admin.ResetPassword.controller provider_id user_id)))
   }
 
-provider  
- :: Maybe IP4 
- -> AuthResult JWTUser 
- -> ProviderApi (AsServerT KatipController)
-provider _ user = 
+provider :: AuthResult JWTUser -> ProviderApi (AsServerT KatipController)
+provider user = 
   ProviderApi
   { _providerApiGetBranches = 
     flip logExceptionM ErrorS $
@@ -268,4 +264,13 @@ provider _ user =
       (jWTUserUserId x) 
       Rbac.PermissionProviderAdmin
       (const (QualificationBuilder.GetTypeToQualifications.controller area cntry degree)))
+  , _providerApiGetQualifications =
+    flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["provider", "qualification", "list"])    
+     (applyController Nothing user $ \x -> 
+      verifyAuthorization 
+      (jWTUserUserId x) 
+      Rbac.PermissionProviderGuest 
+      Provider.GetQualifications.controller) 
   }

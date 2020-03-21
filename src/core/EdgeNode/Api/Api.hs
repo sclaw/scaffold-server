@@ -25,7 +25,6 @@ import EdgeNode.Api.File
 import EdgeNode.Api.Admin
 import EdgeNode.Api.Provider
 
-import Servant.Ip
 import Servant.API.Generic
 import Servant.API
 import Servant.Auth.Server
@@ -37,46 +36,39 @@ data HttpApi route =
        :: route
        :- Tags "auth" 
        :> "auth"
-       :> HeaderIP 
        :> ToServant AuthApi AsApi
      , _httpApiUser
        :: route
        :- Tags "user"
        :> "user"
-       :> HeaderIP
        :> Auth '[AppJwt] JWTUser
        :> ToServant UserApi AsApi
      , _httpApiService
        :: route
        :- Tags "service"
        :> "service"
-       :> HeaderIP
        :> Auth '[AppJwt] JWTUser
        :> ToServant ServiceApi AsApi
      , _httpApiSearch
        :: route 
        :- Tags "search"
        :> "search"
-       :> HeaderIP
        :> ToServant SearchApi AsApi
      , _httpApiFile  
        :: route 
        :- Tags "file"
        :> "file"
-       :> HeaderIP
        :> ToServant FileApi AsApi
      , _httpApiAdmin
        :: route
        :- Tags "admin" 
        :> "admin"
-       :> HeaderIP
        :> Auth '[Servant.Auth.Server.BasicAuth] BasicUser
        :> ToServant AdminApi AsApi
      , _httpApiProvider
        :: route 
        :- Tags "provider"
        :> "provider"
-       :> HeaderIP
        :> Auth '[AppJwt] JWTUser
        :> ToServant ProviderApi AsApi              
-     } deriving stock Generic 
+     } deriving stock Generic

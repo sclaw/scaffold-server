@@ -21,6 +21,7 @@ module Auth
       , AppJwt
       , BasicUser (..)
       , BasicAuthCfgData (..)
+      , UserId
       , withAuthResult
       , mkAccessToken
       , mkRefreshToken
@@ -81,6 +82,8 @@ import System.Random.PCG.Unique
 import Pretty
 
 data AppJwt
+
+type UserId = Id "user"
 
 data JWTUser = 
      JWTUser 

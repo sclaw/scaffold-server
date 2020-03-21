@@ -58,7 +58,6 @@ data ProviderApi route =
        :: route 
        :- "qualification"
        :> "builder"
-       :> "create"
        :> ReqBody '[JSON] (WithField "branch" (Id "branch") QualificationBuilder)
        :> Put '[JSON] (Response (Id "qualification"))
      , _providerApiBuilderGetAvailableBranches
@@ -100,4 +99,10 @@ data ProviderApi route =
        :> Capture "type" EdgeNodeQualificationDegree
        :> "qualifications"
        :> Get '[JSON] (Response [WithId (Id "qualification") DegreeTypeToQualification])
+     , _providerApiGetQualifications
+       :: route
+       :- Description "qualoifications list grouped by branhes"
+       :> "qualification"
+       :> "list"
+       :> Get '[JSON] (Response [WithId (Id "qualification") ListItem])
      } deriving stock Generic

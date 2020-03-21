@@ -26,6 +26,8 @@ module EdgeNode.Statement.Provider
        , getTypeToQualifications
        , saveDependencies
        , saveTuitionFees
+       , getQualifications
+       , getQualificationById
        ) where
 
 import EdgeNode.Transport.Id
@@ -457,3 +459,22 @@ saveTuitionFees =
        & _3 %~ (^.period)
        & _4 %~ (toJSON . (V.map (^.country)))
        & _5 %~ toJSON . (V.map (^.country)))
+
+getQualifications :: HS.Statement (Id "user") [WithId (Id "qualification") ListItem]
+getQualifications = lmap (coerce @_ @Int64) $ statement $ premap mkItem list
+  where
+    statement = 
+      [foldStatement|
+        select pbq.id :: int8, pbq.title :: text, 
+        pbq.type :: text, pb.title :: text
+        from edgenode.provider_user as pu
+        inner join edgenode.provider_branch as pb 
+        on pu.provider_id = pb.provider_fk
+        left join edgenode.provider_branch_qualification as pbq
+        on pb.id = pbq.provider_branch_fk
+        where pu.id = $1 :: int8
+        order by pb.title, pbq.title|]
+    mkItem x = WithField (x^._1.coerced) $ ListItem (x^._2.from lazytext) (x^._3.from qualQualificationDegree) (x^._4.from lazytext)
+
+getQualificationById :: HS.Statement (Id "qualification") ()
+getQualificationById = undefined
