@@ -97,6 +97,7 @@ library:
     - hasql
     - hasql-th == 0.4.0.4
     - exceptions
+    - regex
     - regex-with-pcre
     - validation
     - pretty-tree

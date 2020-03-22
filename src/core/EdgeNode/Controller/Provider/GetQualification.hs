@@ -29,10 +29,11 @@ controller
       (WithId (Id "qualification") 
        QualificationInfo))
 controller qualififcation_id user_id = do 
-  hasql <- fmap (^.katipEnv.hasqlDbPool) ask 
-  resp <- katipTransaction hasql $ 
+  hasql <- fmap (^.katipEnv.hasqlDbPool) ask  
+  resp <- katipTransaction hasql $ do
+    logger <- ask 
     statement 
-     Provider.getQualificationById 
+     (Provider.getQualificationById logger)
      (user_id, qualififcation_id)
   $(logTM) DebugS $ logStr $ 
     "qualification: " ++ 

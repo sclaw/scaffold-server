@@ -41,6 +41,9 @@ import EdgeNode.Transport.Qualification
 import EdgeNode.Transport.Validator (degreeToValues)
 import qualified EdgeNode.Transport.Error as Error
 
+import KatipController
+import Katip
+import Pretty
 import Auth
 import TH.Proto
 import qualified Hasql.Statement as HS
@@ -72,6 +75,13 @@ import Data.Default.Class.Extended
 import Data.Aeson
 import GHC.Generics hiding (from, to)
 import qualified Data.Vector.Lens as L.V
+import System.IO.Unsafe
+import qualified Text.RE.Replace as Regexp
+import qualified Text.RE.PCRE as Regexp
+import Data.Char
+
+import Debug.Trace
+
 
 deriving instance Enum QualificationDegree
 deriving instance Enum Country
@@ -101,6 +111,8 @@ instance Default QualificationDegree where def = toEnum 0
 
 instance Default Qualification
 instance Default ClusterInfo
+instance Default ClusterInfo_Dependency
+instance Default QualificationInfo_Cluster
 instance Default DependencyInfo
 instance Default QualificationInfo
 
@@ -499,21 +511,75 @@ getQualifications = lmap (coerce @_ @Int64) $ statement $ premap mkItem list
 
 data GetQualificationByIdError
      = GetQualificationByIdNF
-     | GetQualificationByIdJsonDecodeError
+     | GetQualificationByIdJsonDecodeError String
      deriving stock Show
 
 instance Error.AsError GetQualificationByIdError where 
   asError GetQualificationByIdNF = Error.asError @T.Text "qualification not found"
-  asError GetQualificationByIdJsonDecodeError = Error.asError @T.Text "academic area json decode error"
+  asError (GetQualificationByIdJsonDecodeError _) = Error.asError @T.Text "json decode error"
 
-getQualificationById :: HS.Statement (UserId, Id "qualification") (Either GetQualificationByIdError QualificationInfo)
-getQualificationById = 
+newtype QICW = QICW QualificationInfo_Cluster 
+
+instance FromJSON QICW where 
+  parseJSON = withObject "QICW" $ \object_raw -> do
+    let result_e = 
+          fromJSON $ 
+          read $ 
+          replaceEnum $ 
+          show $ 
+          Object object_raw       
+    case result_e of 
+      Success x -> pure $ QICW x
+      Error e -> error e
+
+replaceEnum :: String -> String 
+replaceEnum = 
+ go degreeTypePattern (maybe mempty ((\s -> "\"" ++ s ++ "\"")  . T.unpack) . T.stripPrefix "QualificationDegree" . T.pack . show . toQualificationDegree) .
+ go academicAreaPattern (maybe mempty ((\s -> "\"" ++ s ++ "\"") . T.unpack) . T.stripPrefix "AcademicArea" . T.pack . show . toAcademicArea) .
+  go countryPattern (maybe mempty ((\s -> "\"" ++ s ++ "\"") . T.unpack) . T.stripPrefix "Country" . T.pack . show . toCountry)
+  where
+    go pattern transform src = 
+      Regexp.replaceAllCaptures 
+      Regexp.ALL 
+      (replace transform) $ 
+      src Regexp.*=~ pattern
+    replace transform _ loc cap = Just $ 
+      case Regexp.locationCapture loc of
+        0 -> transform $ init $ tail $ Regexp.capturedText cap
+        _ -> error "replaceEnum:go"
+    countryPattern = [Regexp.re|"(?<=\"country\",String\s\")[a-z_]*(?=\"\))"|]
+    academicAreaPattern = [Regexp.re|"(?<=\"academicArea\",String\s\")[a-z]*(?=\"\))"|]
+    degreeTypePattern = [Regexp.re|"(?<=\"degreeType\",String\s\")[a-z_]*(?=\"\))"|]    
+
+getQualificationById :: KatipLoggerIO -> HS.Statement (UserId, Id "qualification") (Either GetQualificationByIdError QualificationInfo)
+getQualificationById logger = 
   dimap (bimap (coerce @(Id "user") @Int64) (coerce @_ @Int64)) 
         (maybe (Left GetQualificationByIdNF) mkResp . fmap mkInfo) $ 
   statement
   where 
     statement =
       [maybeStatement|
+        with clusters as (
+          select 
+            pbqd.cluster,
+            pbqd.dependency_fk as ident,
+            array_agg(jsonb_build_object(
+            'position', pbqd.position,
+            'value', jsonb_build_object(
+             'academicArea', pbqd.academic_area,
+             'country', pb.country,
+             'degreeType', pbq.type,
+             'qualification', jsonb_build_object(
+               'ident', pbq.id,
+               'title', pbq.title),
+             'requiredDegree', pbqd.required_degree))
+              order by pbqd.position) as dependencies
+          from edgenode.provider_branch_qualification_dependency as pbqd
+          inner join edgenode.provider_branch_qualification as pbq
+          on pbqd.provider_branch_qualification_fk = pbq.id
+          inner join edgenode.provider_branch as pb
+          on pbq.provider_branch_fk = pb.id
+          group by pbqd.cluster, pbqd.dependency_fk)
         select 
           pbq.title :: text, 
           pbq.academic_area :: jsonb, 
@@ -523,7 +589,11 @@ getQualificationById =
           date_part('epoch', pbq.application_deadline) :: int8?,
           pbq.study_time :: text,
           pbq.type :: text,
-          pbq.min_degree_value :: text?
+          pbq.min_degree_value :: text?,
+          array_agg(jsonb_build_object(
+            'position', c.cluster,
+            'value', jsonb_build_object('dependencies', c.dependencies)
+          )) :: jsonb[]
         from edgenode.provider_user as pu
         inner join edgenode.provider as p
         on pu.provider_id = p.id
@@ -531,24 +601,35 @@ getQualificationById =
         on p.id = pb.provider_fk
         left join edgenode.provider_branch_qualification as pbq
         on pb.id = pbq.provider_branch_fk
-        left join edgenode.provider_branch_qualification_dependency as pbqd
-        on pbqd.provider_branch_qualification_fk = pbq.id
-        where pu.user_id = $1 :: int8 
-              and pbq.id = $2 :: int8 
-              and not pbq.is_deleted|]
-    mkInfo x = flip fmap (fromJSON @[T.Text] (x^._2)) $ \areas -> 
-      (def :: QualificationInfo) 
-      & field @"qualificationInfoQualification" ?~
-        ((def :: Qualification)
-         & field @"qualificationTitle" .~ (x^._1.from lazytext)
-         & field @"qualificationAreas" .~ (areas^..traversed.from academicArea)^.L.V.vector
-         & field @"qualificationStart" .~ fmap (Protobuf.UInt64 . fromIntegral) (x^._3)
-         & field @"qualificationFinish" .~ fmap (Protobuf.UInt64 . fromIntegral) (x^._4)
-         & field @"qualificationIsRepeated" .~ fmap Protobuf.Bool (x^._5)
-         & field @"qualificationApplicationDeadline" .~ fmap (Protobuf.UInt64 . fromIntegral) (x^._6)
-         & field @"qualificationStudyTime" .~ x^._7.from qualStudyTime
-         & field @"qualificationDegreeType" .~ x^._8.from qualQualificationDegree
-         & field @"qualificationDegreeValue" .~ x^?_9._Just.from lazytext.to Protobuf.String)
-      & field @"qualificationInfoClusters" .~ mempty   
-    mkResp (Error _) = Left GetQualificationByIdJsonDecodeError
+        left join clusters as c
+        on pbq.id = c.ident
+        where pu.user_id = $1 :: int8 and pbq.id = $2 :: int8 and not pbq.is_deleted
+        group by pbq.title, pbq.academic_area, pbq.start, 
+        finish, pbq.is_repeated, pbq.application_deadline, 
+        pbq.study_time, pbq.type, pbq.min_degree_value|]
+    mkInfo x = 
+      let json_result = unsafePerformIO $ 
+            do logger DebugS (logStr (mkPretty mempty (x^._2)))
+               logger DebugS (logStr (mkPretty "before modification" (x^._10)))
+               let clusters_e = traverse (coerce . fromJSON @QICW) (x^._10)
+               logger DebugS (logStr (mkPretty "after modification" clusters_e))
+               pure $ do 
+                 areas <- fromJSON @[T.Text] (x^._2)
+                 clusters <- clusters_e 
+                 pure (areas, clusters)
+      in flip fmap json_result $ \(areas, clusters) -> 
+          (def :: QualificationInfo) 
+          & field @"qualificationInfoQualification" ?~
+            ((def :: Qualification)
+            & field @"qualificationTitle" .~ (x^._1.from lazytext)
+            & field @"qualificationAreas" .~ (areas^..traversed.from academicArea)^.L.V.vector
+            & field @"qualificationStart" .~ fmap (Protobuf.UInt64 . fromIntegral) (x^._3)
+            & field @"qualificationFinish" .~ fmap (Protobuf.UInt64 . fromIntegral) (x^._4)
+            & field @"qualificationIsRepeated" .~ fmap Protobuf.Bool (x^._5)
+            & field @"qualificationApplicationDeadline" .~ fmap (Protobuf.UInt64 . fromIntegral) (x^._6)
+            & field @"qualificationStudyTime" .~ x^._7.from qualStudyTime
+            & field @"qualificationDegreeType" .~ x^._8.from qualQualificationDegree
+            & field @"qualificationDegreeValue" .~ x^?_9._Just.from lazytext.to Protobuf.String)
+          & field @"qualificationInfoClusters" .~ clusters
+    mkResp (Error error) = Left (GetQualificationByIdJsonDecodeError error)
     mkResp (Success info) = Right info
