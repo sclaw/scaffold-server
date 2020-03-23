@@ -25,7 +25,8 @@ import qualified EdgeNode.Controller.Provider.PatchBranch as Provider.PatchBranc
 import qualified EdgeNode.Controller.Provider.DeleteBranch as Provider.DeleteBranch 
 import qualified EdgeNode.Controller.Provider.SetHQ as Provider.SetHQ
 import qualified EdgeNode.Controller.Search as Search
-import qualified EdgeNode.Controller.Auth.SignIn as Auth.SignIn 
+import qualified EdgeNode.Controller.Auth.SignIn as Auth.SignIn
+import qualified EdgeNode.Controller.Auth.SignOut as Auth.SignOut 
 import qualified EdgeNode.Controller.Auth.RefreshAccessToken as Auth.RefreshAccessToken
 import qualified EdgeNode.Controller.Provider.Publish as Provider.Publish
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetAvailableBranches as QualificationBuilder.GetAvailableBranches
@@ -79,13 +80,18 @@ auth =
   { _authApiAuthentication = \req -> 
     flip logExceptionM ErrorS $
     katipAddNamespace 
-    (Namespace ["auth", "authentication"])  
+    (Namespace ["auth", "authentication"])
     (Auth.SignIn.controller req)
   , _authApiRefreshAccessToken = \uid req ->
     flip logExceptionM ErrorS $
-    katipAddNamespace 
+    katipAddNamespace
     (Namespace ["auth", "refreshAccessToken"])  
-    (Auth.RefreshAccessToken.controller req uid) 
+    (Auth.RefreshAccessToken.controller req uid)
+  , _authApiLogout = \user_id refresh_token_hash ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace 
+    (Namespace ["auth", "logout"])
+    (Auth.SignOut.controller user_id refresh_token_hash)
   }
 
 user :: AuthResult JWTUser -> UserApi (AsServerT KatipController)

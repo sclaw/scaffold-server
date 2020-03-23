@@ -14,13 +14,8 @@ import System.Process (readProcess)
 import Data.Maybe
 
 gitCommit :: ExpQ
-gitCommit = lift $ unsafePerformIO mkHash
-  where
-    mkHash = do
-      let logArgs  = ["log", "-1", "--format=%h"]
-      let git args = readProcess "git" args ""
-      (head.lines) `fmap` git logArgs
-      
+gitCommit = lift $ unsafePerformIO $ (head.lines) `fmap` readProcess "git" ["log", "-1", "--format=%h"] mempty
+ 
 gitTag :: ExpQ
 gitTag = lift $ unsafePerformIO $ fromMaybe "-" . listToMaybe . lines <$> readProcess "git" ["tag", "--list", "--sort=-creatordate"] ""
 

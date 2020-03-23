@@ -534,9 +534,24 @@ instance FromJSON QICW where
 
 replaceEnum :: String -> String 
 replaceEnum = 
- go degreeTypePattern (maybe mempty ((\s -> "\"" ++ s ++ "\"")  . T.unpack) . T.stripPrefix "QualificationDegree" . T.pack . show . toQualificationDegree) .
- go academicAreaPattern (maybe mempty ((\s -> "\"" ++ s ++ "\"") . T.unpack) . T.stripPrefix "AcademicArea" . T.pack . show . toAcademicArea) .
-  go countryPattern (maybe mempty ((\s -> "\"" ++ s ++ "\"") . T.unpack) . T.stripPrefix "Country" . T.pack . show . toCountry)
+ go degreeTypePattern 
+ (maybe mempty ((\s -> "\"" ++ s ++ "\"")  . T.unpack) . 
+  T.stripPrefix "QualificationDegree" . 
+  T.pack . 
+  show . 
+  toQualificationDegree) .
+ go academicAreaPattern 
+ (maybe mempty ((\s -> "\"" ++ s ++ "\"") . T.unpack) . 
+  T.stripPrefix "AcademicArea" . 
+  T.pack . 
+  show . 
+  toAcademicArea) .
+ go countryPattern 
+ (maybe mempty ((\s -> "\"" ++ s ++ "\"") . T.unpack) . 
+  T.stripPrefix "Country" . 
+  T.pack . 
+  show . 
+  toCountry)
   where
     go pattern transform src = 
       Regexp.replaceAllCaptures 
@@ -548,7 +563,7 @@ replaceEnum =
         0 -> transform $ init $ tail $ Regexp.capturedText cap
         _ -> error "replaceEnum:go"
     countryPattern = [Regexp.re|"(?<=\"country\",String\s\")[a-z_]*(?=\"\))"|]
-    academicAreaPattern = [Regexp.re|"(?<=\"academicArea\",String\s\")[a-z]*(?=\"\))"|]
+    academicAreaPattern = [Regexp.re|"(?<=\"academicArea\",String\s\")[a-z_]*(?=\"\))"|]
     degreeTypePattern = [Regexp.re|"(?<=\"degreeType\",String\s\")[a-z_]*(?=\"\))"|]    
 
 getQualificationById :: KatipLoggerIO -> HS.Statement (UserId, Id "qualification") (Either GetQualificationByIdError QualificationInfo)

@@ -61,7 +61,7 @@ data HttpApi route =
        :> ToServant FileApi AsApi
      , _httpApiAdmin
        :: route
-       :- Tags "admin" 
+       :- Tags "admin"
        :> "admin"
        :> Auth '[Servant.Auth.Server.BasicAuth] BasicUser
        :> ToServant AdminApi AsApi

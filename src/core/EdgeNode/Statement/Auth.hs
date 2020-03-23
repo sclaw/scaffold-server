@@ -13,6 +13,7 @@ module EdgeNode.Statement.Auth
        , putRefreshToken
        , checkRefreshToken
        , mkTokenInvalid
+       , logout
        ) where
 
 import EdgeNode.Transport.Auth
@@ -20,6 +21,7 @@ import EdgeNode.Transport.Id
 import EdgeNode.Model.User
 import EdgeNode.Statement.Provider ()
 
+import Auth
 import qualified Hasql.Statement as HS
 import TH.Mk
 import qualified Data.Text.Lazy as LT
@@ -39,6 +41,8 @@ import qualified Data.Text as T
 import Data.Int
 import Test.QuickCheck.Extended
 import Test.QuickCheck.Arbitrary.Generic
+import Data.Aeson.Unit
+import Data.Aeson.WithField
 
 mkEncoder ''SigninReq
 
@@ -54,7 +58,7 @@ instance ParamsShow SigninReq where
     , x^.field @"signinReqPassword".from stextl
     ]
 
-getUserCred :: HS.Statement SigninReq (Maybe (Id "user", UserRole, PassHash))
+getUserCred :: HS.Statement SigninReq (Maybe (UserId, UserRole, PassHash))
 getUserCred = dimap (initT . mkTpl . mkEncoderSigninReq) decoder statement
   where
     mkTpl x = 
@@ -73,13 +77,13 @@ getUserCred = dimap (initT . mkTpl . mkEncoderSigninReq) decoder statement
          & _Just._2 %~ (^.from stext.from isoUserRole) 
          & _Just._3 %~ (^.from textbs.to coerce)
 
-instance ParamsShow (B.ByteString, Id "user" , T.Text) where 
+instance ParamsShow (B.ByteString, UserId, T.Text) where 
     render x = intercalate "," 
       [ x^._1.from textbs.from stext
       , x^._2.coerced @_ @_ @Int64 @_.to show
       , x^._3.from stext] 
     
-putRefreshToken :: HS.Statement (Id "user", T.Text, T.Text) ()
+putRefreshToken :: HS.Statement (UserId, T.Text, T.Text) ()
 putRefreshToken = lmap (& _1 %~ coerce) statement
   where
     statement =
@@ -88,7 +92,7 @@ putRefreshToken = lmap (& _1 %~ coerce) statement
         (created, user_fk, refresh_token_hash, "unique") 
         values (now(), $1 :: int8, $2 :: text, $3 :: text)|] 
 
-checkRefreshToken :: HS.Statement (T.Text, Id "user") (Maybe (Int64, UserRole))
+checkRefreshToken :: HS.Statement (T.Text, UserId) (Maybe (Int64, UserRole))
 checkRefreshToken = dimap (& _2 %~ coerce) (fmap (& _2 %~ (^.from stext.from isoUserRole))) $
   [maybeStatement|
     select at.id :: int8, "user_type" :: text
@@ -101,3 +105,14 @@ checkRefreshToken = dimap (& _2 %~ coerce) (fmap (& _2 %~ (^.from stext.from iso
 
 mkTokenInvalid :: HS.Statement Int64 ()
 mkTokenInvalid = [resultlessStatement|update auth.token set is_valid = false where id = $1 :: int8|]
+
+logout :: HS.Statement (UserId, OnlyField "hash" T.Text) (Either () Unit)
+logout = dimap (bimap coerce coerce) decoder statement
+  where 
+    decoder i | i > 0 = Right Unit
+              | otherwise = Left mempty
+    statement = 
+      [rowsAffectedStatement|
+        delete from auth.token 
+        where "user_fk" = $1 :: int8 and 
+        refresh_token_hash = $2 :: text|]

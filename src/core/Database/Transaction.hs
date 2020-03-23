@@ -47,6 +47,8 @@ import GHC.Generics
 import PostgreSQL.ErrorCodes
 import qualified Data.Text as T
 import qualified Data.Vector.Extended as V
+import Data.Aeson.WithField
+import Data.Coerce
 
 newtype QueryErrorWrapper = QueryErrorWrapper Hasql.QueryError 
   deriving Show
@@ -147,6 +149,8 @@ instance ParamsShow a => ParamsShow [a] where
   render xs = intercalate ", " $ map render xs
 instance ParamsShow a => ParamsShow (V.Vector a) where 
   render v = intercalate ", " $ map render (V.toList v)
+instance ParamsShow a => ParamsShow (OnlyField symb a) where 
+  render = render . coerce @_ @a
 
 statement :: ParamsShow a => Hasql.Statement a b -> a -> ReaderT KatipLoggerIO Session b
 statement s@(Hasql.Statement sql _ _ _) a = do
