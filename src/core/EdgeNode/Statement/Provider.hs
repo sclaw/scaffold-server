@@ -622,8 +622,8 @@ getQualificationById logger =
         on pbq.id = c.ident
         where pu.user_id = $1 :: int8 and pbq.id = $2 :: int8 and not pbq.is_deleted
         group by pbq.title, pbq.academic_area, pbq.start, 
-        finish, pbq.is_repeated, pbq.application_deadline, 
-        pbq.study_time, pbq.type, pbq.min_degree_value|]
+        finish, pbq.is_repeated, pbq.application_deadline,
+        pbq.study_time, pbq.type, pbq.min_degree_value, pb.id, pb.title|]
     mkInfo x = 
       let json_result = unsafePerformIO $ 
             do logger DebugS (logStr (mkPretty mempty (x^._2)))

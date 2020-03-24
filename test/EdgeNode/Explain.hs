@@ -86,7 +86,8 @@ explainTests =
     , "getTypeToQualifications" =>> EdgeNode.Statement.Provider.getTypeToQualifications
     , "saveDependencies" =>> EdgeNode.Statement.Provider.saveDependencies
     , "saveTuitionFees" =>> EdgeNode.Statement.Provider.saveTuitionFees
-    , "getQualifications" =>> EdgeNode.Statement.Provider.getQualifications]
+    , "getQualifications" =>> EdgeNode.Statement.Provider.getQualifications
+    , "getQualificationById" =>> EdgeNode.Statement.Provider.getQualificationById]
   , "EdgeNode.Statement.Auth" ==> 
     [ "getUserCred" =>> EdgeNode.Statement.Auth.getUserCred
     , "putRefreshToken" =>> EdgeNode.Statement.Auth.putRefreshToken
