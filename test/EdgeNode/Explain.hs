@@ -87,7 +87,7 @@ explainTests =
     , "saveDependencies" =>> EdgeNode.Statement.Provider.saveDependencies
     , "saveTuitionFees" =>> EdgeNode.Statement.Provider.saveTuitionFees
     , "getQualifications" =>> EdgeNode.Statement.Provider.getQualifications
-    , "getQualificationById" =>> EdgeNode.Statement.Provider.getQualificationById]
+    , "getQualificationById" =>> (EdgeNode.Statement.Provider.getQualificationById undefined) ]
   , "EdgeNode.Statement.Auth" ==> 
     [ "getUserCred" =>> EdgeNode.Statement.Auth.getUserCred
     , "putRefreshToken" =>> EdgeNode.Statement.Auth.putRefreshToken
