@@ -608,7 +608,9 @@ getQualificationById logger =
           array_agg(jsonb_build_object(
             'position', c.cluster,
             'value', jsonb_build_object('dependencies', c.dependencies)
-          )) :: jsonb[]
+          )) :: jsonb[],
+        pb.id :: int8,
+        pb.title :: text  
         from edgenode.provider_user as pu
         inner join edgenode.provider as p
         on pu.provider_id = p.id
@@ -646,5 +648,6 @@ getQualificationById logger =
             & field @"qualificationDegreeType" .~ x^._8.from qualQualificationDegree
             & field @"qualificationDegreeValue" .~ x^?_9._Just.from lazytext.to Protobuf.String)
           & field @"qualificationInfoClusters" .~ clusters
+          & field @"qualificationInfoBranch" ?~ BranchInfo (x^._11.integral) (x^._12.from lazytext)
     mkResp (Error error) = Left (GetQualificationByIdJsonDecodeError error)
     mkResp (Success info) = Right info
