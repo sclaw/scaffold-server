@@ -36,6 +36,7 @@ import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToT
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetTypeToQualifications as QualificationBuilder.GetTypeToQualifications
 import qualified EdgeNode.Controller.Provider.GetQualifications as Provider.GetQualifications 
 import qualified EdgeNode.Controller.Provider.GetQualification as Provider.GetQualification
+import qualified EdgeNode.Controller.Provider.PatchQualification as Provider.PatchQualification
 
 import Auth
 import Katip
@@ -289,4 +290,13 @@ provider user =
       (jWTUserUserId x) 
       Rbac.PermissionProviderAdmin
       (Provider.GetQualification.controller ident))
+  , _providerApiPatchQualification = \ident patch ->
+    flip logExceptionM ErrorS $
+     katipAddNamespace 
+     (Namespace ["provider", "qualification", "patch"])    
+     (applyController Nothing user $ \x -> 
+      verifyAuthorization 
+      (jWTUserUserId x) 
+      Rbac.PermissionProviderAdmin
+      (Provider.PatchQualification.controller ident patch))    
   }

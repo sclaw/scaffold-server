@@ -111,5 +111,11 @@ data ProviderApi route =
        :> "qualification"
        :> Capture "qualification_id" (Id "qualification")
        :> Get '[JSON] (Response (WithId (Id "qualification") QualificationInfo))
-
+     , _providerApiPatchQualification
+       :: route
+       :- Description "patch given qualififcation"
+       :> "qualification"
+       :> Capture "qualification_id" (Id "qualification")
+       :> ReqBody '[JSON] PatchQualification
+       :> Patch '[JSON] (Response Unit)
      } deriving stock Generic
