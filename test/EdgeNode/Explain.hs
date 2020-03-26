@@ -87,7 +87,10 @@ explainTests =
     , "saveDependencies" =>> EdgeNode.Statement.Provider.saveDependencies
     , "saveTuitionFees" =>> EdgeNode.Statement.Provider.saveTuitionFees
     , "getQualifications" =>> EdgeNode.Statement.Provider.getQualifications
-    , "getQualificationById" =>> (EdgeNode.Statement.Provider.getQualificationById undefined) ]
+    , "getQualificationById" =>> (EdgeNode.Statement.Provider.getQualificationById undefined)
+    , "patchQualification" =>> EdgeNode.Statement.Provider.patchQualification]
+   -- , "patchClusters" =>> EdgeNode.Statement.Provider.patchClusters
+   -- , "patchTuitionFees" =>> EdgeNode.Statement.Provider.patchTuitionFees]
   , "EdgeNode.Statement.Auth" ==> 
     [ "getUserCred" =>> EdgeNode.Statement.Auth.getUserCred
     , "putRefreshToken" =>> EdgeNode.Statement.Auth.putRefreshToken

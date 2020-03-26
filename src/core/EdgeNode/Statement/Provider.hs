@@ -31,6 +31,9 @@ module EdgeNode.Statement.Provider
        , saveTuitionFees
        , getQualifications
        , getQualificationById
+       , patchQualification
+       , patchTuitionFees
+       , patchClusters
        ) where
 
 import EdgeNode.Transport.Id
@@ -102,7 +105,18 @@ mkEncoder ''QualificationBuilder
 mkEncoder ''Qualification
 mkEncoder ''Dependency
 mkEncoder ''TuitionFees
-
+mkEncoder ''PatchQualificationItem
+mkArbitrary ''PatchDegreeValue
+mkArbitrary ''PatchQualificationDegree
+mkArbitrary ''PatchStudyTime
+mkArbitrary ''PatchApplicationDeadline
+mkArbitrary ''PatchIsRepeated
+mkArbitrary ''PatchFinish
+mkArbitrary ''PatchStart
+mkArbitrary ''PatchAcademicArea
+mkArbitrary ''PatchTitle
+mkArbitrary ''PatchBranch
+mkArbitrary ''PatchQualificationItem
 
 instance Default AcademicArea where def = toEnum 0
 instance Default StudyTime where def = toEnum 0
@@ -651,3 +665,66 @@ getQualificationById logger =
           & field @"qualificationInfoBranch" ?~ BranchInfo (x^._11.integral) (x^._12.from lazytext)
     mkResp (Error error) = Left (GetQualificationByIdJsonDecodeError error)
     mkResp (Success info) = Right info
+
+instance ParamsShow PatchQualificationItem where 
+  render x = intercalate ", " $
+    (mkEncoderPatchQualificationItem x
+    & _1 %~ (fromMaybe mempty . fmap (^.field @"patchTitleValue".lazytext.from stext))
+    & _2 %~ (^._Just.field @"patchAcademicAreaValue".from L.V.vector.traversed.to (^.academicArea.from stext))
+    & _3 %~ (^._Just.field @"patchStartValue".to show)
+    & _4 %~ (^._Just.field @"patchFinishValue".to show)
+    & _5 %~ (^._Just.field @"patchIsRepeatedValue".to show)
+    & _6 %~ (^._Just.field @"patchApplicationDeadlineValue".to show)
+    & _7 %~ (^._Just.field @"patchStudyTimeValue".qualStudyTime.from stext)
+    & _8 %~ (^._Just.field @"patchQualificationDegreeValue".qualQualificationDegree.from stext)
+    & _9 %~ (^._Just.field @"patchDegreeValueValue".lazytext.from stext)
+    & _10 %~ (^._Just.field @"patchBranchValue".to show))^..each
+
+consT11 x (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10) = (x, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10)
+consT12 x (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11) = (x, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11)
+
+patchQualification :: HS.Statement (Id "qualification", UserId, PatchQualificationItem) ()
+patchQualification = lmap mkEncoder statement
+  where
+    mkEncoder (qual_id, user_id, patch) = 
+      consT12 (coerce @_ @Int64 qual_id) $
+        consT11 (coerce @_ @Int64 user_id) 
+        (mkEncoderPatchQualificationItem patch
+         & _1 %~ fmap (^.field @"patchTitleValue".lazytext)
+         & _2 %~ fmap (toJSON . (^..field @"patchAcademicAreaValue".from L.V.vector.traversed.to (^.academicArea)))
+         & _3 %~ fmap (^.field @"patchStartValue".integral)
+         & _4 %~ fmap (^.field @"patchFinishValue".integral)
+         & _5 %~ fmap (^.field @"patchIsRepeatedValue")
+         & _6 %~ fmap (^.field @"patchApplicationDeadlineValue".integral)
+         & _7 %~ fmap (^.field @"patchStudyTimeValue".qualStudyTime)
+         & _8 %~ fmap (^.field @"patchQualificationDegreeValue".qualQualificationDegree)
+         & _9 %~ fmap (^.field @"patchDegreeValueValue".lazytext)
+         & _10 %~ fmap (^.field @"patchBranchValue".integral))
+    statement =
+      [resultlessStatement|
+        update edgenode.provider_branch_qualification set 
+        title = coalesce($3 :: text?, title),
+        academic_area = coalesce($4 :: jsonb?, academic_area),
+        start = coalesce(to_timestamp($5 :: int8?), start),
+        finish = coalesce(to_timestamp($6 :: int8?), finish),
+        is_repeated = coalesce($7 :: bool?, is_repeated),
+        application_deadline = coalesce(to_timestamp($8 :: int8?), application_deadline),
+        study_time = coalesce($9 :: text?, study_time),
+        type= coalesce($10 :: text?, type),
+        min_degree_value = coalesce($11 :: text?, min_degree_value),
+        provider_branch_fk = coalesce($12 :: int8?, provider_branch_fk)
+        where "id" =
+         (select pbq.id from edgenode.provider_user as pu
+          inner join edgenode.provider as pv 
+          on pu.provider_id = pv.id
+          left join edgenode.provider_branch as pb
+          on pb.provider_fk = pv.id
+          left join edgenode.provider_branch_qualification as pbq
+          on pbq.provider_branch_fk = pb.id
+          where pu.id = $2 :: int8 and pbq.id = $1 :: int8)|]
+
+patchClusters :: HS.Statement (Id "qualification", UserId) ()
+patchClusters = undefined
+
+patchTuitionFees :: HS.Statement (Id "qualification", UserId) ()
+patchTuitionFees = undefined
