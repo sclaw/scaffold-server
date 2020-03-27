@@ -83,8 +83,8 @@ degreeToValues =
   , (QualificationDegreeMSc, ["1", "2:1", "2:2", "3"])
   , (QualificationDegreeMA, ["1", "2:1", "2:2", "3"])
   , (QualificationDegreeMRes, ["1", "2:1", "2:2", "3"])
-  , (QualificationDegreeTOEFL_IBT, map (LT.fromStrict . showt) [0 .. 120 :: Int])
-  , (QualificationDegreeTOEFL_PBT, map (LT.fromStrict . showt) [310 .. 677 :: Int])
+  , (QualificationDegreeToeflIBT, map (LT.fromStrict . showt) [0 .. 120 :: Int])
+  , (QualificationDegreeToeflPBT, map (LT.fromStrict . showt) [310 .. 677 :: Int])
   , (QualificationDegreeIELTS, map (LT.fromStrict . showt) [0, 0.5 .. 9 :: Double])]
 
 qualififcationPatch :: PatchQualification -> Validation [T.Text] ()
