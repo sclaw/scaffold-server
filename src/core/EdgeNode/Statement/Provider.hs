@@ -67,7 +67,6 @@ import qualified Data.Text.Lazy as LT
 import qualified Data.Text as T
 import Data.List
 import Data.Generics.Product.Fields
-import Data.Tuple.Ops
 import Data.Generics.Product.Positions
 import Data.Time
 import Data.Maybe
@@ -82,9 +81,7 @@ import System.IO.Unsafe
 import qualified Text.RE.Replace as Regexp
 import qualified Text.RE.PCRE as Regexp
 import Data.Char
-
-import Debug.Trace
-
+import Data.Tuple.Extended
 
 deriving instance Enum QualificationDegree
 deriving instance Enum Country
@@ -670,25 +667,22 @@ instance ParamsShow PatchQualificationItem where
   render x = intercalate ", " $
     (mkEncoderPatchQualificationItem x
     & _1 %~ (fromMaybe mempty . fmap (^.field @"patchTitleValue".lazytext.from stext))
-    & _2 %~ (^._Just.field @"patchAcademicAreaValue".from L.V.vector.traversed.to (^.academicArea.from stext))
-    & _3 %~ (^._Just.field @"patchStartValue".to show)
-    & _4 %~ (^._Just.field @"patchFinishValue".to show)
-    & _5 %~ (^._Just.field @"patchIsRepeatedValue".to show)
-    & _6 %~ (^._Just.field @"patchApplicationDeadlineValue".to show)
-    & _7 %~ (^._Just.field @"patchStudyTimeValue".qualStudyTime.from stext)
-    & _8 %~ (^._Just.field @"patchQualificationDegreeValue".qualQualificationDegree.from stext)
-    & _9 %~ (^._Just.field @"patchDegreeValueValue".lazytext.from stext)
-    & _10 %~ (^._Just.field @"patchBranchValue".to show))^..each
-
-consT11 x (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10) = (x, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10)
-consT12 x (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11) = (x, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11)
+    & _2 %~ (fromMaybe mempty . fmap (^.field @"patchAcademicAreaValue".from L.V.vector.traversed.to (^.academicArea.from stext)))
+    & _3 %~ (fromMaybe mempty . fmap (^.field @"patchStartValue".to show))
+    & _4 %~ (fromMaybe mempty . fmap (^.field @"patchFinishValue".to show))
+    & _5 %~ (fromMaybe mempty . fmap (^.field @"patchIsRepeatedValue".to show))
+    & _6 %~ (fromMaybe mempty . fmap (^.field @"patchApplicationDeadlineValue".to show))
+    & _7 %~ (fromMaybe mempty . fmap (^.field @"patchStudyTimeValue".qualStudyTime.from stext))
+    & _8 %~ (fromMaybe mempty . fmap (^.field @"patchQualificationDegreeValue".qualQualificationDegree.from stext))
+    & _9 %~ (fromMaybe mempty . fmap (^.field @"patchDegreeValueValue".lazytext.from stext))
+    & _10 %~ (fromMaybe mempty . fmap (^.field @"patchBranchValue".to show))) ^..each
 
 patchQualification :: HS.Statement (Id "qualification", UserId, PatchQualificationItem) ()
 patchQualification = lmap mkEncoder statement
   where
     mkEncoder (qual_id, user_id, patch) = 
-      consT12 (coerce @_ @Int64 qual_id) $
-        consT11 (coerce @_ @Int64 user_id) 
+      consT (coerce @_ @Int64 qual_id) $
+        consT (coerce @_ @Int64 user_id) 
         (mkEncoderPatchQualificationItem patch
          & _1 %~ fmap (^.field @"patchTitleValue".lazytext)
          & _2 %~ fmap (toJSON . (^..field @"patchAcademicAreaValue".from L.V.vector.traversed.to (^.academicArea)))

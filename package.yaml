@@ -175,6 +175,7 @@ library:
     - servant-mock
     - insert-ordered-containers 
     - servant-auth-swagger
+    - generics-sop
 
   source-dirs:
     - src/core
