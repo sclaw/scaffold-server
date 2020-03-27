@@ -129,9 +129,6 @@ import Data.Tuple
 
 class Select s t where
   -- | Takes an n-ary tuple and returns the first element of the requested type
-  --
-  -- >>> sel (1,'d','c') :: Char
-  -- 'd'
   sel :: s -> t
 
 instance (GenericNP s rep_s, GSelect (RepNP s) t) => Select s t where
@@ -148,9 +145,6 @@ instance {-# OVERLAPPING #-} GSelect (NP I xs) t => GSelect (NP I (a ': xs)) t w
 
 class SelectN s (n :: Nat) t | s n -> t where
   -- | Takes an n-ary tuple and a `Proxy` carrying a `Nat`, returns the element with the index specified by the @Nat@
-  --
-  -- >>> selN (1,'d',False,'c') (Proxy :: Proxy 2)
-  -- False
   selN :: s -> Proxy n -> t
 
 instance (GenericNP s rep_s, GSelectN (RepNP s) (Lit n) t) => SelectN s n t where
@@ -167,9 +161,6 @@ instance GSelectN (NP I xs) n t => GSelectN (NP I (a ': xs)) (S' n) t where
 
 
 -- | Selects the first element in an n-ary tuple
---
--- >>> sel1 (0,'d','c')
--- 0
 sel1 :: SelectN s 0 t => s -> t
 sel1 s = selN s (Proxy :: Proxy 0)
 sel2 :: SelectN s 1 t => s -> t
@@ -215,14 +206,6 @@ lastT s = selN s (Proxy :: Proxy (n - 1))
 
 class TailT s t | s -> t where
   -- | Takes an n-ary tuple and returns the same tuple minus the first element.
-  --
-  -- >>> tailT (1,2,3,4)
-  -- (2,3,4)
-  --
-  -- Works only only tuples of size at least 3
-  --
-  -- >>> tailT (1,2)
-  -- Couldn't match type `2 ':<= 3' with `2 ':>= 3'
   tailT :: s -> t
 
 instance (GenericNP s rep_s, GenericNP t rep_t, LEQ (LengthT s) 3, GTailT rep_s rep_t) => TailT s t where
@@ -236,14 +219,6 @@ instance GTailT (NP I (a ': xs)) (NP I xs) where
 
 class InitT s t | s -> t where
   -- | Takes an n-ary tuple and returns the same tuple minus the first element.
-  --
-  -- >>> initT (1,2,3,4)
-  -- (1,2,3)
-  --
-  -- Works only only tuples of size at least 3
-  --
-  -- >>> initT (1,2)
-  -- Couldn't match type `2 ':<= 3' with `2 ':>= 3'
   initT :: s -> t
 
 instance (GenericNP s rep_s, GenericNP t rep_t, LEQ (LengthT s) 3, GInitT rep_s rep_t) => InitT s t where
@@ -296,14 +271,6 @@ appPoly f s = app (poly f) s
   
 class AppN f s (n :: Nat) t | f s n -> t where
   -- | Applies a function to the element at index @n@ in an n-ary tuple.
-  --
-  -- >>> appN not (Proxy 2) (False,True,False)
-  -- (False,True,True)
-  --
-  -- `appN` also works for polymorphic functions
-  --
-  -- >>> appN show (5,'c',False) (Proxy :: Proxy 2)
-  -- (5,'c',"False")
   appN :: f -> s -> Proxy n -> t
 
 instance (GenericNP s rep_s, GenericNP t rep_t, GAppN f rep_s (Lit n) rep_t) => AppN f s n t where
@@ -405,12 +372,6 @@ instance GMapT f apps (NP I xs) (NP I xs') => GMapT f ('False ': apps) (NP I (c 
   gmapT f _ (c :* xs) = c :* gmapT f (Proxy :: Proxy apps) xs
 
 -- | Applies a polymorphic function to each element in an n-ary tuple. Requires all elements in the tuple to be of the same type.
---
--- >>> mapPolyT (+1) (5,6,7,8)
--- (6,7,8,9)
---
--- >>> mapPolyT (+1) (5,6,7,False)
--- No instance for (Num Bool) arising from the literal `5'
 mapPolyT :: MapT (Poly a b) s t => (a -> b) -> s -> t
 mapPolyT f s = mapT (poly f) s
 
@@ -486,9 +447,6 @@ instance {-# OVERLAPPABLE #-} (b ~ c, GInsert n a (NP I xs) (NP I xs')) => GInse
 
 class InsertN a s n t | a s n -> t where
   -- | Inserts an element at an index specified position into an n-ary tuple
-  --
-  -- >>> insN 5 ('c',1,False) (Proxy :: Proxy 1)
-  -- ('c',5,1,False)
   insN :: a -> s -> Proxy n -> t
 
 instance (GenericNP s rep_s, GenericNP t rep_t, GInsertN a rep_s (Lit n) rep_t) => InsertN a s n t where
@@ -559,9 +517,6 @@ instance GDelete (NP I xs) (NP I xs') => GDelete (NP I (a ': xs)) (NP I (a ': xs
 
 class DeleteN s (n :: Nat) t | s n -> t where
   -- | Deletes an element specified by an index in an n-ary tuple
-  --
-  -- >>> delN ('c',False,5) (Proxy :: Proxy 1)
-  -- ('c',5)
   delN :: s -> Proxy n -> t
 
 instance (GenericNP s rep_s, GenericNP t rep_t, LEQ (LengthT s) 3, GDeleteN rep_s (Lit n) rep_t) => DeleteN s n t where
@@ -655,9 +610,6 @@ instance (a ~ a', b ~ b', GFoldRight (a -> b' -> b) (NP I xs) b) => GFoldRight (
 -- Currently broken. So not exported until I can properly fix it.
 class FlattenT s t | s -> t where
   -- | Compresses sub-tuples into their paren-tuples
-  --
-  -- >>> flattenT (5,6,(1,2,(3,4)))
-  --  
   flattenT :: s -> t
 
 instance (GenericNP s rep_s, GenericNP t rep_t, GFlattenT (AreProducts rep_s) rep_s rep_t) => FlattenT s t where
