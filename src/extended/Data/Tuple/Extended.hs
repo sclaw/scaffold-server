@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
@@ -647,8 +649,8 @@ instance GFoldRight (a -> b -> b) (NP I '[]) b where
 instance (a ~ a', b ~ b', GFoldRight (a -> b' -> b) (NP I xs) b) => GFoldRight (a -> b' -> b) (NP I (a' ': xs)) b where
   gfoldrT f b (I a :* xs) = f a $ gfoldrT f b xs
 
-class FoldLeftF f s t | f s -> t where
-  foldlF :: f -> s -> t
+-- class FoldLeftF f s t | f s -> t where
+--   foldlF :: f -> s -> t
 
 -- Currently broken. So not exported until I can properly fix it.
 class FlattenT s t | s -> t where

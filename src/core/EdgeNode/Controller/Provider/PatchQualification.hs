@@ -23,7 +23,6 @@ import Control.Lens
 import Data.Foldable
 import Data.Traversable
 import qualified Data.Text as T
-import Data.Bifunctor
 
 controller 
   :: Id "qualification"
