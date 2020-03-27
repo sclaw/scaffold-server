@@ -16,6 +16,8 @@ import EdgeNode.Transport.Validator
 import qualified EdgeNode.Transport.Error as Error
 
 import Auth
+import Katip
+import Pretty
 import KatipController
 import Data.Aeson.Unit
 import Database.Transaction
@@ -29,7 +31,8 @@ controller
   -> PatchQualification 
   -> UserId
   -> KatipController (Response Unit)
-controller qualification_id patch@(PatchQualification {..}) user_id  = do 
+controller qualification_id patch@(PatchQualification {..}) user_id  = do
+  $(logTM) DebugS (logStr ("qualification to be patched: " ++ mkPretty mempty patch))
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask 
   fmap (fromValidation . bimap mkError (const Unit)) $ 
     for (qualififcationPatch patch) $ const $

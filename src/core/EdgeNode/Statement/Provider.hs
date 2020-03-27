@@ -706,7 +706,8 @@ patchQualification = lmap mkEncoder statement
         study_time = coalesce($9 :: text?, study_time),
         type= coalesce($10 :: text?, type),
         min_degree_value = coalesce($11 :: text?, min_degree_value),
-        provider_branch_fk = coalesce($12 :: int8?, provider_branch_fk)
+        provider_branch_fk = coalesce($12 :: int8?, provider_branch_fk),
+        modified = now()    
         where "id" =
          (select pbq.id from edgenode.provider_user as pu
           inner join edgenode.provider as pv 
@@ -715,7 +716,7 @@ patchQualification = lmap mkEncoder statement
           on pb.provider_fk = pv.id
           left join edgenode.provider_branch_qualification as pbq
           on pbq.provider_branch_fk = pb.id
-          where pu.id = $2 :: int8 and pbq.id = $1 :: int8)|]
+          where pu.user_id = $2 :: int8 and pbq.id = $1 :: int8 and not pbq.is_deleted)|]
 
 patchClusters :: HS.Statement (Id "qualification", UserId) ()
 patchClusters = undefined
