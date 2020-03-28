@@ -18,15 +18,13 @@ getBarItems = statement $ (fmap SearchBar . premap (^.from lazytext)) vector
     statement = 
       [foldStatement|
         with get_qualification_matched_ids as
-         (select x.ident
-          from (
-           select 
-            distinct provider_branch_qualification_fk as ident, 
-            similarity($1 :: text, piece) as match_per 
-           from search.qualification) as x
-          where (x.match_per > 0)
-          order by x.match_per desc
-          limit 10) 
+        (select x.ident
+         from (
+          select provider_branch_qualification_fk as ident 
+          from search.qualification
+          where word_similarity($1 :: text, piece) >= 0.5 
+          limit 10) as x) 
         select title :: text
         from edgenode.provider_branch_qualification 
-        where id = any(select ident from get_qualification_matched_ids)|]
+        where id = any(select ident from get_qualification_matched_ids) 
+        order by title asc|]

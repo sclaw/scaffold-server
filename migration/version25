@@ -13,7 +13,7 @@ $$
 begin
   delete from search.qualification;
   insert into search.qualification
-  (provider_branch_qualification_fk, piece, origin)
+  (provider_branch_qualification_fk, origin, piece)
   select id, title, unnest(tsvector_to_array(to_tsvector(title))) 
   from "edgenode"."provider_branch_qualification";
   return null;
