@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module EdgeNode.Statement.Search (getQualification) where
+module EdgeNode.Statement.Search (getBarItems) where
 
 import EdgeNode.Transport.Search
 
@@ -12,8 +12,8 @@ import Control.Lens.Iso.Extended
 import Control.Lens
 import Control.Foldl
 
-getQualification :: HS.Statement T.Text [SearchQualification]
-getQualification = statement $ premap mkItem list
+getBarItems :: HS.Statement T.Text SearchBar
+getBarItems = statement $ (fmap SearchBar . premap (^.from lazytext)) vector
   where
     statement = 
       [foldStatement|
@@ -25,8 +25,8 @@ getQualification = statement $ premap mkItem list
             similarity($1 :: text, piece) as match_per 
            from search.qualification) as x
           where (x.match_per > 0)
-          order by x.match_per desc) 
-        select id :: int8, title :: text
+          order by x.match_per desc
+          limit 10) 
+        select title :: text
         from edgenode.provider_branch_qualification 
         where id = any(select ident from get_qualification_matched_ids)|]
-    mkItem x = SearchQualification (x^._1.integral) (x^._2.from lazytext)

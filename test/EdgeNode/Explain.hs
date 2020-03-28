@@ -99,7 +99,7 @@ explainTests =
     , "mkTokenInvalid" =>> EdgeNode.Statement.Auth.mkTokenInvalid
     , "logout" =>> EdgeNode.Statement.Auth.logout]
   , "EdgeNode.Statement.Search" ==>
-    ["getQualification" =>> EdgeNode.Statement.Search.getQualification]  
+    ["getBarItems" =>> EdgeNode.Statement.Search.getBarItems]  
   ]
   
 (==>) a b = (a, b)

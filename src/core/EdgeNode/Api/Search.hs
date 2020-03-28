@@ -17,12 +17,12 @@ import Data.Aeson.WithField.Extended
 
 data SearchApi route = 
      SearchApi
-     { _searchApiSearchQualification
+     { _searchApiSearchBar
        :: route
        :- Description ""
-       :> "qualification"
+       :> "bar"
        :> QueryParam "query" 
           (OnlyField "query" T.Text)
        :> Get '[JSON] 
-          (Response [SearchQualification])
+          (Response SearchBar)
      } deriving stock Generic
