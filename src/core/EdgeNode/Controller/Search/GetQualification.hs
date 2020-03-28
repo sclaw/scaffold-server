@@ -17,10 +17,10 @@ import Data.Coerce
 import Database.Transaction
 import Control.Lens
 
-controller :: Maybe (OnlyField "query" T.Text) -> KatipController (Response [Qualification])
+controller :: Maybe (OnlyField "query" T.Text) -> KatipController (Response [SearchQualification])
 controller query = fmap (fromMaybe (Ok [])) $ for query (goQuery . coerce)
 
-goQuery :: T.Text -> KatipController (Response [Qualification])
+goQuery :: T.Text -> KatipController (Response [SearchQualification])
 goQuery query = do 
   $(logTM) DebugS (logStr query)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask

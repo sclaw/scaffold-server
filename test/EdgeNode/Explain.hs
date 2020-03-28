@@ -17,6 +17,7 @@ import qualified EdgeNode.Statement.User
 import qualified EdgeNode.Statement.Admin
 import qualified EdgeNode.Statement.Provider
 import qualified EdgeNode.Statement.Auth
+import qualified EdgeNode.Statement.Search
 
 import Database.Migration.Test
 import Test.Hspec hiding (shouldBe)
@@ -96,7 +97,9 @@ explainTests =
     , "putRefreshToken" =>> EdgeNode.Statement.Auth.putRefreshToken
     , "checkRefreshToken" =>> EdgeNode.Statement.Auth.checkRefreshToken
     , "mkTokenInvalid" =>> EdgeNode.Statement.Auth.mkTokenInvalid
-    , "logout" =>> EdgeNode.Statement.Auth.logout]  
+    , "logout" =>> EdgeNode.Statement.Auth.logout]
+  , "EdgeNode.Statement.Search" ==>
+    ["getQualification" =>> EdgeNode.Statement.Search.getQualification]  
   ]
   
 (==>) a b = (a, b)

@@ -24,5 +24,5 @@ data SearchApi route =
        :> QueryParam "query" 
           (OnlyField "query" T.Text)
        :> Get '[JSON] 
-          (Response [Qualification])
+          (Response [SearchQualification])
      } deriving stock Generic

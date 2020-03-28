@@ -1,0 +1,25 @@
+create schema if not exists search;
+create table search.qualification (
+  provider_branch_qualification_fk int8 not null
+  constraint "search_qualification__provider_branch_qualification_id_fk" 
+  references edgenode.provider_branch_qualification(id),
+  piece text not null,
+  origin text not null
+);
+create index search_qualification__trgm_idx ON search.qualification USING GIST (piece gist_trgm_ops);
+
+create function modify__search_qualification() returns trigger as
+$$
+begin
+  delete from search.qualification;
+  insert into search.qualification
+  (provider_branch_qualification_fk, piece, origin)
+  select id, title, unnest(tsvector_to_array(to_tsvector(title))) 
+  from "edgenode"."provider_branch_qualification";
+end;
+$$ 
+language 'plpgsql';
+
+create trigger go__modify__search_qualification 
+after insert or update on edgenode.provider_branch_qualification 
+for each row execute procedure modify__search_qualification();
