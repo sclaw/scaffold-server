@@ -9,7 +9,6 @@ module EdgeNode.Api.Api
        ( HttpApi (..)
        , module EdgeNode.Api.Auth
        , module EdgeNode.Api.User
-       , module EdgeNode.Api.Service
        , module EdgeNode.Api.Search
        , module EdgeNode.Api.File
        , module EdgeNode.Api.Admin 
@@ -19,7 +18,6 @@ module EdgeNode.Api.Api
 import Auth
 import EdgeNode.Api.Auth
 import EdgeNode.Api.User
-import EdgeNode.Api.Service
 import EdgeNode.Api.Search
 import EdgeNode.Api.File
 import EdgeNode.Api.Admin
@@ -43,12 +41,6 @@ data HttpApi route =
        :> "user"
        :> Auth '[AppJwt] JWTUser
        :> ToServant UserApi AsApi
-     , _httpApiService
-       :: route
-       :- Tags "service"
-       :> "service"
-       :> Auth '[AppJwt] JWTUser
-       :> ToServant ServiceApi AsApi
      , _httpApiSearch
        :: route 
        :- Tags "search"

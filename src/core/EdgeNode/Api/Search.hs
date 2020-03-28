@@ -8,16 +8,21 @@
 module EdgeNode.Api.Search (SearchApi (..)) where
 
 import EdgeNode.Transport.Response
+import EdgeNode.Transport.Search
 
 import Servant.API.Generic
 import Servant.API
 import qualified Data.Text as T
+import Data.Aeson.WithField.Extended
 
 data SearchApi route = 
      SearchApi
-     { _searchApiSearch
+     { _searchApiSearchQualification
        :: route
        :- Description ""
-       :> QueryParam "query" T.Text
-       :> Get '[JSON] (Response T.Text)
+       :> "qualification"
+       :> QueryParam "query" 
+          (OnlyField "query" T.Text)
+       :> Get '[JSON] 
+          (Response [Qualification])
      } deriving stock Generic

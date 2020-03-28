@@ -11,6 +11,7 @@ import EdgeNode.Api.Search
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Extended
 import EdgeNode.Statement.Provider ()
+import EdgeNode.Transport.Search
 
 import TH.Mk
 import Test.Hspec
@@ -23,6 +24,7 @@ mkArbitrary ''ProviderRegistration
 mkArbitrary ''GetBranchResp
 mkArbitrary ''MkBranchReq
 mkArbitrary ''PatchBranchReq
+mkArbitrary ''Qualification
 
 spec_api :: Spec
 spec_api = 

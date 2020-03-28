@@ -24,7 +24,7 @@ import qualified EdgeNode.Controller.Provider.CreateBranches as Provider.CreateB
 import qualified EdgeNode.Controller.Provider.PatchBranch as Provider.PatchBranch 
 import qualified EdgeNode.Controller.Provider.DeleteBranch as Provider.DeleteBranch 
 import qualified EdgeNode.Controller.Provider.SetHQ as Provider.SetHQ
-import qualified EdgeNode.Controller.Search as Search
+import qualified EdgeNode.Controller.Search.GetQualification as Search.GetQualification
 import qualified EdgeNode.Controller.Auth.SignIn as Auth.SignIn
 import qualified EdgeNode.Controller.Auth.SignOut as Auth.SignOut 
 import qualified EdgeNode.Controller.Auth.RefreshAccessToken as Auth.RefreshAccessToken
@@ -68,7 +68,6 @@ httpApi =
   HttpApi 
   { _httpApiAuth     = toServant auth
   , _httpApiUser     = (`withAuthResult` (toServant . user))
-  , _httpApiService  = (`withAuthResult` (toServant . service))
   , _httpApiSearch   = toServant search
   , _httpApiFile     = toServant file
   , _httpApiAdmin    = (`withAuthResult` (toServant . admin))
@@ -104,30 +103,15 @@ user user =
     (Namespace ["user", "loadProfile"])
     undefined
   }
-
-service :: AuthResult JWTUser -> ServiceApi (AsServerT KatipController)
-service user = ServiceApi { _serviceApiWeb = toServant webApi }
-  where
-    webApi ::WebApi (AsServerT KatipController)
-    webApi = WebApi { _webApiGoogle = toServant googleApi }
-    googleApi ::GoogleApi (AsServerT KatipController)
-    googleApi =
-      GoogleApi
-      { _googleApiLoadCountries =
-        flip logExceptionM ErrorS $ 
-        katipAddNamespace 
-        (Namespace ["service", "web", "google", "loadContries"])
-        undefined
-      }
       
 search :: SearchApi (AsServerT KatipController)
 search = 
   SearchApi 
-  { _searchApiSearch = \query ->
+  { _searchApiSearchQualification = \query ->
     flip logExceptionM ErrorS $
      katipAddNamespace 
-     (Namespace ["search"])
-     (Search.controller query)
+     (Namespace ["search", "qualification"])
+     (Search.GetQualification.controller query)
   }
 
 file :: FileApi (AsServerT KatipController)

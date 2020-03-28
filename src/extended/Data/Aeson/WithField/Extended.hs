@@ -28,6 +28,12 @@ import GHC.Generics
 import Data.Foldable
 import GHC.TypeLits
 import Database.Transaction
+import Servant.API
+
+instance ToParamSchema a => ToParamSchema (OnlyField s a)
+
+instance FromHttpApiData a => FromHttpApiData (OnlyField s a) where 
+  parseUrlPiece = fmap OnlyField . parseUrlPiece 
 
 instance (ParamsShow a, ParamsShow b) => 
          ParamsShow (WithField s a b) 
