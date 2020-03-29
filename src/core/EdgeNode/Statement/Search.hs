@@ -36,14 +36,14 @@ getBarItems = statement $ (fmap SearchBar . premap (^.from lazytext)) vector
              distinct piece, 
              word_similarity($1 :: text, piece) as sim
             from search.qualification
-            where word_similarity($1 :: text, piece) >= 0.5
+            where word_similarity($1 :: text, piece) >= 0.5 and is_public
             limit 10),
           get_provider_matched_ids as 
            (select 
              distinct piece, 
              word_similarity($1 :: text, piece) as sim
             from search.provider
-            where word_similarity($1 :: text, piece) >= 0.5
+            where word_similarity($1 :: text, piece) >= 0.5 and is_public
             limit 10),
           get_combined_search as 
            (select piece, sim
@@ -82,7 +82,7 @@ getQualificationList = lmap mkEncoder $ statement $ (fmap SearchQualificationLis
             inner join edgenode.provider as p
             on p.id = pb.provider_fk
             where word_similarity($1 :: text, sq.piece) >= 0.5 
-            and not pbq.is_deleted and p.category = $2 :: text),
+            and not pbq.is_deleted and p.category = $2 :: text and sq.is_public),
           get_ordinary_qualifications as
            (select pbq.id, pbq.title, pbq.type as degree_type, pbp.title as branch_title
             from search.provider as sp 
@@ -95,7 +95,7 @@ getQualificationList = lmap mkEncoder $ statement $ (fmap SearchQualificationLis
             left join edgenode.provider_branch_qualification as pbq
             on pbq.provider_branch_fk = pb.id
             where word_similarity($1 :: text, sp.piece) >= 0.5 
-            and pbq.id is not null and not pbq.is_deleted and p.category = $2 :: text),
+            and pbq.id is not null and not pbq.is_deleted and p.category = $2 :: text and sp.is_public),
           get_combined_search as 
            (select * from get_branch_qualifications 
             union 

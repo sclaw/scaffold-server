@@ -1,0 +1,37 @@
+alter table search.qualification add column is_public bool not null default false;
+alter table search.provider add column is_public bool not null default false;
+
+
+create or replace function modify_search_qualification() returns trigger as
+$$
+begin
+  delete from search.qualification;
+  insert into search.qualification
+  (provider_branch_qualification_fk, origin, piece, is_public)
+  select pbq.id, pbq.title, unnest(tsvector_to_array(to_tsvector(pbq.title))),
+  p.category = 'higher_degree'
+  from "edgenode"."provider" as p 
+  left join "edgenode"."provider_branch" as pb
+  on pb.provider_fk = p.id 
+  left join "edgenode"."provider_branch_qualification" as pbq
+  on pbq.provider_branch_fk = pb.id;
+  return null;
+end;
+$$ 
+language 'plpgsql';
+
+create or replace function modify_search_provider() returns trigger as
+$$
+begin
+  delete from search.provider;
+  insert into search.provider
+  (provider_branch_fk, origin, piece, is_public)
+  select pb.id, pb.title, unnest(tsvector_to_array(to_tsvector(pb.title))), 
+  p.category = 'higher_degree'
+  from "edgenode"."provider" as p 
+  left join "edgenode"."provider_branch" as pb
+  on pb.provider_fk = p.id;
+  return null;
+end;
+$$ 
+language 'plpgsql';
