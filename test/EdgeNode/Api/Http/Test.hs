@@ -25,6 +25,8 @@ mkArbitrary ''GetBranchResp
 mkArbitrary ''MkBranchReq
 mkArbitrary ''PatchBranchReq
 mkArbitrary ''SearchBar
+mkArbitrary ''SearchQualificationItem
+mkArbitrary ''SearchQualificationList
 
 spec_api :: Spec
 spec_api = 

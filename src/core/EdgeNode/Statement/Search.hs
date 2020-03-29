@@ -1,7 +1,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module EdgeNode.Statement.Search (getBarItems) where
+module EdgeNode.Statement.Search
+       ( getBarItems
+       , getQualificationList
+       ) where
 
 import EdgeNode.Transport.Search
 
@@ -28,3 +31,6 @@ getBarItems = statement $ (fmap SearchBar . premap (^.from lazytext)) vector
         from edgenode.provider_branch_qualification 
         where id = any(select ident from get_qualification_matched_ids) 
         order by title asc|]
+
+getQualificationList :: HS.Statement T.Text SearchQualificationList
+getQualificationList = undefined

@@ -25,6 +25,7 @@ import qualified EdgeNode.Controller.Provider.PatchBranch as Provider.PatchBranc
 import qualified EdgeNode.Controller.Provider.DeleteBranch as Provider.DeleteBranch 
 import qualified EdgeNode.Controller.Provider.SetHQ as Provider.SetHQ
 import qualified EdgeNode.Controller.Search.GetBarItems as Search.GetBarItems
+import qualified EdgeNode.Controller.Search.GetQualificationList as Search.GetQualificationList
 import qualified EdgeNode.Controller.Auth.SignIn as Auth.SignIn
 import qualified EdgeNode.Controller.Auth.SignOut as Auth.SignOut 
 import qualified EdgeNode.Controller.Auth.RefreshAccessToken as Auth.RefreshAccessToken
@@ -107,11 +108,16 @@ user user =
 search :: SearchApi (AsServerT KatipController)
 search = 
   SearchApi 
-  { _searchApiSearchBar = \query ->
+  { _searchApiGetSearchBar = \query ->
     flip logExceptionM ErrorS $
      katipAddNamespace 
      (Namespace ["search", "qualification"])
      (Search.GetBarItems.controller query)
+  , _searchApiGetQualificationList = \query ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace 
+    (Namespace ["search", "qualification"])
+    (Search.GetQualificationList.controller query)
   }
 
 file :: FileApi (AsServerT KatipController)
