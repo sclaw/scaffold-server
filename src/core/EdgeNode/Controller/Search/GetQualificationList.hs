@@ -6,6 +6,7 @@ module EdgeNode.Controller.Search.GetQualificationList (controller) where
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Search
 import qualified EdgeNode.Statement.Search as Search
+import EdgeNode.Transport.Provider
 
 import Katip
 import KatipController
@@ -25,4 +26,4 @@ goQuery query = do
   $(logTM) DebugS (logStr query)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap Ok $ katipTransaction hasql $ 
-    statement Search.getQualificationList query
+    statement Search.getQualificationList (query, ProviderCategoryHigherDegree)

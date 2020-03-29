@@ -1,5 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module EdgeNode.Statement.Search
        ( getBarItems
@@ -9,13 +11,19 @@ module EdgeNode.Statement.Search
 import EdgeNode.Transport.Search
 import EdgeNode.Transport.Iso
 import EdgeNode.Statement.Provider ()
+import EdgeNode.Transport.Provider
 
+import TH.Mk
+import TH.Proto
 import qualified Hasql.Statement as HS
 import Hasql.TH
 import qualified Data.Text as T
 import Control.Lens.Iso.Extended
 import Control.Lens
 import Control.Foldl
+import Database.Transaction
+
+mkArbitrary ''ProviderCategory
 
 getBarItems :: HS.Statement T.Text SearchBar
 getBarItems = statement $ (fmap SearchBar . premap (^.from lazytext)) vector
@@ -46,9 +54,13 @@ getBarItems = statement $ (fmap SearchBar . premap (^.from lazytext)) vector
             order by sim desc)
         select distinct piece :: text from get_combined_search limit 10|]
 
-getQualificationList :: HS.Statement T.Text SearchQualificationList
-getQualificationList = statement $ (fmap SearchQualificationList . premap mkItem) vector
+instance ParamsShow ProviderCategory where 
+  render = (^.isoProviderCategory)
+
+getQualificationList :: HS.Statement (T.Text, ProviderCategory) SearchQualificationList
+getQualificationList = lmap mkEncoder $ statement $ (fmap SearchQualificationList . premap mkItem) vector
   where
+    mkEncoder x = x & _2 %~ (^.isoProviderCategory.stext)
     mkItem x = 
       SearchQualificationItem
       (x^._1.integral) 
@@ -59,21 +71,31 @@ getQualificationList = statement $ (fmap SearchQualificationList . premap mkItem
       [foldStatement|
         with 
           get_branch_qualifications as 
-           (select pbq.id, pbq.title, pbq.type as degree_type, pb.title as branch_title
+           (select pbq.id, pbq.title, pbq.type as degree_type, pbp.title as branch_title
             from search.qualification as sq 
             inner join edgenode.provider_branch_qualification as pbq
             on sq.provider_branch_qualification_fk = pbq.id
-            inner join edgenode.provider_branch as pb 
+            inner join edgenode.provider_branch as pb
             on pbq.provider_branch_fk = pb.id
-            where word_similarity($1 :: text, sq.piece) >= 0.5 and not pbq.is_deleted),
+            inner join edgenode.provider_branch_public as pbp
+            on pbp.provider_branch_fk = pb.id
+            inner join edgenode.provider as p
+            on p.id = pb.provider_fk
+            where word_similarity($1 :: text, sq.piece) >= 0.5 
+            and not pbq.is_deleted and p.category = $2 :: text),
           get_ordinary_qualifications as
-           (select pbq.id, pbq.title, pbq.type as degree_type, pb.title as branch_title
+           (select pbq.id, pbq.title, pbq.type as degree_type, pbp.title as branch_title
             from search.provider as sp 
             inner join edgenode.provider_branch as pb
             on sp.provider_branch_fk = pb.id
+            inner join edgenode.provider_branch_public as pbp
+            on pbp.provider_branch_fk = pb.id
+            inner join edgenode.provider as p
+            on p.id = pb.provider_fk
             left join edgenode.provider_branch_qualification as pbq
-            on pb.id = pbq.provider_branch_fk
-            where word_similarity($1 :: text, sp.piece) >= 0.5 and pbq.id is not null and not pbq.is_deleted),
+            on pbq.provider_branch_fk = pb.id
+            where word_similarity($1 :: text, sp.piece) >= 0.5 
+            and pbq.id is not null and not pbq.is_deleted and p.category = $2 :: text),
           get_combined_search as 
            (select * from get_branch_qualifications 
             union 
