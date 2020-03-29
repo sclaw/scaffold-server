@@ -20,17 +20,38 @@ getBarItems = statement $ (fmap SearchBar . premap (^.from lazytext)) vector
   where
     statement = 
       [foldStatement|
-        with get_qualification_matched_ids as
-        (select x.ident
-         from (
-          select provider_branch_qualification_fk as ident 
-          from search.qualification
-          where word_similarity($1 :: text, piece) >= 0.5 
-          limit 10) as x) 
-        select title :: text
-        from edgenode.provider_branch_qualification 
-        where id = any(select ident from get_qualification_matched_ids) 
-        order by title asc|]
+        with 
+          get_qualification_matched_ids as 
+           (select 
+             provider_branch_qualification_fk as ident, 
+             origin, 
+             word_similarity($1 :: text, piece) as sim
+            from search.qualification
+            where word_similarity($1 :: text, piece) >= 0.5
+            order by ident
+            limit 10),
+          get_provider_matched_ids as 
+           (select 
+             provider_branch_fk as ident, 
+             origin, 
+             word_similarity($1 :: text, piece) as sim
+            from search.provider
+            where word_similarity($1 :: text, piece) >= 0.5
+            order by ident
+            limit 10),
+          get_combined_search as 
+            (select pbq.title, sq.sim
+             from get_qualification_matched_ids as sq 
+             inner join edgenode.provider_branch_qualification as pbq
+             on sq.ident = pbq.id
+             union 
+             select pb.title, sb.sim
+             from get_provider_matched_ids as sb 
+             inner join edgenode.provider_branch as pb
+             on sb.ident = pb.id
+             order by sim desc
+             limit 10)
+        select title from get_combined_search|]
 
 getQualificationList :: HS.Statement T.Text SearchQualificationList
 getQualificationList = undefined
