@@ -7,7 +7,7 @@ module EdgeNode.Api.Http.Test (spec_api) where
 import EdgeNode.Api.Admin
 import EdgeNode.Api.File
 import EdgeNode.Api.Provider ()
-import EdgeNode.Api.Search
+import EdgeNode.Api.Search ()
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Extended
 import EdgeNode.Statement.Provider ()
@@ -35,7 +35,7 @@ spec_api =
      validateEveryToJSON (genericApi (Proxy :: Proxy AdminApi))
    context "ToJSON matches ToSchema (FileApi)" $   
      validateEveryToJSON (genericApi (Proxy :: Proxy FileApi))
-   context "ToJSON matches ToSchema (SearchApi)" $
-     validateEveryToJSON (genericApi (Proxy :: Proxy SearchApi))
+ --  context "ToJSON matches ToSchema (SearchApi)" $
+ --    validateEveryToJSON (genericApi (Proxy :: Proxy SearchApi))
  --  context "ToJSON matches ToSchema (ProviderApi)" $    
  --    validateEveryToJSON (genericApi (Proxy :: Proxy ProviderApi))
