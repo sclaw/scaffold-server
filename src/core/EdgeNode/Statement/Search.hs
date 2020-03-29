@@ -51,7 +51,7 @@ getBarItems = statement $ (fmap SearchBar . premap (^.from lazytext)) vector
              on sb.ident = pb.id
              order by sim desc
              limit 10)
-        select title from get_combined_search|]
+        select title :: text from get_combined_search|]
 
 getQualificationList :: HS.Statement T.Text SearchQualificationList
 getQualificationList = undefined
