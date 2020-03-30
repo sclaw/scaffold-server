@@ -21,6 +21,7 @@ import EdgeNode.Transport.Auth
 import EdgeNode.Transport.Id
 import EdgeNode.Model.User
 import EdgeNode.Statement.Provider ()
+import EdgeNode.Transport.User
 
 import Auth
 import qualified Hasql.Statement as HS
@@ -125,6 +126,7 @@ register salt = dimap mkEncoder (> 0) statement
     mkEncoder x = 
       consT (Primary^.isoUserRole.stext) $
       consT (Active^.isoRegisterStatus.stext) $
+      consT (fromEnum GenderMale^.integral) $
       (initT (mkEncoderRegistration x) 
       & _1 %~ (^.lazytext) 
       & _2 %~ 
@@ -137,7 +139,7 @@ register salt = dimap mkEncoder (> 0) statement
          get_user as 
           (insert into auth.user
            (identifier, password, user_type)
-           values (md5($3 :: text), $4 :: bytea, $1 :: text)
+           values (md5($4 :: text), $5 :: bytea, $1 :: text)
            on conflict do nothing
            returning id),
          get_day as 
@@ -146,5 +148,5 @@ register salt = dimap mkEncoder (> 0) statement
            values (0, 0, 0) 
            returning id)   
         insert into edgenode.user 
-        (user_id, status, birthday_id) 
-        (select id, $2 :: text, (select id from get_day) from get_user)|]
+        (user_id, status, birthday_id, gender) 
+        (select id, $2 :: text, (select id from get_day), $3 :: int4 from get_user)|]

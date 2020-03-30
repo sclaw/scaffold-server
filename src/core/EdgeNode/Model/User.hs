@@ -9,7 +9,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
-module EdgeNode.Model.User 
+module EdgeNode.Model.User
        ( User
        , UserRole (..)
        , RegisterStatus (..)
@@ -18,7 +18,7 @@ module EdgeNode.Model.User
        , encoder
        ) where
 
-import EdgeNode.User
+import EdgeNode.Transport.User
 
 import TH.Mk
 import qualified Data.Text.Lazy as LT

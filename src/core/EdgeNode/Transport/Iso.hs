@@ -8,6 +8,7 @@ import EdgeNode.Country
 import EdgeNode.Lang
 import EdgeNode.Transport.Qualification
 import EdgeNode.Transport.Provider
+import EdgeNode.Transport.User
 
 import TH.Proto
 import Control.Lens
@@ -38,6 +39,9 @@ currency = isoEnum fromCurrency toCurrency
 
 period :: Enum Period => Iso' (Enumerated Period) T.Text
 period = isoEnum fromPeriod toPeriod
+
+gender :: Enum Gender => Iso' (Enumerated Gender) T.Text
+gender = isoEnum fromGender toGender
 
 isoEnum :: (Enum a, Show a) => (a -> String) -> (String -> a) -> Iso' (Enumerated a) T.Text
 isoEnum f t = iso fromEnuma toEnuma
