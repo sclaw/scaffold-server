@@ -33,13 +33,13 @@ import Data.Default.Class
 
 instance Default Tokens
 
-controller :: SigninReq -> KatipController (Response (WithId (Id "user") (WithField "role" UserRole Tokens)))
+controller :: Signin -> KatipController (Response (WithId (Id "user") (WithField "role" UserRole Tokens)))
 controller req = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   cred_m <- katipTransaction hasql $ statement Auth.getUserCred req
   fmap (fromMaybe (Error (Error.asError @T.Text "credential not found"))) $ 
     for cred_m $ \ cred -> do 
-      let check = checkPass (req^.field @"signinReqPassword".lazytext.to mkPass) (cred^._3)
+      let check = checkPass (req^.field @"signinPassword".lazytext.to mkPass) (cred^._3)
       case check of 
         PassCheckSuccess -> fmap (fromEither . first (Error.asError @T.Text)) $ do
           key <- fmap (^.katipEnv.jwk) ask

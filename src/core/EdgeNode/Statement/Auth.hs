@@ -14,6 +14,7 @@ module EdgeNode.Statement.Auth
        , checkRefreshToken
        , mkTokenInvalid
        , logout
+       , register
        ) where
 
 import EdgeNode.Transport.Auth
@@ -44,22 +45,25 @@ import Test.QuickCheck.Arbitrary.Generic
 import Data.Aeson.Unit
 import Data.Aeson.WithField
 
-mkEncoder ''SigninReq
+mkEncoder ''Signin
+mkEncoder ''Registration
+mkArbitrary ''Signin 
+mkArbitrary ''Registration
 
-instance Arbitrary SigninReq where
-  arbitrary = genericArbitrary
-  shrink = genericShrink
-
-instance ParamsShow SigninReq where
+instance ParamsShow Signin where
   render x = intercalate "," 
     [ fromMaybe mempty $ 
-      x^?field @"signinReqProvider"._Just.field @"stringValue".from stextl
-    , x^.field @"signinReqEmail".from stextl
-    , x^.field @"signinReqPassword".from stextl
-    ]
+      x^?field @"signinProvider"._Just.field @"stringValue".from stextl
+    , x^.field @"signinEmail".from stextl
+    , x^.field @"signinPassword".from stextl]
 
-getUserCred :: HS.Statement SigninReq (Maybe (UserId, UserRole, PassHash))
-getUserCred = dimap (initT . mkTpl . mkEncoderSigninReq) decoder statement
+instance ParamsShow Registration where 
+  render x = intercalate "," 
+    [ x^.field @"registrationEmail".from stextl
+    , x^.field @"registrationPassword".from stextl]
+
+getUserCred :: HS.Statement Signin (Maybe (UserId, UserRole, PassHash))
+getUserCred = dimap (initT . mkTpl . mkEncoderSignin) decoder statement
   where
     mkTpl x = 
       x & _1 %~ maybe mempty (^.field @"stringValue") 
@@ -116,3 +120,6 @@ logout = dimap (bimap coerce coerce) decoder statement
         delete from auth.token 
         where "user_fk" = $1 :: int8 and 
         refresh_token_hash = $2 :: text|]
+
+register :: HS.Statement Registration Bool
+register = undefined

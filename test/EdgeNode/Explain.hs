@@ -97,7 +97,8 @@ explainTests =
     , "putRefreshToken" =>> EdgeNode.Statement.Auth.putRefreshToken
     , "checkRefreshToken" =>> EdgeNode.Statement.Auth.checkRefreshToken
     , "mkTokenInvalid" =>> EdgeNode.Statement.Auth.mkTokenInvalid
-    , "logout" =>> EdgeNode.Statement.Auth.logout]
+    , "logout" =>> EdgeNode.Statement.Auth.logout
+    , "register" =>> EdgeNode.Statement.Auth.register]
   , "EdgeNode.Statement.Search" ==>
     [ "getBarItems" =>> EdgeNode.Statement.Search.getBarItems
     , "getQualificationList" =>> EdgeNode.Statement.Search.getQualificationList]  

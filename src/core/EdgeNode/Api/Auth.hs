@@ -24,7 +24,7 @@ data AuthApi route =
        :: route
        :- Description "authentication"
        :> "authenticate"
-       :> ReqBody '[JSON] SigninReq
+       :> ReqBody '[JSON] Signin
        :> Post '[JSON]
           (Response 
            (WithId UserId 
@@ -46,4 +46,10 @@ data AuthApi route =
        :> Capture "uid" UserId
        :> ReqBody '[JSON] (OnlyField "hash" T.Text)
        :> Post '[JSON] (Response Unit)
+     , _authApiRegistration
+       :: route
+       :- Description "registration primary user"
+       :> "registration"
+       :> ReqBody '[JSON] Registration
+       :> Post '[JSON] (Response Unit)   
      } deriving stock Generic
