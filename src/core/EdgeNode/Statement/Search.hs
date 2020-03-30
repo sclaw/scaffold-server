@@ -33,17 +33,23 @@ getBarItems = statement $ (fmap SearchBar . premap (^.from lazytext)) vector
         with 
           get_qualification_matched_ids as 
            (select
-             distinct piece, 
-             word_similarity($1 :: text, piece) as sim
-            from search.qualification
-            where word_similarity($1 :: text, piece) >= 0.5 and is_public
+             distinct sq.piece, 
+             word_similarity($1 :: text, sq.piece) as sim
+            from search.qualification as sq
+            inner join edgenode.provider_branch_qualification as pbq
+            on sq.provider_branch_qualification_fk = pbq.id
+            inner join edgenode.provider_branch_public as pbp
+            on pbq.provider_branch_fk = pbp.provider_branch_fk
+            where word_similarity($1 :: text, sq.piece) >= 0.5 and sq.is_public
             limit 10),
           get_provider_matched_ids as 
            (select 
-             distinct piece, 
-             word_similarity($1 :: text, piece) as sim
-            from search.provider
-            where word_similarity($1 :: text, piece) >= 0.5 and is_public
+             distinct sp.piece, 
+             word_similarity($1 :: text, sp.piece) as sim
+            from search.provider as sp
+            inner join edgenode.provider_branch_public as pbp
+            on sp.provider_branch_fk = pbp.provider_branch_fk
+            where word_similarity($1 :: text, sp.piece) >= 0.5 and sp.is_public
             limit 10),
           get_combined_search as 
            (select piece, sim
