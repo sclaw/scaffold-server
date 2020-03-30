@@ -34,16 +34,14 @@ import Data.Generics.Product.Fields
 import Data.List
 import Data.Maybe
 import Hasql.TH
-import Data.Tuple.Ops
 import Data.Password
 import Data.Coerce
 import qualified Data.ByteString as B
 import qualified Data.Text as T
 import Data.Int
-import Test.QuickCheck.Extended
-import Test.QuickCheck.Arbitrary.Generic
 import Data.Aeson.Unit
 import Data.Aeson.WithField
+import Data.Tuple.Extended
 
 mkEncoder ''Signin
 mkEncoder ''Registration
@@ -121,5 +119,32 @@ logout = dimap (bimap coerce coerce) decoder statement
         where "user_fk" = $1 :: int8 and 
         refresh_token_hash = $2 :: text|]
 
-register :: HS.Statement Registration Bool
-register = undefined
+register :: Salt -> HS.Statement Registration Bool
+register salt = dimap mkEncoder (> 0) statement
+  where 
+    mkEncoder x = 
+      consT (Primary^.isoUserRole.stext) $
+      consT (Active^.isoRegisterStatus.stext) $
+      (initT (mkEncoderRegistration x) 
+      & _1 %~ (^.lazytext) 
+      & _2 %~ 
+        (^.lazytext
+         .to (unPassHash . hashPassWithSalt salt . mkPass)
+         .textbs)) 
+    statement = 
+      [rowsAffectedStatement|
+        with 
+         get_user as 
+          (insert into auth.user
+           (identifier, password, user_type)
+           values (md5($3 :: text), $4 :: bytea, $1 :: text)
+           on conflict do nothing
+           returning id),
+         get_day as 
+          (insert into public.full_day
+           (year, month, day) 
+           values (0, 0, 0) 
+           returning id)   
+        insert into edgenode.user 
+        (user_id, status, birthday_id) 
+        (select id, $2 :: text, (select id from get_day) from get_user)|]
