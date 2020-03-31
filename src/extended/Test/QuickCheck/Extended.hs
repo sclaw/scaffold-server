@@ -19,7 +19,7 @@ import Generic.Random
 import GHC.Generics
 import Protobuf.Scalar
 import Prelude hiding (String, Bool, Double, Float)
-import Data.Time
+import Data.Time.Transport
 
 -- | Generate arbitrary text.
 genText :: Gen T.Text

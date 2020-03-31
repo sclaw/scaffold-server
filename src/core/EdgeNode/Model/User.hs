@@ -23,7 +23,7 @@ import EdgeNode.Transport.User
 import TH.Mk
 import qualified Data.Text.Lazy as LT
 import Data.Word
-import Data.Time
+import Data.Time.Transport
 import Proto3.Suite.Types
 import Test.QuickCheck.Extended ()
 import Control.Lens.Iso.Extended

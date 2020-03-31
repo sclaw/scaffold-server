@@ -37,7 +37,7 @@ import qualified EdgeNode.Transport.Error as Transport
 import EdgeNode.Model.User
 import qualified EdgeNode.Transport.Auth as Auth
 
-import Data.Time
+import Data.Time.Transport
 import qualified Data.Text as T
 import Servant.Auth.Server.Internal.JWT
 import Servant.Auth.Server
@@ -198,7 +198,7 @@ mkAccessToken jwk uid refresh_token_hash utype = do
         & unregisteredClaims .~ 
           HM.singleton "dat" (toJSON user)            
   t <- liftIO getSystemTime
-  let tm = Time (systemSeconds t) 0
+  let tm = Time (fromIntegral (systemSeconds t)) 0
   (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims
 
 mkRefreshToken :: JWK -> T.Text -> ExceptT JWTError IO SignedJWT
