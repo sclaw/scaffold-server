@@ -32,6 +32,7 @@ import Test.Hspec.Expectations.Lifted
 import Data.Generics.Product.Positions
 import Control.Lens
 import GHC.Generics
+import Data.Password
 
 spec_explain :: Spec
 spec_explain = 
@@ -98,7 +99,7 @@ explainTests =
     , "checkRefreshToken" =>> EdgeNode.Statement.Auth.checkRefreshToken
     , "mkTokenInvalid" =>> EdgeNode.Statement.Auth.mkTokenInvalid
     , "logout" =>> EdgeNode.Statement.Auth.logout
-    , "register" =>> EdgeNode.Statement.Auth.register undefined]
+    , "register" =>> EdgeNode.Statement.Auth.register (Salt mempty)]
   , "EdgeNode.Statement.Search" ==>
     [ "getBarItems" =>> EdgeNode.Statement.Search.getBarItems
     , "getQualificationList" =>> EdgeNode.Statement.Search.getQualificationList]  
