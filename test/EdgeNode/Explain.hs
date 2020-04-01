@@ -102,7 +102,8 @@ explainTests =
     , "register" =>> EdgeNode.Statement.Auth.register (Salt mempty)]
   , "EdgeNode.Statement.Search" ==>
     [ "getBarItems" =>> EdgeNode.Statement.Search.getBarItems
-    , "getQualificationList" =>> EdgeNode.Statement.Search.getQualificationList]  
+    , "getQualificationList" =>> EdgeNode.Statement.Search.getQualificationList
+    , "getQualificationModal" =>> EdgeNode.Statement.Search.getQualificationModal]
   ]
   
 (==>) a b = (a, b)

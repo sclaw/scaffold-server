@@ -2,16 +2,19 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DataKinds #-}
 
 module EdgeNode.Statement.Search
        ( getBarItems
        , getQualificationList
+       , getQualificationModal
        ) where
 
 import EdgeNode.Transport.Search
 import EdgeNode.Transport.Iso
 import EdgeNode.Statement.Provider ()
 import EdgeNode.Transport.Provider
+import EdgeNode.Transport.Id
 
 import TH.Mk
 import TH.Proto
@@ -22,6 +25,8 @@ import Control.Lens.Iso.Extended
 import Control.Lens
 import Control.Foldl
 import Database.Transaction
+import Data.Aeson.WithField
+import Data.Coerce
 
 mkArbitrary ''ProviderCategory
 
@@ -109,3 +114,28 @@ getQualificationList = lmap mkEncoder $ statement $ (fmap SearchQualificationLis
         select distinct id :: int8, title :: text, 
         degree_type :: text, branch_title :: text 
         from get_combined_search order by branch_title, title|]
+
+getQualificationModal :: HS.Statement (Id "qualification" ) (Maybe (WithField "image" (Id "file") SearchQualificationModal))
+getQualificationModal = dimap coerce (fmap mkEncoder) statement
+  where
+    mkEncoder x = 
+      WithField (x^._1.coerced) $ 
+      SearchQualificationModal
+      (x^._2.from lazytext) 
+      (x^._3.from country)
+      (x^._4.from lazytext)
+      (x^._5.from qualStudyTime)
+      Nothing
+      0
+    statement = 
+      [maybeStatement|
+        select 
+          pbp.image_fk :: int8, 
+          pbq.title :: text,
+          pbp.country :: text, 
+          pbp.title :: text,
+          pbq.study_time :: text
+        from edgenode.provider_branch_qualification as pbq 
+        inner join edgenode.provider_branch_public as pbp
+        on pbq.provider_branch_fk = pbp.provider_branch_fk
+        where pbq.id = $1 :: int8|]

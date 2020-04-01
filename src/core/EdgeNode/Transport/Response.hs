@@ -22,6 +22,7 @@ module EdgeNode.Transport.Response
        , fromValidation
        , fromEither
        , fromEithers
+       , liftMaybe
        ) where
 
 import EdgeNode.Transport.Error as EdgeNode
@@ -99,3 +100,7 @@ fromEither = either (Errors . flip (:) [] . asError) Ok
 
 fromEithers :: AsError e => Either [e] a -> Response a
 fromEithers = either (Errors . map asError) Ok
+
+liftMaybe :: AsError e => Maybe a -> e -> Response a
+liftMaybe (Just x) _ = Ok x
+liftMaybe Nothing e = EdgeNode.Transport.Response.Error (asError e)
