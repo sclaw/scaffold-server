@@ -18,7 +18,7 @@ import Control.Lens
 import Pretty
 import qualified Data.Text as T
 
-controller :: Id "qualification" -> KatipController (Response (WithField "image" (Id "file") SearchQualificationModal))
+controller :: Id "qualification" -> KatipController (Response (WithField "image" (Maybe (Id "file")) SearchQualificationModal))
 controller qualification_id = do 
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask 
   resp <- katipTransaction hasql $ 

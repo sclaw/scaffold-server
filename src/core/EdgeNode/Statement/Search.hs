@@ -115,11 +115,11 @@ getQualificationList = lmap mkEncoder $ statement $ (fmap SearchQualificationLis
         degree_type :: text, branch_title :: text 
         from get_combined_search order by branch_title, title|]
 
-getQualificationModal :: HS.Statement (Id "qualification" ) (Maybe (WithField "image" (Id "file") SearchQualificationModal))
+getQualificationModal :: HS.Statement (Id "qualification" ) (Maybe (WithField "image" (Maybe (Id "file")) SearchQualificationModal))
 getQualificationModal = dimap coerce (fmap mkEncoder) statement
   where
     mkEncoder x = 
-      WithField (x^._1.coerced) $ 
+      WithField (x^?_1._Just.coerced) $ 
       SearchQualificationModal
       (x^._2.from lazytext) 
       (x^._3.from country)
@@ -130,7 +130,7 @@ getQualificationModal = dimap coerce (fmap mkEncoder) statement
     statement = 
       [maybeStatement|
         select 
-          pbp.image_fk :: int8, 
+          pbp.image_fk :: int8?, 
           pbq.title :: text,
           pbp.country :: text, 
           pbp.title :: text,
