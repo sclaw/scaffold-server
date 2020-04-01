@@ -150,4 +150,4 @@ register salt = lmap mkEncoder statement
         insert into edgenode.user 
         (user_id, status, birthday_id, gender) 
         (select id, $2 :: text, (select id from get_day), $3 :: int4 from get_user)
-        returning id :: int8|]
+        returning (select id :: int8 from get_user)|]
