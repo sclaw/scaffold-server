@@ -20,9 +20,11 @@ import Data.Elocrypt
 import Database.Transaction
 import Data.Password
 import qualified Data.Text as T
+import Data.Aeson.WithField
+import Data.Coerce
 
-controller :: T.Text -> T.Text -> KatipController (Response T.Text)
-controller provider_id user_id = do
+controller :: T.Text -> OnlyField "email" T.Text -> KatipController (Response T.Text)
+controller provider_id email = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   (password, _) <- liftIO $ fmap (genPassword 16 (GenOptions True True True)) newStdGen
   $(logTM) DebugS (logStr ("new admin password: " <> password))
@@ -32,7 +34,7 @@ controller provider_id user_id = do
   fmap mkResp $ 
     katipTransaction hasql $ 
     statement Admin.resetPassword 
-    (provider_id, user_id, unPassHash (hashPassWithSalt salt (mkPass (password^.stext))))
+    (provider_id, coerce email, unPassHash (hashPassWithSalt salt (mkPass (password^.stext))))
 
 data ResetError = User404
 

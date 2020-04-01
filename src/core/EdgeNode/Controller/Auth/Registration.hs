@@ -11,6 +11,8 @@ import EdgeNode.Transport.Response
 import EdgeNode.Transport.Auth
 import qualified EdgeNode.Statement.Auth as Auth
 import qualified EdgeNode.Transport.Error as Error
+import EdgeNode.Statement.Rbac as Rbac
+import EdgeNode.Model.Rbac
 
 import Katip
 import KatipController
@@ -24,6 +26,7 @@ import Data.Password
 import Pretty
 import qualified Text.RE.PCRE.Text as RegExp
 import Control.Lens.Iso.Extended
+import Data.Traversable
 
 {-
 password validation:
@@ -52,8 +55,9 @@ controller registeration_data |
 controller registeration_data = do
   $(logTM) DebugS (logStr (mkPretty "registeration data:" registeration_data))
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  let mkResp x 
-        | not x = Error (Error.asError @T.Text "email taken")
-        | otherwise = Ok Unit
+  let mkResp (Just _) = Ok Unit
+      mkResp Nothing = Error (Error.asError @T.Text "email taken")
   salt <-  newSalt
-  fmap mkResp $ katipTransaction hasql $ statement (Auth.register salt) registeration_data
+  fmap mkResp $ katipTransaction hasql $ do 
+    ident_m <- statement (Auth.register salt) registeration_data
+    for ident_m $ \x -> statement Rbac.assignRoleToUser (x, RoleUser, Nothing)

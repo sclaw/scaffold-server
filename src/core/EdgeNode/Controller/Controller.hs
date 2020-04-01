@@ -26,6 +26,7 @@ import qualified EdgeNode.Controller.Provider.DeleteBranch as Provider.DeleteBra
 import qualified EdgeNode.Controller.Provider.SetHQ as Provider.SetHQ
 import qualified EdgeNode.Controller.Search.GetBarItems as Search.GetBarItems
 import qualified EdgeNode.Controller.Search.GetQualificationList as Search.GetQualificationList
+import qualified EdgeNode.Controller.Search.GetQualificationModal as Search.GetQualificationModal
 import qualified EdgeNode.Controller.Auth.SignIn as Auth.SignIn
 import qualified EdgeNode.Controller.Auth.Registration as Auth.Registration
 import qualified EdgeNode.Controller.Auth.SignOut as Auth.SignOut 
@@ -117,13 +118,18 @@ search =
   { _searchApiGetSearchBar = \query ->
     flip logExceptionM ErrorS $
      katipAddNamespace 
-     (Namespace ["search", "qualification"])
+     (Namespace ["search", "bar"])
      (Search.GetBarItems.controller query)
   , _searchApiGetQualificationList = \query ->
     flip logExceptionM ErrorS $
     katipAddNamespace 
-    (Namespace ["search", "qualification"])
+    (Namespace ["search", "qualification", "list"])
     (Search.GetQualificationList.controller query)
+  , _searchApiGetQualificationModal = \qualification_id ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace 
+    (Namespace ["search", "qualification", "modal"])
+    (Search.GetQualificationModal.controller qualification_id)
   }
 
 file :: FileApi (AsServerT KatipController)
@@ -159,11 +165,11 @@ admin user =
      katipAddNamespace 
      (Namespace ["admin", "provider", "register"])
      (withUser user (Admin.ProviderRegister.controller provider))
-  , _adminApiResetPassword = \provider_id user_id ->
+  , _adminApiResetPassword = \provider_id email ->
     flip logExceptionM ErrorS $
      katipAddNamespace 
      (Namespace ["admin", "provider", "password", "reset"])
-     (withUser user (const (Admin.ResetPassword.controller provider_id user_id)))
+     (withUser user (const (Admin.ResetPassword.controller provider_id email)))
   }
 
 provider :: AuthResult JWTUser -> ProviderApi (AsServerT KatipController)

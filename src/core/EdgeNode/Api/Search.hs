@@ -9,6 +9,7 @@ module EdgeNode.Api.Search (SearchApi (..)) where
 
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Search
+import EdgeNode.Transport.Id
 
 import Servant.API.Generic
 import Servant.API
@@ -31,4 +32,11 @@ data SearchApi route =
        :> QueryParam "query" 
           (OnlyField "query" T.Text)
        :> Get '[JSON] (Response SearchQualificationList)
+     , _searchApiGetQualificationModal
+       :: route
+       :- Description ""
+       :> "qualification"
+       :> "modal"
+       :> Capture "qualification_id" (Id "qualification") 
+       :> Get '[JSON] (Response (WithField "image" (Id "file") SearchQualificationModal))
      } deriving stock Generic

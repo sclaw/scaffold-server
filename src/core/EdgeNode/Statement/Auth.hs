@@ -120,8 +120,8 @@ logout = dimap (bimap coerce coerce) decoder statement
         where "user_fk" = $1 :: int8 and 
         refresh_token_hash = $2 :: text|]
 
-register :: Salt -> HS.Statement Registration Bool
-register salt = dimap mkEncoder (> 0) statement
+register :: Salt -> HS.Statement Registration (Maybe Int64)
+register salt = lmap mkEncoder statement
   where 
     mkEncoder x = 
       consT (Primary^.isoUserRole.stext) $
@@ -132,9 +132,9 @@ register salt = dimap mkEncoder (> 0) statement
       & _2 %~ 
         (^.lazytext
          .to (unPassHash . hashPassWithSalt salt . mkPass)
-         .textbs)) 
+         .textbs))   
     statement = 
-      [rowsAffectedStatement|
+      [maybeStatement|
         with 
          get_user as 
           (insert into auth.user
@@ -149,4 +149,5 @@ register salt = dimap mkEncoder (> 0) statement
            returning id)   
         insert into edgenode.user 
         (user_id, status, birthday_id, gender) 
-        (select id, $2 :: text, (select id from get_day), $3 :: int4 from get_user)|]
+        (select id, $2 :: text, (select id from get_day), $3 :: int4 from get_user)
+        returning id :: int8|]

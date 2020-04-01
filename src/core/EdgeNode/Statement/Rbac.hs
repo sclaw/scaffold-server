@@ -66,10 +66,10 @@ isPermissionBelongToRole =
              on ps.id = p.parent_fk)
         select ((count(*) > 0) :: bool) from perms where title = $2 :: text|]
 
-assignRoleToUser :: HS.Statement (Int64, Role, Int64) ()
+assignRoleToUser :: HS.Statement (Int64, Role, Maybe Int64) ()
 assignRoleToUser = lmap (& _2 %~ (^.isoRole.stext)) $
   [resultlessStatement|
     insert into auth.user_role 
     (user_fk, role_fk, admin_fk) 
-    select $1 :: int8, id, $3 :: int8 
+    select $1 :: int8, id, coalesce($3 :: int8?, 1) 
     from auth.role where title = $2 :: text|]

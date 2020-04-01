@@ -58,4 +58,4 @@ controller provider user = do
   fmap (maybe (Error (Error.asError ProviderAlreadyExist)) (const (Ok (password^.stext)))) $ 
     katipTransaction hasql $ do 
       ident <- statement Admin.newProvider providerExt
-      for ident $ \x -> statement Rbac.assignRoleToUser (x, RoleProvider, coerce (basicUserUserId user))
+      for ident $ \x -> statement Rbac.assignRoleToUser (x, RoleProvider, Just (coerce (basicUserUserId user)))
