@@ -36,7 +36,7 @@ data SearchApi route =
        :: route
        :- Description ""
        :> "qualification"
-       :> "modal"
-       :> Capture "qualification_id" (Id "qualification") 
+       :> Capture "qualification_id" (Id "qualification")
+       :> "modal" 
        :> Get '[JSON] (Response (WithField "image" (Id "file") SearchQualificationModal))
      } deriving stock Generic
