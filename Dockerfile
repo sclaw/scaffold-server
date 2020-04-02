@@ -27,14 +27,8 @@ RUN touch .bash_profile && \
 
 ENV PATH="/home/nix/bin:${PATH}"
 
-RUN apt update && \ 
-    apt-get install build-essential && \
-    wget https://www.imagemagick.org/download/ImageMagick.tar.gz && \
-    tar xvzf ImageMagick.tar.gz && \
-    ./configure && \
-    make && \
-    make install && \
-    ldconfig /usr/local/lib
+RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \ 
+      nix-env -i imagemagick
 
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       stack install proto3-suite --fast -j12 && \ 
