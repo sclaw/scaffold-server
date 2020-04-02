@@ -27,8 +27,9 @@ RUN touch .bash_profile && \
 
 ENV PATH="/home/nix/bin:${PATH}"
 
+RUN nix-env -i imagemagick && \
+
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
-      nix-env -i imagemagick && \
       stack install proto3-suite --fast -j12 && \ 
       scripts/generate-proto-haskell_python.sh && \
       stack install --fast -j12 --test
