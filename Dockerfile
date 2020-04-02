@@ -27,8 +27,9 @@ RUN touch .bash_profile && \
 
 ENV PATH="/home/nix/bin:${PATH}"
 
-RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \ 
-      nix-env -i imagemagick
+RUN git clone https://github.com/ImageMagick/ImageMagick.git && \
+    cd ImageMagick && git checkout 7.0.10-3 && \
+    ./configure && make && make install
 
 RUN whereis convert
 
