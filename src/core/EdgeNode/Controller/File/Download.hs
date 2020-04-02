@@ -38,6 +38,8 @@ import qualified Data.ByteString.Base64 as B64
 import TH.Mk
 import Network.HTTP.Types.Header
 import Hash
+import System.Process (readProcess)
+import Data.Foldable
 
 data Option = Embedded | Raw
 
@@ -45,8 +47,11 @@ mkEnumConvertor ''Option
 mkParamSchemaEnum ''Option [|isoOption.stext.to String|]
 mkFromHttpApiDataEnum ''Option [|from stext.from isoOption.to Right|] 
 
-controller :: Option -> Id "file" -> KatipController Application
-controller option id = do
+imageMimeTypes = ["image/apng", "image/bmp", "image/gif", "image/x-icon", "image/jpeg", "image/png", "image/svg+xml", "image/tiff", "image/webp"]
+
+controller :: Option -> Id "file" -> Maybe Int -> Maybe Int -> KatipController Application
+controller option id width_m height_m = do
+  liftIO $ print $ show (width_m, height_m)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   let notFound = "file {" <> show (coerce @(Id "file") @Int64 id)^.stext <> "} not found" 
   meta <- fmap (maybeToRight (asError notFound)) $ 
@@ -59,16 +64,19 @@ controller option id = do
       let size = oiSize (gorObjectInfo o)
       tm <- fmap show $ liftIO getCurrentTime
       path <- runConduit $ 
-        gorObjectStream o .| 
+        gorObjectStream o .|
         sinkSystemTempFile 
         (x^._1.coerced.from stext <> "_" <> tm)
+      when (x^._3.coerced @Mime @_ @T.Text @_ `elem` imageMimeTypes) $ do 
+        let size = do 
+              h <- height_m
+              w <- width_m
+              pure $ show h ++ "x" ++ show w
+        for_ size $ \s -> liftIO $ readProcess "convert" [path, "-resize", s, path] mempty
       payload <- liftIO $ B.readFile path
       return (payload, size, x^._2.coerced @Name @_ @T.Text @_, x^._3.coerced @Mime @_ @T.Text @_)
     return $ first (asError . (\e -> show e^.stext)) r         
-  return $ \req resp -> 
-    case option of 
-      Embedded -> embedded req resp minioResp
-      Raw -> raw req resp minioResp
+  return $ \req resp -> case option of Embedded -> embedded req resp minioResp; Raw -> raw req resp minioResp
 
 embedded 
   :: Request 
@@ -94,6 +102,6 @@ raw _ resp (Right minio) = resp $
   responseLBS status200
   [ (hContentType, (minio^._4.textbs))
   , (hContentDisposition, 
-    "attachment;filename=" <> 
+    "attachment;filename=" <>
     (mkHash (minio^._3)^.textbs))] $ (minio^._1.from bytesLazy)
 raw _ resp _ = resp $ responseLBS status404 [] mempty

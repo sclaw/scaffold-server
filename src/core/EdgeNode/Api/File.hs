@@ -44,5 +44,7 @@ data FileApi route =
        :> "download"
        :> Capture "option" Option
        :> Capture "file_id" (Id "file")
+       :> QueryParam "width" Int
+       :> QueryParam "height" Int
        :> RawM
      } deriving stock Generic
