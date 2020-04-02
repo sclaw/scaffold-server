@@ -30,7 +30,7 @@ ENV PATH="/home/nix/bin:${PATH}"
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \ 
       nix-env -i imagemagick
 
-RUN cp /usr/bin/convert /home/nix/bin
+RUN whereis convert
 
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       stack install proto3-suite --fast -j12 && \ 
