@@ -11,10 +11,6 @@ USER nix
 ENV USER nix
 WORKDIR /home/nix
 
-RUN git clone https://github.com/ImageMagick/ImageMagick.git && \
-    cd ImageMagick && git checkout 7.0.10-3 && \
-    ./configure && make && make install && \
-
 COPY --chown=nix:nix config.json package.yaml Setup.hs shell.nix stack.yaml README.md ChangeLog.md ./
 COPY --chown=nix:nix src src
 COPY --chown=nix:nix app app 
@@ -30,6 +26,11 @@ RUN touch .bash_profile && \
   curl https://nixos.org/nix/install | sh
 
 ENV PATH="/home/nix/bin:${PATH}"
+
+RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \ 
+      nix-env -i imagemagick
+
+RUN cp /usr/bin/convert /home/nix/bin
 
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       stack install proto3-suite --fast -j12 && \ 
