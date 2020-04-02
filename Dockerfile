@@ -29,7 +29,7 @@ ENV PATH="/home/nix/bin:${PATH}"
 
 RUN git clone https://github.com/ImageMagick/ImageMagick.git && \
     cd ImageMagick && git checkout 7.0.10-3 && \
-    ./configure && make && make install
+    ./configure && make && sudo make install
 
 RUN whereis convert
 
