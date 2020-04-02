@@ -27,7 +27,7 @@ RUN touch .bash_profile && \
 
 ENV PATH="/home/nix/bin:${PATH}"
 
-RUN nix-env -i imagemagick && \
+RUN nix-env -i imagemagick
 
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
       stack install proto3-suite --fast -j12 && \ 
