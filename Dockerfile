@@ -36,4 +36,13 @@ RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
 
 COPY --chown=nix:nix deploy deploy
 
+RUN apt update && \ 
+    apt-get install build-essential && \
+    wget https://www.imagemagick.org/download/ImageMagick.tar.gz && \
+    tar xvzf ImageMagick.tar.gz && \
+    ./configure && \
+    make && \
+    make install && \
+    ldconfig /usr/local/lib  
+
 ENTRYPOINT ["/home/nix/deploy/init.sh"]
