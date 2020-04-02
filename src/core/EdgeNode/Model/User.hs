@@ -10,12 +10,10 @@
 {-# LANGUAGE StandaloneDeriving #-}
 
 module EdgeNode.Model.User
-       ( User
-       , UserRole (..)
+       ( UserRole (..)
        , RegisterStatus (..)
        , isoUserRole
        , isoRegisterStatus
-       , encoder
        ) where
 
 import EdgeNode.Transport.User
@@ -40,16 +38,13 @@ import Data.Swagger
 import GHC.Generics
 import Data.Default.Class.Extended
 
-mkEncoder ''User
+mkEncoder ''Profile
 mkEncoder ''FullDay
 
 deriving instance Enum Gender
-instance Default Gender where def = toEnum 0
-instance Default User
-instance Default FullDay
 
 mkArbitrary ''FullDay
-mkArbitrary ''User 
+mkArbitrary ''Profile
 
 data UserRole = Primary | Secondary deriving stock (Show, Generic)
 
@@ -59,18 +54,5 @@ instance ToSchema UserRole
 
 mkEnumConvertor ''UserRole
 mkEnumConvertor ''RegisterStatus
-
-encoder :: User -> (T.Text, T.Text, T.Text, Int32, Int32, Int32, T.Text, Maybe Int64, Int32)
-encoder x = (hToTuple . hConcat . hFromTuple) tpl
-  where 
-    tpl = 
-      mkEncoderUser x
-      & _1 %~ (hEnd . hBuild . (^.lazytext))
-      & _2 %~ (hEnd . hBuild . (^.lazytext))
-      & _3 %~ (hEnd . hBuild . (^.lazytext))
-      & _4 %~ (hFromTuple . (& each %~ fromIntegral @_ @Int32) . mkEncoderFullDay . fromMaybe def)
-      & _5 %~ (hEnd . hBuild . (^.lazytext))
-      & _6 %~ (hEnd . hBuild . (^? _Just.field @"uint64Value".(integral @_ @Int64)))
-      & _7 %~ (hEnd . hBuild . (either (const (0 :: Int32)) (fromIntegral . fromEnum)  . coerce @_ @(Either Int32 Gender)))
 
 deriveJSON defaultOptions ''UserRole

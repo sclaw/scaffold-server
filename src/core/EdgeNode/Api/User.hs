@@ -7,13 +7,18 @@
 
 module EdgeNode.Api.User (UserApi (..)) where
 
+import EdgeNode.Transport.Id
+import EdgeNode.Transport.Response
+import EdgeNode.Transport.User
+
 import Servant.API.Generic
 import Servant.API
+import Data.Aeson.WithField
 
 data UserApi route = 
      UserApi
-     { _userApiLoadProfile
+     { _userApiGetProfile
        :: route
        :- Description "load user's profile"
-       :> Get '[JSON] ()     
+       :> Get '[JSON] (Response (WithId (Id "image") Profile)) 
      } deriving stock Generic

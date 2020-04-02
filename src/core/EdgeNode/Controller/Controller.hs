@@ -40,6 +40,7 @@ import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetTypeToQual
 import qualified EdgeNode.Controller.Provider.GetQualifications as Provider.GetQualifications 
 import qualified EdgeNode.Controller.Provider.GetQualification as Provider.GetQualification
 import qualified EdgeNode.Controller.Provider.PatchQualification as Provider.PatchQualification
+import qualified EdgeNode.Controller.User.GetProfile as User.GetProfile  
 
 import Auth
 import Katip
@@ -105,11 +106,15 @@ auth =
 user :: AuthResult JWTUser -> UserApi (AsServerT KatipController)
 user user = 
   UserApi 
-  { _userApiLoadProfile =
+  { _userApiGetProfile =
     flip logExceptionM ErrorS $
     katipAddNamespace 
-    (Namespace ["user", "loadProfile"])
-    undefined
+    (Namespace ["user", "profile"])
+    (applyController Nothing user $ \x -> 
+     verifyAuthorization
+     (jWTUserUserId x) 
+     Rbac.PermissionUser 
+     (User.GetProfile.controller))
   }
       
 search :: SearchApi (AsServerT KatipController)

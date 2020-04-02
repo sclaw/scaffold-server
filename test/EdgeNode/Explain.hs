@@ -70,7 +70,6 @@ explainTests =
     , "delete" =>> EdgeNode.Statement.File.delete
     , "getHashWithBucket" =>> EdgeNode.Statement.File.getHashWithBucket
     , "patch" =>> EdgeNode.Statement.File.patch]
-  , "EdgeNode.Statement.User" ==> ["new" =>> EdgeNode.Statement.User.new]
   , "EdgeNode.Statement.Admin" ==> 
     [ "newProvider" =>> EdgeNode.Statement.Admin.newProvider
     , "resetPassword" =>> EdgeNode.Statement.Admin.resetPassword]

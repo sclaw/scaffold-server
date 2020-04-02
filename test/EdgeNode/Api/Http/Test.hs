@@ -12,6 +12,7 @@ import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Extended
 import EdgeNode.Statement.Provider ()
 import EdgeNode.Transport.Search
+import EdgeNode.Transport.File
 
 import TH.Mk
 import Test.Hspec
@@ -19,6 +20,7 @@ import Data.Proxy
 import Servant.API.Generic
 import Servant.Swagger.Test
 import Data.Aeson.WithField.Extended ()
+import Protobuf.Scalar
 
 mkArbitrary ''ProviderRegistration
 mkArbitrary ''GetBranchResp
@@ -27,6 +29,8 @@ mkArbitrary ''PatchBranchReq
 mkArbitrary ''SearchBar
 mkArbitrary ''SearchQualificationItem
 mkArbitrary ''SearchQualificationList
+mkArbitrary ''Crop
+mkArbitrary ''UInt32
 
 spec_api :: Spec
 spec_api = 
