@@ -27,15 +27,6 @@ RUN touch .bash_profile && \
 
 ENV PATH="/home/nix/bin:${PATH}"
 
-RUN nix-env -i imagemagick
-
-RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
-      stack install proto3-suite --fast -j12 && \ 
-      scripts/generate-proto-haskell_python.sh && \
-      stack install --fast -j12 --test
-
-COPY --chown=nix:nix deploy deploy
-
 RUN apt update && \ 
     apt-get install build-essential && \
     wget https://www.imagemagick.org/download/ImageMagick.tar.gz && \
@@ -43,6 +34,13 @@ RUN apt update && \
     ./configure && \
     make && \
     make install && \
-    ldconfig /usr/local/lib  
+    ldconfig /usr/local/lib
+
+RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
+      stack install proto3-suite --fast -j12 && \ 
+      scripts/generate-proto-haskell_python.sh && \
+      stack install --fast -j12 --test
+
+COPY --chown=nix:nix deploy deploy
 
 ENTRYPOINT ["/home/nix/deploy/init.sh"]
