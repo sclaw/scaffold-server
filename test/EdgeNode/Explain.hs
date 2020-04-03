@@ -13,7 +13,7 @@ module EdgeNode.Explain (spec_explain) where
 
 import qualified EdgeNode.Statement.Rbac 
 import qualified EdgeNode.Statement.File
-import qualified EdgeNode.Statement.User
+import qualified EdgeNode.Statement.User ()
 import qualified EdgeNode.Statement.Admin
 import qualified EdgeNode.Statement.Provider
 import qualified EdgeNode.Statement.Auth

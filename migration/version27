@@ -1,0 +1,2 @@
+alter table edgenode.user drop column gender;
+alter table edgenode.user add column gender text not null default 'male';

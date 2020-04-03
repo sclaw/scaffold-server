@@ -26,6 +26,7 @@ import EdgeNode.Transport.User
 import Auth
 import qualified Hasql.Statement as HS
 import TH.Mk
+import TH.Proto
 import qualified Data.Text.Lazy as LT
 import qualified Protobuf.Scalar as Protobuf
 import Database.Transaction
@@ -126,7 +127,7 @@ register salt = lmap mkEncoder statement
     mkEncoder x = 
       consT (Primary^.isoUserRole.stext) $
       consT (Active^.isoRegisterStatus.stext) $
-      consT (fromEnum GenderMale^.integral) $
+      consT (GenderMale^.isoGender.stext) $
       (initT (mkEncoderRegistration x) 
       & _1 %~ (^.lazytext) 
       & _2 %~ 
@@ -149,5 +150,5 @@ register salt = lmap mkEncoder statement
            returning id)   
         insert into edgenode.user 
         (user_id, status, birthday_id, gender) 
-        (select id, $2 :: text, (select id from get_day), $3 :: int4 from get_user)
+        (select id, $2 :: text, (select id from get_day), $3 :: text from get_user)
         returning (select id from get_user) :: int8|]
