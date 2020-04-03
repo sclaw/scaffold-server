@@ -43,6 +43,8 @@ mkEncoder ''FullDay
 
 mkArbitrary ''FullDay
 mkArbitrary ''Profile
+mkArbitrary ''AllegianceMaybe
+mkArbitrary ''GenderMaybe
 
 data UserRole = Primary | Secondary deriving stock (Show, Generic)
 

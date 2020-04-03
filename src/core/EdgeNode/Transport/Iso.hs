@@ -43,6 +43,9 @@ period = isoEnum fromPeriod toPeriod
 gender :: Enum Gender => Iso' (Enumerated Gender) T.Text
 gender = isoEnum fromGender toGender
 
+allegiance :: Enum Allegiance => Iso' (Enumerated Allegiance) T.Text
+allegiance = isoEnum fromAllegiance toAllegiance
+
 isoEnum :: (Enum a, Show a) => (a -> String) -> (String -> a) -> Iso' (Enumerated a) T.Text
 isoEnum f t = iso fromEnuma toEnuma
   where fromEnuma x =

@@ -35,6 +35,7 @@ mkEnumConvertor ''AcademicArea
 mkEnumConvertor ''Currency
 mkEnumConvertor ''Period
 mkEnumConvertor ''Gender
+mkEnumConvertor ''Allegiance
 
 mkSRGEqEnum ''AcademicArea "EdgeNode"
 mkEnumConvertor ''EdgeNodeAcademicArea

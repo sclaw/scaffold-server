@@ -13,7 +13,7 @@ module EdgeNode.Explain (spec_explain) where
 
 import qualified EdgeNode.Statement.Rbac 
 import qualified EdgeNode.Statement.File
-import qualified EdgeNode.Statement.User ()
+import qualified EdgeNode.Statement.User
 import qualified EdgeNode.Statement.Admin
 import qualified EdgeNode.Statement.Provider
 import qualified EdgeNode.Statement.Auth
@@ -103,6 +103,9 @@ explainTests =
     [ "getBarItems" =>> EdgeNode.Statement.Search.getBarItems
     , "getQualificationList" =>> EdgeNode.Statement.Search.getQualificationList
     , "getQualificationModal" =>> EdgeNode.Statement.Search.getQualificationModal]
+  , "EdgeNode.Statement.User" ==>
+    [ "getProfile" =>> EdgeNode.Statement.User.getProfile
+    , "patchProfile" =>> EdgeNode.Statement.User.patchProfile]  
   ]
   
 (==>) a b = (a, b)
