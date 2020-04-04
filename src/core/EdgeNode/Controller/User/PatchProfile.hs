@@ -14,7 +14,7 @@ import Data.Aeson.Unit
 import Database.Transaction
 import Control.Lens
 
-controller :: WithId (Maybe (Id "image")) Profile -> UserId -> KatipController (Response Unit)
+controller :: WithField "image" (Maybe (Id "image")) Profile -> UserId -> KatipController (Response Unit)
 controller patch user_id = do 
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap (const (Ok Unit)) $ 

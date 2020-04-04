@@ -21,10 +21,19 @@ data UserApi route =
      { _userApiGetProfile
        :: route
        :- Description "load user's profile"
-       :> Get '[JSON] (Response (WithId (Maybe (Id "image")) Profile))
+       :> "profile"
+       :> Get '[JSON] 
+          (Response 
+           (WithField "image" 
+            (Maybe (Id "image")) 
+            Profile))
      , _userApiPatchProfile
        :: route
        :- Description "patchuser's profile"
-       :> ReqBody '[JSON] (WithId (Maybe (Id "image")) Profile)
+       :> "profile"
+       :> ReqBody '[JSON] 
+          (WithField "image" 
+           (Maybe (Id "image")) 
+           Profile)
        :> Patch '[JSON] (Response Unit)   
      } deriving stock Generic

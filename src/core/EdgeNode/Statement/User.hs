@@ -47,7 +47,7 @@ mkFullDay x =
     Error e -> error $ "unable to convert json to FullDay, " ++ e
     Success x -> x
 
-getProfile :: HS.Statement UserId (WithId (Maybe (Id "image")) Profile)
+getProfile :: HS.Statement UserId (WithField "image" (Maybe (Id "image")) Profile)
 getProfile = dimap (coerce @_ @Int64) mkProfile $ statement
   where 
     mkProfile x = 
@@ -79,7 +79,7 @@ getProfile = dimap (coerce @_ @Int64) mkProfile $ statement
         on eu.birthday_id = pfd.id
         where au.id = $1 :: int8|]
         
-instance ParamsShow (WithId (Maybe (Id "image")) Profile) where 
+instance ParamsShow (WithField "image" (Maybe (Id "image")) Profile) where 
   render (WithField img profile) = intercalate ", " $ 
     (consT (maybe mempty (show . coerce @_ @Int64) img) $ 
      mkEncoderProfile profile
@@ -87,10 +87,10 @@ instance ParamsShow (WithId (Maybe (Id "image")) Profile) where
      & _2 %~ (^._Just.field @"stringValue".lazytext.from stext)
      & _3 %~ (^._Just.field @"stringValue".lazytext.from stext)
      & _4 %~ maybe mempty (\x -> "[" ++ intercalate ", " (mkEncoderFullDay x^..each.integral.to show) ++ "]")
-     & _5 %~ maybe mempty (^.field @"allegianceMaybeAllegiance".allegiance.from stext)
-     & _6 %~ maybe mempty (^.field @"genderMaybeGender".gender.from stext))^..each
+     & _5 %~ maybe mempty (^.field @"allegianceMaybeValue".allegiance.from stext)
+     & _6 %~ maybe mempty (^.field @"genderMaybeValue".gender.from stext))^..each
 
-patchProfile :: HS.Statement (UserId, WithId (Maybe (Id "image")) Profile) ()
+patchProfile :: HS.Statement (UserId, WithField "image" (Maybe (Id "image")) Profile) ()
 patchProfile = lmap mkTpl statement
   where 
     mkTpl (user_id, WithField img profile) =
@@ -101,8 +101,8 @@ patchProfile = lmap mkTpl statement
       & _2 %~ (^?_Just.field @"stringValue".lazytext)
       & _3 %~ (^?_Just.field @"stringValue".lazytext)
       & _4 %~ fmap toJSON
-      & _5 %~ (^?_Just.field @"allegianceMaybeAllegiance".allegiance)
-      & _6 %~ (^?_Just.field @"genderMaybeGender".gender))
+      & _5 %~ (^?_Just.field @"allegianceMaybeValue".allegiance)
+      & _6 %~ (^?_Just.field @"genderMaybeValue".gender))
     statement = 
       [resultlessStatement|
         with get_full_day_id as 

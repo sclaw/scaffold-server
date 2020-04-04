@@ -13,7 +13,7 @@ import Data.Aeson.WithField
 import Database.Transaction
 import Control.Lens
 
-controller :: UserId -> KatipController (Response (WithId (Maybe (Id "image")) Profile))
+controller :: UserId -> KatipController (Response (WithField "image" (Maybe (Id "image")) Profile))
 controller user_id = do 
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap Ok $ katipTransaction hasql $ statement User.getProfile user_id
