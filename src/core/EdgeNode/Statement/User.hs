@@ -20,7 +20,7 @@ import EdgeNode.Transport.Iso
 
 import qualified Hasql.Statement as HS
 import Auth
-import Data.Aeson.WithField
+import Data.Aeson.WithField.Extended
 import Hasql.TH
 import Data.Coerce
 import Control.Lens
@@ -47,10 +47,11 @@ mkFullDay x =
     Error e -> error $ "unable to convert json to FullDay, " ++ e
     Success x -> x
 
-getProfile :: HS.Statement UserId (WithField "image" (Maybe (Id "image")) Profile)
+getProfile :: HS.Statement UserId (OptField "image" (Id "image") Profile)
 getProfile = dimap (coerce @_ @Int64) mkProfile $ statement
   where 
     mkProfile x = 
+      OptField $
       WithField (x^?_1._Just.coerced) $ 
       Profile 
       (x^?_2._Just.from lazytext.to Protobuf.String)
@@ -79,21 +80,20 @@ getProfile = dimap (coerce @_ @Int64) mkProfile $ statement
         on eu.birthday_id = pfd.id
         where au.id = $1 :: int8|]
         
-instance ParamsShow (WithField "image" (Maybe (Id "image")) Profile) where 
-  render (WithField img profile) = intercalate ", " $ 
-    (consT (maybe mempty (show . coerce @_ @Int64) img) $ 
-     mkEncoderProfile profile
-     & _1 %~ (^._Just.field @"stringValue".lazytext.from stext)
-     & _2 %~ (^._Just.field @"stringValue".lazytext.from stext)
-     & _3 %~ (^._Just.field @"stringValue".lazytext.from stext)
-     & _4 %~ maybe mempty (\x -> "[" ++ intercalate ", " (mkEncoderFullDay x^..each.integral.to show) ++ "]")
-     & _5 %~ maybe mempty (^.field @"allegianceMaybeValue".allegiance.from stext)
-     & _6 %~ maybe mempty (^.field @"genderMaybeValue".gender.from stext))^..each
+instance ParamsShow Profile where 
+  render profile = intercalate ", " $ 
+    (mkEncoderProfile profile
+    & _1 %~ (^._Just.field @"stringValue".lazytext.from stext)
+    & _2 %~ (^._Just.field @"stringValue".lazytext.from stext)
+    & _3 %~ (^._Just.field @"stringValue".lazytext.from stext)
+    & _4 %~ maybe mempty (\x -> "[" ++ intercalate ", " (mkEncoderFullDay x^..each.integral.to show) ++ "]")
+    & _5 %~ maybe mempty (^.field @"allegianceMaybeValue".allegiance.from stext)
+    & _6 %~ maybe mempty (^.field @"genderMaybeValue".gender.from stext))^..each
 
-patchProfile :: HS.Statement (UserId, WithField "image" (Maybe (Id "image")) Profile) ()
+patchProfile :: HS.Statement (UserId, OptField "image" (Id "image") Profile) ()
 patchProfile = lmap mkTpl statement
   where 
-    mkTpl (user_id, WithField img profile) =
+    mkTpl (user_id, OptField (WithField img profile)) =
       consT (coerce user_id) $
       consT (fmap coerce img) $
       (mkEncoderProfile profile
@@ -112,7 +112,8 @@ patchProfile = lmap mkTpl statement
            middlename = coalesce($4 :: text?, middlename),
            surname = coalesce($5 :: text?, surname),
            allegiance = coalesce($7 :: text?, allegiance),
-           gender = coalesce($8 :: text?, gender)
+           gender = coalesce($8 :: text?, gender),
+           modified = now()
           where "user_id" = $1 :: int8
           returning birthday_id)
         update public.full_day set 

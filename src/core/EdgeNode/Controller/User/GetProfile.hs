@@ -9,11 +9,11 @@ import EdgeNode.Statement.User as User
 
 import Auth
 import KatipController
-import Data.Aeson.WithField
+import Data.Aeson.WithField.Extended
 import Database.Transaction
 import Control.Lens
 
-controller :: UserId -> KatipController (Response (WithField "image" (Maybe (Id "image")) Profile))
+controller :: UserId -> KatipController (Response (OptField "image" (Id "image") Profile))
 controller user_id = do 
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap Ok $ katipTransaction hasql $ statement User.getProfile user_id

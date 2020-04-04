@@ -9,12 +9,12 @@ import EdgeNode.Statement.User as User
 
 import Auth
 import KatipController
-import Data.Aeson.WithField
+import Data.Aeson.WithField.Extended
 import Data.Aeson.Unit
 import Database.Transaction
 import Control.Lens
 
-controller :: WithField "image" (Maybe (Id "image")) Profile -> UserId -> KatipController (Response Unit)
+controller :: OptField "image" (Id "image") Profile -> UserId -> KatipController (Response Unit)
 controller patch user_id = do 
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap (const (Ok Unit)) $ 
