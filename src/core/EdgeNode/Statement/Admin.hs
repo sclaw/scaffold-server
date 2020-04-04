@@ -69,8 +69,12 @@ newProvider = lmap ((\x -> x & each %~ (^.lazytext) & _5 %~ (^.textbs)) . mkEnco
            returning id, 1 as m),
           getUser as (
            insert into auth.user
-           (identifier, password, user_type)
-           values (md5($1 :: text || $2 :: text), $5 :: bytea, $6 :: text)
+           (identifier, password, user_type, email)
+           values (
+             md5($1 :: text || $2 :: text), 
+             $5 :: bytea, 
+             $6 :: text, 
+             $1 :: text)
            on conflict do nothing
            returning id, 1 as m)
         insert into edgenode.provider_user 

@@ -139,15 +139,15 @@ register salt = lmap mkEncoder statement
         with 
          get_user as 
           (insert into auth.user
-           (identifier, password, user_type)
-           values (md5($4 :: text), $5 :: bytea, $1 :: text)
+           (identifier, password, user_type, email)
+           values (md5($4 :: text), $5 :: bytea, $1 :: text, $4 :: text)
            on conflict do nothing
            returning id),
          get_day as 
           (insert into public.full_day
            (year, month, day) 
            values (0, 0, 0) 
-           returning id)   
+           returning id)
         insert into edgenode.user 
         (user_id, status, birthday_id, gender) 
         (select id, $2 :: text, (select id from get_day), $3 :: text from get_user)
