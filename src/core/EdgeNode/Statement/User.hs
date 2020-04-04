@@ -114,10 +114,9 @@ patchProfile = lmap mkTpl statement
            allegiance = coalesce($7 :: text?, allegiance),
            gender = coalesce($8 :: text?, gender),
            modified = now()
-          where "user_id" = $1 :: int8
-          returning birthday_id)
-        update public.full_day set 
+          where "user_id" = $1 :: int8)
+        update public.full_day set
          year = coalesce(cast(($6 :: jsonb?)->'year' as integer), year),
          month = coalesce(cast(($6 :: jsonb?)->'month' as integer), month),
          day = coalesce(cast(($6 :: jsonb?)->'day' as integer), day)
-        where id = (select id from get_full_day_id)|]
+        where id = (select birthday_id from edgenode.user where "user_id" = $1 :: int8)|]
