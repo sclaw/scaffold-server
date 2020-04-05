@@ -6,7 +6,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module EdgeNode.Transport.Validator 
+module EdgeNode.Transport.Validator
        ( qualificationBuilder
        , degreeToValues
        , qualififcationPatch
@@ -28,57 +28,57 @@ import TextShow
 import qualified Text.RE.PCRE.Text as RegExp
 import Control.Lens.Iso.Extended
 
-data QualificationBuilderError = 
+data QualificationBuilderError =
        TitleEmpty
      | AcademicAreaEmpty
      | DegreeValueNotFoundAtQualificationDegree
-     | QualificationNotFound 
+     | QualificationNotFound
      deriving stock Show
 
-instance AsError QualificationBuilderError where 
+instance AsError QualificationBuilderError where
   asError TitleEmpty = asError @T.Text "qualification title shouldn't be empty"
   asError AcademicAreaEmpty = asError @T.Text "at least one academic area should be set"
   asError DegreeValueNotFoundAtQualificationDegree = asError @T.Text "degree value mismatches given qualification degree"
   asError QualificationNotFound = asError @T.Text "qualification not found"
 
 qualificationBuilder :: QualificationBuilder -> Validation [QualificationBuilderError] ()
-qualificationBuilder builder 
+qualificationBuilder builder
   | isNothing (
       builder^.
-      field @"qualificationBuilderQualification") 
-    = Failure [QualificationNotFound]   
+      field @"qualificationBuilderQualification")
+    = Failure [QualificationNotFound]
 qualificationBuilder builder = checkTitle *> checkAcademicArea *> checkDegreeValue
-  where 
-    checkTitle 
+  where
+    checkTitle
       | LT.null (
         builder^?!
         field @"qualificationBuilderQualification".
         _Just.
-        field @"qualificationTitle") 
+        field @"qualificationTitle")
         = Failure [TitleEmpty]
       | otherwise = pure ()
-    checkAcademicArea 
+    checkAcademicArea
       | V.null (
         builder^?!
         field @"qualificationBuilderQualification".
         _Just.
-        field @"qualificationAreas") 
+        field @"qualificationAreas")
         = Failure [AcademicAreaEmpty]
-      | otherwise = pure () 
-    checkDegreeValue 
+      | otherwise = pure ()
+    checkDegreeValue
       | not $ checkDegreeValue' (builder^?!field @"qualificationBuilderQualification"._Just)
         = Failure [DegreeValueNotFoundAtQualificationDegree]
-      | otherwise = pure ()  
+      | otherwise = pure ()
 
 checkDegreeValue' :: Qualification -> Bool
-checkDegreeValue' Qualification  {..} = check qualificationDegreeValue 
+checkDegreeValue' Qualification  {..} = check qualificationDegreeValue
   where
     degree = qualificationDegreeType^?!field @"enumerated"._Right
     check Nothing = True
-    check (Just x) = elem (x^.field @"stringValue") (fromJust (lookup degree degreeToValues)) 
+    check (Just x) = elem (x^.field @"stringValue") (fromJust (lookup degree degreeToValues))
 
 degreeToValues :: [(QualificationDegree, [LT.Text])]
-degreeToValues = 
+degreeToValues =
   [ (QualificationDegreeUnifiedStateExam, map (LT.fromStrict . showt) [1 .. 100 :: Int])
   , (QualificationDegreeAdvancedLevelGCE, ["A*", "A", "B", "C", "D", "E"])
   , (QualificationDegreeMagistr, ["Maj", "Std"])
@@ -90,6 +90,7 @@ degreeToValues =
   , (QualificationDegreeMRes, ["1", "2:1", "2:2", "3"])
   , (QualificationDegreeToeflIBT, map (LT.fromStrict . showt) [0 .. 120 :: Int])
   , (QualificationDegreeToeflPBT, map (LT.fromStrict . showt) [310 .. 677 :: Int])
+  , (QualificationDegreeTestDeConnaissanceDuFrançaisTCF, ["A1", "A2", "B1", "B2", "C1", "C2"])
   , (QualificationDegreeIELTS, map (LT.fromStrict . showt) [0, 0.5 .. 9 :: Double])]
 
 qualififcationPatch :: PatchQualification -> Validation [T.Text] ()
@@ -105,15 +106,15 @@ password validation:
 email validation - ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+[.]{1}[a-zA-Z0-9-.]{2,}$
 -}
 
-data RegistrationError = 
+data RegistrationError =
        RegistrationErrorEmailNotValid
      | RegistrationErrorPasswordWeak
      | RegistrationErrorPasswordsMismatch
       deriving stock Show
 
-instance AsError RegistrationError where 
+instance AsError RegistrationError where
   asError RegistrationErrorEmailNotValid = asError @T.Text "email not valid"
-  asError RegistrationErrorPasswordWeak = asError @T.Text "password weak. Minimum eight characters, at least one uppercase letter, one lowercase letter and one number"
+  asError RegistrationErrorPasswordWeak = asError @T.Text "password error. Minimum eight characters, at least one uppercase letter, one lowercase letter and one number"
   asError RegistrationErrorPasswordsMismatch = asError @T.Text "passwords mismatch"
 
 passwordValidation password = RegExp.matched (password RegExp.?=~ [RegExp.re|^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$|])
@@ -121,17 +122,17 @@ emailValidation email = RegExp.matched (email RegExp.?=~ [RegExp.re|^[a-zA-Z0-9_
 
 registration :: Registration -> Validation [RegistrationError] ()
 registration registration = checkEmail *> checkPaswwordStrength *> checkPassswordsMatch
-  where 
-    checkEmail 
-      | emailValidation 
-        (registrationEmail registration^.lazytext) 
+  where
+    checkEmail
+      | emailValidation
+        (registrationEmail registration^.lazytext)
         = Success ()
       | otherwise = Failure [RegistrationErrorEmailNotValid]
     checkPaswwordStrength
-      | passwordValidation 
+      | passwordValidation
         (registrationPassword registration^.lazytext)
         = Success ()
-      | otherwise = Failure [RegistrationErrorPasswordWeak] 
+      | otherwise = Failure [RegistrationErrorPasswordWeak]
     checkPassswordsMatch
       | registrationPassword registration ==
         registrationPasswordOnceAgain registration
