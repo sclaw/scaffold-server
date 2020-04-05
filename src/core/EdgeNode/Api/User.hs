@@ -16,22 +16,22 @@ import Servant.API
 import Data.Aeson.WithField.Extended
 import Data.Aeson.Unit
 
-data UserApi route = 
+data UserApi route =
      UserApi
      { _userApiGetProfile
        :: route
        :- Description "load user's profile"
        :> "profile"
-       :> Get '[JSON] 
-          (Response 
-           (OptField "image" 
+       :> Get '[JSON]
+          (Response
+           (OptField "image"
             (Id "image") Profile))
      , _userApiPatchProfile
        :: route
        :- Description "patchuser's profile"
        :> "profile"
-       :> ReqBody '[JSON] 
-          (OptField "image" 
+       :> ReqBody '[JSON]
+          (OptField "image"
           (Id "image") Profile)
        :> Patch '[JSON] (Response Unit)
      , _userApiAddTrajaectory
