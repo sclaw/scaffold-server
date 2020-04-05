@@ -13,6 +13,7 @@ module EdgeNode.Statement.User
        ( getProfile
        , patchProfile
        , addTrajectory
+       , addQualification
        ) where
 
 import EdgeNode.Transport.Id
@@ -36,25 +37,28 @@ import Data.List
 import Data.Word
 import Data.Generics.Product.Fields
 import Data.Aeson
+import qualified Data.Vector.Extended as V
+import Control.Foldl
 
 deriving instance Enum Gender
 deriving instance Enum Allegiance
 
 mkEncoder ''Profile
 mkEncoder ''FullDay
+mkArbitrary ''AddQualification
 
-mkFullDay x = 
+mkFullDay x =
   case fromJSON x of
     Error e -> error $ "unable to convert json to FullDay, " ++ e
     Success x -> x
 
 getProfile :: HS.Statement UserId (OptField "image" (Id "image") Profile)
 getProfile = dimap (coerce @_ @Int64) mkProfile $ statement
-  where 
-    mkProfile x = 
+  where
+    mkProfile x =
       OptField $
-      WithField (x^?_1._Just.coerced) $ 
-      Profile 
+      WithField (x^?_1._Just.coerced) $
+      Profile
       (x^?_2._Just.from lazytext.to Protobuf.String)
       (x^?_3._Just.from lazytext.to Protobuf.String)
       (x^?_4._Just.from lazytext.to Protobuf.String)
@@ -63,7 +67,7 @@ getProfile = dimap (coerce @_ @Int64) mkProfile $ statement
       (Just (GenderMaybe (x^._6.from gender)))
     statement =
       [singletonStatement|
-        select 
+        select
           eu.avatar_id :: int8?,
           eu.name :: text?,
           eu.middlename :: text?,
@@ -72,7 +76,7 @@ getProfile = dimap (coerce @_ @Int64) mkProfile $ statement
           eu.gender :: text,
           jsonb_build_object(
             'year', pfd.year,
-            'month', pfd.month, 
+            'month', pfd.month,
             'day', pfd.day) :: jsonb
         from auth.user as au
         inner join edgenode.user as eu
@@ -80,9 +84,9 @@ getProfile = dimap (coerce @_ @Int64) mkProfile $ statement
         inner join public.full_day as pfd
         on eu.birthday_id = pfd.id
         where au.id = $1 :: int8|]
-        
-instance ParamsShow Profile where 
-  render profile = intercalate ", " $ 
+
+instance ParamsShow Profile where
+  render profile = intercalate ", " $
     (mkEncoderProfile profile
     & _1 %~ (^._Just.field @"stringValue".lazytext.from stext)
     & _2 %~ (^._Just.field @"stringValue".lazytext.from stext)
@@ -93,7 +97,7 @@ instance ParamsShow Profile where
 
 patchProfile :: HS.Statement (UserId, OptField "image" (Id "image") Profile) ()
 patchProfile = lmap mkTpl statement
-  where 
+  where
     mkTpl (user_id, OptField (WithField img profile)) =
       consT (coerce user_id) $
       consT (fmap coerce img) $
@@ -104,9 +108,9 @@ patchProfile = lmap mkTpl statement
       & _4 %~ fmap toJSON
       & _5 %~ (^?_Just.field @"allegianceMaybeValue".allegiance)
       & _6 %~ (^?_Just.field @"genderMaybeValue".gender))
-    statement = 
+    statement =
       [resultlessStatement|
-        with get_full_day_id as 
+        with get_full_day_id as
          (update edgenode.user set
            avatar_id = coalesce($2 :: int8?, avatar_id),
            name = coalesce($3 :: text?, name),
@@ -123,9 +127,33 @@ patchProfile = lmap mkTpl statement
         where id = (select birthday_id from edgenode.user where "user_id" = $1 :: int8)|]
 
 addTrajectory :: HS.Statement (UserId, OnlyField "id" (Id "qualification")) ()
-addTrajectory = 
-  lmap (bimap coerce coerce) 
+addTrajectory =
+  lmap (bimap coerce coerce)
   [resultlessStatement|
     insert into edgenode.user_trajectory
     (user_fk, provider_branch_qualification_fk)
     values ($1 :: int8, $2 :: int8)|]
+
+instance ParamsShow AddQualification where
+  render qualification = qualification^.field @"addQualificationValue".lazytext.from stext
+
+addQualification
+  :: HS.Statement
+      (UserId, [WithId (Id "qualification") AddQualification])
+      [Id "user_qualification"]
+addQualification = lmap mkTpl $ statement $ premap coerce list
+  where
+    mkTpl x =
+      consT (x^._1.coerced) $
+      V.unzip $
+      V.fromList $
+      (x^._2 <&> \(WithField i v) ->
+        ( i^.coerced
+        , v^.field @"addQualificationValue".lazytext))
+    statement =
+      [foldStatement|
+        insert into edgenode.user_qualification
+        (user_fk, provider_branch_qualification_fk, value)
+        select $1 :: int8, qid, v
+        from unnest($2 :: int8[], $3 :: text[]) as x(qid, v)
+        returning id :: int8|]

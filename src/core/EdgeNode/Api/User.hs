@@ -40,4 +40,10 @@ data UserApi route =
        :> "trajectory"
        :> ReqBody '[JSON] (OnlyField "id" (Id "qualification"))
        :> Put '[JSON] (Response Unit)
+     , _userApiAddQualification
+       :: route
+       :- Description "add qualififcation"
+       :> "qualification"
+       :> ReqBody '[JSON] [WithId (Id "qualification") AddQualification]
+       :> Put '[JSON] (Response [Id "user_qualification"])
      } deriving stock Generic
