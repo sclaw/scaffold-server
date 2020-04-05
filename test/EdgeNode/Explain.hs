@@ -105,7 +105,8 @@ explainTests =
     , "getQualificationModal" =>> EdgeNode.Statement.Search.getQualificationModal]
   , "EdgeNode.Statement.User" ==>
     [ "getProfile" =>> EdgeNode.Statement.User.getProfile
-    , "patchProfile" =>> EdgeNode.Statement.User.patchProfile]  
+    , "patchProfile" =>> EdgeNode.Statement.User.patchProfile
+    , "addTrajectory" =>> EdgeNode.Statement.User.addTrajectory]
   ]
   
 (==>) a b = (a, b)

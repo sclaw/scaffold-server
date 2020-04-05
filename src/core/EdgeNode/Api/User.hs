@@ -33,5 +33,11 @@ data UserApi route =
        :> ReqBody '[JSON] 
           (OptField "image" 
           (Id "image") Profile)
-       :> Patch '[JSON] (Response Unit)   
+       :> Patch '[JSON] (Response Unit)
+     , _userApiAddTrajaectory
+       :: route
+       :- Description "add qualififcation to user's trajectories"
+       :> "trajectory"
+       :> ReqBody '[JSON] (OnlyField "id" (Id "qualification"))
+       :> Put '[JSON] (Response Unit)
      } deriving stock Generic

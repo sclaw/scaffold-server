@@ -12,6 +12,7 @@
 module EdgeNode.Statement.User
        ( getProfile
        , patchProfile
+       , addTrajectory
        ) where
 
 import EdgeNode.Transport.Id
@@ -120,3 +121,11 @@ patchProfile = lmap mkTpl statement
          month = coalesce(cast(($6 :: jsonb?)->'month' as integer), month),
          day = coalesce(cast(($6 :: jsonb?)->'day' as integer), day)
         where id = (select birthday_id from edgenode.user where "user_id" = $1 :: int8)|]
+
+addTrajectory :: HS.Statement (UserId, OnlyField "id" (Id "qualification")) ()
+addTrajectory = 
+  lmap (bimap coerce coerce) 
+  [resultlessStatement|
+    insert into edgenode.user_trajectory
+    (user_fk, provider_branch_qualification_fk)
+    values ($1 :: int8, $2 :: int8)|]

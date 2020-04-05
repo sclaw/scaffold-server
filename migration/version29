@@ -1,0 +1,7 @@
+create table edgenode.user_trajectory (
+ id bigserial primary key,
+ provider_branch_qualification_fk int8 not null
+  constraint "user_trajectory__provider_branch_qualification_id_fk" 
+  references edgenode.provider_branch_qualification(id),
+ user_fk int8 not null constraint "user_trajectory___user_id_fk" references auth.user(id),
+ constraint "user_trajectory__provider_branch_qualification_fk__user_fk__uniq" unique (user_fk, provider_branch_qualification_fk));

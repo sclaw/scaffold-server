@@ -42,6 +42,7 @@ import qualified EdgeNode.Controller.Provider.GetQualification as Provider.GetQu
 import qualified EdgeNode.Controller.Provider.PatchQualification as Provider.PatchQualification
 import qualified EdgeNode.Controller.User.GetProfile as User.GetProfile
 import qualified EdgeNode.Controller.User.PatchProfile as User.PatchProfile
+import qualified EdgeNode.Controller.User.AddTrajectory as User.AddTrajectory
 
 import Auth
 import Katip
@@ -125,6 +126,15 @@ user user =
      (jWTUserUserId x) 
      Rbac.PermissionUser 
      (User.PatchProfile.controller profile))
+  , _userApiAddTrajaectory = \trajectory ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace 
+    (Namespace ["user", "trajectory", "add"])
+    (applyController Nothing user $ \x -> 
+     verifyAuthorization
+     (jWTUserUserId x) 
+     Rbac.PermissionUser 
+     (User.AddTrajectory.controller trajectory))       
   }
       
 search :: SearchApi (AsServerT KatipController)
