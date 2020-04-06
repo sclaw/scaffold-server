@@ -1,13 +1,17 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module EdgeNode.Controller.Search.GetQualificationList (controller) where
+module EdgeNode.Controller.Search.GetQualificationList
+       ( unauthorizedController
+       , authorizedController
+       ) where
 
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Search
 import qualified EdgeNode.Statement.Search as Search
 import EdgeNode.Transport.Provider
 
+import Auth
 import Katip
 import KatipController
 import qualified Data.Text as T
@@ -18,12 +22,15 @@ import Data.Coerce
 import Database.Transaction
 import Control.Lens
 
-controller :: Maybe (OnlyField "query" T.Text) -> KatipController (Response SearchQualificationList)
-controller query = fmap (fromMaybe (Ok (SearchQualificationList mempty))) $ for query (goQuery . coerce)
+unauthorizedController :: Maybe (OnlyField "query" T.Text) -> KatipController (Response SearchQualificationList)
+unauthorizedController query = fmap (fromMaybe (Ok (SearchQualificationList mempty))) $ for query (goQuery . coerce)
 
 goQuery :: T.Text -> KatipController (Response SearchQualificationList)
-goQuery query = do 
+goQuery query = do
   $(logTM) DebugS (logStr query)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  fmap Ok $ katipTransaction hasql $ 
+  fmap Ok $ katipTransaction hasql $
     statement Search.getQualificationList (query, ProviderCategoryHigherDegree)
+
+authorizedController :: Maybe (OnlyField "query" T.Text) -> UserId -> KatipController (Response SearchQualificationList)
+authorizedController _ _ = pure $ Ok $ SearchQualificationList mempty

@@ -155,11 +155,14 @@ search =
      katipAddNamespace
      (Namespace ["search", "bar"])
      (Search.GetBarItems.controller query)
-  , _searchApiGetQualificationList = \query ->
+  , _searchApiGetQualificationList = \user query -> do
+    let unauthorized = Search.GetQualificationList.unauthorizedController
+    let authorized = Search.GetQualificationList.authorizedController
     flip logExceptionM ErrorS $
-    katipAddNamespace
-    (Namespace ["search", "qualification", "list"])
-    (Search.GetQualificationList.controller query)
+      katipAddNamespace
+      (Namespace ["search", "qualification", "list"])
+      (applyController (Just (unauthorized query))
+        user $ \x -> authorized query (jWTUserUserId x))
   , _searchApiGetQualificationModal = \qualification_id ->
     flip logExceptionM ErrorS $
     katipAddNamespace
