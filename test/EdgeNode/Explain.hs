@@ -102,7 +102,8 @@ explainTests =
   , "EdgeNode.Statement.Search" ==>
     [ "getBarItems" =>> EdgeNode.Statement.Search.getBarItems
     , "getQualificationList" =>> EdgeNode.Statement.Search.getQualificationList
-    , "getQualificationModal" =>> EdgeNode.Statement.Search.getQualificationModal]
+    , "getQualificationModal" =>> EdgeNode.Statement.Search.getQualificationModal
+    , "getAuthorizedQualificationList" =>> EdgeNode.Statement.Search.getAuthorizedQualificationList]
   , "EdgeNode.Statement.User" ==>
     [ "getProfile" =>> EdgeNode.Statement.User.getProfile
     , "patchProfile" =>> EdgeNode.Statement.User.patchProfile

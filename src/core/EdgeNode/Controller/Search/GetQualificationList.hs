@@ -23,14 +23,22 @@ import Database.Transaction
 import Control.Lens
 
 unauthorizedController :: Maybe (OnlyField "query" T.Text) -> KatipController (Response SearchQualificationList)
-unauthorizedController query = fmap (fromMaybe (Ok (SearchQualificationList mempty))) $ for query (goQuery . coerce)
+unauthorizedController query = fmap (fromMaybe (Ok (SearchQualificationList mempty))) $ for query (goQuery Nothing . coerce)
 
-goQuery :: T.Text -> KatipController (Response SearchQualificationList)
-goQuery query = do
+authorizedController :: Maybe (OnlyField "query" T.Text) -> UserId -> KatipController (Response SearchQualificationList)
+authorizedController query user_id = fmap (fromMaybe (Ok (SearchQualificationList mempty))) $ for query (goQuery (Just user_id)  . coerce)
+
+goQuery :: Maybe UserId -> T.Text -> KatipController (Response SearchQualificationList)
+goQuery user_id_m query = do
   $(logTM) DebugS (logStr query)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap Ok $ katipTransaction hasql $
-    statement Search.getQualificationList (query, ProviderCategoryHigherDegree)
-
-authorizedController :: Maybe (OnlyField "query" T.Text) -> UserId -> KatipController (Response SearchQualificationList)
-authorizedController _ _ = pure $ Ok $ SearchQualificationList mempty
+    case user_id_m of
+      Just user_id ->
+        statement
+        Search.getAuthorizedQualificationList
+        (query, ProviderCategoryHigherDegree, user_id)
+      Nothing ->
+        statement
+        Search.getQualificationList
+        (query, ProviderCategoryHigherDegree)
