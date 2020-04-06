@@ -16,7 +16,7 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Auth 
+module Auth
       ( JWTUser (..)
       , AppJwt
       , BasicUser (..)
@@ -85,49 +85,49 @@ data AppJwt
 
 type UserId = Id "user"
 
-data JWTUser = 
-     JWTUser 
+data JWTUser =
+     JWTUser
      { jWTUserUserId :: !(Id "user")
      , jWTUserEmail  :: !T.Text
      , jWTUserUserRole :: !UserRole
      , jwtUserRefreshTokenHash :: !T.Text
      } deriving stock Show
-  
+
 deriveJSON defaultOptions ''JWTUser
 mkEncoder ''JWTUser
 
 mkEnumConvertor ''Auth.Error
 
 instance FromJWT JWTUser
-instance ToJWT JWTUser 
+instance ToJWT JWTUser
 
 instance FromJWT (Id "user")
 instance ToJWT (Id "user")
 
 instance HasSecurity AppJwt where
   securityName _ = "JWT Security"
-  securityScheme _ = 
-   SecurityScheme 
-   (SecuritySchemeApiKey 
-    (ApiKeyParams "Authorization" ApiKeyHeader)) 
+  securityScheme _ =
+   SecurityScheme
+   (SecuritySchemeApiKey
+    (ApiKeyParams "Authorization" ApiKeyHeader))
    (Just "JSON Web Token-based API key")
 
 instance IsAuth AppJwt JWTUser where
   type AuthArgs AppJwt = '[JWTSettings, KatipLoggerIO, Id "user", Pool.Pool Hasql.Connection, Bool]
-  runAuth _ _ cfg log uid pool = 
-   bool (return (JWTUser uid mempty Primary mempty)) 
+  runAuth _ _ cfg log uid pool =
+   bool (return (JWTUser uid mempty Primary mempty))
         (Auth.jwtAuthCheck cfg log pool)
 
 withAuthResult :: AuthResult user -> (AuthResult user -> api) -> api
 withAuthResult auth api = api auth
 
-applyController 
-  :: Maybe (KatipController (Response a)) 
+applyController
+  :: Maybe (KatipController (Response a))
   -> AuthResult JWTUser
-  -> (JWTUser -> KatipController (Response a)) 
+  -> (JWTUser -> KatipController (Response a))
   -> KatipController (Response a)
-applyController unauthorized user authorized = 
-  case user of 
+applyController unauthorized user authorized =
+  case user of
     Authenticated u -> authorized u
     Indefinite -> fmap (fromMaybe unauthorizedError) (sequence unauthorized)
     _ -> return unkonwnError
@@ -135,24 +135,24 @@ applyController unauthorized user authorized =
         unkonwnError = Error $ Transport.asError @T.Text (Auth.ErrorUnknownError^.isoError.stext)
 
 jwtAuthCheck :: JWTSettings -> KatipLoggerIO -> Pool.Pool Hasql.Connection -> AuthCheck JWTUser
-jwtAuthCheck cfg logger pool = 
+jwtAuthCheck cfg logger pool =
   do
     headers <- fmap requestHeaders ask
     jwt <- for (getToken headers) $ \token -> do
-      verified <- liftIO $ runExceptT $ verifyToken cfg token  
+      verified <- liftIO $ runExceptT $ verifyToken cfg token
       getJWTUser logger verified
-    liftIO $ logger DebugS (logStr (mkPretty "jwt user:" jwt))  
+    liftIO $ logger DebugS (logStr (mkPretty "jwt user:" jwt))
     check <- liftIO $ transaction pool logger $
       lift (actionCheckToken jwt)
     let mkErr e = do liftIO (logger ErrorS (logStr e)); mzero
     either mkErr return check
-   
+
 getToken :: RequestHeaders -> Maybe BS.ByteString
-getToken headers = 
-  do 
+getToken headers =
+  do
     authHdr <- lookup "Authorization" headers
     let bearer = "Bearer "
-        (mbearer, token) = 
+        (mbearer, token) =
          BS.splitAt (BS.length bearer) authHdr
     guard (mbearer `constEq` bearer)
     return token
@@ -160,60 +160,60 @@ getToken headers =
 verifyToken :: JWTSettings -> BS.ByteString -> ExceptT Jose.JWTError IO Jose.ClaimsSet
 verifyToken cfg token =
   Jose.decodeCompact (BSL.fromStrict token) >>=
-  Jose.verifyClaims 
+  Jose.verifyClaims
    (jwtSettingsToJwtValidationSettings cfg)
    (validationKeys cfg)
 
 getJWTUser :: KatipLoggerIO -> Either Jose.JWTError Jose.ClaimsSet -> AuthCheck JWTUser
-getJWTUser log (Left e) = do liftIO (log InfoS (logStr (show e))); mzero 
+getJWTUser log (Left e) = do liftIO (log InfoS (logStr (show e))); mzero
 getJWTUser log (Right claim) = either err return (decodeJWT claim)
   where err e = do liftIO (log InfoS (logStr ("decode jwt claim error " <> e))); mzero
 
 actionCheckToken :: Maybe JWTUser -> Hasql.Session (Either String JWTUser)
 actionCheckToken Nothing = return $ Left "access token not found"
-actionCheckToken (Just user) = 
-  do 
+actionCheckToken (Just user) =
+  do
      let mkStatement =
           [singletonStatement|
-            select exists 
-            (select 1 
-             from auth.token 
-             where "user_fk" = $1 :: int8 
-             and refresh_token_hash = $2 :: text) :: bool|]    
-     exists <- Hasql.statement user $ 
-       flip lmap mkStatement $ \x -> 
-         (mkEncoderJWTUser x^._1.coerced, mkEncoderJWTUser x^._4)   
+            select exists
+            (select 1
+             from auth.token
+             where "user_fk" = $1 :: int8
+             and refresh_token_hash = $2 :: text) :: bool|]
+     exists <- Hasql.statement user $
+       flip lmap mkStatement $ \x ->
+         (mkEncoderJWTUser x^._1.coerced, mkEncoderJWTUser x^._4)
      return $ if exists then Right user else Left "refresh token not found"
 
 mkAccessToken :: JWK -> Id "user" -> T.Text -> UserRole -> ExceptT JWTError IO (SignedJWT, Time)
-mkAccessToken jwk uid refresh_token_hash utype = do 
+mkAccessToken jwk uid refresh_token_hash utype = do
   alg <- bestJWSAlg jwk
-  ct <- liftIO getCurrentTime
+  utc <- liftIO getCurrentTime
   let user = JWTUser uid "" utype refresh_token_hash
-  let claims = 
+  let claims =
         emptyClaimsSet
         & claimIss ?~ "edgeNode"
-        & claimIat ?~ NumericDate ct
-        & claimExp ?~ NumericDate (addUTCTime 600 ct)
-        & unregisteredClaims .~ 
-          HM.singleton "dat" (toJSON user)            
-  t <- liftIO getSystemTime
-  let tm = Time (fromIntegral (systemSeconds t)) 0
+        & claimIat ?~ NumericDate utc
+        & claimExp ?~ NumericDate (addUTCTime 600 utc)
+        & unregisteredClaims .~
+          HM.singleton "dat" (toJSON user)
+  let epoch =fromIntegral $ systemSeconds $ utcToSystemTime (addUTCTime 600 utc)
+  let tm = Time epoch 0
   (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims
 
 mkRefreshToken :: JWK -> T.Text -> ExceptT JWTError IO SignedJWT
 mkRefreshToken jwk unique =
-  do 
+  do
     alg <- bestJWSAlg jwk
     ct <- liftIO getCurrentTime
-    let claims = 
+    let claims =
          emptyClaimsSet
          & claimIss ?~ "edgeNode"
          & claimIat ?~ NumericDate ct
          & claimExp ?~ NumericDate (addUTCTime (7 * 10^6) ct)
-         & unregisteredClaims .~ 
-           HM.singleton "dat" (toJSON unique)       
-    signClaims jwk (newJWSHeader ((), alg)) claims 
+         & unregisteredClaims .~
+           HM.singleton "dat" (toJSON unique)
+    signClaims jwk (newJWSHeader ((), alg)) claims
 
 data BasicUser = BasicUser { basicUserUserId :: !(Id "user") }
 
@@ -222,10 +222,10 @@ instance ToJWT BasicUser
 
 deriveJSON defaultOptions ''BasicUser
 
-data BasicAuthCfgData = 
-     BasicAuthCfgData 
+data BasicAuthCfgData =
+     BasicAuthCfgData
      { basicAuthCfgDataPool   :: !(Pool.Pool Hasql.Connection)
-     , basicAuthCfgDataLogger :: !KatipLoggerIO 
+     , basicAuthCfgDataLogger :: !KatipLoggerIO
      }
 
 type instance BasicAuthCfg = BasicAuthCfgData
@@ -234,41 +234,41 @@ mkEncoder ''BasicAuthData
 
 instance FromBasicAuthData BasicUser where
   fromBasicAuthData authData cfg  =
-     transaction 
-     (basicAuthCfgDataPool cfg) 
-     (basicAuthCfgDataLogger cfg) $ lift $ 
-     flip fmap checkAdmin $ 
-     maybe 
-     Servant.Auth.Server.NoSuchUser 
+     transaction
+     (basicAuthCfgDataPool cfg)
+     (basicAuthCfgDataLogger cfg) $ lift $
+     flip fmap checkAdmin $
+     maybe
+     Servant.Auth.Server.NoSuchUser
      (Authenticated . BasicUser . coerce)
-    where 
-      checkAdmin = 
-        Hasql.statement 
-        (mkEncoderBasicAuthData authData) 
-        (lmap (& _1 %~ (^.from textbs)) 
+    where
+      checkAdmin =
+        Hasql.statement
+        (mkEncoderBasicAuthData authData)
+        (lmap (& _1 %~ (^.from textbs))
          [maybeStatement|
-           select id :: int8 
+           select id :: int8
            from auth.admin
-           where login = $1 :: text 
+           where login = $1 :: text
            and password = $2 :: bytea|])
 
 withUser :: AuthResult user -> (user -> KatipController a) -> KatipController a
-withUser user controller = do 
+withUser user controller = do
   resp <- for user controller
-  case resp of 
+  case resp of
     Authenticated resp -> return resp
     _ -> throwError err403
 
 mkTokens :: JWK -> (Id "user", UserRole) -> KatipLoggerIO -> IO (Either T.Text (T.Text, (ByteString, Time), ByteString, T.Text))
-mkTokens key cred log = do 
+mkTokens key cred log = do
   uq <- fmap mkHash $ uniformW64 =<< createSystemRandom
   tokens_e <- runExceptT $ do
     refresh <- mkRefreshToken key uq
     access <- mkAccessToken key (cred^._1) (mkHash refresh) (cred^._2)
     pure $ (uq, access, refresh, mkHash refresh)
   let encode x = x^.to Jose.encodeCompact.bytesLazy
-  let mkError err = show err^.stext  
-  fmap (first mkError) $ for tokens_e $ \(uq, access, refresh, hash) -> do 
-    log DebugS (logStr (mkPretty "access token: " (first encode access))) 
+  let mkError err = show err^.stext
+  fmap (first mkError) $ for tokens_e $ \(uq, access, refresh, hash) -> do
+    log DebugS (logStr (mkPretty "access token: " (first encode access)))
     log DebugS (logStr (mkPretty "refresh token: " (encode refresh)))
     pure (uq, first encode access, encode refresh, hash)

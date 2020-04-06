@@ -34,11 +34,5 @@ goQuery user_id_m query = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap Ok $ katipTransaction hasql $
     case user_id_m of
-      Just user_id ->
-        statement
-        Search.getAuthorizedQualificationList
-        (query, ProviderCategoryHigherDegree, user_id)
-      Nothing ->
-        statement
-        Search.getQualificationList
-        (query, ProviderCategoryHigherDegree)
+      Just user_id -> statement Search.getAuthorizedQualificationList (query, ProviderCategoryHigherDegree, user_id)
+      Nothing -> statement Search.getQualificationList (query, ProviderCategoryHigherDegree)
