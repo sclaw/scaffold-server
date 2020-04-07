@@ -38,9 +38,11 @@ mkEnumConvertor ''Gender
 mkEnumConvertor ''Allegiance
 
 mkSRGEqEnum ''AcademicArea "EdgeNode"
+mkSRGEqEnum ''ProviderCategory "EdgeNode"
+mkEnumConvertor ''EdgeNodeProviderCategory
 mkEnumConvertor ''EdgeNodeAcademicArea
 mkFromHttpApiDataEnum ''EdgeNodeAcademicArea [|from stext.from isoEdgeNodeAcademicArea.to Right|]
-mkParamSchemaEnum ''EdgeNodeAcademicArea [|isoEdgeNodeAcademicArea.stext.to String|] 
+mkParamSchemaEnum ''EdgeNodeAcademicArea [|isoEdgeNodeAcademicArea.stext.to String|]
 mkSRGEqEnum ''QualificationDegree "EdgeNode"
 mkEnumConvertor ''EdgeNodeQualificationDegree
 mkFromHttpApiDataEnum ''EdgeNodeQualificationDegree [|from stext.from isoEdgeNodeQualificationDegree.to Right|]
@@ -49,6 +51,10 @@ mkSRGEqEnum ''Country "EdgeNode"
 mkEnumConvertor ''EdgeNodeCountry
 mkParamSchemaEnum ''EdgeNodeCountry [|isoEdgeNodeCountry.stext.to String|]
 mkFromHttpApiDataEnum ''EdgeNodeCountry [|from stext.from isoEdgeNodeCountry.to Right|]
+
+mkToSchemaAndJSON ''EdgeNodeProviderCategory
+mkParamSchemaEnum ''EdgeNodeProviderCategory [|isoEdgeNodeProviderCategory.stext.to String|]
+mkFromHttpApiDataEnum ''EdgeNodeProviderCategory [|from stext.from isoEdgeNodeProviderCategory.to Right|]
 
 mkToSchemaAndJSON ''EdgeNodeCountry
 mkToSchemaAndJSON ''EdgeNodeQualificationDegree

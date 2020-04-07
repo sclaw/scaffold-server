@@ -7,11 +7,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module EdgeNode.Api 
+module EdgeNode.Api
        ( ApplicationApi (..)
        , HttpApi (..)
        , AuthApi (..)
        , UserApi (..)
+       , UserQualificationApi (..)
        , SearchApi (..)
        , FileApi (..)
        , AdminApi (..)
@@ -33,30 +34,30 @@ import Control.Lens
 import Control.Lens.Iso.Extended
 import Servant.Swagger.RawM ()
 
-data ApplicationApi route = 
-     ApplicationApi 
-     { _applicationApiHttp 
-       :: route 
-       :- ToServant HttpWrapperApi AsApi 
+data ApplicationApi route =
+     ApplicationApi
+     { _applicationApiHttp
+       :: route
+       :- ToServant HttpWrapperApi AsApi
      } deriving stock Generic
 
-newtype HttpWrapperApi route = 
-        HttpWrapperApi 
-        { _httpWrapperApiApi 
+newtype HttpWrapperApi route =
+        HttpWrapperApi
+        { _httpWrapperApiApi
           :: route
           :- Description "http api: "
-          :> "api" 
+          :> "api"
           :> "v1"
-          :> ToServant HttpApi AsApi 
+          :> ToServant HttpApi AsApi
         } deriving stock Generic
-    
+
 api :: Proxy (ToServantApi ApplicationApi)
 api = genericApi (Proxy :: Proxy ApplicationApi)
 
 swaggerHttpApi :: String -> Int -> Swagger
-swaggerHttpApi hs port = 
-  toSwagger (genericApi (Proxy :: Proxy HttpWrapperApi)) 
-  & schemes ?~ [Http] 
+swaggerHttpApi hs port =
+  toSwagger (genericApi (Proxy :: Proxy HttpWrapperApi))
+  & schemes ?~ [Http]
   & host ?~ Host hs (Just (fromIntegral port))
   & info.description ?~ "EdgeNode server api"^.stext
   & info.version .~ "0.0.1"^.stext

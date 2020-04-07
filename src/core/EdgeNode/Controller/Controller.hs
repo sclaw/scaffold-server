@@ -145,6 +145,16 @@ user user =
      (jWTUserUserId x)
      Rbac.PermissionUser
      (User.AddQualification.controller qualifications))
+  , _userApiQualification = toServant (userQualification user)
+  }
+
+userQualification :: AuthResult JWTUser -> UserQualificationApi (AsServerT KatipController)
+userQualification _ =
+  UserQualificationApi
+  { _userQualificationApiGetDegreeTypesByCategory = undefined
+  , _userQualificationApiGetCountriesByDegreeType = undefined
+  , _userQualificationApiGetBranchesByCountry = undefined
+  , _userQualificationApiGetQualificationsByBranch = undefined
   }
 
 search :: SearchApi (AsServerT KatipController)
