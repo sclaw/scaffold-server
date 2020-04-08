@@ -11,6 +11,7 @@ import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.User
 import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes (EdgeNodeQualificationDegreeCapture)
+import EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries (EdgeNodeCountryCapture)
 
 import Servant.API.Generic
 import Servant.API
@@ -63,7 +64,7 @@ data UserQualificationApi route =
        :> "qualification-degree"
        :> Capture "type" EdgeNodeQualificationDegree
        :> "countries"
-       :> Get '[JSON] (Response [EdgeNodeCountry])
+       :> Get '[JSON] (Response [EdgeNodeCountryCapture])
      , _userQualificationApiGetBranchesByCountry
        :: route
        :- Description "get provider's branches by given country"
