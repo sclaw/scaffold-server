@@ -43,7 +43,11 @@ import qualified EdgeNode.Controller.Provider.PatchQualification as Provider.Pat
 import qualified EdgeNode.Controller.User.GetProfile as User.GetProfile
 import qualified EdgeNode.Controller.User.PatchProfile as User.PatchProfile
 import qualified EdgeNode.Controller.User.AddTrajectory as User.AddTrajectory
-import qualified EdgeNode.Controller.User.AddQualification as User.AddQualification
+import qualified EdgeNode.Controller.User.Qualification.AddQualificationToTrajectory as User.AddQualificationToTrajectory
+import qualified EdgeNode.Controller.User.Qualification.GetDegreeTypesByCategory as User.GetDegreeTypesByCategory
+import qualified EdgeNode.Controller.User.Qualification.GetCountriesByDegreeType as User.GetCountriesByDegreeType
+import qualified EdgeNode.Controller.User.Qualification.GetBranchesByCountry as User.GetBranchesByCountry
+import qualified EdgeNode.Controller.User.Qualification.GetQualificationsByBranch as User.GetQualificationsByBranch
 
 import Auth
 import Katip
@@ -136,25 +140,59 @@ user user =
      (jWTUserUserId x)
      Rbac.PermissionUser
      (User.AddTrajectory.controller trajectory))
-  , _userApiAddQualification = \qualifications ->
-    flip logExceptionM ErrorS $
-    katipAddNamespace
-    (Namespace ["user", "qualification", "add"])
-    (applyController Nothing user $ \x ->
-     verifyAuthorization
-     (jWTUserUserId x)
-     Rbac.PermissionUser
-     (User.AddQualification.controller qualifications))
   , _userApiQualification = toServant (userQualification user)
   }
 
 userQualification :: AuthResult JWTUser -> UserQualificationApi (AsServerT KatipController)
-userQualification _ =
+userQualification user =
   UserQualificationApi
-  { _userQualificationApiGetDegreeTypesByCategory = undefined
-  , _userQualificationApiGetCountriesByDegreeType = undefined
-  , _userQualificationApiGetBranchesByCountry = undefined
-  , _userQualificationApiGetQualificationsByBranch = undefined
+  { _userQualificationApiGetDegreeTypesByCategory = \category ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["user", "qualification", "category"])
+    (applyController Nothing user $ \x ->
+     verifyAuthorization
+     (jWTUserUserId x)
+     Rbac.PermissionUser
+     (User.GetDegreeTypesByCategory.controller category))
+  , _userQualificationApiGetCountriesByDegreeType =
+    \category degree_type ->
+      flip logExceptionM ErrorS $
+      katipAddNamespace
+      (Namespace ["user", "qualification", "category, degree_type"])
+      (applyController Nothing user $ \x ->
+       verifyAuthorization
+       (jWTUserUserId x)
+       Rbac.PermissionUser
+       (User.GetCountriesByDegreeType.controller category degree_type))
+  , _userQualificationApiGetBranchesByCountry =
+    \category degree_type country ->
+      flip logExceptionM ErrorS $
+      katipAddNamespace
+      (Namespace ["user", "qualification", "category degree_type, country"])
+      (applyController Nothing user $ \x ->
+       verifyAuthorization
+       (jWTUserUserId x)
+       Rbac.PermissionUser
+       (User.GetBranchesByCountry.controller category degree_type country))
+  , _userQualificationApiGetQualificationsByBranch = \branch_id ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["user", "qualification", "list"])
+     (applyController Nothing user $ \x ->
+      verifyAuthorization
+      (jWTUserUserId x)
+      Rbac.PermissionUser
+      (User.GetQualificationsByBranch.controller branch_id))
+  , _userApiAddQualificationToTrajectory = \qualifications ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["user", "qualificaton", "add"])
+    (applyController Nothing user $ \x ->
+     verifyAuthorization
+     (jWTUserUserId x)
+     Rbac.PermissionUser
+     (User.AddQualificationToTrajectory.controller qualifications))
   }
 
 search :: SearchApi (AsServerT KatipController)

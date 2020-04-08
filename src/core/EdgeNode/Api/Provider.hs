@@ -11,7 +11,7 @@ import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Extended
 import EdgeNode.Transport.Qualification
-import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes 
+import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes
        (EdgeNodeQualificationDegreeCapture)
 import EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries
        (EdgeNodeCountryCapture)
@@ -23,8 +23,8 @@ import Data.Aeson.WithField
 import qualified Data.Text as T
 import TH.Proto
 
-data ProviderApi route = 
-     ProviderApi 
+data ProviderApi route =
+     ProviderApi
      { _providerApiGetBranches
        :: route
        :- "branches"
@@ -55,30 +55,30 @@ data ProviderApi route =
        :- "publish"
        :> Post '[JSON] (Response Unit)
      , _providerApiBuilderCreateQualification
-       :: route 
+       :: route
        :- "qualification"
        :> "builder"
        :> ReqBody '[JSON] (WithField "branch" (Id "branch") QualificationBuilder)
        :> Put '[JSON] (Response (Id "qualification"))
      , _providerApiBuilderGetAvailableBranches
-       :: route 
+       :: route
        :- "qualification"
        :> "builder"
-       :> "branches" 
+       :> "branches"
        :> Get '[JSON] (Response [WithId (Id "branch") (OnlyField "title" T.Text)])
      , _providerApiBuilderGetDependencyAreaToCountries
-       :: route 
+       :: route
        :- "qualification"
-       :> "builder" 
+       :> "builder"
        :> "dependency"
        :> "academic-area"
        :> Capture "area" EdgeNodeAcademicArea
        :> "countries"
        :> Get '[JSON] (Response [EdgeNodeCountryCapture])
-     , _providerApiBuilderGetDependencyCountryToTypes 
-       :: route 
+     , _providerApiBuilderGetDependencyCountryToTypes
+       :: route
        :- "qualification"
-       :> "builder" 
+       :> "builder"
        :> "dependency"
        :> "academic-area"
        :> Capture "area" EdgeNodeAcademicArea
@@ -86,16 +86,16 @@ data ProviderApi route =
        :> Capture "country" EdgeNodeCountry
        :> "qualification-degrees"
        :> Get '[JSON] (Response [EdgeNodeQualificationDegreeCapture])
-     , _providerApiBuilderGetDependencTypeToQualifications 
-       :: route 
+     , _providerApiBuilderGetDependencTypeToQualifications
+       :: route
        :- "qualification"
-       :> "builder" 
+       :> "builder"
        :> "dependency"
        :> "academic-area"
        :> Capture "area" EdgeNodeAcademicArea
        :> "country"
        :> Capture "country" EdgeNodeCountry
-       :> "qualification-degree"       
+       :> "qualification-degree"
        :> Capture "type" EdgeNodeQualificationDegree
        :> "qualifications"
        :> Get '[JSON] (Response [WithId (Id "qualification") DegreeTypeToQualification])

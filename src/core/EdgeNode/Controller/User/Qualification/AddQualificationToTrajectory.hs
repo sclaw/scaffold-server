@@ -2,7 +2,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module EdgeNode.Controller.User.AddQualification (controller) where
+module EdgeNode.Controller.User.Qualification.AddQualificationToTrajectory (controller) where
 
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
@@ -18,9 +18,7 @@ import qualified Data.Text as T
 import Data.Bifunctor
 
 controller
-  :: [WithId
-     (Id "qualification")
-     AddQualification]
+  :: [WithId (Id "qualification") AddQualification]
   -> UserId
   -> KatipController
      (Response [Id "user_qualification"])

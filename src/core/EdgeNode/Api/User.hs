@@ -39,15 +39,9 @@ data UserApi route =
        :> "trajectory"
        :> ReqBody '[JSON] (OnlyField "id" (Id "qualification"))
        :> Put '[JSON] (Response Unit)
-     , _userApiAddQualification
-       :: route
-       :- Description "add qualififcation"
-       :> "qualification"
-       :> ReqBody '[JSON] [WithId (Id "qualification") AddQualification]
-       :> Put '[JSON] (Response [Id "user_qualification"])
      , _userApiQualification
        :: route
-       :> "qualification"
+       :- "qualification"
        :> ToServant UserQualificationApi AsApi
      } deriving stock Generic
 
@@ -80,6 +74,13 @@ data UserQualificationApi route =
       , _userQualificationApiGetQualificationsByBranch
        :: route
        :- Description "get qualifications"
+       :> "branch"
        :> Capture "branch_id" (Id "branch")
-       :> Get '[JSON] (Response [WithId (Id "qualification") Unit])
+       :> "list"
+       :> Get '[JSON] (Response [WithId (Id "qualification") (OnlyField "value" T.Text)])
+      , _userApiAddQualificationToTrajectory
+        :: route
+        :- Description "add qualififcation to trajectory"
+        :> ReqBody '[JSON] [WithId (Id "qualification") AddQualification]
+        :> Put '[JSON] (Response [Id "user_qualification"])
      } deriving stock Generic
