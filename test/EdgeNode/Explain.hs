@@ -108,7 +108,8 @@ explainTests =
     [ "getProfile" =>> EdgeNode.Statement.User.getProfile
     , "patchProfile" =>> EdgeNode.Statement.User.patchProfile
     , "addTrajectory" =>> EdgeNode.Statement.User.addTrajectory
-    , "addQualification" =>> EdgeNode.Statement.User.addQualification]
+    , "addQualification" =>> EdgeNode.Statement.User.addQualification
+    , "getDegreeTypesByCategory" =>> EdgeNode.Statement.User.getDegreeTypesByCategory]
   ]
 
 (==>) a b = (a, b)

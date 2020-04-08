@@ -17,11 +17,7 @@ import Control.Lens
 import qualified Data.Text as T
 import Data.Bifunctor
 
-controller
-  :: [WithId (Id "qualification") AddQualification]
-  -> UserId
-  -> KatipController
-     (Response [Id "user_qualification"])
+controller :: [WithId (Id "qualification") AddQualification] -> UserId -> KatipController (Response [Id "user_qualification"])
 controller qualifications user_id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   let mkError _ = ("qualification is already at your skill's list" :: T.Text)

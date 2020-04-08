@@ -46,7 +46,7 @@ dependencies:
 #   mixin:
 #    - hiding (Prelude)
 # - name: relude
-#   mixin: 
+#   mixin:
 #    - (Relude as Prelude
 #      , Relude.Extra.Enum
 #      , Relude.Extra.Validation
@@ -101,7 +101,7 @@ library:
     - regex-with-pcre
     - validation
     - pretty-tree
-    - rosezipper 
+    - rosezipper
     - servant-swagger-ui
     - servant-swagger-ui-core
     - servant-swagger
@@ -173,9 +173,10 @@ library:
     - base64-bytestring
     - generic-arbitrary
     - servant-mock
-    - insert-ordered-containers 
+    - insert-ordered-containers
     - servant-auth-swagger
     - generics-sop
+    - string-conv
 
   source-dirs:
     - src/core

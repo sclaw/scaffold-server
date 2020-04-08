@@ -154,7 +154,7 @@ userQualification user =
      verifyAuthorization
      (jWTUserUserId x)
      Rbac.PermissionUser
-     (User.GetDegreeTypesByCategory.controller category))
+     (const (User.GetDegreeTypesByCategory.controller category)))
   , _userQualificationApiGetCountriesByDegreeType =
     \category degree_type ->
       flip logExceptionM ErrorS $
@@ -164,7 +164,7 @@ userQualification user =
        verifyAuthorization
        (jWTUserUserId x)
        Rbac.PermissionUser
-       (User.GetCountriesByDegreeType.controller category degree_type))
+       (const (User.GetCountriesByDegreeType.controller category degree_type)))
   , _userQualificationApiGetBranchesByCountry =
     \category degree_type country ->
       flip logExceptionM ErrorS $
@@ -174,7 +174,7 @@ userQualification user =
        verifyAuthorization
        (jWTUserUserId x)
        Rbac.PermissionUser
-       (User.GetBranchesByCountry.controller category degree_type country))
+       (const (User.GetBranchesByCountry.controller category degree_type country)))
   , _userQualificationApiGetQualificationsByBranch = \branch_id ->
     flip logExceptionM ErrorS $
     katipAddNamespace
@@ -183,7 +183,7 @@ userQualification user =
       verifyAuthorization
       (jWTUserUserId x)
       Rbac.PermissionUser
-      (User.GetQualificationsByBranch.controller branch_id))
+      (const (User.GetQualificationsByBranch.controller branch_id)))
   , _userApiAddQualificationToTrajectory = \qualifications ->
     flip logExceptionM ErrorS $
     katipAddNamespace

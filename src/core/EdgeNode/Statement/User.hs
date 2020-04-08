@@ -14,6 +14,7 @@ module EdgeNode.Statement.User
        , patchProfile
        , addTrajectory
        , addQualification
+       , getDegreeTypesByCategory
        ) where
 
 import EdgeNode.Transport.Id
@@ -39,6 +40,9 @@ import Data.Generics.Product.Fields
 import Data.Aeson
 import qualified Data.Vector.Extended as V
 import Control.Foldl
+import TH.Proto
+import Data.String.Conv
+import qualified Data.Text as T
 
 deriving instance Enum Gender
 deriving instance Enum Allegiance
@@ -46,6 +50,7 @@ deriving instance Enum Allegiance
 mkEncoder ''Profile
 mkEncoder ''FullDay
 mkArbitrary ''AddQualification
+mkArbitrary ''EdgeNodeProviderCategory
 
 mkFullDay x =
   case fromJSON x of
@@ -157,3 +162,21 @@ addQualification = lmap mkTpl $ statement $ premap coerce list
         select $1 :: int8, qid, v
         from unnest($2 :: int8[], $3 :: text[]) as x(qid, v)
         returning id :: int8|]
+
+instance ParamsShow EdgeNodeProviderCategory where render = (^.isoEdgeNodeProviderCategory.to toS)
+
+getDegreeTypesByCategory :: HS.Statement EdgeNodeProviderCategory [EdgeNodeQualificationDegree]
+getDegreeTypesByCategory =
+  lmap  (^.isoEdgeNodeProviderCategory.to (toS @_ @T.Text)) $
+  statement $
+  premap  (^.to (toS @T.Text @_).from isoEdgeNodeQualificationDegree) list
+  where
+    statement =
+      [foldStatement|
+        select distinct pbq.type :: text
+        from edgenode.provider as p
+        left join edgenode.provider_branch as pb
+        on p.id = pb.provider_fk
+        left join edgenode.provider_branch_qualification as pbq
+        on pb.id = pbq.provider_branch_fk
+        where p.category = $1 :: text|]
