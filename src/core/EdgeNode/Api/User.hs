@@ -10,6 +10,7 @@ module EdgeNode.Api.User (UserApi (..), UserQualificationApi (..)) where
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.User
+import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes (EdgeNodeQualificationDegreeCapture)
 
 import Servant.API.Generic
 import Servant.API
@@ -52,7 +53,8 @@ data UserQualificationApi route =
        :- Description "get degree types by given category"
        :> "category"
        :> Capture "category" EdgeNodeProviderCategory
-       :> Get '[JSON] (Response [EdgeNodeQualificationDegree])
+       :> "qualification-degrees"
+       :> Get '[JSON] (Response [EdgeNodeQualificationDegreeCapture])
      , _userQualificationApiGetCountriesByDegreeType
        :: route
        :- Description "get countries by given qualification degree type"
@@ -60,6 +62,7 @@ data UserQualificationApi route =
        :> Capture "category" EdgeNodeProviderCategory
        :> "qualification-degree"
        :> Capture "type" EdgeNodeQualificationDegree
+       :> "countries"
        :> Get '[JSON] (Response [EdgeNodeCountry])
      , _userQualificationApiGetBranchesByCountry
        :: route
@@ -70,12 +73,14 @@ data UserQualificationApi route =
        :> Capture "type" EdgeNodeQualificationDegree
        :> "country"
        :> Capture "country" EdgeNodeCountry
+       :> "branches"
        :> Get '[JSON] (Response [WithId (Id "branch") (OnlyField "title" T.Text)])
       , _userQualificationApiGetQualificationsByBranch
        :: route
        :- Description "get qualifications"
        :> "branch"
        :> Capture "branch_id" (Id "branch")
+       :> "qualification"
        :> "list"
        :> Get '[JSON] (Response [WithId (Id "qualification") (OnlyField "value" T.Text)])
       , _userApiAddQualificationToTrajectory

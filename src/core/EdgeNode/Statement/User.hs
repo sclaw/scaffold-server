@@ -20,6 +20,7 @@ module EdgeNode.Statement.User
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.User
 import EdgeNode.Transport.Iso
+import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes (EdgeNodeQualificationDegreeCapture(..))
 
 import qualified Hasql.Statement as HS
 import Auth
@@ -165,11 +166,11 @@ addQualification = lmap mkTpl $ statement $ premap coerce list
 
 instance ParamsShow EdgeNodeProviderCategory where render = (^.isoEdgeNodeProviderCategory.to toS)
 
-getDegreeTypesByCategory :: HS.Statement EdgeNodeProviderCategory [EdgeNodeQualificationDegree]
+getDegreeTypesByCategory :: HS.Statement EdgeNodeProviderCategory [EdgeNodeQualificationDegreeCapture]
 getDegreeTypesByCategory =
   lmap  (^.isoEdgeNodeProviderCategory.to (toS @_ @T.Text)) $
   statement $
-  premap  (^.to (toS @T.Text @_).from isoEdgeNodeQualificationDegree) list
+  premap  (^.to (toS @T.Text @_).from isoEdgeNodeQualificationDegree.coerced) list
   where
     statement =
       [foldStatement|

@@ -7,7 +7,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 module EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes
-       (controller, EdgeNodeQualificationDegreeCapture) where
+       (controller, EdgeNodeQualificationDegreeCapture (..)) where
 
 import EdgeNode.Transport.Response
 import EdgeNode.Statement.Provider as Provider
@@ -18,7 +18,7 @@ import Control.Lens
 import Pretty
 import Katip
 import TH.Proto
-import Data.Coerce 
+import Data.Coerce
 import Data.Swagger.Internal.Schema
 import GHC.Generics hiding (from, to)
 import Data.Aeson
@@ -33,22 +33,22 @@ instance ToSchema EdgeNodeQualificationDegreeCapture where
   declareNamedSchema _ = do
     stringSchema <- declareSchemaRef (Proxy :: Proxy String)
     return $ NamedSchema (Just "EdgeNodeQualificationDegreeCapture") $ mempty
-      & type_ ?~ SwaggerString 
+      & type_ ?~ SwaggerString
       & enum_ ?~ map (^.isoEdgeNodeQualificationDegree.stext.to String) [BSc .. IELTS]
 
 instance ToJSON EdgeNodeQualificationDegreeCapture where
   toJSON x = String $ x^.coerced.isoEdgeNodeQualificationDegree.stext
 
-controller 
-  :: EdgeNodeAcademicArea 
+controller
+  :: EdgeNodeAcademicArea
   -> EdgeNodeCountry
-  -> KatipController 
-     (Response 
+  -> KatipController
+     (Response
       [EdgeNodeQualificationDegreeCapture])
 controller area country = do
-  hasql <- fmap (^.katipEnv.hasqlDbPool) ask 
-  resp <- katipTransaction hasql $ 
-    statement Provider.getCountryToTypes 
+  hasql <- fmap (^.katipEnv.hasqlDbPool) ask
+  resp <- katipTransaction hasql $
+    statement Provider.getCountryToTypes
     (area, country)
   $(logTM) DebugS (logStr ("degrees: " ++ mkPretty mempty resp))
   return $ Ok $ fmap coerce resp
