@@ -15,12 +15,18 @@ module EdgeNode.Statement.User
        , addTrajectory
        , addQualification
        , getDegreeTypesByCategory
+       , getCountriesByDegreeType
+       , getBranchesByCountry
+       , getQualificationsByBranch
        ) where
 
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.User
 import EdgeNode.Transport.Iso
-import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes (EdgeNodeQualificationDegreeCapture(..))
+import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes
+       (EdgeNodeQualificationDegreeCapture(..))
+import EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries
+       (EdgeNodeCountryCapture (..))
 
 import qualified Hasql.Statement as HS
 import Auth
@@ -168,9 +174,9 @@ instance ParamsShow EdgeNodeProviderCategory where render = (^.isoEdgeNodeProvid
 
 getDegreeTypesByCategory :: HS.Statement EdgeNodeProviderCategory [EdgeNodeQualificationDegreeCapture]
 getDegreeTypesByCategory =
-  lmap  (^.isoEdgeNodeProviderCategory.to (toS @_ @T.Text)) $
+  lmap (^.isoEdgeNodeProviderCategory.to (toS @_ @T.Text)) $
   statement $
-  premap  (^.to (toS @T.Text @_).from isoEdgeNodeQualificationDegree.coerced) list
+  premap (^.to (toS @T.Text @_).from isoEdgeNodeQualificationDegree.coerced) list
   where
     statement =
       [foldStatement|
@@ -181,3 +187,45 @@ getDegreeTypesByCategory =
         inner join edgenode.provider_branch_qualification as pbq
         on pb.id = pbq.provider_branch_fk
         where p.category = $1 :: text|]
+
+getCountriesByDegreeType :: HS.Statement (EdgeNodeProviderCategory, EdgeNodeQualificationDegree) [EdgeNodeCountryCapture]
+getCountriesByDegreeType = lmap convert $ statement $ premap (^.to (toS @T.Text @_).from isoEdgeNodeCountry.coerced) list
+  where
+    convert x =
+      x & _1 %~ (^.isoEdgeNodeProviderCategory.to (toS @_ @T.Text))
+        & _2 %~ (^.isoEdgeNodeQualificationDegree.to (toS @_ @T.Text))
+    statement =
+      [foldStatement|
+        select distinct pb.country :: text
+        from edgenode.provider as p
+        left join edgenode.provider_branch as pb
+        on p.id = pb.provider_fk
+        inner join edgenode.provider_branch_qualification as pbq
+        on pb.id = pbq.provider_branch_fk
+        where p.category = $1 :: text and pbq.type = $2 :: text|]
+
+getBranchesByCountry
+  :: HS.Statement
+     ( EdgeNodeProviderCategory
+     , EdgeNodeQualificationDegree
+     , EdgeNodeCountry)
+     [WithId (Id "branch") (OnlyField "title" T.Text)]
+getBranchesByCountry = lmap convert $ statement $ premap mkBranch list
+  where
+    convert x =
+      x & _1 %~ (^.isoEdgeNodeProviderCategory.to (toS @_ @T.Text))
+        & _2 %~ (^.isoEdgeNodeQualificationDegree.to (toS @_ @T.Text))
+        & _3 %~ (^.isoEdgeNodeCountry.to (toS @_ @T.Text))
+    mkBranch (ident, title) = WithField (coerce ident) (OnlyField title)
+    statement =
+      [foldStatement|
+        select pb.id :: int8, pb.title :: text
+        from edgenode.provider as p
+        left join edgenode.provider_branch as pb
+        on p.id = pb.provider_fk
+        inner join edgenode.provider_branch_qualification as pbq
+        on pb.id = pbq.provider_branch_fk
+        where p.category = $1 :: text and pbq.type = $2 :: text and pb.country = $3 :: text|]
+
+getQualificationsByBranch :: HS.Statement (Id "branch") [WithId (Id "qualification") (OnlyField "values" [T.Text])]
+getQualificationsByBranch = undefined

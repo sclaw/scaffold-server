@@ -10,7 +10,6 @@ import Database.Transaction
 import Control.Lens
 
 controller :: EdgeNodeProviderCategory -> KatipController (Response [EdgeNodeQualificationDegreeCapture])
-controller None = pure $ Ok []
 controller category = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap Ok $ katipTransaction hasql $ statement User.getDegreeTypesByCategory category

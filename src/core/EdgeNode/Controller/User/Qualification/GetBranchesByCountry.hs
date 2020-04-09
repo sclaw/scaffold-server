@@ -6,11 +6,19 @@ module EdgeNode.Controller.User.Qualification.GetBranchesByCountry (controller) 
 
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
+import EdgeNode.Statement.User as User
 
 import TH.Proto
 import KatipController
 import Data.Aeson.WithField
 import qualified Data.Text as T
+import Database.Transaction
+import Control.Lens
 
 controller :: EdgeNodeProviderCategory -> EdgeNodeQualificationDegree -> EdgeNodeCountry -> KatipController (Response [WithId (Id "branch") (OnlyField "title" T.Text)])
-controller _ _ _ = pure $ Ok []
+controller category degree_type country = do
+  hasql <- fmap (^.katipEnv.hasqlDbPool) ask
+  fmap Ok $ katipTransaction hasql $
+    statement
+    User.getBranchesByCountry
+    (category, degree_type, country)
