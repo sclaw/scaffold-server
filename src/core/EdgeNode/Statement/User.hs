@@ -178,6 +178,6 @@ getDegreeTypesByCategory =
         from edgenode.provider as p
         left join edgenode.provider_branch as pb
         on p.id = pb.provider_fk
-        left join edgenode.provider_branch_qualification as pbq
+        inner join edgenode.provider_branch_qualification as pbq
         on pb.id = pbq.provider_branch_fk
         where p.category = $1 :: text|]
