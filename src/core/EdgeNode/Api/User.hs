@@ -81,7 +81,6 @@ data UserQualificationApi route =
        :- Description "get qualifications"
        :> "branch"
        :> Capture "branch_id" (Id "branch")
-       :> "qualification"
        :> "list"
        :> Get '[JSON] (Response [WithId (Id "qualification") (OnlyField "title" T.Text)])
       , _userApiAddQualificationToTrajectory
