@@ -111,7 +111,8 @@ explainTests =
     , "addQualification" =>> EdgeNode.Statement.User.addQualification
     , "getDegreeTypesByCategory" =>> EdgeNode.Statement.User.getDegreeTypesByCategory
     , "getCountriesByDegreeType" =>> EdgeNode.Statement.User.getCountriesByDegreeType
-    , "getBranchesByCountry" =>> EdgeNode.Statement.User.getBranchesByCountry]
+    , "getBranchesByCountry" =>> EdgeNode.Statement.User.getBranchesByCountry
+    , "getQualificationsByBranch" =>> EdgeNode.Statement.User.getQualificationsByBranch]
   ]
 
 (==>) a b = (a, b)

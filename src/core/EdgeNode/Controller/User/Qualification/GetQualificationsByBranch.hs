@@ -6,10 +6,15 @@ module EdgeNode.Controller.User.Qualification.GetQualificationsByBranch (control
 
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
+import EdgeNode.Statement.User as User
 
 import KatipController
 import Data.Aeson.WithField
 import qualified Data.Text as T
+import Database.Transaction
+import Control.Lens
 
-controller :: Id "branch" -> KatipController (Response [WithId (Id "qualification") (OnlyField "value" T.Text)])
-controller _ = pure $ Ok []
+controller :: Id "branch" -> KatipController (Response [WithId (Id "qualification") (OnlyField "title" T.Text)])
+controller ident = do
+  hasql <- fmap (^.katipEnv.hasqlDbPool) ask
+  fmap Ok $ katipTransaction hasql $ statement User.getQualificationsByBranch ident

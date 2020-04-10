@@ -219,7 +219,7 @@ getBranchesByCountry = lmap convert $ statement $ premap mkBranch list
     mkBranch (ident, title) = WithField (coerce ident) (OnlyField title)
     statement =
       [foldStatement|
-        select pb.id :: int8, pb.title :: text
+        select distinct pb.id :: int8, pb.title :: text
         from edgenode.provider as p
         left join edgenode.provider_branch as pb
         on p.id = pb.provider_fk
@@ -227,5 +227,14 @@ getBranchesByCountry = lmap convert $ statement $ premap mkBranch list
         on pb.id = pbq.provider_branch_fk
         where p.category = $1 :: text and pbq.type = $2 :: text and pb.country = $3 :: text|]
 
-getQualificationsByBranch :: HS.Statement (Id "branch") [WithId (Id "qualification") (OnlyField "values" [T.Text])]
-getQualificationsByBranch = undefined
+getQualificationsByBranch :: HS.Statement (Id "branch") [WithId (Id "qualification") (OnlyField "title" T.Text)]
+getQualificationsByBranch = lmap coerce $ statement $ premap mkQual list
+  where
+    mkQual (ident, title) = WithField (coerce ident) (OnlyField title)
+    statement =
+      [foldStatement|
+        select pbq.id :: int8, pbq.title :: text
+        from edgenode.provider_branch as pb
+        inner join edgenode.provider_branch_qualification as pbq
+        on pb.id = pbq.provider_branch_fk
+        where pb.id = $1 :: int8|]
