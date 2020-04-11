@@ -9,6 +9,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module EdgeNode.Statement.User
        ( getProfile
@@ -272,7 +273,7 @@ purgeQualifications = lmap transform statement
           inner join qualification_ids as ids
           on x.i = ids.ident)
        delete from edgenode.user_qualification
-       where "user_fk" = $2 :: int8 and provider_branch_fk = any(select ident from ids)|]
+       where "user_fk" = $2 :: int8 and provider_branch_qualification_fk = any(select ident from ids)|]
 
 instance Default UserQualificationItem
 instance Default UserQualificationItem_Element
