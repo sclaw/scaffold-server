@@ -227,8 +227,8 @@ getBranchesByCountry = lmap convert $ statement $ premap mkBranch list
         on pb.id = pbq.provider_branch_fk
         where p.category = $1 :: text and pbq.type = $2 :: text and pb.country = $3 :: text|]
 
-getQualificationsByBranch :: HS.Statement (Id "branch") [WithId (Id "qualification") (OnlyField "title" T.Text)]
-getQualificationsByBranch = lmap coerce $ statement $ premap mkQual list
+getQualificationsByBranch :: HS.Statement (UserId, Id "branch") [WithId (Id "qualification") (OnlyField "title" T.Text)]
+getQualificationsByBranch = lmap (bimap coerce coerce) $ statement $ premap mkQual list
   where
     mkQual (ident, title) = WithField (coerce ident) (OnlyField title)
     statement =
@@ -237,4 +237,8 @@ getQualificationsByBranch = lmap coerce $ statement $ premap mkQual list
         from edgenode.provider_branch as pb
         inner join edgenode.provider_branch_qualification as pbq
         on pb.id = pbq.provider_branch_fk
-        where pb.id = $1 :: int8|]
+        left join (select provider_branch_qualification_fk as ident, array_agg("user_fk") as users
+         from edgenode.user_qualification
+         group by provider_branch_qualification_fk) as uq
+        on pbq.id = uq.ident
+        where pb.id = $2 :: int8 and (not (array[$1 :: int8] <@ coalesce(uq.users, array[] :: int8[])))|]

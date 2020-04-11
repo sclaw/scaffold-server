@@ -183,7 +183,7 @@ userQualification user =
       verifyAuthorization
       (jWTUserUserId x)
       Rbac.PermissionUser
-      (const (User.GetQualificationsByBranch.controller branch_id)))
+      (User.GetQualificationsByBranch.controller branch_id))
   , _userApiAddQualificationToTrajectory = \qualifications ->
     flip logExceptionM ErrorS $
     katipAddNamespace
