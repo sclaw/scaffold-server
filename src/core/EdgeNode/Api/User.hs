@@ -19,6 +19,7 @@ import Data.Aeson.WithField.Extended
 import Data.Aeson.Unit
 import TH.Proto
 import qualified Data.Text as T
+import Data.Int
 
 data UserApi route =
      UserApi
@@ -99,5 +100,5 @@ data UserQualificationApi route =
         :> "remove"
         :> Capture "provider_id" (Id "provider")
         :> ReqBody '[JSON] [Id "qualification"]
-        :> Delete '[JSON] (Response Unit)
+        :> Delete '[JSON] (Response Int64)
      } deriving stock Generic

@@ -249,8 +249,30 @@ getQualificationsByBranch = lmap (bimap coerce coerce) $ statement $ premap mkQu
         on pbq.id = uq.ident
         where pb.id = $2 :: int8 and (not (array[$1 :: int8] <@ coalesce(uq.users, array[] :: int8[])))|]
 
-purgeQualifications :: HS.Statement (Id "provider", UserId, [Id "qualification"]) ()
-purgeQualifications = pure ()
+purgeQualifications :: HS.Statement (Id "provider", UserId, [Id "qualification"]) Int64
+purgeQualifications = lmap transform statement
+  where
+    transform x =
+      x & _1 %~ coerce @_ @Int64
+        & _2 %~ coerce @_ @Int64
+        & _3 %~ (V.fromList . Prelude.map (coerce @_ @Int64))
+    statement =
+      [rowsAffectedStatement|
+        with qualification_ids as (
+          select pbq.id as ident
+          from edgenode.provider as p
+          left join edgenode.provider_branch as pb
+          on p.id = pb.provider_fk
+          left join edgenode.provider_branch_qualification as pbq
+          on pb.id = pbq.provider_branch_fk
+          where p.id = $1 :: int8),
+        ids as (
+          select ids.ident
+          from unnest($3 :: int8[]) as x(i)
+          inner join qualification_ids as ids
+          on x.i = ids.ident)
+       delete from edgenode.user_qualification
+       where "user_fk" = $2 :: int8 and provider_branch_fk = any(select ident from ids)|]
 
 instance Default UserQualificationItem
 instance Default UserQualificationItem_Element

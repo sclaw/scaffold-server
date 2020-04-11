@@ -10,11 +10,11 @@ import EdgeNode.Statement.User as User
 
 import Auth
 import KatipController
-import Data.Aeson.Unit
 import Database.Transaction
 import Control.Lens
+import Data.Int
 
-controller :: Id "provider" -> [Id "qualification"] -> UserId -> KatipController (Response Unit)
+controller :: Id "provider" -> [Id "qualification"] -> UserId -> KatipController (Response Int64)
 controller provider_id xs user_id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  fmap (const (Ok Unit)) $ katipTransaction hasql $ statement User.purgeQualifications (provider_id, user_id, xs)
+  fmap Ok $ katipTransaction hasql $ statement User.purgeQualifications (provider_id, user_id, xs)
