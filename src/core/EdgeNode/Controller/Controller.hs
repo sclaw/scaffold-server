@@ -48,6 +48,8 @@ import qualified EdgeNode.Controller.User.Qualification.GetDegreeTypesByCategory
 import qualified EdgeNode.Controller.User.Qualification.GetCountriesByDegreeType as User.GetCountriesByDegreeType
 import qualified EdgeNode.Controller.User.Qualification.GetBranchesByCountry as User.GetBranchesByCountry
 import qualified EdgeNode.Controller.User.Qualification.GetQualificationsByBranch as User.GetQualificationsByBranch
+import qualified EdgeNode.Controller.User.Qualification.GetQualificationList as User.GetQualificationList
+import qualified EdgeNode.Controller.User.Qualification.PurgeQualifications as User.PurgeQualifications
 
 import Auth
 import Katip
@@ -184,15 +186,35 @@ userQualification user =
       (jWTUserUserId x)
       Rbac.PermissionUser
       (User.GetQualificationsByBranch.controller branch_id))
-  , _userApiAddQualificationToTrajectory = \qualifications ->
+  , _userQualificationApiAddQualificationToTrajectory =
+    \qualifications ->
+      flip logExceptionM ErrorS $
+      katipAddNamespace
+      (Namespace ["user", "qualificaton", "add"])
+      (applyController Nothing user $ \x ->
+       verifyAuthorization
+       (jWTUserUserId x)
+       Rbac.PermissionUser
+       (User.AddQualificationToTrajectory.controller qualifications))
+  , _userQualificationApiGetQualificationList =
     flip logExceptionM ErrorS $
     katipAddNamespace
-    (Namespace ["user", "qualificaton", "add"])
+    (Namespace ["user", "qualificaton", "list"])
     (applyController Nothing user $ \x ->
      verifyAuthorization
      (jWTUserUserId x)
      Rbac.PermissionUser
-     (User.AddQualificationToTrajectory.controller qualifications))
+     (User.GetQualificationList.controller))
+  , _userQualificationApiPurgeQualifications =
+    \provider_id qualification_list ->
+      flip logExceptionM ErrorS $
+      katipAddNamespace
+      (Namespace ["user", "qualificaton", "purge"])
+      (applyController Nothing user $ \x ->
+       verifyAuthorization
+       (jWTUserUserId x)
+       Rbac.PermissionUser
+       (User.PurgeQualifications.controller provider_id qualification_list))
   }
 
 search :: SearchApi (AsServerT KatipController)

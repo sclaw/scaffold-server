@@ -8,6 +8,7 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DerivingStrategies #-}
 
 module EdgeNode.Statement.User
        ( getProfile
@@ -18,6 +19,8 @@ module EdgeNode.Statement.User
        , getCountriesByDegreeType
        , getBranchesByCountry
        , getQualificationsByBranch
+       , getQualificationList
+       , purgeQualifications
        ) where
 
 import EdgeNode.Transport.Id
@@ -27,6 +30,7 @@ import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes
        (EdgeNodeQualificationDegreeCapture(..))
 import EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries
        (EdgeNodeCountryCapture (..))
+import qualified EdgeNode.Transport.Error as Error
 
 import qualified Hasql.Statement as HS
 import Auth
@@ -50,6 +54,8 @@ import Control.Foldl
 import TH.Proto
 import Data.String.Conv
 import qualified Data.Text as T
+import Data.Default.Class.Extended
+import Data.Bifunctor
 
 deriving instance Enum Gender
 deriving instance Enum Allegiance
@@ -242,3 +248,51 @@ getQualificationsByBranch = lmap (bimap coerce coerce) $ statement $ premap mkQu
          group by provider_branch_qualification_fk) as uq
         on pbq.id = uq.ident
         where pb.id = $2 :: int8 and (not (array[$1 :: int8] <@ coalesce(uq.users, array[] :: int8[])))|]
+
+purgeQualifications :: HS.Statement (Id "provider", UserId, [Id "qualification"]) ()
+purgeQualifications = pure ()
+
+instance Default UserQualificationItem
+instance Default UserQualificationItem_Element
+
+data GetQualificationListError =
+     GetQualificationListJsonDecodeError String
+     deriving stock Show
+
+instance Error.AsError GetQualificationListError where
+  asError (GetQualificationListJsonDecodeError e) =
+    Error.asError @T.Text $ "json decode error: " <> toS e
+
+getQualificationList :: HS.Statement UserId (Either GetQualificationListError UserQualification)
+getQualificationList = lmap coerce $ statement $ fmap (second UserQualification . sequence) (premap mkQual vector)
+  where
+    mkQual x =
+      case flip fmap (sequence ((x^._4) <&> fromJSON)) $ \vs ->
+        def @UserQualificationItem
+        & field @"userQualificationItemProviderId" .~ x^._1.integral
+        & field @"userQualificationItemProvider" .~ x^._2.from lazytext
+        & field @"userQualificationItemDegreeType" .~ x^._3.to toS.from qualQualificationDegree
+        & field @"userQualificationItemXs" .~ vs
+      of
+        Error e -> Left $ GetQualificationListJsonDecodeError e
+        Success x -> Right x
+    statement =
+      [foldStatement|
+        select
+          p.id :: int8,
+          p.title :: text,
+          pbq.type :: text,
+          array_agg(jsonb_build_object(
+           'elementId', pbq.id,
+           'title', pbq.title,
+           'value', uq.value)) :: jsonb[]
+        from edgenode.user_qualification as uq
+        inner join edgenode.provider_branch_qualification as pbq
+        on uq.provider_branch_qualification_fk = pbq.id
+        inner join edgenode.provider_branch as pb
+        on pbq.provider_branch_fk = pb.id
+        inner join edgenode.provider as p
+        on pb.provider_fk = p.id
+        where uq.user_fk = $1 :: int8
+        group by p.id, p.title, pbq.type
+        order by p.title, pbq.type|]

@@ -83,9 +83,21 @@ data UserQualificationApi route =
        :> Capture "branch_id" (Id "branch")
        :> "list"
        :> Get '[JSON] (Response [WithId (Id "qualification") (OnlyField "title" T.Text)])
-      , _userApiAddQualificationToTrajectory
+      , _userQualificationApiAddQualificationToTrajectory
         :: route
         :- Description "add qualififcation to trajectory"
         :> ReqBody '[JSON] [WithId (Id "qualification") AddQualification]
         :> Put '[JSON] (Response [Id "user_qualification"])
+      , _userQualificationApiGetQualificationList
+        :: route
+        :- Description "qualififcation list"
+        :> "list"
+        :> Get '[JSON] (Response UserQualification)
+      , _userQualificationApiPurgeQualifications
+        :: route
+        :- Description "purge banch of qualififcations contained by provider"
+        :> "remove"
+        :> Capture "provider_id" (Id "provider")
+        :> ReqBody '[JSON] [Id "qualification"]
+        :> Delete '[JSON] (Response Unit)
      } deriving stock Generic
