@@ -64,7 +64,7 @@ deriving instance Enum Allegiance
 
 mkEncoder ''Profile
 mkEncoder ''FullDay
-mkArbitrary ''AddQualification
+mkArbitrary ''AddQualificationRequest
 mkArbitrary ''EdgeNodeProviderCategory
 
 mkFullDay x =
@@ -178,14 +178,14 @@ addTrajectory =
   where mkResp i | i > 0 = Right ()
                  | otherwise = Left AddTrajectoryErrorAlreadyAtQualificationList
 
-instance ParamsShow AddQualification where
-  render qualification = qualification^.field @"addQualificationValue".lazytext.from stext
+instance ParamsShow AddQualificationRequest where
+  render qualification = qualification^.field @"addQualificationRequestValue".lazytext.from stext
 
 addQualification
   :: HS.Statement
-      (UserId, [WithId (Id "qualification") AddQualification])
-      [Id "user_qualification"]
-addQualification = lmap mkTpl $ statement $ premap coerce list
+      (UserId, [WithId (Id "qualification") AddQualificationRequest])
+      [(Id "qualification", Id "user_qualification")]
+addQualification = lmap mkTpl $ statement $ premap (bimap coerce coerce) list
   where
     mkTpl x =
       consT (x^._1.coerced) $
@@ -193,14 +193,24 @@ addQualification = lmap mkTpl $ statement $ premap coerce list
       V.fromList $
       (x^._2 <&> \(WithField i v) ->
         ( i^.coerced
-        , v^.field @"addQualificationValue".lazytext))
+        , v^.field @"addQualificationRequestValue".lazytext))
     statement =
       [foldStatement|
         insert into edgenode.user_qualification
         (user_fk, provider_branch_qualification_fk, value)
-        select $1 :: int8, qid, v
-        from unnest($2 :: int8[], $3 :: text[]) as x(qid, v)
-        returning id :: int8|]
+        select x.uid, x.qid, x.v
+        from unnest(
+          array_fill($1 :: int8, array[array_length($2 :: int8[], 1)]),
+          $2 :: int8[],
+          $3 :: text[]) as x(uid, qid, v)
+        except
+        select
+          "user_fk",
+          provider_branch_qualification_fk,
+          unnest($3 :: text[])
+        from edgenode.user_trajectory
+        where "user_fk" = $1 :: int8
+        returning provider_branch_qualification_fk :: int8, id :: int8|]
 
 instance ParamsShow EdgeNodeProviderCategory where render = (^.isoEdgeNodeProviderCategory.to toS)
 

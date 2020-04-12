@@ -89,8 +89,8 @@ data UserQualificationApi route =
       , _userQualificationApiAddQualificationToTrajectory
         :: route
         :- Description "add qualififcation to trajectory"
-        :> ReqBody '[JSON] [WithId (Id "qualification") AddQualification]
-        :> Put '[JSON] (Response [Id "user_qualification"])
+        :> ReqBody '[JSON] [WithId (Id "qualification") AddQualificationRequest]
+        :> Put '[JSON] (Response AddQualificationResponse)
       , _userQualificationApiGetQualificationList
         :: route
         :- Description "qualififcation list"

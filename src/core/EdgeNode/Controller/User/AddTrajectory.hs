@@ -24,5 +24,5 @@ controller qualification_id user_id = do
   $(logTM) DebugS (logStr (show resp))
   let process (Right (Left e)) = Left e
       process (Right (Right _)) = Right Unit
-      process (Left _) = Left User.AddTrajectoryErrorAlreadyAtQualificationList
+      process (Left _) = Left User.AddTrajectoryErrorAlreadyAdded
   return $ (fromEither . process) resp
