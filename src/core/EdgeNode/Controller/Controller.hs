@@ -50,6 +50,7 @@ import qualified EdgeNode.Controller.User.Qualification.GetBranchesByCountry as 
 import qualified EdgeNode.Controller.User.Qualification.GetQualificationsByBranch as User.GetQualificationsByBranch
 import qualified EdgeNode.Controller.User.Qualification.GetQualificationList as User.GetQualificationList
 import qualified EdgeNode.Controller.User.Qualification.PurgeQualifications as User.PurgeQualifications
+import qualified EdgeNode.Controller.User.GetTrajectories as User.GetTrajectories
 
 import Auth
 import Katip
@@ -142,6 +143,15 @@ user user =
      (jWTUserUserId x)
      Rbac.PermissionUser
      (User.AddTrajectory.controller trajectory))
+  , _userApiGetTrajaectories =
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["user", "trajectory", "list"])
+    (applyController Nothing user $ \x ->
+     verifyAuthorization
+     (jWTUserUserId x)
+     Rbac.PermissionUser
+     (User.GetTrajectories.controller))
   , _userApiQualification = toServant (userQualification user)
   }
 

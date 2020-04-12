@@ -42,6 +42,12 @@ data UserApi route =
        :> "trajectory"
        :> ReqBody '[JSON] (OnlyField "id" (Id "qualification"))
        :> Put '[JSON] (Response Unit)
+     , _userApiGetTrajaectories
+       :: route
+       :- Description "get user's trajectories"
+       :> "trajectory"
+       :> "list"
+       :> Get '[JSON] (Response UserTrajectories)
      , _userApiQualification
        :: route
        :- "qualification"
