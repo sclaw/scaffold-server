@@ -22,6 +22,7 @@ module EdgeNode.Statement.User
        , getQualificationsByBranch
        , getQualificationList
        , purgeQualifications
+       , AddTrajectoryError (..)
        ) where
 
 import EdgeNode.Transport.Id
@@ -145,13 +146,37 @@ patchProfile = lmap mkTpl statement
          day = coalesce(cast(($6 :: jsonb?)->'day' as integer), day)
         where id = (select birthday_id from edgenode.user where "user_id" = $1 :: int8)|]
 
-addTrajectory :: HS.Statement (UserId, OnlyField "id" (Id "qualification")) ()
+data AddTrajectoryError =
+       AddTrajectoryErrorAlreadyAtQualificationList
+     | AddTrajectoryErrorAlreadyAdded
+  deriving stock Show
+
+instance Error.AsError AddTrajectoryError where
+  asError AddTrajectoryErrorAlreadyAtQualificationList =
+    Error.asError @T.Text $ "you are unable to add qualification to trajactories that already at your qualification list"
+  asError AddTrajectoryErrorAlreadyAdded = Error.asError @T.Text $ "qualification is already at your skill's list"
+
+addTrajectory :: HS.Statement (UserId, OnlyField "id" (Id "qualification")) (Either AddTrajectoryError ())
 addTrajectory =
-  lmap (bimap coerce coerce)
-  [resultlessStatement|
+  dimap (bimap coerce coerce) mkResp $
+  [rowsAffectedStatement|
+    with already as (
+      select
+        $1 :: int8 as user,
+        $2 :: int8 as qual,
+        exists(select
+          from edgenode.user_qualification
+          where "user_fk" = $1 :: int8 and
+          provider_branch_qualification_fk = $2 :: int8) as flag)
     insert into edgenode.user_trajectory
     (user_fk, provider_branch_qualification_fk)
-    values ($1 :: int8, $2 :: int8)|]
+    select n.user, n.qual
+    from (select $1 :: int8 as user, $2 :: int8 as qual, true as flag) as n
+    inner join already as a
+    on n.user = a.user and n.qual = a.qual
+    where not (n.flag and a.flag)|]
+  where mkResp i | i > 0 = Right ()
+                 | otherwise = Left AddTrajectoryErrorAlreadyAtQualificationList
 
 instance ParamsShow AddQualification where
   render qualification = qualification^.field @"addQualificationValue".lazytext.from stext
