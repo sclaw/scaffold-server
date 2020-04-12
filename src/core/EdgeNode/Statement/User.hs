@@ -234,9 +234,13 @@ getBranchesByCountry = lmap convert $ statement $ premap mkBranch list
         on pb.id = pbq.provider_branch_fk
         where p.category = $1 :: text and pbq.type = $2 :: text and pb.country = $3 :: text|]
 
-getQualificationsByBranch :: HS.Statement (UserId, Id "branch") [WithId (Id "qualification") (OnlyField "title" T.Text)]
-getQualificationsByBranch = lmap (bimap coerce coerce) $ statement $ premap mkQual list
+getQualificationsByBranch :: HS.Statement (UserId, Id "branch", EdgeNodeQualificationDegree) [WithId (Id "qualification") (OnlyField "title" T.Text)]
+getQualificationsByBranch = lmap transform $ statement $ premap mkQual list
   where
+    transform x =
+      x & _1 %~ coerce @_ @Int64
+        & _2 %~ coerce @_ @Int64
+        & _3 %~ (^.isoEdgeNodeQualificationDegree.to (toS @_ @T.Text))
     mkQual (ident, title) = WithField (coerce ident) (OnlyField title)
     statement =
       [foldStatement|
@@ -248,7 +252,7 @@ getQualificationsByBranch = lmap (bimap coerce coerce) $ statement $ premap mkQu
          from edgenode.user_qualification
          group by provider_branch_qualification_fk) as uq
         on pbq.id = uq.ident
-        where pb.id = $2 :: int8 and (not (array[$1 :: int8] <@ coalesce(uq.users, array[] :: int8[])))|]
+        where pb.id = $2 :: int8 and (not (array[$1 :: int8] <@ coalesce(uq.users, array[] :: int8[]))) and pbq.type = $3 :: text|]
 
 purgeQualifications :: HS.Statement (Id "provider", UserId, [Id "qualification"]) Int64
 purgeQualifications = lmap transform statement

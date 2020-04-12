@@ -177,7 +177,7 @@ userQualification user =
        (jWTUserUserId x)
        Rbac.PermissionUser
        (const (User.GetBranchesByCountry.controller category degree_type country)))
-  , _userQualificationApiGetQualificationsByBranch = \branch_id ->
+  , _userQualificationApiGetQualificationsByBranch = \branch_id degree_type ->
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["user", "qualification", "list"])
@@ -185,7 +185,7 @@ userQualification user =
       verifyAuthorization
       (jWTUserUserId x)
       Rbac.PermissionUser
-      (User.GetQualificationsByBranch.controller branch_id))
+      (User.GetQualificationsByBranch.controller branch_id degree_type))
   , _userQualificationApiAddQualificationToTrajectory =
     \qualifications ->
       flip logExceptionM ErrorS $

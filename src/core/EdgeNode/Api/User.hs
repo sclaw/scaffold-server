@@ -82,6 +82,8 @@ data UserQualificationApi route =
        :- Description "get qualifications"
        :> "branch"
        :> Capture "branch_id" (Id "branch")
+       :> "qualification-degree"
+       :> Capture "type" EdgeNodeQualificationDegree
        :> "list"
        :> Get '[JSON] (Response [WithId (Id "qualification") (OnlyField "title" T.Text)])
       , _userQualificationApiAddQualificationToTrajectory
@@ -97,7 +99,6 @@ data UserQualificationApi route =
       , _userQualificationApiPurgeQualifications
         :: route
         :- Description "purge banch of qualififcations contained by provider"
-        :> "remove"
         :> Capture "provider_id" (Id "provider")
         :> ReqBody '[JSON] [Id "qualification"]
         :> Delete '[JSON] (Response Int64)
