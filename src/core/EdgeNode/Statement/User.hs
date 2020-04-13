@@ -382,4 +382,8 @@ getTrajectories = lmap coerce $ statement $ fmap UserTrajectories (premap mkUser
         where ut.user_fk = $1 :: int8|]
 
 removeTrajectory :: HS.Statement (Id "trajectory", UserId) ()
-removeTrajectory = undefined
+removeTrajectory =
+  lmap (bimap coerce coerce) $
+  [resultlessStatement|
+    delete from edgenode.user_trajectory
+    where id = $1 :: int8 and "user_fk" = $2 :: int8|]
