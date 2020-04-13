@@ -23,6 +23,7 @@ module EdgeNode.Statement.User
        , getQualificationList
        , purgeQualifications
        , getTrajectories
+       , removeTrajectory
        , AddTrajectoryError (..)
        ) where
 
@@ -365,15 +366,20 @@ getTrajectories = lmap coerce $ statement $ fmap UserTrajectories (premap mkUser
   where
     mkUserTrajectory x =
       UserTrajectory
-      (x^._1.from lazytext)
-      (x^._2.to toS.from qualQualificationDegree)
+      (x^._1.(integral @Int64 @Word64).coerced)
+      (x^._2.from lazytext)
+      (x^._3.to toS.from qualQualificationDegree)
       (0 :: Double)
     statement =
       [foldStatement|
         select
+          ut.id :: int8,
           pbq.title :: text,
           pbq.type :: text
         from edgenode.user_trajectory as ut
         inner join edgenode.provider_branch_qualification as pbq
         on ut.provider_branch_qualification_fk = pbq.id
         where ut.user_fk = $1 :: int8|]
+
+removeTrajectory :: HS.Statement (Id "trajectory", UserId) ()
+removeTrajectory = undefined

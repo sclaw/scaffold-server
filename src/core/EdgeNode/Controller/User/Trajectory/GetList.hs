@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module EdgeNode.Controller.User.GetTrajectories (controller) where
+module EdgeNode.Controller.User.Trajectory.GetList (controller) where
 
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.User

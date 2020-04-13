@@ -115,7 +115,8 @@ explainTests =
     , "getQualificationsByBranch" =>> EdgeNode.Statement.User.getQualificationsByBranch
     , "getQualificationList" =>> EdgeNode.Statement.User.getQualificationList
     , "purgeQualifications" =>> EdgeNode.Statement.User.purgeQualifications
-    , "getTrajectories" =>> EdgeNode.Statement.User.getTrajectories]
+    , "getTrajectories" =>> EdgeNode.Statement.User.getTrajectories
+    , "removeTrajectory" =>> EdgeNode.Statement.User.removeTrajectory]
   ]
 
 (==>) a b = (a, b)

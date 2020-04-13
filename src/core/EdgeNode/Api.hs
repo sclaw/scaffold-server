@@ -13,6 +13,7 @@ module EdgeNode.Api
        , AuthApi (..)
        , UserApi (..)
        , UserQualificationApi (..)
+       , TrajectoryApi (..)
        , SearchApi (..)
        , FileApi (..)
        , AdminApi (..)

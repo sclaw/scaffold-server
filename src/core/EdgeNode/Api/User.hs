@@ -5,7 +5,11 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module EdgeNode.Api.User (UserApi (..), UserQualificationApi (..)) where
+module EdgeNode.Api.User
+       ( UserApi (..)
+       , UserQualificationApi (..)
+       , TrajectoryApi (..)
+       ) where
 
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
@@ -36,18 +40,10 @@ data UserApi route =
           (OptField "image"
           (Id "image") Profile)
        :> Patch '[JSON] (Response Unit)
-     , _userApiAddTrajaectory
+     , _userApiTrajectory
        :: route
-       :- Description "add qualififcation to user's trajectories"
-       :> "trajectory"
-       :> ReqBody '[JSON] (OnlyField "id" (Id "qualification"))
-       :> Put '[JSON] (Response Unit)
-     , _userApiGetTrajaectories
-       :: route
-       :- Description "get user's trajectories"
-       :> "trajectory"
-       :> "list"
-       :> Get '[JSON] (Response UserTrajectories)
+       :- "trajectory"
+       :> ToServant TrajectoryApi AsApi
      , _userApiQualification
        :: route
        :- "qualification"
@@ -108,4 +104,24 @@ data UserQualificationApi route =
         :> Capture "provider_id" (Id "provider")
         :> ReqBody '[JSON] [Id "qualification"]
         :> Delete '[JSON] (Response Int64)
+     } deriving stock Generic
+
+data TrajectoryApi route =
+     TrajectoryApi
+     { _trajectoryApiAddTrajaectory
+       :: route
+       :- Description "add qualififcation to user's trajectories"
+       :> ReqBody '[JSON] (OnlyField "id" (Id "qualification"))
+       :> Put '[JSON] (Response Unit)
+     , _trajectoryApiGetTrajaectories
+       :: route
+       :- Description "get user's trajectories"
+       :> "trajectory"
+       :> "list"
+       :> Get '[JSON] (Response UserTrajectories)
+     , _trajectoryApiDeleteTrajaectory
+       :: route
+       :- Description "purge trajectory"
+       :> Capture "trajectory_id" (Id "trajectory")
+       :> Delete '[JSON] (Response Unit)
      } deriving stock Generic

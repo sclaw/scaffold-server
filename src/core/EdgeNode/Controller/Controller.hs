@@ -42,7 +42,7 @@ import qualified EdgeNode.Controller.Provider.GetQualification as Provider.GetQu
 import qualified EdgeNode.Controller.Provider.PatchQualification as Provider.PatchQualification
 import qualified EdgeNode.Controller.User.GetProfile as User.GetProfile
 import qualified EdgeNode.Controller.User.PatchProfile as User.PatchProfile
-import qualified EdgeNode.Controller.User.AddTrajectory as User.AddTrajectory
+import qualified EdgeNode.Controller.User.Trajectory.Add as User.AddTrajectory
 import qualified EdgeNode.Controller.User.Qualification.AddQualificationToTrajectory as User.AddQualificationToTrajectory
 import qualified EdgeNode.Controller.User.Qualification.GetDegreeTypesByCategory as User.GetDegreeTypesByCategory
 import qualified EdgeNode.Controller.User.Qualification.GetCountriesByDegreeType as User.GetCountriesByDegreeType
@@ -50,7 +50,8 @@ import qualified EdgeNode.Controller.User.Qualification.GetBranchesByCountry as 
 import qualified EdgeNode.Controller.User.Qualification.GetQualificationsByBranch as User.GetQualificationsByBranch
 import qualified EdgeNode.Controller.User.Qualification.GetQualificationList as User.GetQualificationList
 import qualified EdgeNode.Controller.User.Qualification.PurgeQualifications as User.PurgeQualifications
-import qualified EdgeNode.Controller.User.GetTrajectories as User.GetTrajectories
+import qualified EdgeNode.Controller.User.Trajectory.GetList as User.GetTrajectories
+import qualified EdgeNode.Controller.User.Trajectory.Remove as User.Trajectory.Remove
 
 import Auth
 import Katip
@@ -134,7 +135,14 @@ user user =
      (jWTUserUserId x)
      Rbac.PermissionUser
      (User.PatchProfile.controller profile))
-  , _userApiAddTrajaectory = \trajectory ->
+  , _userApiTrajectory = toServant (trajectory user)
+  , _userApiQualification = toServant (userQualification user)
+  }
+
+trajectory :: AuthResult JWTUser -> TrajectoryApi (AsServerT KatipController)
+trajectory user =
+  TrajectoryApi
+  { _trajectoryApiAddTrajaectory = \trajectory ->
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["user", "trajectory", "add"])
@@ -143,7 +151,7 @@ user user =
      (jWTUserUserId x)
      Rbac.PermissionUser
      (User.AddTrajectory.controller trajectory))
-  , _userApiGetTrajaectories =
+  , _trajectoryApiGetTrajaectories =
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["user", "trajectory", "list"])
@@ -152,7 +160,15 @@ user user =
      (jWTUserUserId x)
      Rbac.PermissionUser
      (User.GetTrajectories.controller))
-  , _userApiQualification = toServant (userQualification user)
+  , _trajectoryApiDeleteTrajaectory = \trajectory_id ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["user", "trajectory", "remove"])
+    (applyController Nothing user $ \x ->
+     verifyAuthorization
+     (jWTUserUserId x)
+     Rbac.PermissionUser
+     (User.Trajectory.Remove.controller trajectory_id))
   }
 
 userQualification :: AuthResult JWTUser -> UserQualificationApi (AsServerT KatipController)
