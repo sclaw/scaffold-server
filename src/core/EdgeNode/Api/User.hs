@@ -116,7 +116,6 @@ data TrajectoryApi route =
      , _trajectoryApiGetTrajaectories
        :: route
        :- Description "get user's trajectories"
-       :> "trajectory"
        :> "list"
        :> Get '[JSON] (Response UserTrajectories)
      , _trajectoryApiDeleteTrajaectory
