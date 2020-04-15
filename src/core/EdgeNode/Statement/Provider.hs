@@ -483,11 +483,11 @@ saveTuitionFees =
     insert into edgenode.provider_branch_qualification_tuition_fees
     (position, amount, currency, period,
      provider_branch_qualification_fk, countries)
-    select pos, am, curr, per, $1 :: int8
+    select pos, am, curr, per, $1 :: int8, cs
     from unnest(
       $2 :: int4[], $3 :: float8[], $4 :: text[],
       $5 :: text[], $6 :: jsonb[])
-    as x(pos, am, curr, per, c_only, c_except)|]
+    as x(pos, am, curr, per, cs)|]
   where
     mkEncoder (ident, v) = consT (coerce ident) (V.unzip5 (V.map go (V.indexed v)))
     go (pos, x) =
