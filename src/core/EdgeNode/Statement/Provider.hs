@@ -14,7 +14,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module EdgeNode.Statement.Provider 
+module EdgeNode.Statement.Provider
        ( getBranches
        , createBranches
        , checkHQ
@@ -127,7 +127,7 @@ instance Default QualificationInfo_Cluster
 instance Default DependencyInfo
 instance Default QualificationInfo
 
-instance ParamsShow Branch where 
+instance ParamsShow Branch where
   render x = intercalate ", " $
     (mkEncoderBranch x
     & _1 %~ (^.lazytext.from stext)
@@ -139,13 +139,13 @@ instance ParamsShow Branch where
     & _7 %~ (^._Just.field @"stringValue".lazytext.from stext))^..each
 
 getBranches :: HS.Statement (Id "user") [GetBranchResp]
-getBranches = lmap (coerce @_ @Int64) $ statement $ premap mkBranch list 
+getBranches = lmap (coerce @_ @Int64) $ statement $ premap mkBranch list
   where
     statement =
      [foldStatement|
-       select 
-         pb.id :: int8, pb.title :: text, pb.country :: text, 
-         pb.address :: text?, pb.additional_address :: text?, 
+       select
+         pb.id :: int8, pb.title :: text, pb.country :: text,
+         pb.address :: text?, pb.additional_address :: text?,
          pb.postcode :: text?, pb.house :: text?, pb.is_hq :: bool, pb.info :: text?,
          pb.image_fk :: int8? , array_agg(pbf.file_fk) filter (where pbf.file_fk is not null) :: int8[]?
        from auth.user as au
@@ -173,29 +173,29 @@ getBranches = lmap (coerce @_ @Int64) $ statement $ premap mkBranch list
 createBranches :: HS.Statement (Id "user", [OptField "image" (Id "img") Branch]) [Id "branch"]
 createBranches = lmap mkEncoder $ statement $ premap (coerce @Int64 @(Id "branch")) list
   where
-    statement = 
+    statement =
       [foldStatement|
         with
           providerfk as (
-            select pu.provider_id as ident 
+            select pu.provider_id as ident
             from edgenode.provider_user as pu
-            where pu.user_id = $1 :: int8)  
-        insert into edgenode.provider_branch 
-        (image_fk, title, country, address, is_hq, provider_fk, 
+            where pu.user_id = $1 :: int8)
+        insert into edgenode.provider_branch
+        (image_fk, title, country, address, is_hq, provider_fk,
          additional_address, postcode, house, info)
-        select x.ifk, x.t, x.c, x.a, false as hq, 
-              (select ident from providerfk) as ident, 
+        select x.ifk, x.t, x.c, x.a, false as hq,
+              (select ident from providerfk) as ident,
               x.ad, x.p, x.h, x.info
         from unnest(
-         $2 :: int8?[], $3 :: text[], $4 :: text[], 
-         $5 :: text[], $6 :: text[], $7 :: text[], 
+         $2 :: int8?[], $3 :: text[], $4 :: text[],
+         $5 :: text[], $6 :: text[], $7 :: text[],
          $8 :: text[], $9 :: text[])
          as x(ifk, t, c, a, ad, p, h, info)
         returning id :: int8 as ident|]
-    mkEncoder x = consT (coerce @_ @Int64 (x^._1)) (V.unzip8 (V.fromList $ Prelude.map mkTpl (x^._2))) 
-    mkTpl x =  
+    mkEncoder x = consT (coerce @_ @Int64 (x^._1)) (V.unzip8 (V.fromList $ Prelude.map mkTpl (x^._2)))
+    mkTpl x =
       consT (fmap (coerce @_ @Int64) (x^.position @1.position @1)) $
-      ((mkEncoderBranch (x^.position @1.position @2)) 
+      ((mkEncoderBranch (x^.position @1.position @2))
        & _1 %~ (^.lazytext)
        & _2 %~ (^.country)
        & _3 %~ (^._Just.field @"stringValue".lazytext)
@@ -206,11 +206,11 @@ createBranches = lmap mkEncoder $ statement $ premap (coerce @Int64 @(Id "branch
 
 checkHQ :: HS.Statement (Id "branch") Bool
 checkHQ = lmap (coerce @(Id "branch") @Int64) statement
-  where 
-    statement = 
+  where
+    statement =
       [singletonStatement|
         select exists (
-         select pb.id 
+         select pb.id
          from edgenode.provider_user as pu
          inner join edgenode.provider_branch as pb
          on pu.provider_id = pb.id
@@ -219,7 +219,7 @@ checkHQ = lmap (coerce @(Id "branch") @Int64) statement
 createFiles :: HS.Statement [(Id "branch" , Id "file")] ()
 createFiles = lmap mkEncoder statement
   where
-    statement = 
+    statement =
       [resultlessStatement|
         insert into edgenode.provider_branch_file
         (provider_branch_fk, file_fk)
@@ -229,33 +229,33 @@ createFiles = lmap mkEncoder statement
 setHQ :: HS.Statement (Id "user", Id "branch") Bool
 setHQ = dimap coerce (> 0) statement
   where
-    statement = 
+    statement =
       [rowsAffectedStatement|
         with setoffhq as (
-         update edgenode.provider_branch 
+         update edgenode.provider_branch
          set is_hq = false
-         where provider_fk in 
-               (select provider_id 
-                from edgenode.provider_user 
+         where provider_fk in
+               (select provider_id
+                from edgenode.provider_user
                 where "user_id" = $1::int8) and is_hq)
-        update edgenode.provider_branch 
+        update edgenode.provider_branch
          set is_hq = true, modified = now()
-         where id = $2 :: int8 and 
-               provider_fk in 
-               (select provider_id 
-                from edgenode.provider_user 
+         where id = $2 :: int8 and
+               provider_fk in
+               (select provider_id
+                from edgenode.provider_user
                 where "user_id" = $1::int8)|]
 
 updateBranches :: HS.Statement [(Id "branch", Maybe (Id "img"), Branch)] ()
 updateBranches = lmap mkEncoder statement
   where
-    mkEncoder xs = 
+    mkEncoder xs =
       let tpl =  unzip3 xs
-      in  consT ((V.fromList . coerce @_ @[Int64]) (tpl^._1)) $ 
-          consT ((V.fromList . coerce @_ @[Maybe Int64]) (tpl^._2)) 
+      in  consT ((V.fromList . coerce @_ @[Int64]) (tpl^._1)) $
+          consT ((V.fromList . coerce @_ @[Maybe Int64]) (tpl^._2))
                 ((V.unzip7 . V.fromList . Prelude.map mkTpl) (tpl^._3))
-    mkTpl x = 
-      ((mkEncoderBranch x) 
+    mkTpl x =
+      ((mkEncoderBranch x)
       & _1 %~ (^.lazytext)
       & _2 %~ (^.country)
       & _3 %~ (^?_Just.field @"stringValue".lazytext)
@@ -265,7 +265,7 @@ updateBranches = lmap mkEncoder statement
       & _7 %~ (^?_Just.field @"stringValue".lazytext))
     statement =
       [resultlessStatement|
-        update edgenode.provider_branch 
+        update edgenode.provider_branch
         set title = x.new_title,
             country = x.new_country,
             address = coalesce(x.new_address, address),
@@ -276,39 +276,39 @@ updateBranches = lmap mkEncoder statement
             info = coalesce(x.new_info, info),
             modified = now()
         from (
-          select ident, new_image_fk, new_title, new_country, 
-                 new_address, new_additional_address, new_postcode, new_house, new_info 
-          from unnest($1 :: int8[], $2 :: int8?[], $3 :: text[], $4 :: text[], 
+          select ident, new_image_fk, new_title, new_country,
+                 new_address, new_additional_address, new_postcode, new_house, new_info
+          from unnest($1 :: int8[], $2 :: int8?[], $3 :: text[], $4 :: text[],
                       $5 :: text?[], $6 :: text?[], $7 :: text?[], $8 :: text?[], $9 :: text?[])
-           as x(ident, new_image_fk, new_title, new_country, 
+           as x(ident, new_image_fk, new_title, new_country,
                 new_address, new_additional_address, new_postcode, new_house, new_info)) as x
         where id = x.ident|]
 
 publish :: HS.Statement (Id "user") ()
-publish = 
-  lmap (coerce @_ @Int64) 
+publish =
+  lmap (coerce @_ @Int64)
   [resultlessStatement|
     insert into edgenode.provider_branch_public
     (title, country, address, image_fk, provider_branch_fk, provider_fk)
-    select pb.title, pb.country, pb.address, pb.image_fk, pb.id, pb.provider_fk 
+    select pb.title, pb.country, pb.address, pb.image_fk, pb.id, pb.provider_fk
     from edgenode.provider_user as pu
     inner join edgenode.provider_branch as pb
     on pu.provider_id = pb.provider_fk
     where "user_id" = $1 :: int8
     on conflict (provider_branch_fk, provider_fk)
-    do update 
-    set title = excluded.title, country = excluded.country, 
-    address = excluded.address, image_fk = excluded.image_fk, 
+    do update
+    set title = excluded.title, country = excluded.country,
+    address = excluded.address, image_fk = excluded.image_fk,
     provider_branch_fk = excluded.provider_branch_fk,
     provider_fk = excluded.provider_fk|]
 
 getQualificationBuilderBranches :: HS.Statement (Id "user") [(Id "branch", T.Text)]
-getQualificationBuilderBranches = 
-  lmap (coerce @_ @Int64) $ 
-  statement $ 
+getQualificationBuilderBranches =
+  lmap (coerce @_ @Int64) $
+  statement $
   premap (& _1 %~ (coerce @Int64 @(Id "branch"))) list
-  where 
-    statement = 
+  where
+    statement =
       [foldStatement|
         select pb.id :: int8, pb.title :: text
         from edgenode.provider_user as pu
@@ -316,7 +316,7 @@ getQualificationBuilderBranches =
         on pu.provider_id = pb.provider_fk
         where pu.user_id = $1 :: int8 order by pb.title asc|]
 
-instance ParamsShow Qualification where 
+instance ParamsShow Qualification where
   render x = intercalate ", " $
     (mkEncoderQualification x
      & _1 %~ (^.lazytext.from stext)
@@ -328,16 +328,16 @@ instance ParamsShow Qualification where
      & _7 %~ (^.qualStudyTime.from stext)
      & _8 %~ (^.qualQualificationDegree.from stext)
      & _9 %~ (maybe mempty (^.field @"stringValue".lazytext.from stext)))^..each
-    
-saveQualification  
-  :: HS.Statement 
-     (WithField 
-      "branch" 
-      (Id "branch") 
-      Qualification) 
+
+saveQualification
+  :: HS.Statement
+     (WithField
+      "branch"
+      (Id "branch")
+      Qualification)
      (Id "qualification")
 saveQualification = dimap mkEncoder (coerce @Int64 @(Id "qualification")) statement
-  where 
+  where
     mkEncoder x =
       consT (coerce @_ @Int64 (x^.position @1))
       (mkEncoderQualification
@@ -351,30 +351,30 @@ saveQualification = dimap mkEncoder (coerce @Int64 @(Id "qualification")) statem
        & _7 %~ (^.qualStudyTime)
        & _8 %~ (^.qualQualificationDegree)
        & _9 %~ (^?_Just.field @"stringValue".lazytext))
-    statement = 
+    statement =
       [singletonStatement|
         insert into edgenode.provider_branch_qualification
-        (title, academic_area, start, finish, 
+        (title, academic_area, start, finish,
          is_repeated, application_deadline,
-         study_time, type, created, provider_branch_fk, 
-         min_degree_value) values 
-        ($2 :: text, $3 :: jsonb, to_timestamp($4 :: int8?), 
+         study_time, type, created, provider_branch_fk,
+         min_degree_value) values
+        ($2 :: text, $3 :: jsonb, to_timestamp($4 :: int8?),
          to_timestamp($5 :: int8?), $6 :: bool?,
-         to_timestamp($7 :: int8?), $8 :: text, 
+         to_timestamp($7 :: int8?), $8 :: text,
          $9 :: text, now(), $1 :: int8, $10 :: text?) returning id :: int8|]
 
 instance ParamsShow EdgeNodeAcademicArea where
   render x = x^.isoEdgeNodeAcademicArea
 
 getAreaToCountries :: HS.Statement EdgeNodeAcademicArea [EdgeNodeCountry]
-getAreaToCountries = 
+getAreaToCountries =
   lmap (^.isoEdgeNodeAcademicArea.stext) $
   [foldStatement|
-    select distinct on (pb.country) pb.country :: text 
-    from edgenode.provider_branch as pb 
-    left join edgenode.provider_branch_qualification as pbq 
+    select distinct on (pb.country) pb.country :: text
+    from edgenode.provider_branch as pb
+    left join edgenode.provider_branch_qualification as pbq
     on pb.id = pbq.provider_branch_fk
-    where $1 :: text in (select * from jsonb_array_elements_text(pbq.academic_area))|] $ 
+    where $1 :: text in (select * from jsonb_array_elements_text(pbq.academic_area))|] $
   premap (^.from stext.from isoEdgeNodeCountry) list
 
 instance ParamsShow EdgeNodeCountry where
@@ -382,16 +382,16 @@ instance ParamsShow EdgeNodeCountry where
 
 getCountryToTypes :: HS.Statement (EdgeNodeAcademicArea, EdgeNodeCountry) [EdgeNodeQualificationDegree]
 getCountryToTypes =
-  lmap (\x -> 
+  lmap (\x ->
     x & _1 %~ (^.isoEdgeNodeAcademicArea.stext)
       & _2 %~  (^.isoEdgeNodeCountry.stext)) $
   [foldStatement|
     select distinct on (pbq.type) pbq.type :: text
-    from edgenode.provider_branch as pb 
-    left join edgenode.provider_branch_qualification as pbq 
+    from edgenode.provider_branch as pb
+    left join edgenode.provider_branch_qualification as pbq
     on pb.id = pbq.provider_branch_fk
-    where $1 :: text in 
-          (select * from 
+    where $1 :: text in
+          (select * from
            jsonb_array_elements_text
            (pbq.academic_area))
           and pb.country = $2 :: text|] $
@@ -401,42 +401,42 @@ instance ParamsShow EdgeNodeQualificationDegree where
   render x = x^.isoEdgeNodeQualificationDegree
 
 getTypeToQualifications
-  :: HS.Statement 
-     (EdgeNodeAcademicArea, 
-      EdgeNodeCountry, 
-      EdgeNodeQualificationDegree) 
+  :: HS.Statement
+     (EdgeNodeAcademicArea,
+      EdgeNodeCountry,
+      EdgeNodeQualificationDegree)
      [WithId (Id "qualification") DegreeTypeToQualification]
 getTypeToQualifications =
-  lmap (\x -> 
+  lmap (\x ->
     x & _1 %~ (^.isoEdgeNodeAcademicArea.stext)
       & _2 %~  (^.isoEdgeNodeCountry.stext)
       & _3 %~  (^.isoEdgeNodeQualificationDegree.stext)) $
   [foldStatement|
-    select pbq.id :: int8, pbq.title :: text, 
-    pbq.min_degree_value :: text?, pbq.type :: text 
-    from edgenode.provider_branch as pb 
-    left join edgenode.provider_branch_qualification as pbq 
+    select pbq.id :: int8, pbq.title :: text,
+    pbq.min_degree_value :: text?, pbq.type :: text
+    from edgenode.provider_branch as pb
+    left join edgenode.provider_branch_qualification as pbq
     on pb.id = pbq.provider_branch_fk
-    where $1 :: text in 
-          (select * from 
+    where $1 :: text in
+          (select * from
            jsonb_array_elements_text
            (pbq.academic_area))
-          and pb.country = $2 :: text 
+          and pb.country = $2 :: text
           and pbq.type = $3 :: text|] $
     premap mkDecoder list
   where
-    mkDecoder x = 
-      let vs = 
-            fromJust $ 
-            Data.List.lookup 
-            (x^._4.from stext.from isoQualificationDegree) 
+    mkDecoder x =
+      let vs =
+            fromJust $
+            Data.List.lookup
+            (x^._4.from stext.from isoQualificationDegree)
             degreeToValues
-      in WithField (coerce (x^._1)) $ 
-          DegreeTypeToQualification 
-          (x^._2.from lazytext) 
-          (V.fromList $ 
+      in WithField (coerce (x^._1)) $
+          DegreeTypeToQualification
+          (x^._2.from lazytext)
+          (V.fromList $
            maybe vs
-           (\v -> dropWhile (/= v) vs) 
+           (\v -> dropWhile (/= v) vs)
            (x^?_3._Just.from lazytext))
 
 instance ParamsShow Dependency where
@@ -450,62 +450,60 @@ instance ParamsShow Cluster where
   render (Cluster v) = intercalate ", " $ V.foldl (\xs e -> xs ++ ["[" ++ render e ++ "]"]) [] v
 
 saveDependencies :: HS.Statement (Id "qualification", V.Vector Cluster) ()
-saveDependencies = 
+saveDependencies =
   lmap mkEncoder
   [resultlessStatement|
-    insert into edgenode.provider_branch_qualification_dependency 
-    (cluster, position, academic_area, 
-     provider_branch_qualification_fk, 
-     dependency_fk, required_degree) 
+    insert into edgenode.provider_branch_qualification_dependency
+    (cluster, position, academic_area,
+     provider_branch_qualification_fk,
+     dependency_fk, required_degree)
     select cluster, pos, ac_area, qual_fk, $1 :: int8, req_degree
-    from unnest($2 :: int4[], $3 :: int4[], $4 :: text[], $5 :: int8[], $6 :: text[]) 
+    from unnest($2 :: int4[], $3 :: int4[], $4 :: text[], $5 :: int8[], $6 :: text[])
     as x(cluster, pos, ac_area, qual_fk, req_degree)|]
-  where 
+  where
     mkEncoder (ident, v) = consT (coerce ident) (V.unzip5 (V.concat (V.foldl go [] (V.indexed v))))
     go xs (idx, Cluster v) = xs ++ [V.map (mkTpl idx) (V.indexed v)]
-    mkTpl idx (pos, x) = 
-      consT (fromIntegral idx) $ 
-      consT (fromIntegral pos) $ 
+    mkTpl idx (pos, x) =
+      consT (fromIntegral idx) $
+      consT (fromIntegral pos) $
       ((mkEncoderDependency x) & _1 %~ (^.academicArea)  & _2 %~ fromIntegral & _3 %~ (^.lazytext))
 
-instance ParamsShow TuitionFees where 
+instance ParamsShow TuitionFees where
   render x = intercalate ", " $
     (mkEncoderTuitionFees x
-     & _1 %~ show 
+     & _1 %~ show
      & _2 %~ (^.currency.from stext)
      & _3 %~ (^.period.from stext)
-     & _4 %~ (\xs -> "[ " ++ intercalate ", " (Prelude.foldMap ((:[]) . (^.country.from stext)) xs) ++ "]")
-     & _5 %~ (\xs -> "[ " ++ intercalate ", " (Prelude.foldMap ((:[]) . (^.country.from stext)) xs) ++ "]"))^..each
+     & _4 %~ (\xs -> "[ " ++ intercalate ", " (Prelude.foldMap ((:[]) . (^.country.from stext)) xs) ++ "]"))^..each
 
 saveTuitionFees :: HS.Statement (Id "qualification", V.Vector TuitionFees) ()
 saveTuitionFees =
   lmap mkEncoder
   [resultlessStatement|
     insert into edgenode.provider_branch_qualification_tuition_fees
-    (position, amount, currency, period, 
-     provider_branch_qualification_fk)
+    (position, amount, currency, period,
+     provider_branch_qualification_fk, countries)
     select pos, am, curr, per, $1 :: int8
     from unnest(
-      $2 :: int4[], $3 :: float8[], $4 :: text[], 
-      $5 :: text[], $6 :: jsonb[], $7 :: jsonb[]) 
+      $2 :: int4[], $3 :: float8[], $4 :: text[],
+      $5 :: text[], $6 :: jsonb[])
     as x(pos, am, curr, per, c_only, c_except)|]
-  where 
-    mkEncoder (ident, v) = consT (coerce ident) (V.unzip6 (V.map go (V.indexed v)))
-    go (pos, x) = 
-      consT (fromIntegral pos) $ 
+  where
+    mkEncoder (ident, v) = consT (coerce ident) (V.unzip5 (V.map go (V.indexed v)))
+    go (pos, x) =
+      consT (fromIntegral pos) $
       (mkEncoderTuitionFees x
        & _2 %~ (^.currency)
        & _3 %~ (^.period)
-       & _4 %~ (toJSON . (V.map (^.country)))
-       & _5 %~ toJSON . (V.map (^.country)))
+       & _4 %~ (toJSON . (V.map (^.country))))
 
 getQualifications :: HS.Statement (Id "user") [WithId (Id "qualification") ListItem]
 getQualifications = lmap (coerce @_ @Int64) $ statement $ premap mkItem list
   where
-    statement = 
+    statement =
       [foldStatement|
-        select 
-          pbq.id :: int8, pbq.title :: text, 
+        select
+          pbq.id :: int8, pbq.title :: text,
           pbq.type :: text, pb.title :: text
         from edgenode.provider_user as pu
         inner join edgenode.provider as p
@@ -525,68 +523,68 @@ data GetQualificationByIdError
      | GetQualificationByIdJsonDecodeError String
      deriving stock Show
 
-instance Error.AsError GetQualificationByIdError where 
+instance Error.AsError GetQualificationByIdError where
   asError GetQualificationByIdNF = Error.asError @T.Text "qualification not found"
   asError (GetQualificationByIdJsonDecodeError _) = Error.asError @T.Text "json decode error"
 
-newtype QICW = QICW QualificationInfo_Cluster 
+newtype QICW = QICW QualificationInfo_Cluster
 
-instance FromJSON QICW where 
+instance FromJSON QICW where
   parseJSON = withObject "QICW" $ \object_raw -> do
-    let result_e = 
-          fromJSON $ 
-          read $ 
-          replaceEnum $ 
-          show $ 
-          Object object_raw       
-    case result_e of 
+    let result_e =
+          fromJSON $
+          read $
+          replaceEnum $
+          show $
+          Object object_raw
+    case result_e of
       Success x -> pure $ QICW x
       Error e -> error e
 
-replaceEnum :: String -> String 
-replaceEnum = 
- go degreeTypePattern 
- (maybe mempty ((\s -> "\"" ++ s ++ "\"")  . T.unpack) . 
-  T.stripPrefix "QualificationDegree" . 
-  T.pack . 
-  show . 
+replaceEnum :: String -> String
+replaceEnum =
+ go degreeTypePattern
+ (maybe mempty ((\s -> "\"" ++ s ++ "\"")  . T.unpack) .
+  T.stripPrefix "QualificationDegree" .
+  T.pack .
+  show .
   toQualificationDegree) .
- go academicAreaPattern 
- (maybe mempty ((\s -> "\"" ++ s ++ "\"") . T.unpack) . 
-  T.stripPrefix "AcademicArea" . 
-  T.pack . 
-  show . 
+ go academicAreaPattern
+ (maybe mempty ((\s -> "\"" ++ s ++ "\"") . T.unpack) .
+  T.stripPrefix "AcademicArea" .
+  T.pack .
+  show .
   toAcademicArea) .
- go countryPattern 
- (maybe mempty ((\s -> "\"" ++ s ++ "\"") . T.unpack) . 
-  T.stripPrefix "Country" . 
-  T.pack . 
-  show . 
+ go countryPattern
+ (maybe mempty ((\s -> "\"" ++ s ++ "\"") . T.unpack) .
+  T.stripPrefix "Country" .
+  T.pack .
+  show .
   toCountry)
   where
-    go pattern transform src = 
-      Regexp.replaceAllCaptures 
-      Regexp.ALL 
-      (replace transform) $ 
+    go pattern transform src =
+      Regexp.replaceAllCaptures
+      Regexp.ALL
+      (replace transform) $
       src Regexp.*=~ pattern
-    replace transform _ loc cap = Just $ 
+    replace transform _ loc cap = Just $
       case Regexp.locationCapture loc of
         0 -> transform $ init $ tail $ Regexp.capturedText cap
         _ -> error "replaceEnum:go"
     countryPattern = [Regexp.re|"(?<=\"country\",String\s\")[a-z_]*(?=\"\))"|]
     academicAreaPattern = [Regexp.re|"(?<=\"academicArea\",String\s\")[a-z_]*(?=\"\))"|]
-    degreeTypePattern = [Regexp.re|"(?<=\"degreeType\",String\s\")[a-z_]*(?=\"\))"|]    
+    degreeTypePattern = [Regexp.re|"(?<=\"degreeType\",String\s\")[a-z_]*(?=\"\))"|]
 
 getQualificationById :: KatipLoggerIO -> HS.Statement (UserId, Id "qualification") (Either GetQualificationByIdError QualificationInfo)
-getQualificationById logger = 
-  dimap (bimap (coerce @(Id "user") @Int64) (coerce @_ @Int64)) 
-        (maybe (Left GetQualificationByIdNF) mkResp . fmap mkInfo) $ 
+getQualificationById logger =
+  dimap (bimap (coerce @(Id "user") @Int64) (coerce @_ @Int64))
+        (maybe (Left GetQualificationByIdNF) mkResp . fmap mkInfo) $
   statement
-  where 
+  where
     statement =
       [maybeStatement|
         with clusters as (
-          select 
+          select
             pbqd.cluster,
             pbqd.dependency_fk as ident,
             array_agg(jsonb_build_object(
@@ -606,10 +604,10 @@ getQualificationById logger =
           inner join edgenode.provider_branch as pb
           on pbq.provider_branch_fk = pb.id
           group by pbqd.cluster, pbqd.dependency_fk)
-        select 
-          pbq.title :: text, 
-          pbq.academic_area :: jsonb, 
-          date_part('epoch', pbq.start) :: int8?, 
+        select
+          pbq.title :: text,
+          pbq.academic_area :: jsonb,
+          date_part('epoch', pbq.start) :: int8?,
           date_part('epoch', pbq.finish) :: int8?,
           pbq.is_repeated :: bool?,
           date_part('epoch', pbq.application_deadline) :: int8?,
@@ -621,7 +619,7 @@ getQualificationById logger =
             'value', jsonb_build_object('dependencies', c.dependencies)
           )) :: jsonb[],
         pb.id :: int8,
-        pb.title :: text  
+        pb.title :: text
         from edgenode.provider_user as pu
         inner join edgenode.provider as p
         on pu.provider_id = p.id
@@ -632,21 +630,21 @@ getQualificationById logger =
         left join clusters as c
         on pbq.id = c.ident
         where pu.user_id = $1 :: int8 and pbq.id = $2 :: int8 and not pbq.is_deleted
-        group by pbq.title, pbq.academic_area, pbq.start, 
+        group by pbq.title, pbq.academic_area, pbq.start,
         finish, pbq.is_repeated, pbq.application_deadline,
         pbq.study_time, pbq.type, pbq.min_degree_value, pb.id, pb.title|]
-    mkInfo x = 
-      let json_result = unsafePerformIO $ 
+    mkInfo x =
+      let json_result = unsafePerformIO $
             do logger DebugS (logStr (mkPretty mempty (x^._2)))
                logger DebugS (logStr (mkPretty "before modification" (x^._10)))
                let clusters_e = traverse (coerce . fromJSON @QICW) (x^._10)
                logger DebugS (logStr (mkPretty "after modification" clusters_e))
-               pure $ do 
+               pure $ do
                  areas <- fromJSON @[T.Text] (x^._2)
-                 clusters <- clusters_e 
+                 clusters <- clusters_e
                  pure (areas, clusters)
-      in flip fmap json_result $ \(areas, clusters) -> 
-          (def :: QualificationInfo) 
+      in flip fmap json_result $ \(areas, clusters) ->
+          (def :: QualificationInfo)
           & field @"qualificationInfoQualification" ?~
             ((def :: Qualification)
             & field @"qualificationTitle" .~ (x^._1.from lazytext)
@@ -663,7 +661,7 @@ getQualificationById logger =
     mkResp (Error error) = Left (GetQualificationByIdJsonDecodeError error)
     mkResp (Success info) = Right info
 
-instance ParamsShow PatchQualificationItem where 
+instance ParamsShow PatchQualificationItem where
   render x = intercalate ", " $
     (mkEncoderPatchQualificationItem x
     & _1 %~ (fromMaybe mempty . fmap (^.field @"patchTitleValue".lazytext.from stext))
@@ -680,9 +678,9 @@ instance ParamsShow PatchQualificationItem where
 patchQualification :: HS.Statement (Id "qualification", UserId, PatchQualificationItem) ()
 patchQualification = lmap mkEncoder statement
   where
-    mkEncoder (qual_id, user_id, patch) = 
+    mkEncoder (qual_id, user_id, patch) =
       consT (coerce @_ @Int64 qual_id) $
-        consT (coerce @_ @Int64 user_id) 
+        consT (coerce @_ @Int64 user_id)
         (mkEncoderPatchQualificationItem patch
          & _1 %~ fmap (^.field @"patchTitleValue".lazytext)
          & _2 %~ fmap (toJSON . (^..field @"patchAcademicAreaValue".from L.V.vector.traversed.to (^.academicArea)))
@@ -696,7 +694,7 @@ patchQualification = lmap mkEncoder statement
          & _10 %~ fmap (^.field @"patchBranchValue".integral))
     statement =
       [resultlessStatement|
-        update edgenode.provider_branch_qualification set 
+        update edgenode.provider_branch_qualification set
         title = coalesce($3 :: text?, title),
         academic_area = coalesce($4 :: jsonb?, academic_area),
         start = coalesce(to_timestamp($5 :: int8?), start),
@@ -707,10 +705,10 @@ patchQualification = lmap mkEncoder statement
         type= coalesce($10 :: text?, type),
         min_degree_value = coalesce($11 :: text?, min_degree_value),
         provider_branch_fk = coalesce($12 :: int8?, provider_branch_fk),
-        modified = now()    
+        modified = now()
         where "id" =
          (select pbq.id from edgenode.provider_user as pu
-          inner join edgenode.provider as pv 
+          inner join edgenode.provider as pv
           on pu.provider_id = pv.id
           left join edgenode.provider_branch as pb
           on pb.provider_fk = pv.id

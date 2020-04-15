@@ -1,0 +1,5 @@
+alter table edgenode.provider_branch_qualification_tuition_fees drop column country_only;
+alter table edgenode.provider_branch_qualification_tuition_fees drop column country_except;
+alter table edgenode.provider_branch_qualification_tuition_fees add column countries jsonb not null;
+alter table edgenode.provider_branch_qualification_tuition_fees
+add constriant edgenode.provider_branch_qualification_tuition_fees__currency__period__countries unique (currency, period, countries);
