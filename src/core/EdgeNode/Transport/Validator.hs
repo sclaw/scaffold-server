@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DerivingStrategies #-}
@@ -5,6 +6,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module EdgeNode.Transport.Validator
        ( qualificationBuilder
@@ -17,6 +19,7 @@ import EdgeNode.Transport.Qualification
 import EdgeNode.Transport.Error
 import EdgeNode.Transport.Auth
 
+import TH.Mk
 import Data.Validation
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
@@ -28,11 +31,14 @@ import TextShow
 import qualified Text.RE.PCRE.Text as RegExp
 import Control.Lens.Iso.Extended
 
+mkEncoder ''TuitionFees
+
 data QualificationBuilderError =
        TitleEmpty
      | AcademicAreaEmpty
      | DegreeValueNotFoundAtQualificationDegree
      | QualificationNotFound
+     | TuitionFeesDuplicated
      deriving stock Show
 
 instance AsError QualificationBuilderError where
@@ -40,6 +46,7 @@ instance AsError QualificationBuilderError where
   asError AcademicAreaEmpty = asError @T.Text "at least one academic area should be set"
   asError DegreeValueNotFoundAtQualificationDegree = asError @T.Text "degree value mismatches given qualification degree"
   asError QualificationNotFound = asError @T.Text "qualification not found"
+  asError TuitionFeesDuplicated = asError @T.Text "some of tuition fees is duplicated, fields currency, period, countries should be uniqie within list"
 
 qualificationBuilder :: QualificationBuilder -> Validation [QualificationBuilderError] ()
 qualificationBuilder builder
@@ -47,7 +54,11 @@ qualificationBuilder builder
       builder^.
       field @"qualificationBuilderQualification")
     = Failure [QualificationNotFound]
-qualificationBuilder builder = checkTitle *> checkAcademicArea *> checkDegreeValue
+qualificationBuilder builder =
+  checkTitle *>
+  checkAcademicArea *>
+  checkDegreeValue *>
+  checkTuitionFees
   where
     checkTitle
       | LT.null (
@@ -69,6 +80,9 @@ qualificationBuilder builder = checkTitle *> checkAcademicArea *> checkDegreeVal
       | not $ checkDegreeValue' (builder^?!field @"qualificationBuilderQualification"._Just)
         = Failure [DegreeValueNotFoundAtQualificationDegree]
       | otherwise = pure ()
+    checkTuitionFees
+      | not (cehckDuplicatedFees (builder^?!field @"qualificationBuilderFees")) = Success ()
+      | otherwise = Failure [TuitionFeesDuplicated]
 
 checkDegreeValue' :: Qualification -> Bool
 checkDegreeValue' Qualification  {..} = check qualificationDegreeValue
@@ -138,3 +152,10 @@ registration registration = checkEmail *> checkPaswwordStrength *> checkPassswor
         registrationPasswordOnceAgain registration
         = Success ()
       | otherwise = Failure [RegistrationErrorPasswordsMismatch]
+
+cehckDuplicatedFees :: V.Vector TuitionFees -> Bool
+cehckDuplicatedFees = fst . V.foldr check (False, []) . uncurry4 (V.zipWith4 (\_ c p cs -> (c, p, cs))) . V.unzip4 . V.map mkEncoderTuitionFees
+  where
+    check x y | x `elem` (y^._2) = y & _1 .~ True & _2 %~ (x:)
+              | otherwise = y & _2 %~ (x:)
+    uncurry4 f (x, y, z, w) = f x y z w
