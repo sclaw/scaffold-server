@@ -369,9 +369,9 @@ getTrajectories = lmap coerce $ statement $ fmap UserTrajectories (premap mkUser
       (x^._2.from lazytext)
       (x^._3.to toS.from qualQualificationDegree)
       (0 :: Double)
-      undefined
-      undefined
-      undefined
+      (x^?_4._Just.from period.to UserTrajectoryPeriod)
+      (x^?_5._Just.from currency.to UserTrajectoryCurrency)
+      (x^?_6._Just.to (Protobuf.Double . fromIntegral))
     statement =
       [foldStatement|
         select
