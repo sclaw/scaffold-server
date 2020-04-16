@@ -369,15 +369,26 @@ getTrajectories = lmap coerce $ statement $ fmap UserTrajectories (premap mkUser
       (x^._2.from lazytext)
       (x^._3.to toS.from qualQualificationDegree)
       (0 :: Double)
+      undefined
+      undefined
+      undefined
     statement =
       [foldStatement|
         select
           ut.id :: int8,
           pbq.title :: text,
-          pbq.type :: text
-        from edgenode.user_trajectory as ut
+          pbq.type :: text,
+          pbqtf.period :: text?,
+          pbqtf.currency :: text?,
+          pbqtf.amount :: int8?
+        from edgenode.user as u
+        left join edgenode.user_trajectory as ut
+        on u.user_id = ut.user_fk
         inner join edgenode.provider_branch_qualification as pbq
         on ut.provider_branch_qualification_fk = pbq.id
+        left join edgenode.provider_branch_qualification_tuition_fees as pbqtf
+        on pbq.id = pbqtf.provider_branch_qualification_fk
+        and u.allegiance in (select * from jsonb_array_elements_text(pbqtf.countries))
         where ut.user_fk = $1 :: int8|]
 
 removeTrajectory :: HS.Statement (Id "trajectory", UserId) ()
