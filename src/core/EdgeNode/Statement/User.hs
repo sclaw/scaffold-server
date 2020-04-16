@@ -62,7 +62,6 @@ import Data.Default.Class.Extended
 import Data.Bifunctor
 
 deriving instance Enum Gender
-deriving instance Enum Allegiance
 
 mkEncoder ''Profile
 mkEncoder ''FullDay
@@ -85,7 +84,7 @@ getProfile = dimap (coerce @_ @Int64) mkProfile $ statement
       (x^?_3._Just.from lazytext.to Protobuf.String)
       (x^?_4._Just.from lazytext.to Protobuf.String)
       (mkFullDay (x^._7))
-      (x^?_5._Just.from allegiance.to AllegianceMaybe)
+      (x^?_5._Just.from country.to AllegianceMaybe)
       (Just (GenderMaybe (x^._6.from gender)))
     statement =
       [singletonStatement|
@@ -114,7 +113,7 @@ instance ParamsShow Profile where
     & _2 %~ (^._Just.field @"stringValue".lazytext.from stext)
     & _3 %~ (^._Just.field @"stringValue".lazytext.from stext)
     & _4 %~ maybe mempty (\x -> "[" ++ intercalate ", " (mkEncoderFullDay x^..each.integral.to show) ++ "]")
-    & _5 %~ maybe mempty (^.field @"allegianceMaybeValue".allegiance.from stext)
+    & _5 %~ maybe mempty (^.field @"allegianceMaybeValue".country.from stext)
     & _6 %~ maybe mempty (^.field @"genderMaybeValue".gender.from stext))^..each
 
 patchProfile :: HS.Statement (UserId, OptField "image" (Id "image") Profile) ()
@@ -128,7 +127,7 @@ patchProfile = lmap mkTpl statement
       & _2 %~ (^?_Just.field @"stringValue".lazytext)
       & _3 %~ (^?_Just.field @"stringValue".lazytext)
       & _4 %~ fmap toJSON
-      & _5 %~ (^?_Just.field @"allegianceMaybeValue".allegiance)
+      & _5 %~ (^?_Just.field @"allegianceMaybeValue".country)
       & _6 %~ (^?_Just.field @"genderMaybeValue".gender))
     statement =
       [resultlessStatement|
