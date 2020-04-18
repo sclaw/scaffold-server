@@ -535,15 +535,29 @@ instance FromJSON QICW where
     let result_e =
           fromJSON $
           read $
-          replaceEnum $
+          replaceEnumQICW $
           show $
           Object object_raw
     case result_e of
       Success x -> pure $ QICW x
       Error e -> error e
 
-replaceEnum :: String -> String
-replaceEnum =
+newtype QIFW = QIFW QualificationInfo_Fees
+
+instance FromJSON QIFW where
+  parseJSON = withObject "QIFW" $ \object_raw -> do
+    let result_e =
+          fromJSON $
+          read $
+          replaceEnumQIFW $
+          show $
+          Object object_raw
+    case result_e of
+      Success x -> pure $ QIFW x
+      Error e -> error e
+
+replaceEnumQICW :: String -> String
+replaceEnumQICW =
  go degreeTypePattern
  (maybe mempty ((\s -> "\"" ++ s ++ "\"")  . T.unpack) .
   T.stripPrefix "QualificationDegree" .
@@ -571,10 +585,54 @@ replaceEnum =
     replace transform _ loc cap = Just $
       case Regexp.locationCapture loc of
         0 -> transform $ init $ tail $ Regexp.capturedText cap
-        _ -> error "replaceEnum:go"
+        _ -> error "replaceEnumQICW:go"
     countryPattern = [Regexp.re|"(?<=\"country\",String\s\")[a-z_]*(?=\"\))"|]
     academicAreaPattern = [Regexp.re|"(?<=\"academicArea\",String\s\")[a-z_]*(?=\"\))"|]
     degreeTypePattern = [Regexp.re|"(?<=\"degreeType\",String\s\")[a-z_]*(?=\"\))"|]
+
+replaceEnumQIFW :: String -> String
+replaceEnumQIFW =
+ go currencyPattern
+ (maybe mempty ((\s -> "\"" ++ s ++ "\"") . T.unpack) .
+  T.stripPrefix "Currency" .
+  T.pack .
+  show .
+  toCurrency) .
+ go periodPattern
+ (maybe mempty ((\s -> "\"" ++ s ++ "\"") . T.unpack) .
+  T.stripPrefix "Period" .
+  T.pack .
+  show .
+  toPeriod) .
+ goC countriesPattern
+ (T.unpack .
+  fromMaybe  mempty .
+  T.stripPrefix "Country" .
+  T.pack .
+  show .
+  toCountry)
+  where
+    go pattern transform src =
+      Regexp.replaceAllCaptures
+      Regexp.ALL
+      (replace transform) $
+      src Regexp.*=~ pattern
+    replace transform _ loc cap = Just $
+      case Regexp.locationCapture loc of
+        0 -> transform $ init $ tail $ Regexp.capturedText cap
+        _ -> error "replaceEnumQIFW:go"
+    goC pattern transform src =
+      Regexp.replaceAllCaptures
+      Regexp.ALL
+      (replaceC transform) $
+      src Regexp.*=~ pattern
+    replaceC transform _ loc cap = Just $
+      case Regexp.locationCapture loc of
+        0 -> transform $ Regexp.capturedText cap
+        _ -> error "replaceEnumQIFW:go"
+    currencyPattern = [Regexp.re|"(?<=\"currency\",String\s\")[a-z_]*(?=\"\))"|]
+    periodPattern = [Regexp.re|"(?<=\"period\",String\s\")[a-z_]*(?=\"\))"|]
+    countriesPattern = [Regexp.re|(?<=Array\s\[String\s\"|,\s\")[a-z_]*(?=\")|]
 
 getQualificationById :: KatipLoggerIO -> HS.Statement (UserId, Id "qualification") (Either GetQualificationByIdError QualificationInfo)
 getQualificationById logger =
@@ -661,7 +719,7 @@ getQualificationById logger =
                let clusters_e = traverse (coerce . fromJSON @QICW) (x^._10)
                logger DebugS (logStr (mkPretty "after modification" clusters_e))
                logger DebugS (logStr (mkPretty "before modification" (x^._13)))
-               let fees_e = traverse (coerce . fromJSON @QualificationInfo_Fees) (x^._13)
+               let fees_e = traverse (coerce . fromJSON @QIFW) (x^._13)
                logger DebugS (logStr (mkPretty "after modification" fees_e))
                pure $ do
                  areas <- fromJSON @[T.Text] (x^._2)
