@@ -125,6 +125,7 @@ instance Default ClusterInfo
 instance Default ClusterInfo_Dependency
 instance Default QualificationInfo_Cluster
 instance Default DependencyInfo
+instance Default QualificationInfo_Fees
 instance Default QualificationInfo
 
 instance ParamsShow Branch where
@@ -583,27 +584,44 @@ getQualificationById logger =
   where
     statement =
       [maybeStatement|
-        with clusters as (
-          select
-            pbqd.cluster,
-            pbqd.dependency_fk as ident,
-            array_agg(jsonb_build_object(
-            'position', pbqd.position,
-            'value', jsonb_build_object(
-             'academicArea', pbqd.academic_area,
-             'country', pb.country,
-             'degreeType', pbq.type,
-             'qualification', jsonb_build_object(
-               'ident', pbq.id,
-               'title', pbq.title),
-             'requiredDegree', pbqd.required_degree))
-              order by pbqd.position) as dependencies
-          from edgenode.provider_branch_qualification_dependency as pbqd
-          inner join edgenode.provider_branch_qualification as pbq
-          on pbqd.provider_branch_qualification_fk = pbq.id
-          inner join edgenode.provider_branch as pb
-          on pbq.provider_branch_fk = pb.id
-          group by pbqd.cluster, pbqd.dependency_fk)
+        with
+          clusters as (
+            select
+              pbqd.cluster,
+              pbqd.dependency_fk as ident,
+              array_agg(jsonb_build_object(
+              'position', pbqd.position,
+              'value', jsonb_build_object(
+               'academicArea', pbqd.academic_area,
+               'country', pb.country,
+               'degreeType', pbq.type,
+               'qualification', jsonb_build_object(
+                 'ident', pbq.id,
+                 'title', pbq.title),
+               'requiredDegree', pbqd.required_degree))
+                order by pbqd.position) as dependencies
+            from edgenode.provider_branch_qualification_dependency as pbqd
+            inner join edgenode.provider_branch_qualification as pbq
+            on pbqd.provider_branch_qualification_fk = pbq.id
+            inner join edgenode.provider_branch as pb
+            on pbq.provider_branch_fk = pb.id
+            group by pbqd.cluster, pbqd.dependency_fk),
+          fees as (
+            select
+              pbq.id as ident,
+              array_agg(jsonb_build_object(
+                'position', pbqtf.position,
+                'value', jsonb_build_object(
+                  'price', pbqtf.amount,
+                  'currency', pbqtf.currency,
+                  'period', pbqtf.period,
+                  'countries', pbqtf.countries
+                )
+              )) as fs
+            from edgenode.provider_branch_qualification_tuition_fees as pbqtf
+            inner join edgenode.provider_branch_qualification as pbq
+            on pbqtf.provider_branch_qualification_fk = pbq.id
+            group by pbq.id)
         select
           pbq.title :: text,
           pbq.academic_area :: jsonb,
@@ -619,7 +637,8 @@ getQualificationById logger =
             'value', jsonb_build_object('dependencies', c.dependencies)
           )) :: jsonb[],
         pb.id :: int8,
-        pb.title :: text
+        pb.title :: text,
+        f.fs :: jsonb[]
         from edgenode.provider_user as pu
         inner join edgenode.provider as p
         on pu.provider_id = p.id
@@ -629,21 +648,27 @@ getQualificationById logger =
         on pb.id = pbq.provider_branch_fk
         left join clusters as c
         on pbq.id = c.ident
+        left join fees as f
+        on pbq.id = f.ident
         where pu.user_id = $1 :: int8 and pbq.id = $2 :: int8 and not pbq.is_deleted
         group by pbq.title, pbq.academic_area, pbq.start,
         finish, pbq.is_repeated, pbq.application_deadline,
-        pbq.study_time, pbq.type, pbq.min_degree_value, pb.id, pb.title|]
+        pbq.study_time, pbq.type, pbq.min_degree_value, pb.id, pb.title, f.fs|]
     mkInfo x =
       let json_result = unsafePerformIO $
             do logger DebugS (logStr (mkPretty mempty (x^._2)))
                logger DebugS (logStr (mkPretty "before modification" (x^._10)))
                let clusters_e = traverse (coerce . fromJSON @QICW) (x^._10)
                logger DebugS (logStr (mkPretty "after modification" clusters_e))
+               logger DebugS (logStr (mkPretty "before modification" (x^._13)))
+               let fees_e = traverse (coerce . fromJSON @QualificationInfo_Fees) (x^._13)
+               logger DebugS (logStr (mkPretty "after modification" fees_e))
                pure $ do
                  areas <- fromJSON @[T.Text] (x^._2)
                  clusters <- clusters_e
-                 pure (areas, clusters)
-      in flip fmap json_result $ \(areas, clusters) ->
+                 fees <- fees_e
+                 pure (areas, clusters, fees)
+      in flip fmap json_result $ \(areas, clusters, fees) ->
           (def :: QualificationInfo)
           & field @"qualificationInfoQualification" ?~
             ((def :: Qualification)
@@ -657,6 +682,7 @@ getQualificationById logger =
             & field @"qualificationDegreeType" .~ x^._8.from qualQualificationDegree
             & field @"qualificationDegreeValue" .~ x^?_9._Just.from lazytext.to Protobuf.String)
           & field @"qualificationInfoClusters" .~ clusters
+          & field @"qualificationInfoFees" .~ fees
           & field @"qualificationInfoBranch" ?~ BranchInfo (x^._11.integral) (x^._12.from lazytext)
     mkResp (Error error) = Left (GetQualificationByIdJsonDecodeError error)
     mkResp (Success info) = Right info
