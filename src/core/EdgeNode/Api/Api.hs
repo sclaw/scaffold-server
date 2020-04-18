@@ -5,14 +5,15 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module EdgeNode.Api.Api 
+module EdgeNode.Api.Api
        ( HttpApi (..)
        , module EdgeNode.Api.Auth
        , module EdgeNode.Api.User
        , module EdgeNode.Api.Search
        , module EdgeNode.Api.File
-       , module EdgeNode.Api.Admin 
+       , module EdgeNode.Api.Admin
        , module EdgeNode.Api.Provider
+       , module EdgeNode.Api.Feedback
        ) where
 
 import Auth
@@ -22,17 +23,18 @@ import EdgeNode.Api.Search
 import EdgeNode.Api.File
 import EdgeNode.Api.Admin
 import EdgeNode.Api.Provider
+import EdgeNode.Api.Feedback
 
 import Servant.API.Generic
 import Servant.API
 import Servant.Auth.Server
 import Servant.Swagger.Tags
 
-data HttpApi route = 
-     HttpApi 
+data HttpApi route =
+     HttpApi
      { _httpApiAuth
        :: route
-       :- Tags "auth" 
+       :- Tags "auth"
        :> "auth"
        :> ToServant AuthApi AsApi
      , _httpApiUser
@@ -42,12 +44,12 @@ data HttpApi route =
        :> Auth '[AppJwt] JWTUser
        :> ToServant UserApi AsApi
      , _httpApiSearch
-       :: route 
+       :: route
        :- Tags "search"
        :> "search"
        :> ToServant SearchApi AsApi
-     , _httpApiFile  
-       :: route 
+     , _httpApiFile
+       :: route
        :- Tags "file"
        :> "file"
        :> ToServant FileApi AsApi
@@ -58,9 +60,14 @@ data HttpApi route =
        :> Auth '[Servant.Auth.Server.BasicAuth] BasicUser
        :> ToServant AdminApi AsApi
      , _httpApiProvider
-       :: route 
+       :: route
        :- Tags "provider"
        :> "provider"
        :> Auth '[AppJwt] JWTUser
-       :> ToServant ProviderApi AsApi              
+       :> ToServant ProviderApi AsApi
+     , _httpApiFeedback
+       :: route
+       :- Tags "feedback"
+       :> "feedback"
+       :> ToServant FeedbackApi AsApi
      } deriving stock Generic

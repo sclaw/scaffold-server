@@ -52,6 +52,7 @@ import qualified EdgeNode.Controller.User.Qualification.GetQualificationList as 
 import qualified EdgeNode.Controller.User.Qualification.PurgeQualifications as User.PurgeQualifications
 import qualified EdgeNode.Controller.User.Trajectory.GetList as User.GetTrajectories
 import qualified EdgeNode.Controller.User.Trajectory.Remove as User.Trajectory.Remove
+import qualified EdgeNode.Controller.Feedback.Put as Feedback.Put
 
 import Auth
 import Katip
@@ -87,6 +88,17 @@ httpApi =
   , _httpApiFile     = toServant file
   , _httpApiAdmin    = (`withAuthResult` (toServant . admin))
   , _httpApiProvider = (`withAuthResult` (toServant . provider))
+  , _httpApiFeedback = toServant feedback
+  }
+
+feedback :: FeedbackApi (AsServerT KatipController)
+feedback =
+  FeedbackApi
+  { _feedbackApiPutFeedback = \feedback ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["feedback"])
+    (Feedback.Put.controller feedback)
   }
 
 auth :: AuthApi (AsServerT KatipController)

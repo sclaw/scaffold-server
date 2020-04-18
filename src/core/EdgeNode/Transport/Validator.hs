@@ -13,11 +13,13 @@ module EdgeNode.Transport.Validator
        , degreeToValues
        , qualififcationPatch
        , registration
+       , feedback
        ) where
 
 import EdgeNode.Transport.Qualification
 import EdgeNode.Transport.Error
 import EdgeNode.Transport.Auth
+import EdgeNode.Transport.Feedback
 
 import TH.Mk
 import Data.Validation
@@ -30,6 +32,7 @@ import qualified Data.Vector as V
 import TextShow
 import qualified Text.RE.PCRE.Text as RegExp
 import Control.Lens.Iso.Extended
+import Data.Foldable
 
 mkEncoder ''TuitionFees
 
@@ -159,3 +162,20 @@ cehckDuplicatedFees = fst . V.foldr check (False, []) . uncurry4 (V.zipWith4 (\_
     check x y | x `elem` (y^._2) = y & _1 .~ True & _2 %~ (x:)
               | otherwise = y & _2 %~ (x:)
     uncurry4 f (x, y, z, w) = f x y z w
+
+newtype MandatoryField = MandatoryField T.Text deriving stock Show
+
+instance AsError MandatoryField where
+  asError (MandatoryField field) = asError @T.Text $ field <> " field is mandatory"
+
+-- | Feedback
+--
+-- >>> import Proto3.Suite.Types
+-- >>> feedback $ Feedback Nothing mempty (Enumerated (Right ReasonTroubleWithAccount))  mempty  mempty
+-- Failure [MandatoryField "who",MandatoryField "message",MandatoryField "email"]
+feedback :: Feedback -> Validation [MandatoryField] ()
+feedback feedback = sequenceA_
+  [ if LT.null (feedbackWho feedback) then Failure [MandatoryField "who"] else Success ()
+  , if LT.null (feedbackMessage feedback) then Failure [MandatoryField "message"] else Success ()
+  , if LT.null (feedbackEmail feedback) then Failure [MandatoryField "email"] else Success ()
+  ]

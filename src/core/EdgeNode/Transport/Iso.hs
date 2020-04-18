@@ -9,6 +9,7 @@ import EdgeNode.Lang
 import EdgeNode.Transport.Qualification
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.User
+import EdgeNode.Transport.Feedback
 
 import TH.Proto
 import Control.Lens
@@ -42,6 +43,9 @@ period = isoEnum fromPeriod toPeriod
 
 gender :: Enum Gender => Iso' (Enumerated Gender) T.Text
 gender = isoEnum fromGender toGender
+
+reason :: Enum Reason => Iso' (Enumerated Reason) T.Text
+reason = isoEnum fromReason toReason
 
 isoEnum :: (Enum a, Show a) => (a -> String) -> (String -> a) -> Iso' (Enumerated a) T.Text
 isoEnum f t = iso fromEnuma toEnuma

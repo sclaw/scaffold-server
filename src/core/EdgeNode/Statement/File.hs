@@ -3,7 +3,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE DataKinds #-}
 
-module EdgeNode.Statement.File 
+module EdgeNode.Statement.File
        ( save
        , getMeta
        , EdgeNode.Statement.File.delete
@@ -29,63 +29,63 @@ save =
   lmap (
       V.unzip4
     . V.fromList
-    . Prelude.map (\x -> 
+    . Prelude.map (\x ->
       x & _1 %~ coerce @_ @T.Text
         & _2 %~ coerce @_ @T.Text
         & _3 %~ coerce @_ @T.Text
-        & _4 %~ (^.isoEdgeNodeBucket.stext))) $ 
-  statement $ 
+        & _4 %~ (^.isoEdgeNodeBucket.stext))) $
+  statement $
   premap (^.coerced) list
-  where  
-    statement = 
+  where
+    statement =
       [foldStatement|
-        insert into storage.file 
-        (hash, title, mime, bucket) 
+        insert into storage.file
+        (hash, title, mime, bucket)
         select x.hash, x.title, x.mime, x.bucket
         from unnest(
-          $1 :: text[], 
-          $2 :: text[], 
+          $1 :: text[],
+          $2 :: text[],
           $3 :: text[],
-          $4 :: text[]) as x(hash, title, mime, bucket) 
+          $4 :: text[]) as x(hash, title, mime, bucket)
         returning id :: int8|]
 
 getMeta :: HS.Statement (Id "file") (Maybe (Hash, Name, Mime, Bucket))
 getMeta = dimap (^.coerced) (fmap mkTpl) statement
-  where 
-    statement = 
-      [maybeStatement| 
-        select hash :: text, title :: text, mime :: text, bucket :: text 
+  where
+    statement =
+      [maybeStatement|
+        select hash :: text, title :: text, mime :: text, bucket :: text
         from storage.file
-        where id = $1 :: int8 
+        where id = $1 :: int8
               and not is_deleted|]
-    mkTpl x = x & _1 %~ coerce & _2 %~ coerce & _3 %~ coerce & _4 %~ coerce 
+    mkTpl x = x & _1 %~ coerce & _2 %~ coerce & _3 %~ coerce & _4 %~ coerce
 
 delete :: HS.Statement (Id "file") Bool
 delete = dimap coerce (\x -> x > 0) statement
   where
-    statement = 
+    statement =
       [rowsAffectedStatement|
-        update storage.file 
-        set deleted = now(), 
-        is_deleted = true 
-        where id = $1 :: int8 
+        update storage.file
+        set deleted = now(),
+        is_deleted = true
+        where id = $1 :: int8
               and not is_deleted :: bool|]
 
 getHashWithBucket :: HS.Statement (Id "file") (Maybe (Hash, Bucket))
 getHashWithBucket = dimap (^.coerced) (fmap (\x -> x & _1 %~ coerce & _2 %~ coerce)) statement
-  where 
-    statement = 
+  where
+    statement =
       [maybeStatement|
         select hash :: text, bucket :: text
         from storage.file
         where id = $1 :: int8|]
 
 patch :: HS.Statement (Name, Mime, Hash) ()
-patch = lmap (\x -> x & _1 %~ coerce & _2 %~ coerce & _3 %~ coerce) statement 
+patch = lmap (\x -> x & _1 %~ coerce & _2 %~ coerce & _3 %~ coerce) statement
   where
-    statement = 
+    statement =
       [resultlessStatement|
-        update storage.file set 
+        update storage.file set
         title = $1 :: text,
         mime = $2 :: text,
         modified = now()

@@ -16,6 +16,7 @@ import qualified EdgeNode.Transport.Auth as Transport.Auth
 import EdgeNode.Transport.Qualification
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.User
+import EdgeNode.Transport.Feedback
 
 import TH.Mk
 import GHC.Generics hiding (from, to)
@@ -35,6 +36,7 @@ mkEnumConvertor ''AcademicArea
 mkEnumConvertor ''Currency
 mkEnumConvertor ''Period
 mkEnumConvertor ''Gender
+mkEnumConvertor ''Reason
 
 mkSRGEqEnum ''AcademicArea "EdgeNode"
 mkSRGEqEnum ''ProviderCategory "EdgeNode"

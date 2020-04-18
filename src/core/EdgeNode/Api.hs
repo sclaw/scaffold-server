@@ -18,6 +18,7 @@ module EdgeNode.Api
        , FileApi (..)
        , AdminApi (..)
        , ProviderApi (..)
+       , FeedbackApi (..)
      --  , WebsocketApi (..)
        , api
        , swaggerHttpApi
