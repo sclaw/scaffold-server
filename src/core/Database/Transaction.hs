@@ -9,7 +9,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Database.Transaction 
+module Database.Transaction
       ( transactionViolationError
       , katipTransactionViolationError
       , transaction
@@ -28,7 +28,7 @@ import GHC.Exception.Type
 import Data.Pool
 import Katip
 import qualified Hasql.Session as Hasql
-import Hasql.Session (Session, QueryError (..), CommandError (..), ResultError (..)) 
+import Hasql.Session (Session, QueryError (..), CommandError (..), ResultError (..))
 import Control.Monad.IO.Class
 import Katip.Monadic (askLoggerIO)
 import Control.Monad.Catch
@@ -50,7 +50,7 @@ import qualified Data.Vector.Extended as V
 import Data.Aeson.WithField
 import Data.Coerce
 
-newtype QueryErrorWrapper = QueryErrorWrapper Hasql.QueryError 
+newtype QueryErrorWrapper = QueryErrorWrapper Hasql.QueryError
   deriving Show
 
 instance Exception QueryErrorWrapper
@@ -93,33 +93,33 @@ instance Exception ViolationError
 -- happens during operations that commit or rollback transaction,
 -- in this case connection may not be in a clean state.
 transactionViolationError :: Pool Hasql.Connection -> KatipLoggerIO -> ReaderT KatipLoggerIO Session a -> IO (Either ViolationError a)
-transactionViolationError pool logger session = 
-  fmap join run >>= 
+transactionViolationError pool logger session =
+  fmap join run >>=
   either (throwIO . QueryErrorWrapper) pure
   where
     run = withResource pool $ \conn ->
-      mask $ \release -> do 
+      mask $ \release -> do
         bg <- begin conn
         let action =
-              Hasql.run (runReaderT session logger) conn >>= 
+              Hasql.run (runReaderT session logger) conn >>=
                 handleDBResult
         let withBegin = do
               result <- release action `onException` rollback conn
-              cm <- commit conn    
+              cm <- commit conn
               traverse (const (pure result)) cm
         traverse (const withBegin) bg
 
 handleDBResult :: Either Hasql.QueryError a -> IO (Either ViolationError a)
 handleDBResult (Left e) =
-  case codem of 
+  case codem of
     Just code ->
-      if code == foreign_key_violation 
+      if code == foreign_key_violation
       then return $ Left ForeignKeyVlolation
-      else if code == unique_violation 
-      then return $ Left UniqueViolation 
+      else if code == unique_violation
+      then return $ Left UniqueViolation
       else throwIO $ QueryErrorWrapper e
     Nothing -> throwIO $ QueryErrorWrapper e
-  where codem = e^?position @3._Ctor @"ResultError"._Ctor @"ServerError"._1     
+  where codem = e^?position @3._Ctor @"ResultError"._Ctor @"ServerError"._1
 handleDBResult (Right  val) = return $ Right val
 
 begin, commit, rollback :: Hasql.Connection -> IO (Either Hasql.QueryError ())
@@ -136,26 +136,27 @@ class ParamsShow a where
 instance ParamsShow () where render () = mempty
 instance ParamsShow Int32 where render = show
 instance ParamsShow Int64 where render = show
+instance ParamsShow Double where render = show
 instance ParamsShow B.ByteString where render = B.unpack
 instance ParamsShow T.Text where render = T.unpack
-instance ParamsShow a => ParamsShow (Maybe a) where render = maybe mempty render 
-instance {-# OVERLAPS #-} (ParamsShow a, ParamsShow b) => ParamsShow (a, b) where 
+instance ParamsShow a => ParamsShow (Maybe a) where render = maybe mempty render
+instance {-# OVERLAPS #-} (ParamsShow a, ParamsShow b) => ParamsShow (a, b) where
   render (x, y) = render x <> ", " <> render y
-instance {-# OVERLAPS #-} (ParamsShow a, ParamsShow b, ParamsShow c) => ParamsShow (a, b, c) where 
+instance {-# OVERLAPS #-} (ParamsShow a, ParamsShow b, ParamsShow c) => ParamsShow (a, b, c) where
   render x = render (x^._1) <> ", " <> render (x^._2) <> ", " <> render (x^._3)
-instance {-# OVERLAPS #-} (ParamsShow a, ParamsShow b, ParamsShow c, ParamsShow d) => ParamsShow (a, b, c, d) where 
-  render x = render (x^._1) <> ", " <> render (x^._2) <> ", " <> render (x^._3) <> ", " <> render (x^._4)     
-instance ParamsShow a => ParamsShow [a] where 
+instance {-# OVERLAPS #-} (ParamsShow a, ParamsShow b, ParamsShow c, ParamsShow d) => ParamsShow (a, b, c, d) where
+  render x = render (x^._1) <> ", " <> render (x^._2) <> ", " <> render (x^._3) <> ", " <> render (x^._4)
+instance ParamsShow a => ParamsShow [a] where
   render xs = intercalate ", " $ map render xs
-instance ParamsShow a => ParamsShow (V.Vector a) where 
+instance ParamsShow a => ParamsShow (V.Vector a) where
   render v = intercalate ", " $ map render (V.toList v)
-instance ParamsShow a => ParamsShow (OnlyField symb a) where 
+instance ParamsShow a => ParamsShow (OnlyField symb a) where
   render = render . coerce @_ @a
 
 statement :: ParamsShow a => Hasql.Statement a b -> a -> ReaderT KatipLoggerIO Session b
 statement s@(Hasql.Statement sql _ _ _) a = do
   logger <- ask
-  liftIO $ logger DebugS (ls (sql <> " { params: [" <> (render a^.stext.textbs)) <> "] }") 
+  liftIO $ logger DebugS (ls (sql <> " { params: [" <> (render a^.stext.textbs)) <> "] }")
   lift $ Hasql.statement a s
 
 katipTransaction :: Pool Hasql.Connection -> ReaderT KatipLoggerIO Session a -> KatipController a

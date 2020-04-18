@@ -24,6 +24,8 @@ module EdgeNode.Statement.User
        , purgeQualifications
        , getTrajectories
        , removeTrajectory
+       , getDepsQualifiationValues
+       , getUserQualificationValues
        , AddTrajectoryError (..)
        ) where
 
@@ -157,9 +159,9 @@ instance Error.AsError AddTrajectoryError where
     Error.asError @T.Text $ "you are unable to add qualification to trajactories that already at your qualification list"
   asError AddTrajectoryErrorAlreadyAdded = Error.asError @T.Text $ "qualification is already at your skill's list"
 
-addTrajectory :: HS.Statement (UserId, OnlyField "id" (Id "qualification")) (Either AddTrajectoryError ())
+addTrajectory :: HS.Statement (UserId, OnlyField "id" (Id "qualification"), Maybe Double) (Either AddTrajectoryError ())
 addTrajectory =
-  dimap (bimap coerce coerce) mkResp $
+  dimap (\x -> x & _1 %~ coerce & _2 %~ coerce) mkResp $
   [rowsAffectedStatement|
     with already as (
       select
@@ -170,8 +172,8 @@ addTrajectory =
           where "user_fk" = $1 :: int8 and
           provider_branch_qualification_fk = $2 :: int8) as flag)
     insert into edgenode.user_trajectory
-    (user_fk, provider_branch_qualification_fk)
-    select n.user, n.qual
+    (user_fk, provider_branch_qualification_fk, compatibility)
+    select n.user, n.qual, coalesce($3 :: float8?,  100.0)
     from (select $1 :: int8 as user, $2 :: int8 as qual, true as flag) as n
     inner join already as a
     on n.user = a.user and n.qual = a.qual
@@ -397,3 +399,9 @@ removeTrajectory =
   [resultlessStatement|
     delete from edgenode.user_trajectory
     where id = $1 :: int8 and "user_fk" = $2 :: int8|]
+
+getDepsQualifiationValues :: HS.Statement (OnlyField "id" (Id "qualification")) (Maybe [(Int64, Int32, T.Text)])
+getDepsQualifiationValues = undefined -- lmap coerce $ [vectorStatement||]
+
+getUserQualificationValues :: HS.Statement UserId (Maybe [(Int64, T.Text)])
+getUserQualificationValues = undefined
