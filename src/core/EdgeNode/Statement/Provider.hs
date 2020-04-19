@@ -653,6 +653,7 @@ getQualificationById logger =
               pbqd.dependency_fk as ident,
               array_agg(jsonb_build_object(
               'position', pbqd.position,
+              'ident', pbqd.id,
               'value', jsonb_build_object(
                'academicArea', pbqd.academic_area,
                'country', pb.country,
@@ -673,6 +674,7 @@ getQualificationById logger =
               pbq.id as ident,
               array_agg(jsonb_build_object(
                 'position', pbqtf.position,
+                'ident', pbqtf.id,
                 'value', jsonb_build_object(
                   'price', pbqtf.amount,
                   'currency', pbqtf.currency,
@@ -695,7 +697,7 @@ getQualificationById logger =
           pbq.type :: text,
           pbq.min_degree_value :: text?,
           array_agg(jsonb_build_object(
-            'position', c.cluster,
+            'cluster', c.cluster,
             'value', jsonb_build_object('dependencies', c.dependencies)
           )) :: jsonb[],
         pb.id :: int8,
