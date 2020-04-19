@@ -83,6 +83,9 @@ import qualified Text.RE.PCRE as Regexp
 import Data.Char
 import Data.Tuple.Extended
 
+
+import Debug.Trace
+
 deriving instance Enum QualificationDegree
 deriving instance Enum Country
 deriving instance Enum StudyTime
@@ -546,6 +549,7 @@ newtype QIFW = QIFW QualificationInfo_Fees
 
 instance FromJSON QIFW where
   parseJSON = withObject "QIFW" $ \object_raw -> do
+    traceM ("---->" ++ (replaceEnumQIFW (show $ Object object_raw)))
     let result_e =
           fromJSON $
           read $
@@ -632,7 +636,7 @@ replaceEnumQIFW =
         _ -> error "replaceEnumQIFW:go"
     currencyPattern = [Regexp.re|"(?<=\"currency\",String\s\")[a-z_]*(?=\"\))"|]
     periodPattern = [Regexp.re|"(?<=\"period\",String\s\")[a-z_]*(?=\"\))"|]
-    countriesPattern = [Regexp.re|(?<=Array\s\[String\s\"|,\s\")[a-z_]*(?=\")|]
+    countriesPattern = [Regexp.re|(?<=Array\s\[String\s\"|,String\s\")[a-z_]*(?=\",|\"\])|]
 
 getQualificationById :: KatipLoggerIO -> HS.Statement (UserId, Id "qualification") (Either GetQualificationByIdError QualificationInfo)
 getQualificationById logger =
