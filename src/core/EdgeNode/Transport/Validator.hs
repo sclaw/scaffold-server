@@ -35,6 +35,7 @@ import Control.Lens.Iso.Extended
 import Data.Foldable
 
 mkEncoder ''TuitionFees
+mkEncoder ''FeesInfo
 
 data QualificationBuilderError =
        TitleEmpty
@@ -84,7 +85,7 @@ qualificationBuilder builder =
         = Failure [DegreeValueNotFoundAtQualificationDegree]
       | otherwise = pure ()
     checkTuitionFees
-      | not (cehckDuplicatedFees (builder^?!field @"qualificationBuilderFees")) = Success ()
+      | not (checkDuplicatedFees  mkEncoderTuitionFees (builder^?!field @"qualificationBuilderFees")) = Success ()
       | otherwise = Failure [TuitionFeesDuplicated]
 
 checkDegreeValue' :: Qualification -> Bool
@@ -110,8 +111,23 @@ degreeToValues =
   , (QualificationDegreeTestDeConnaissanceDuFrançaisTCF, ["A1", "A2", "B1", "B2", "C1", "C2"])
   , (QualificationDegreeIELTS, map (LT.fromStrict . showt) [0, 0.5 .. 9 :: Double])]
 
-qualififcationPatch :: PatchQualification -> Validation [T.Text] ()
-qualififcationPatch _ = pure ()
+
+data PatchQualificationError = PatchQualificationErrorTuitionFeesDuplicated
+  deriving stock Show
+
+instance AsError PatchQualificationError where
+  asError PatchQualificationErrorTuitionFeesDuplicated =
+    asError @T.Text "some of tuition fees is duplicated, fields currency, period, countries should be uniqie within list"
+
+qualififcationPatch :: PatchQualification -> Validation [PatchQualificationError] ()
+qualififcationPatch patch = checkFees $ patchQualificationTuitionFees patch
+  where
+    checkFees (Just (PatchTuitionFees xs)) = do
+      let xs' = V.mapMaybe patchTuitionFees_FeesValue xs
+      if not (checkDuplicatedFees mkEncoderFeesInfo xs')
+      then Success ()
+      else Failure [PatchQualificationErrorTuitionFeesDuplicated]
+    checkFees Nothing = Success ()
 
 {-
 password validation:
@@ -156,8 +172,8 @@ registration registration = checkEmail *> checkPaswwordStrength *> checkPassswor
         = Success ()
       | otherwise = Failure [RegistrationErrorPasswordsMismatch]
 
-cehckDuplicatedFees :: V.Vector TuitionFees -> Bool
-cehckDuplicatedFees = fst . V.foldr check (False, []) . uncurry4 (V.zipWith4 (\_ c p cs -> (c, p, cs))) . V.unzip4 . V.map mkEncoderTuitionFees
+checkDuplicatedFees :: (Eq f, Eq e, Eq d) => (a -> ((c, d, e, f))) -> V.Vector a -> Bool
+checkDuplicatedFees mkTpl = fst . V.foldr check (False, []) . uncurry4 (V.zipWith4 (\_ c p cs -> (c, p, cs))) . V.unzip4 . V.map mkTpl
   where
     check x y | x `elem` (y^._2) = y & _1 .~ True & _2 %~ (x:)
               | otherwise = y & _2 %~ (x:)

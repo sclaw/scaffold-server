@@ -24,7 +24,6 @@ import Database.Transaction
 import Control.Lens
 import Data.Foldable
 import Data.Traversable
-import qualified Data.Text as T
 
 controller
   :: Id "qualification"
@@ -34,7 +33,7 @@ controller
 controller qualification_id patch@(PatchQualification {..}) user_id  = do
   $(logTM) DebugS (logStr ("qualification to be patched: " ++ mkPretty mempty patch))
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  fmap (fromValidation . bimap mkError (const Unit)) $
+  fmap (fromValidation . bimap (map Error.asError) (const Unit)) $
     for (qualififcationPatch patch) $ const $
       katipTransaction hasql $ do
         for_ patchQualificationItem $ \patch ->
@@ -46,4 +45,3 @@ controller qualification_id patch@(PatchQualification {..}) user_id  = do
           statement Provider.deleteFees (qualification_id, xs)
         for_ patchQualificationTuitionFees $ \(PatchTuitionFees xs) ->
           statement Provider.patchTuitionFees (qualification_id, xs)
-  where mkError = map (Error.asError @T.Text)
