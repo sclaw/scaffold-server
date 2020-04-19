@@ -49,6 +49,7 @@ import qualified Data.Text as T
 import qualified Data.Vector.Extended as V
 import Data.Aeson.WithField
 import Data.Coerce
+import Data.Word
 
 newtype QueryErrorWrapper = QueryErrorWrapper Hasql.QueryError
   deriving Show
@@ -136,6 +137,7 @@ class ParamsShow a where
 instance ParamsShow () where render () = mempty
 instance ParamsShow Int32 where render = show
 instance ParamsShow Int64 where render = show
+instance ParamsShow Word64 where render = show
 instance ParamsShow Double where render = show
 instance ParamsShow B.ByteString where render = B.unpack
 instance ParamsShow T.Text where render = T.unpack

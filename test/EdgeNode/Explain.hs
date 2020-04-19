@@ -90,7 +90,8 @@ explainTests =
     , "saveTuitionFees" =>> EdgeNode.Statement.Provider.saveTuitionFees
     , "getQualifications" =>> EdgeNode.Statement.Provider.getQualifications
     , "getQualificationById" =>> (EdgeNode.Statement.Provider.getQualificationById undefined)
-    , "patchQualification" =>> EdgeNode.Statement.Provider.patchQualification]
+    , "patchQualification" =>> EdgeNode.Statement.Provider.patchQualification
+    , "deleteFees" =>> EdgeNode.Statement.Provider.deleteFees]
    -- , "patchClusters" =>> EdgeNode.Statement.Provider.patchClusters
    -- , "patchTuitionFees" =>> EdgeNode.Statement.Provider.patchTuitionFees]
   , "EdgeNode.Statement.Auth" ==>

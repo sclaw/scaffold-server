@@ -26,22 +26,24 @@ import Data.Foldable
 import Data.Traversable
 import qualified Data.Text as T
 
-controller 
+controller
   :: Id "qualification"
-  -> PatchQualification 
+  -> PatchQualification
   -> UserId
   -> KatipController (Response Unit)
 controller qualification_id patch@(PatchQualification {..}) user_id  = do
   $(logTM) DebugS (logStr ("qualification to be patched: " ++ mkPretty mempty patch))
-  hasql <- fmap (^.katipEnv.hasqlDbPool) ask 
-  fmap (fromValidation . bimap mkError (const Unit)) $ 
+  hasql <- fmap (^.katipEnv.hasqlDbPool) ask
+  fmap (fromValidation . bimap mkError (const Unit)) $
     for (qualififcationPatch patch) $ const $
-      katipTransaction hasql $ do 
-        for_ patchQualificationItem $ \patch ->  
-          statement Provider.patchQualification 
+      katipTransaction hasql $ do
+        for_ patchQualificationItem $ \patch ->
+          statement Provider.patchQualification
          (qualification_id, user_id, patch)
-        for_ patchQualificationClusters $ 
+        for_ patchQualificationClusters $
           const (statement Provider.patchClusters (qualification_id, user_id))
-        for_ patchQualificationTuitionFees $ 
-          const (statement Provider.patchTuitionFees (qualification_id, user_id))
-  where mkError = map (Error.asError @T.Text)       
+        for_ patchQualificationDeletionFees $ \(PatchFeesDeletion xs) ->
+          statement Provider.deleteFees (qualification_id, xs)
+        for_ patchQualificationTuitionFees $ \(PatchTuitionFees xs) ->
+          statement Provider.patchTuitionFees (qualification_id, xs)
+  where mkError = map (Error.asError @T.Text)

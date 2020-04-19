@@ -34,6 +34,7 @@ module EdgeNode.Statement.Provider
        , patchQualification
        , patchTuitionFees
        , patchClusters
+       , deleteFees
        ) where
 
 import EdgeNode.Transport.Id
@@ -83,9 +84,6 @@ import qualified Text.RE.PCRE as Regexp
 import Data.Char
 import Data.Tuple.Extended
 
-
-import Debug.Trace
-
 deriving instance Enum QualificationDegree
 deriving instance Enum Country
 deriving instance Enum StudyTime
@@ -117,6 +115,10 @@ mkArbitrary ''PatchAcademicArea
 mkArbitrary ''PatchTitle
 mkArbitrary ''PatchBranch
 mkArbitrary ''PatchQualificationItem
+mkEncoder ''PatchTuitionFees_Fees
+mkEncoder ''FeesInfo
+mkArbitrary ''FeesInfo
+mkArbitrary ''PatchTuitionFees_Fees
 
 instance Default AcademicArea where def = toEnum 0
 instance Default StudyTime where def = toEnum 0
@@ -549,7 +551,6 @@ newtype QIFW = QIFW QualificationInfo_Fees
 
 instance FromJSON QIFW where
   parseJSON = withObject "QIFW" $ \object_raw -> do
-    traceM ("---->" ++ (replaceEnumQIFW (show $ Object object_raw)))
     let result_e =
           fromJSON $
           read $
@@ -809,5 +810,37 @@ patchQualification = lmap mkEncoder statement
 patchClusters :: HS.Statement (Id "qualification", UserId) ()
 patchClusters = undefined
 
-patchTuitionFees :: HS.Statement (Id "qualification", UserId) ()
-patchTuitionFees = undefined
+instance ParamsShow PatchTuitionFees_Fees where
+  render fees =
+    maybe mempty (intercalate ", ") $
+    flip fmap fees_info_m $ \x ->
+      (mkEncoderFeesInfo x
+       & _1 %~ show
+       & _2 %~ (^.currency.from stext)
+       & _3 %~ (^.period.from stext)
+       & _4 %~ (\xs -> "[ " ++ intercalate ", " (Prelude.foldMap ((:[]) . (^.country.from stext)) xs) ++ "]"))^..each
+    where (_, fees_info_m) = mkEncoderPatchTuitionFees_Fees fees
+
+patchTuitionFees :: HS.Statement (Id "qualification", V.Vector PatchTuitionFees_Fees) ()
+patchTuitionFees =
+  lmap mkTpl $
+  [resultlessStatement|
+    insert into edgenode.provider_branch_qualification_tuition_fees
+    (provider_branch_qualification_fk, position, amount, currency, period, countries)
+    select $1 :: int8, pos,  am, curr, per, cs
+    from unnest($2 ::  int4[], $3 :: float8[], $4 :: text[], $5 :: text[], $6 :: jsonb[])
+    as x(pos, am, curr, per, cs)
+    on conflict (currency, period, countries, provider_branch_qualification_fk)
+    do update set amount = excluded.amount, position = excluded.position|]
+  where
+    mkTpl x = consT (x^._1.coerced) $ V.unzip5 $ V.mapMaybe mkTplFees $ V.zip (x^._2) (V.fromList [0 .. fromIntegral (V.length (x^._2)) - 1])
+    mkTplFees (x, pos) = fmap (consT pos . mkTplFeesInfo) fees_info_m
+      where (_, fees_info_m) = mkEncoderPatchTuitionFees_Fees x
+    mkTplFeesInfo x = mkEncoderFeesInfo x & _2 %~ (^.currency) & _3 %~ (^.period) & _4 %~ toJSON . V.map (^.country)
+
+deleteFees :: HS.Statement (Id "qualification", V.Vector Word64) ()
+deleteFees =
+  lmap (bimap coerce (V.map fromIntegral)) $
+  [resultlessStatement|
+    delete from edgenode.provider_branch_qualification_tuition_fees
+    where id = any($2 :: int8[]) and provider_branch_qualification_fk = $1 :: int8|]
