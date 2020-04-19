@@ -83,6 +83,7 @@ import qualified Text.RE.Replace as Regexp
 import qualified Text.RE.PCRE as Regexp
 import Data.Char
 import Data.Tuple.Extended
+import Data.Traversable
 
 deriving instance Enum QualificationDegree
 deriving instance Enum Country
@@ -640,7 +641,7 @@ replaceEnumQIFW =
     countriesPattern = [Regexp.re|(?<=Array\s\[String\s\"|,String\s\")[a-z_]*(?=\",|\"\])|]
 
 getQualificationById :: KatipLoggerIO -> HS.Statement (UserId, Id "qualification") (Either GetQualificationByIdError QualificationInfo)
-getQualificationById logger =
+getQualificationById _ =
   dimap (bimap (coerce @(Id "user") @Int64) (coerce @_ @Int64))
         (maybe (Left GetQualificationByIdNF) mkResp . fmap mkInfo) $
   statement
@@ -703,7 +704,7 @@ getQualificationById logger =
           )) :: jsonb[],
         pb.id :: int8,
         pb.title :: text,
-        f.fs :: jsonb[]
+        f.fs :: jsonb[]?
         from edgenode.provider_user as pu
         inner join edgenode.provider as p
         on pu.provider_id = p.id
@@ -720,18 +721,10 @@ getQualificationById logger =
         finish, pbq.is_repeated, pbq.application_deadline,
         pbq.study_time, pbq.type, pbq.min_degree_value, pb.id, pb.title, f.fs|]
     mkInfo x =
-      let json_result = unsafePerformIO $
-            do logger DebugS (logStr (mkPretty mempty (x^._2)))
-               logger DebugS (logStr (mkPretty "before modification" (x^._10)))
-               let clusters_e = traverse (coerce . fromJSON @QICW) (x^._10)
-               logger DebugS (logStr (mkPretty "after modification" clusters_e))
-               logger DebugS (logStr (mkPretty "before modification" (x^._13)))
-               let fees_e = traverse (coerce . fromJSON @QIFW) (x^._13)
-               logger DebugS (logStr (mkPretty "after modification" fees_e))
-               pure $ do
+      let json_result = do
                  areas <- fromJSON @[T.Text] (x^._2)
-                 clusters <- clusters_e
-                 fees <- fees_e
+                 clusters <- traverse (coerce . fromJSON @QICW) (x^._10)
+                 fees <- for (x^._13) $ traverse (coerce . fromJSON @QIFW)
                  pure (areas, clusters, fees)
       in flip fmap json_result $ \(areas, clusters, fees) ->
           (def :: QualificationInfo)
@@ -747,7 +740,7 @@ getQualificationById logger =
             & field @"qualificationDegreeType" .~ x^._8.from qualQualificationDegree
             & field @"qualificationDegreeValue" .~ x^?_9._Just.from lazytext.to Protobuf.String)
           & field @"qualificationInfoClusters" .~ clusters
-          & field @"qualificationInfoFees" .~ fees
+          & field @"qualificationInfoFees" .~ fromMaybe mempty fees
           & field @"qualificationInfoBranch" ?~ BranchInfo (x^._11.integral) (x^._12.from lazytext)
     mkResp (Error error) = Left (GetQualificationByIdJsonDecodeError error)
     mkResp (Success info) = Right info
