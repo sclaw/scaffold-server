@@ -39,8 +39,14 @@ controller qualification_id patch@(PatchQualification {..}) user_id  = do
         for_ patchQualificationItem $ \patch ->
           statement Provider.patchQualification
          (qualification_id, user_id, patch)
+        -- cluster block
         for_ patchQualificationClusters $
-          const (statement Provider.patchClusters (qualification_id, user_id))
+          const (statement Provider.patchClusters qualification_id)
+        for_ patchQualificationDeletionClusters $
+          const (statement Provider.deleteClusters qualification_id)
+        for_ patchQualificationDeletionDeps $
+          const (statement Provider.deleteDeps qualification_id)
+        -- fees block
         for_ patchQualificationDeletionFees $ \(PatchFeesDeletion xs) ->
           statement Provider.deleteFees (qualification_id, xs)
         for_ patchQualificationTuitionFees $ \(PatchTuitionFees xs) ->

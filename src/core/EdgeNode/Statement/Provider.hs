@@ -35,6 +35,8 @@ module EdgeNode.Statement.Provider
        , patchTuitionFees
        , patchClusters
        , deleteFees
+       , deleteClusters
+       , deleteDeps
        ) where
 
 import EdgeNode.Transport.Id
@@ -800,7 +802,7 @@ patchQualification = lmap mkEncoder statement
           on pbq.provider_branch_fk = pb.id
           where pu.user_id = $2 :: int8 and pbq.id = $1 :: int8 and not pbq.is_deleted)|]
 
-patchClusters :: HS.Statement (Id "qualification", UserId) ()
+patchClusters :: HS.Statement (Id "qualification") ()
 patchClusters = undefined
 
 instance ParamsShow PatchTuitionFees_Fees where
@@ -837,3 +839,9 @@ deleteFees =
   [resultlessStatement|
     delete from edgenode.provider_branch_qualification_tuition_fees
     where id = any($2 :: int8[]) and provider_branch_qualification_fk = $1 :: int8|]
+
+deleteClusters :: HS.Statement (Id "qualification") ()
+deleteClusters = undefined
+
+deleteDeps :: HS.Statement (Id "qualification") ()
+deleteDeps = undefined
