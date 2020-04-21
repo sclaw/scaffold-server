@@ -802,8 +802,28 @@ patchQualification = lmap mkEncoder statement
           on pbq.provider_branch_fk = pb.id
           where pu.user_id = $2 :: int8 and pbq.id = $1 :: int8 and not pbq.is_deleted)|]
 
-patchClusters :: HS.Statement (Id "qualification") ()
-patchClusters = undefined
+patchClusters :: HS.Statement (Id "qualification", V.Vector (Int32, Int32, Dependency)) ()
+patchClusters = lmap mkTpl statement
+  where
+    mkTpl (i, xs) =
+      consT (coerce i) $
+      V.unzip5 $
+      xs <&> \(c, p, dep) ->
+        consT c $
+        consT p $
+        ((mkEncoderDependency dep)
+          & _1 %~ (^.academicArea)
+          & _2 %~ fromIntegral
+          & _3 %~ (^.lazytext))
+    statement =
+      [resultlessStatement|
+        insert into edgenode.provider_branch_qualification_dependency
+        (provider_branch_qualification_fk, cluster, position, academic_area, dependency_fk, required_degree)
+        select dep, cl, pos, area, $1 :: int8, val
+        from unnest($2 :: int4[], $3 :: int4[], $4 :: text[], $5 :: int8[], $6 :: text[])
+        as x(cl, pos, area, dep, val)
+        on conflict (cluster, provider_branch_qualification_fk, dependency_fk)
+        do update set required_degree = excluded.required_degree, modified = now()|]
 
 instance ParamsShow PatchTuitionFees_Fees where
   render fees =

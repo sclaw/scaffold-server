@@ -24,6 +24,9 @@ import Database.Transaction
 import Control.Lens
 import Data.Foldable
 import Data.Traversable
+import Data.Int
+import qualified Data.Vector as V
+import qualified Data.Map as Map
 
 controller
   :: Id "qualification"
@@ -40,8 +43,9 @@ controller qualification_id patch@(PatchQualification {..}) user_id  = do
           statement Provider.patchQualification
          (qualification_id, user_id, patch)
         -- cluster block
-        for_ patchQualificationClusters $
-          const (statement Provider.patchClusters qualification_id)
+        for_ patchQualificationClusters $ \x -> do
+          let xs = mkDependencies $ patchClustersClusters x
+          statement Provider.patchClusters (qualification_id, xs)
         for_ patchQualificationDeletionClusters $
           const (statement Provider.deleteClusters qualification_id)
         for_ patchQualificationDeletionDeps $
@@ -51,3 +55,9 @@ controller qualification_id patch@(PatchQualification {..}) user_id  = do
           statement Provider.deleteFees (qualification_id, xs)
         for_ patchQualificationTuitionFees $ \(PatchTuitionFees xs) ->
           statement Provider.patchTuitionFees (qualification_id, xs)
+
+mkDependencies :: V.Vector Cluster -> V.Vector (Int32, Int32, Dependency)
+mkDependencies = V.fromList . Map.elems . ifoldr goCluster mempty
+  where
+    goCluster i (Cluster deps) v = ifoldr (goDeps i) v deps
+    goDeps c p  x = Map.insert (c, dependencyDependency x)  (fromIntegral c, fromIntegral p, x)
