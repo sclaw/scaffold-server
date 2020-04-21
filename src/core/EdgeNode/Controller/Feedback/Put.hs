@@ -16,7 +16,7 @@ import qualified EdgeNode.Transport.Error as Error
 import KatipController
 import Data.Aeson.Unit
 import Database.Transaction
-import Control.Lens hiding ((.=))
+import Control.Lens
 import Data.Traversable
 import Katip
 import Pretty
@@ -28,6 +28,7 @@ import qualified Network.HTTP.Client as HTTP
 import Control.Monad.IO.Class
 import Data.Aeson
 import Data.Time.Clock
+import Data.String.Conv
 
 controller :: WithField "recaptcha" T.Text Feedback -> KatipController (Response Unit)
 controller (WithField recaptcha_resp feedback) = do
@@ -75,16 +76,12 @@ verifyReCaptcha recaptcha_resp = do
   case lookup "recaptcha" keys of
     Nothing -> pure $ Left [ReCaptchaErrorKeyNF]
     Just key -> do
-      req_raw <- HTTP.parseRequest "https://www.google.com/recaptcha/api/siteverify"
-      let payload = object ["secret" .= key, "response" .= recaptcha_resp]
-      let req = req_raw
-           { HTTP.method = "POST"
-           , HTTP.requestBody =
-             HTTP.RequestBodyLBS $
-             encode payload
-           }
-      $(logTM) DebugS (logStr (mkPretty mempty payload))
-      resp <- liftIO $ HTTP.httpLbs req mgr
+      req <- HTTP.parseRequest "https://www.google.com/recaptcha/api/siteverify"
+      resp <- liftIO $ flip HTTP.httpLbs mgr $
+        HTTP.setQueryString
+        [ ("secret", Just (toS key))
+        , ("response", Just (toS recaptcha_resp))
+        ] req { HTTP.method = "POST" }
       $(logTM) DebugS (logStr (mkPretty mempty resp))
       let recaptcha_resp_e = eitherDecode @ReCaptchaResp (HTTP.responseBody resp)
       case recaptcha_resp_e of
