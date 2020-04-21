@@ -5,7 +5,7 @@ configDb:
   dbPass: 3190d261d186aeead3a8deec202737c7775af5c8d455a9e5ba958c48b5fd3f59
   dbDatabase: edgenode
 
-configSwagger: 
+configSwagger:
   swaggerHost: 136.243.173.173
   swaggerPort: 12000
 
@@ -14,20 +14,20 @@ configHasql:
   hasqlSettingsTm: 0.5
   hasqlSettingsResPerStripe: 1
 
-configKatip: 
+configKatip:
   katipPath: katip
   katipSeverity: DebugS
-  katipVerbosity: V3 
+  katipVerbosity: V3
   katipEnv: production
 
-configAuth: 
+configAuth:
   authJwk: symmetric.jwk
   authIsAuthEnabled: true
   authUserId: 1
 
 configService:
-  serviceApiKeys: 
-   - [google, AIzaSyCBwZWJtSwz4dN8suya3YLZMJJjodr3zVM]
+  serviceApiKeys:
+   - [recaptcha, 6Lfq078UAAAAAHfSdWpLm9jLqwrZ_goGiyCtj5VG]
 
 configMinio:
   minioAccessKey: AKIAIOSFODNN7EXAMPLE

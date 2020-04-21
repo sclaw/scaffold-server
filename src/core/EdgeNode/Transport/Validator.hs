@@ -14,6 +14,7 @@ module EdgeNode.Transport.Validator
        , qualififcationPatch
        , registration
        , feedback
+       , MandatoryField (..)
        ) where
 
 import EdgeNode.Transport.Qualification

@@ -91,9 +91,9 @@ explainTests =
     , "getQualifications" =>> EdgeNode.Statement.Provider.getQualifications
     , "getQualificationById" =>> (EdgeNode.Statement.Provider.getQualificationById undefined)
     , "patchQualification" =>> EdgeNode.Statement.Provider.patchQualification
-    , "deleteFees" =>> EdgeNode.Statement.Provider.deleteFees
-    , "deleteClusters" =>> EdgeNode.Statement.Provider.deleteClusters
-    , "deleteDeps" =>> EdgeNode.Statement.Provider.deleteDeps]
+    , "deleteFees" =>> EdgeNode.Statement.Provider.deleteFees]
+    -- , "deleteClusters" =>> EdgeNode.Statement.Provider.deleteClusters
+    -- , "deleteDeps" =>> EdgeNode.Statement.Provider.deleteDeps]
    -- , "patchClusters" =>> EdgeNode.Statement.Provider.patchClusters
    -- , "patchTuitionFees" =>> EdgeNode.Statement.Provider.patchTuitionFees]
   , "EdgeNode.Statement.Auth" ==>
