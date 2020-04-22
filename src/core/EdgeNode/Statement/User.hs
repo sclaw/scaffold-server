@@ -370,16 +370,17 @@ getTrajectories = lmap coerce $ statement $ fmap UserTrajectories (premap mkUser
       (x^._1.(integral @Int64 @Word64).coerced)
       (x^._2.from lazytext)
       (x^._3.to toS.from qualQualificationDegree)
-      (0 :: Double)
-      (x^?_4._Just.from period.to UserTrajectoryPeriod)
-      (x^?_5._Just.from currency.to UserTrajectoryCurrency)
-      (x^?_6._Just.to (Protobuf.Double . fromIntegral))
+      (x^._4)
+      (x^?_5._Just.from period.to UserTrajectoryPeriod)
+      (x^?_6._Just.from currency.to UserTrajectoryCurrency)
+      (x^?_7._Just.to (Protobuf.Double . fromIntegral))
     statement =
       [foldStatement|
         select
           ut.id :: int8,
           pbq.title :: text,
           pbq.type :: text,
+          ut.compatibility :: float8,
           pbqtf.period :: text?,
           pbqtf.currency :: text?,
           pbqtf.amount :: int8?
