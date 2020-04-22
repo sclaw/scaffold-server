@@ -24,7 +24,6 @@ module EdgeNode.Statement.User
        , purgeQualifications
        , getTrajectories
        , removeTrajectory
-       , getDepsQualifiationValues
        , getUserQualificationValues
        , AddTrajectoryError (..)
        ) where
@@ -399,9 +398,6 @@ removeTrajectory =
   [resultlessStatement|
     delete from edgenode.user_trajectory
     where id = $1 :: int8 and "user_fk" = $2 :: int8|]
-
-getDepsQualifiationValues :: HS.Statement (OnlyField "id" (Id "qualification")) (Maybe [(Int64, Int32, T.Text)])
-getDepsQualifiationValues = undefined -- lmap coerce $ [vectorStatement||]
 
 getUserQualificationValues :: HS.Statement UserId (Maybe [(Int64, T.Text)])
 getUserQualificationValues = undefined

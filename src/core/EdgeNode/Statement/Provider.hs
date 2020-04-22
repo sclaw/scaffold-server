@@ -37,6 +37,7 @@ module EdgeNode.Statement.Provider
        , deleteFees
        , deleteClusters
        , deleteDeps
+       , getDepsQualifiationValues
        ) where
 
 import EdgeNode.Transport.Id
@@ -865,3 +866,6 @@ deleteClusters = undefined
 
 deleteDeps :: HS.Statement (Id "qualification") ()
 deleteDeps = undefined
+
+getDepsQualifiationValues :: HS.Statement (OnlyField "id" (Id "qualification")) (Maybe [(Int64, Int32, T.Text)])
+getDepsQualifiationValues = undefined

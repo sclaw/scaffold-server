@@ -8,6 +8,7 @@ module EdgeNode.Controller.User.Trajectory.Add (controller) where
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
 import EdgeNode.Statement.User as User
+import EdgeNode.Statement.Provider as Provider
 
 import Auth
 import KatipController
@@ -24,7 +25,7 @@ controller :: OnlyField "id" (Id "qualification") -> UserId -> KatipController (
 controller qualification_id user_id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   resp <- katipTransactionViolationError hasql $ do
-    deps_m <- statement User.getDepsQualifiationValues qualification_id
+    deps_m <- statement Provider.getDepsQualifiationValues qualification_id
     compatilbity <- for deps_m $ \dep_xs -> do
        user_xs_m <- statement User.getUserQualificationValues user_id
        pure $ maybe 0.0 (calculateCompatibility dep_xs) user_xs_m

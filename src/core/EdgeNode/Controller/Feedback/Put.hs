@@ -34,13 +34,18 @@ controller :: WithField "recaptcha" T.Text Feedback -> KatipController (Response
 controller (WithField recaptcha_resp feedback) = do
   $(logTM) DebugS (logStr (mkPretty mempty feedback))
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  captcha <-
-    fmap ( first (map asError)
-         . Data.Validation.fromEither)
-    (verifyReCaptcha recaptcha_resp)
-  fmap (fromValidation . bimap (map asError) (const Unit)) $
-    for (bindValidation (first (map asError) (Validator.feedback feedback)) (const captcha)) $
-      const $ katipTransaction hasql $ statement Feedback.put feedback
+  case Validator.feedback feedback of
+    Failure es -> pure $ Errors (map asError es)
+    Data.Validation.Success _ -> do
+      captcha_result_e <- verifyReCaptcha recaptcha_resp
+      let captcha_result =
+            first (map asError) $
+            Data.Validation.fromEither captcha_result_e
+      fmap (fromValidation . second (const Unit)) $
+        for captcha_result $
+          const $
+            katipTransaction hasql $
+              statement Feedback.put feedback
 
 data ReCaptchaError =
        ReCaptchaErrorKeyNF
