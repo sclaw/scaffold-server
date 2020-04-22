@@ -49,6 +49,7 @@ controller qualification_id user_id = do
 -- 0.0
 --
 -- >>> calculateCompatibility [(1, QualificationDegreeAdvancedLevelGCE,"D"), (2, QualificationDegreeToeflIBT, "40")] [(1, QualificationDegreeAdvancedLevelGCE, "B")]
+-- 30.0
 calculateCompatibility :: [(Int64, QualificationDegree, T.Text)] -> [(Int64, QualificationDegree, T.Text)] -> Double
 calculateCompatibility qualification_xs user_xs =
   if sum xs' / i > 100
