@@ -7,6 +7,7 @@ module EdgeNode.Controller.User.Trajectory.Add (controller) where
 
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
+import EdgeNode.Transport.Qualification
 import EdgeNode.Statement.User as User
 import EdgeNode.Statement.Provider as Provider
 
@@ -36,5 +37,5 @@ controller qualification_id user_id = do
       process (Left _) = Left User.AddTrajectoryErrorAlreadyAdded
   return $ (fromEither . process) resp
 
-calculateCompatibility :: [(Int64, Int32, T.Text)] -> [(Int64, T.Text)] -> Double
+calculateCompatibility :: [(Int64, QualificationDegree, T.Text)] -> [(Int64, QualificationDegree, T.Text)] -> Double
 calculateCompatibility _ _ = 100.0

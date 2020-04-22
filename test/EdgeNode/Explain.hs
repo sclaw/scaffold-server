@@ -92,11 +92,8 @@ explainTests =
     , "getQualificationById" =>> (EdgeNode.Statement.Provider.getQualificationById undefined)
     , "patchQualification" =>> EdgeNode.Statement.Provider.patchQualification
     , "deleteFees" =>> EdgeNode.Statement.Provider.deleteFees
-    , "patchClusters" =>> EdgeNode.Statement.Provider.patchClusters]
-    -- , "deleteClusters" =>> EdgeNode.Statement.Provider.deleteClusters
-    -- , "deleteDeps" =>> EdgeNode.Statement.Provider.deleteDeps]
-   -- , "patchClusters" =>> EdgeNode.Statement.Provider.patchClusters
-   -- , "patchTuitionFees" =>> EdgeNode.Statement.Provider.patchTuitionFees]
+    , "patchClusters" =>> EdgeNode.Statement.Provider.patchClusters
+    , "getDepsQualifiationValues" =>> EdgeNode.Statement.Provider.getDepsQualifiationValues]
   , "EdgeNode.Statement.Auth" ==>
     [ "getUserCred" =>> EdgeNode.Statement.Auth.getUserCred
     , "putRefreshToken" =>> EdgeNode.Statement.Auth.putRefreshToken
@@ -121,7 +118,8 @@ explainTests =
     , "getQualificationList" =>> EdgeNode.Statement.User.getQualificationList
     , "purgeQualifications" =>> EdgeNode.Statement.User.purgeQualifications
     , "getTrajectories" =>> EdgeNode.Statement.User.getTrajectories
-    , "removeTrajectory" =>> EdgeNode.Statement.User.removeTrajectory]
+    , "removeTrajectory" =>> EdgeNode.Statement.User.removeTrajectory
+    , "getUserQualificationValues" =>> EdgeNode.Statement.User.getUserQualificationValues]
   , "EdgeNode.Statement.Feedback" ==> ["put" =>> EdgeNode.Statement.Feedback.put]
   ]
 

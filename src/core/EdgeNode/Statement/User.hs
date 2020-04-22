@@ -36,6 +36,7 @@ import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes
 import EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries
        (EdgeNodeCountryCapture (..))
 import qualified EdgeNode.Transport.Error as Error
+import EdgeNode.Transport.Qualification
 
 import qualified Hasql.Statement as HS
 import Auth
@@ -399,5 +400,21 @@ removeTrajectory =
     delete from edgenode.user_trajectory
     where id = $1 :: int8 and "user_fk" = $2 :: int8|]
 
-getUserQualificationValues :: HS.Statement UserId (Maybe [(Int64, T.Text)])
-getUserQualificationValues = undefined
+getUserQualificationValues :: HS.Statement UserId (Maybe [(Int64, QualificationDegree, T.Text)])
+getUserQualificationValues =
+  lmap (coerce @_ @Int64) $
+  statement $
+  fmap wrapToMaybe (premap (& _2 %~ (toQualificationDegree . toS)) list)
+  where
+    statement =
+      [foldStatement|
+        select
+          uq.provider_branch_qualification_fk :: int8,
+          pbq.type :: text,
+          uq.value :: text
+        from edgenode.user_qualification as uq
+        inner join edgenode.provider_branch_qualification as pbq
+        on uq.provider_branch_qualification_fk = pbq.id
+        where uq.user_fk = $1 :: int8|]
+    wrapToMaybe [] = Nothing
+    wrapToMaybe xs = Just xs

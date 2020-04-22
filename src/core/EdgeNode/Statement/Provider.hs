@@ -87,6 +87,7 @@ import qualified Text.RE.PCRE as Regexp
 import Data.Char
 import Data.Tuple.Extended
 import Data.Traversable
+import Data.String.Conv
 
 deriving instance Enum QualificationDegree
 deriving instance Enum Country
@@ -867,5 +868,21 @@ deleteClusters = undefined
 deleteDeps :: HS.Statement (Id "qualification") ()
 deleteDeps = undefined
 
-getDepsQualifiationValues :: HS.Statement (OnlyField "id" (Id "qualification")) (Maybe [(Int64, Int32, T.Text)])
-getDepsQualifiationValues = undefined
+getDepsQualifiationValues :: HS.Statement (OnlyField "id" (Id "qualification")) (Maybe [(Int64, QualificationDegree, T.Text)])
+getDepsQualifiationValues =
+  lmap (coerce @_ @Int64) $
+  statement $
+  fmap wrapToMaybe (premap (& _2 %~ (toQualificationDegree . toS)) list)
+  where
+    statement =
+      [foldStatement|
+        select
+          distinct (pbqd.provider_branch_qualification_fk) :: int8,
+          pbq.type :: text,
+          pbqd.required_degree :: text
+        from edgenode.provider_branch_qualification_dependency as pbqd
+        inner join edgenode.provider_branch_qualification as pbq
+        on pbqd.provider_branch_qualification_fk = pbq.id
+        where pbqd.dependency_fk = $1 :: int8|]
+    wrapToMaybe [] = Nothing
+    wrapToMaybe xs = Just xs
