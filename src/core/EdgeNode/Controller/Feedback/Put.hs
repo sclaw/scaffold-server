@@ -39,7 +39,7 @@ controller (WithField recaptcha_resp feedback) = do
          . Data.Validation.fromEither)
     (verifyReCaptcha recaptcha_resp)
   fmap (fromValidation . bimap (map asError) (const Unit)) $
-    for (captcha *> first (map asError) (Validator.feedback feedback)) $
+    for (bindValidation (first (map asError) (Validator.feedback feedback)) (const captcha)) $
       const $ katipTransaction hasql $ statement Feedback.put feedback
 
 data ReCaptchaError =
