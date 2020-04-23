@@ -45,14 +45,24 @@ controller qualification_id user_id = do
 -- | Check calculateCompatibility
 --
 -- >>> :set -XOverloadedStrings
--- >>> calculateCompatibility [(1, QualificationDegreeAdvancedLevelGCE,"A"), (2, QualificationDegreeToeflIBT, "40")] [(3, QualificationDegreeMSc, "3")]
--- 0.0
+-- >>> :{
+--     calculateCompatibility
+--     [ (69, QualificationDegreeAdvancedLevelGCE,"A")
+--     , (70, QualificationDegreeAdvancedLevelGCE, "B")
+--     , (71, QualificationDegreeAdvancedLevelGCE, "B")
+--     , (72, QualificationDegreeAdvancedLevelGCE, "B")]
+--     [ (70, QualificationDegreeAdvancedLevelGCE, "C")
+--     , (69, QualificationDegreeAdvancedLevelGCE, "C")
+--     , (71, QualificationDegreeAdvancedLevelGCE, "B")
+--     , (72, QualificationDegreeAdvancedLevelGCE, "A")]
+-- :}
+-- 90.0
 --
 -- >>> calculateCompatibility [(1, QualificationDegreeAdvancedLevelGCE,"D"), (2, QualificationDegreeToeflIBT, "40")] [(1, QualificationDegreeAdvancedLevelGCE, "B")]
--- 30.0
+-- 100.0
 calculateCompatibility :: [(Int64, QualificationDegree, T.Text)] -> [(Int64, QualificationDegree, T.Text)] -> Double
 calculateCompatibility qualification_xs user_xs =
-  if sum xs' / i > 100
+  if (sum xs' / i) * 100 > 100
   then 100.0
   else (sum xs' / i) * 100
   where
@@ -68,7 +78,7 @@ calculateCompatibility qualification_xs user_xs =
 
 qualificationDegreeToRange :: QualificationDegree -> [(T.Text, Word32)]
 qualificationDegreeToRange QualificationDegreeUnifiedStateExam = zip (map (T.pack . show) [1 .. 100 :: Word32]) [1 .. 100]
-qualificationDegreeToRange QualificationDegreeAdvancedLevelGCE = zip ["A*", "A", "B", "C", "D", "E"] [1 ..]
+qualificationDegreeToRange QualificationDegreeAdvancedLevelGCE = zip ["E", "D", "C", "B", "A", "A*"] [1 ..]
 qualificationDegreeToRange QualificationDegreeMagistr = zip ["Maj", "Std"] [1, 2]
 qualificationDegreeToRange QualificationDegreeBakalavr = zip ["Maj", "Std"] [1, 2]
 qualificationDegreeToRange QualificationDegreeBSc = zip ["1", "2:1", "2:2", "3"] [1 ..]
