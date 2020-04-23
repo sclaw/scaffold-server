@@ -381,7 +381,7 @@ getTrajectories = lmap coerce $ statement $ fmap (fmap UserTrajectories . sequen
           left join edgenode.user_qualification as uq
           on uq.provider_branch_qualification_fk =
              pbqd.provider_branch_qualification_fk
-             and uq.user_fk = $1
+             and uq.user_fk = $1 :: int8
           where ut.user_fk = $1 :: int8
           group by ut.provider_branch_qualification_fk)
         select
