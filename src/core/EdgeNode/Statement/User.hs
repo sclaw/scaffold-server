@@ -25,7 +25,6 @@ module EdgeNode.Statement.User
        , getTrajectories
        , removeTrajectory
        , getUserQualificationValues
-       , AddTrajectoryError (..)
        ) where
 
 import EdgeNode.Transport.Id
@@ -149,19 +148,9 @@ patchProfile = lmap mkTpl statement
          day = coalesce(cast(($6 :: jsonb?)->'day' as integer), day)
         where id = (select birthday_id from edgenode.user where "user_id" = $1 :: int8)|]
 
-data AddTrajectoryError =
-       AddTrajectoryErrorAlreadyAtQualificationList
-     | AddTrajectoryErrorAlreadyAdded
-  deriving stock Show
-
-instance Error.AsError AddTrajectoryError where
-  asError AddTrajectoryErrorAlreadyAtQualificationList =
-    Error.asError @T.Text $ "you are unable to add qualification to trajactories that already at your qualification list"
-  asError AddTrajectoryErrorAlreadyAdded = Error.asError @T.Text $ "qualification is already at your skill's list"
-
-addTrajectory :: HS.Statement (UserId, OnlyField "id" (Id "qualification"), Maybe Double) (Either AddTrajectoryError ())
+addTrajectory :: HS.Statement (UserId, OnlyField "id" (Id "qualification"), Double) Int64
 addTrajectory =
-  dimap (\x -> x & _1 %~ coerce & _2 %~ coerce) mkResp $
+  lmap (\x -> x & _1 %~ coerce & _2 %~ coerce) $
   [rowsAffectedStatement|
     with already as (
       select
@@ -173,13 +162,11 @@ addTrajectory =
           provider_branch_qualification_fk = $2 :: int8) as flag)
     insert into edgenode.user_trajectory
     (user_fk, provider_branch_qualification_fk, compatibility)
-    select n.user, n.qual, coalesce($3 :: float8?,  100.0)
+    select n.user, n.qual, $3 :: float8
     from (select $1 :: int8 as user, $2 :: int8 as qual, true as flag) as n
     inner join already as a
     on n.user = a.user and n.qual = a.qual
     where not (n.flag and a.flag)|]
-  where mkResp i | i > 0 = Right ()
-                 | otherwise = Left AddTrajectoryErrorAlreadyAtQualificationList
 
 instance ParamsShow AddQualificationRequest where
   render qualification = qualification^.field @"addQualificationRequestValue".lazytext.from stext

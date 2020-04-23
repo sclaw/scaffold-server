@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DerivingStrategies #-}
 
 module EdgeNode.Controller.User.Trajectory.Add (controller) where
 
@@ -11,6 +12,7 @@ import EdgeNode.Transport.Response
 import EdgeNode.Transport.Qualification
 import EdgeNode.Statement.User as User
 import EdgeNode.Statement.Provider as Provider
+import qualified EdgeNode.Transport.Error as Error
 
 import Auth
 import KatipController
@@ -24,23 +26,38 @@ import Data.Int
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
 import Data.Word
-import Data.Maybe
+import Control.Monad.Error.Class
 
 controller :: OnlyField "id" (Id "qualification") -> UserId -> KatipController (Response Unit)
 controller qualification_id user_id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   resp <- katipTransactionViolationError hasql $ do
     deps_m <- statement Provider.getDepsQualifiationValues qualification_id
-    compatilbity <- for deps_m $ \dep_xs -> do
+    compatilbity_m <- for deps_m $ \dep_xs -> do
        user_xs_m <- statement User.getUserQualificationValues user_id
-       pure $ maybe 0.0 (calculateCompatibility dep_xs) user_xs_m
-    statement User.addTrajectory (user_id, qualification_id, compatilbity)
+       pure $ maybe (Right 0.0) (calculateCompatibility dep_xs) user_xs_m
+    case compatilbity_m of
+      Nothing -> fmap Right $ statement User.addTrajectory (user_id, qualification_id, 100.0)
+      Just (Right c) -> fmap Right $ statement User.addTrajectory (user_id, qualification_id, c)
+      Just (Left e) -> pure $ Left e
   $(logTM) DebugS (logStr (show resp))
-  let process (Right (Left e)) = Left e
-      process (Right (Right _)) = Right Unit
-      process (Left _) = Left User.AddTrajectoryErrorAlreadyAdded
+  let process (Right (Right i)) = if i > 0 then Right Unit else Left AddTrajectoryErrorAlreadyAtQualificationList
+      process (Right (Left e)) = Left e
+      process (Left _) = Left AddTrajectoryErrorAlreadyAdded
   return $ (fromEither . process) resp
 
+data AddError =
+       CalculateCompatibilityError QualificationDegree T.Text
+     | AddTrajectoryErrorAlreadyAtQualificationList
+     | AddTrajectoryErrorAlreadyAdded
+     deriving stock Show
+
+instance Error.AsError AddError where
+    asError (CalculateCompatibilityError degree val) =
+      Error.asError @T.Text $ "for given degree " <> T.pack (show degree) <> " and " <> val  <> " not found appropriate numeric assessment"
+    asError AddTrajectoryErrorAlreadyAtQualificationList =
+      Error.asError @T.Text $ "you are unable to add qualification to trajactories that already at your qualification list"
+    asError AddTrajectoryErrorAlreadyAdded = Error.asError @T.Text $ "qualification is already at your skill's list"
 
 -- | Check calculateCompatibility
 --
@@ -56,25 +73,29 @@ controller qualification_id user_id = do
 --     , (71, QualificationDegreeAdvancedLevelGCE, "B")
 --     , (72, QualificationDegreeAdvancedLevelGCE, "A")]
 -- :}
--- 90.0
+-- Right 90.0
 --
 -- >>> calculateCompatibility [(1, QualificationDegreeAdvancedLevelGCE,"D"), (2, QualificationDegreeToeflIBT, "40")] [(1, QualificationDegreeAdvancedLevelGCE, "B")]
--- 100.0
-calculateCompatibility :: [(Int64, QualificationDegree, T.Text)] -> [(Int64, QualificationDegree, T.Text)] -> Double
+-- Right 100.0
+calculateCompatibility :: [(Int64, QualificationDegree, T.Text)] -> [(Int64, QualificationDegree, T.Text)] -> Either AddError Double
 calculateCompatibility qualification_xs user_xs =
-  if (sum xs' / i) * 100 > 100
-  then 100.0
-  else (sum xs' / i) * 100
+  (foldr go (Right ([], 0)) xs) <&> \(xs', i) ->
+    if (sum xs' / i) * 100 > 100
+    then 100.0
+    else (sum xs' / i) * 100
   where
     user_map = flip foldMap user_xs $ \(i, _, val) -> Map.insert i val $ mempty
     xs = [ (ty, val, (Map.!?) user_map i) | (i, ty, val) <- qualification_xs ]
-    (xs', i) = foldr go ([], 0) xs
-    go (ty, val_t, Nothing) tpl = tpl & _1 %~ (0:) & _2 %~ (+1)
-    go (ty, val_t, Just val_t_u) tpl =
-      let val = fromMaybe (mkError val_t) $ lookup val_t (qualificationDegreeToRange ty)
-          val_u = fromMaybe (mkError val_t_u) $ lookup val_t_u (qualificationDegreeToRange ty)
-      in tpl & _1 %~ ((fromIntegral val_u / fromIntegral val):) & _2 %~ (+1)
-    mkError x = error $ "cannot find number for " <> show x
+    go (ty, val_t, Nothing) tpl_e = flip fmap tpl_e $ \tpl -> tpl & _1 %~ (0:) & _2 %~ (+1)
+    go (ty, val_t, Just val_t_u) tpl_e =
+      let val = maybe (mkError ty val_t) Right $ lookup val_t (qualificationDegreeToRange ty)
+          val_u = maybe (mkError ty val_t_u) Right $ lookup val_t_u (qualificationDegreeToRange ty)
+      in do
+           v' <- val
+           v'' <- val_u
+           tpl <- tpl_e
+           pure $ tpl & _1 %~ ((fromIntegral v'' / fromIntegral v'):) & _2 %~ (+1)
+    mkError degree = throwError . CalculateCompatibilityError degree
 
 qualificationDegreeToRange :: QualificationDegree -> [(T.Text, Word32)]
 qualificationDegreeToRange QualificationDegreeUnifiedStateExam = zip (map (T.pack . show) [1 .. 100 :: Word32]) [1 .. 100]
