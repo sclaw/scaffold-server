@@ -19,6 +19,6 @@ import Pretty
 controller :: UserId -> KatipController (Response UserTrajectories)
 controller user_id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  resp <- fmap Ok $ katipTransaction hasql $ statement User.getTrajectories user_id
+  resp <- fmap fromEither $ katipTransaction hasql $ statement User.getTrajectories user_id
   $(logTM) DebugS (logStr ("trajectories: " ++ mkPretty mempty resp))
   return resp

@@ -349,20 +349,41 @@ getQualificationList = lmap coerce $ statement $ fmap (second UserQualification 
         group by p.id, p.title, pbq.type
         order by p.title, pbq.type|]
 
-getTrajectories :: HS.Statement UserId UserTrajectories
-getTrajectories = lmap coerce $ statement $ fmap UserTrajectories (premap mkUserTrajectory vector)
+getTrajectories :: HS.Statement UserId (Either T.Text UserTrajectories)
+getTrajectories = lmap coerce $ statement $ fmap (fmap UserTrajectories . sequence) (premap mkUserTrajectory vector)
   where
     mkUserTrajectory x =
-      UserTrajectory
-      (x^._1.(integral @Int64 @Word64).coerced)
-      (x^._2.from lazytext)
-      (x^._3.to toS.from qualQualificationDegree)
-      (x^._4)
-      (x^?_5._Just.from period.to UserTrajectoryPeriod)
-      (x^?_6._Just.from currency.to UserTrajectoryCurrency)
-      (x^?_7._Just.to (Protobuf.Double . fromIntegral))
+      flip fmap (sequence (V.map (mkEither . fromJSON @UserTrajectory_Dependency) (x^._8))) $
+        (UserTrajectory
+        (x^._1.(integral @Int64 @Word64).coerced)
+        (x^._2.from lazytext)
+        (x^._3.to toS.from qualQualificationDegree)
+        (x^._4)
+        (x^?_5._Just.from period.to UserTrajectoryPeriod)
+        (x^?_6._Just.from currency.to UserTrajectoryCurrency)
+        (x^?_7._Just.to (Protobuf.Double . fromIntegral)))
+    mkEither (Success x) = Right x
+    mkEither (Error e) = Left $ T.pack e
     statement =
       [foldStatement|
+        with lacked_dependency as (
+          select
+            ut.provider_branch_qualification_fk as ident,
+            array_agg(jsonb_build_object(
+              'title', pbq.title,
+              'depDegreeValue', pbqd.required_degree,
+              'userDegreeValue', uq.value)) as deps
+          from edgenode.provider_branch_qualification_dependency as pbqd
+          left join edgenode.user_trajectory as ut
+          on ut.provider_branch_qualification_fk = pbqd.dependency_fk
+          inner join edgenode.provider_branch_qualification as pbq
+          on pbq.id = pbqd.provider_branch_qualification_fk
+          left join edgenode.user_qualification as uq
+          on uq.provider_branch_qualification_fk =
+             pbqd.provider_branch_qualification_fk
+             and uq.user_fk = 38
+          where ut.user_fk = $1 :: int8
+          group by ut.provider_branch_qualification_fk)
         select
           ut.id :: int8,
           pbq.title :: text,
@@ -370,7 +391,8 @@ getTrajectories = lmap coerce $ statement $ fmap UserTrajectories (premap mkUser
           ut.compatibility :: float8,
           pbqtf.period :: text?,
           pbqtf.currency :: text?,
-          pbqtf.amount :: int8?
+          pbqtf.amount :: int8?,
+          ld.deps :: jsonb[]
         from edgenode.user as u
         left join edgenode.user_trajectory as ut
         on u.user_id = ut.user_fk
@@ -379,6 +401,8 @@ getTrajectories = lmap coerce $ statement $ fmap UserTrajectories (premap mkUser
         left join edgenode.provider_branch_qualification_tuition_fees as pbqtf
         on pbq.id = pbqtf.provider_branch_qualification_fk
         and u.allegiance in (select * from jsonb_array_elements_text(pbqtf.countries))
+        left join lacked_dependency as ld
+        on ld.ident = ut.provider_branch_qualification_fk
         where ut.user_fk = $1 :: int8|]
 
 removeTrajectory :: HS.Statement (Id "trajectory", UserId) ()
