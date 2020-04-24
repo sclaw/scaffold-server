@@ -9,5 +9,6 @@ import Data.Aeson
 import EdgeNode.Country
 import Data.Aeson.WithField
 import qualified Data.Text as T
+import TH.Proto
 
-test = decodeFileEither @[(WithField "enum" CountryExt (Maybe T.Text))] "../enum/country/en.yaml"
+test = fmap () decodeFileEither @[(WithField "enum" Country (Maybe T.Text))] "../enum/country/english.yaml"

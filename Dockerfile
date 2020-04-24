@@ -13,8 +13,9 @@ WORKDIR /home/nix
 
 COPY --chown=nix:nix config.json package.yaml Setup.hs shell.nix stack.yaml README.md ChangeLog.md ./
 COPY --chown=nix:nix src src
-COPY --chown=nix:nix app app 
-COPY --chown=nix:nix migration migration 
+COPY --chown=nix:nix app app
+COPY --chown=nix:nix migration migration
+COPY --chown=nix:nix enum enum
 COPY --chown=nix:nix prog prog
 COPY --chown=nix:nix test test
 COPY --chown=nix:nix .git .git
@@ -31,10 +32,8 @@ RUN git clone https://github.com/ImageMagick/ImageMagick.git && \
     cd ImageMagick && git checkout 7.0.10-3 && \
     ./configure --prefix=/home/nix && make && make install
 
-RUN whereis convert
-
 RUN . /home/nix/.nix-profile/etc/profile.d/nix.sh && \
-      stack install proto3-suite --fast -j12 && \ 
+      stack install proto3-suite --fast -j12 && \
       scripts/generate-proto-haskell_python.sh && \
       stack install --fast -j12 --test
 

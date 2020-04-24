@@ -8,12 +8,16 @@
 module EdgeNode.Api.Service (ServiceApi (..), EnumApi (..)) where
 
 import EdgeNode.Transport.Response
+import EdgeNode.Country
 
 import TH.Proto
 import Servant.API.Generic
 import Servant.API
 import qualified Data.Text as T
 import Data.Aeson.WithField
+import Data.Swagger.Schema
+
+instance ToSchema Country
 
 newtype ServiceApi route =
         ServiceApi
@@ -24,17 +28,12 @@ newtype ServiceApi route =
           :> ToServant EnumApi AsApi
         } deriving stock Generic
 
-
 newtype EnumApi route =
         EnumApi
-        { _enumApiGetCountry
+        { _enumApiGetCountries
           :: route
           :- Description "get enum country with its translation"
           :> "country"
           :> Capture "language" EdgeNodeLanguage
-          :> Get '[JSON]
-             (Response
-              (WithField "enum"
-               EdgeNodeCountry
-               (OnlyField "value" T.Text)))
+          :> Get '[JSON] (Response [WithField "enum" Country T.Text])
         } deriving stock Generic
