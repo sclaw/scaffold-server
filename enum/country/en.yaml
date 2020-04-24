@@ -1,244 +1,488 @@
-- Afghanistan:
-- ÅlandIslands:
-- Albania:
-- Algeria:
-- AmericanSamoa:
-- AndorrA:
-- Angola:
-- Anguilla:
-- Antarctica:
-- AntiguaAndBarbuda:
-- Argentina:
-- Armenia:
-- Aruba:
-- Australia:
-- Austria:
-- Azerbaijan:
-- Bahamas:
-- Bahrain:
-- Bangladesh:
-- Barbados:
-- Belarus:
-- Belgium:
-- Belize:
-- Benin:
-- Bermuda:
-- Bhutan:
-- Bolivia:
-- BosniaAndHerzegovina:
-- Botswana:
-- BouvetIsland:
-- Brazil:
-- BritishIndianOceanTerritory:
-- BruneiDarussalam:
-- Bulgaria:
-- BurkinaFaso:
-- Burundi:
-- Cambodia:
-- Cameroon:
-- Canada:
-- CapeVerde:
-- CaymanIslands:
-- CentralAfricanRepublic:
-- Chad:
-- Chile:
-- China:
-- ChristmasIsland:
-- CocosKeelingIslands:
-- Colombia:
-- Comoros:
-- Congo:
-- CongoTheDemocraticRepublicOfThe:
-- CookIslands:
-- CostaRica:
-- CoteDIvoire:
-- Croatia:
-- Cuba:
-- Cyprus:
-- CzechRepublic:
-- Denmark:
-- Djibouti:
-- Dominica:
-- DominicanRepublic:
-- Ecuador:
-- Egypt:
-- ElSalvador:
-- EquatorialGuinea:
-- Eritrea:
-- Estonia:
-- Ethiopia:
-- FalklandIslandsMalvinas:
-- FaroeIslands:
-- Fij:
-- Finland:
-- France:
-- FrenchGuiana:
-- FrenchPolynesia:
-- FrenchSouthernTerritories:
-- Gabon:
-- Gambia:
-- Georgia:
-- Germany:
-- Ghana:
-- Gibraltar:
-- Greece:
-- Greenland:
-- Grenada:
-- Guadeloupe:
-- Guam:
-- Guatemala:
-- Guernsey:
-- Guinea:
-- GuineaBissau:
-- Guyana:
-- Haiti:
-- HeardIslandAndMcdonaldIslands:
-- HolySeeVaticanCityState:
-- Honduras:
-- HongKong:
-- Hungary:
-- Iceland:
-- India:
-- Indonesia:
-- IranIslamicRepublicOf:
-- Iraq:
-- Ireland:
-- IsleOfMan:
-- Israel:
-- Italy:
-- Jamaica:
-- Japan:
-- Jersey:
-- Jordan:
-- Kazakhstan:
-- Kenya:
-- Kiribati:
-- KoreaDemocraticPeopleSRepublicOf:
-- KoreaRepublicOf:
-- Kuwait:
-- Kyrgyzstan:
-- LaoPeopleSDemocraticRepublic:
-- Latvia:
-- Lebanon:
-- Lesotho:
-- Liberia:
-- LibyanArabJamahiriya:
-- Liechtenstein:
-- Lithuania:
-- Luxembourg:
-- Macao:
-- MacedoniaTheFormerYugoslavRepublicOf:
-- Madagascar:
-- Malawi:
-- Malaysia:
-- Maldives:
-- Mali:
-- Malta:
-- MarshallIslands:
-- Martinique:
-- Mauritania:
-- Mauritius:
-- Mayotte:
-- Mexico:
-- MicronesiaFederatedStatesOf:
-- MoldovaRepublicOf:
-- Monaco:
-- Mongolia:
-- Montserrat:
-- Morocco:
-- Mozambique:
-- Myanmar:
-- Namibia:
-- Nauru:
-- Nepal:
-- Netherlands:
-- NetherlandsAntilles:
-- NewCaledonia:
-- NewZealand:
-- Nicaragua:
-- Niger:
-- Nigeria:
-- Niue:
-- NorfolkIsland:
-- NorthernMarianaIslands:
-- Norway:
-- Oman:
-- Pakistan:
-- Palau:
-- PalestinianTerritoryOccupied:
-- Panama:
-- PapuaNewGuinea:
-- Paraguay:
-- Peru:
-- Philippines:
-- Pitcairn:
-- Poland:
-- Portugal:
-- PuertoRico:
-- Qatar:
-- Reunion:
-- Romania:
-- RussianFederation:
-- Rwanda:
-- SaintHelena:
-- SaintKittsAndNevis:
-- SaintLucia:
-- SaintPierreAndMiquelon:
-- SaintVincentAndTheGrenadines:
-- Samoa:
-- SanMarino:
-- SaoTomeAndPrincipe:
-- SaudiArabia:
-- Senegal:
-- SerbiaAndMontenegro:
-- Seychelles:
-- SierraLeone:
-- Singapore:
-- Slovakia:
-- Slovenia:
-- SolomonIslands:
-- Somalia:
-- SouthAfrica:
-- SouthGeorgiaAndTheSouthSandwichIslands:
-- Spain:
-- SriLanka:
-- Sudan:
-- Suriname:
-- SvalbardAndJanMayen:
-- Swaziland:
-- Sweden:
-- Switzerland:
-- SyrianArabRepublic:
-- TaiwanProvinceOfChina:
-- Tajikistan:
-- TanzaniaUnitedRepublicOf:
-- Thailand:
-- TimorLeste:
-- Togo:
-- Tokelau:
-- Tonga:
-- TrinidadAndTobago:
-- Tunisia:
-- Turkey:
-- Turkmenistan:
-- TurksAndCaicosIslands:
-- Tuvalu:
-- Uganda:
-- Ukraine:
-- UnitedArabEmirates:
-- UnitedKingdom:
-- UnitedStates:
-- UnitedStatesMinorOutlyingIslands:
-- Uruguay:
-- Uzbekistan:
-- Vanuatu:
-- Venezuela:
-- VietNam:
-- VirginIslandsBritish:
-- VirginIslandsUS:
-- WallisAndFutuna:
-- WesternSahara:
-- Yemen:
-- Zambia:
-- Zimbabwe:
-- Other:
+- enum: Afghanistan
+  value:
+- enum: ÅlandIslands
+  value:
+- enum: Albania
+  value:
+- enum: Algeria
+  value:
+- enum: AmericanSamoa
+  value:
+- enum: AndorrA
+  value:
+- enum: Angola
+  value:
+- enum: Anguilla
+  value:
+- enum: Antarctica
+  value:
+- enum: AntiguaAndBarbuda
+  value:
+- enum: Argentina
+  value:
+- enum: Armenia
+  value:
+- enum: Aruba
+  value:
+- enum: Australia
+  value:
+- enum: Austria
+  value:
+- enum: Azerbaijan
+  value:
+- enum: Bahamas
+  value:
+- enum: Bahrain
+  value:
+- enum: Bangladesh
+  value:
+- enum: Barbados
+  value:
+- enum: Belarus
+  value:
+- enum: Belgium
+  value:
+- enum: Belize
+  value:
+- enum: Benin
+  value:
+- enum: Bermuda
+  value:
+- enum: Bhutan
+  value:
+- enum: Bolivia
+  value:
+- enum: BosniaAndHerzegovina
+  value:
+- enum: Botswana
+  value:
+- enum: BouvetIsland
+  value:
+- enum: Brazil
+  value:
+- enum: BritishIndianOceanTerritory
+  value:
+- enum: BruneiDarussalam
+  value:
+- enum: Bulgaria
+  value:
+- enum: BurkinaFaso
+  value:
+- enum: Burundi
+  value:
+- enum: Cambodia
+  value:
+- enum: Cameroon
+  value:
+- enum: Canada
+  value:
+- enum: CapeVerde
+  value:
+- enum: CaymanIslands
+  value:
+- enum: CentralAfricanRepublic
+  value:
+- enum: Chad
+  value:
+- enum: Chile
+  value:
+- enum: China
+  value:
+- enum: ChristmasIsland
+  value:
+- enum: CocosKeelingIslands
+  value:
+- enum: Colombia
+  value:
+- enum: Comoros
+  value:
+- enum: Congo
+  value:
+- enum: CongoTheDemocraticRepublicOfThe
+  value:
+- enum: CookIslands
+  value:
+- enum: CostaRica
+  value:
+- enum: CoteDIvoire
+  value:
+- enum: Croatia
+  value:
+- enum: Cuba
+  value:
+- enum: Cyprus
+  value:
+- enum: CzechRepublic
+  value:
+- enum: Denmark
+  value:
+- enum: Djibouti
+  value:
+- enum: Dominica
+  value:
+- enum: DominicanRepublic
+  value:
+- enum: Ecuador
+  value:
+- enum: Egypt
+  value:
+- enum: ElSalvador
+  value:
+- enum: EquatorialGuinea
+  value:
+- enum: Eritrea
+  value:
+- enum: Estonia
+  value:
+- enum: Ethiopia
+  value:
+- enum: FalklandIslandsMalvinas
+  value:
+- enum: FaroeIslands
+  value:
+- enum: Fij
+  value:
+- enum: Finland
+  value:
+- enum: France
+  value:
+- enum: FrenchGuiana
+  value:
+- enum: FrenchPolynesia
+  value:
+- enum: FrenchSouthernTerritories
+  value:
+- enum: Gabon
+  value:
+- enum: Gambia
+  value:
+- enum: Georgia
+  value:
+- enum: Germany
+  value:
+- enum: Ghana
+  value:
+- enum: Gibraltar
+  value:
+- enum: Greece
+  value:
+- enum: Greenland
+  value:
+- enum: Grenada
+  value:
+- enum: Guadeloupe
+  value:
+- enum: Guam
+  value:
+- enum: Guatemala
+  value:
+- enum: Guernsey
+  value:
+- enum: Guinea
+  value:
+- enum: GuineaBissau
+  value:
+- enum: Guyana
+  value:
+- enum: Haiti
+  value:
+- enum: HeardIslandAndMcdonaldIslands
+  value:
+- enum: HolySeeVaticanCityState
+  value:
+- enum: Honduras
+  value:
+- enum: HongKong
+  value:
+- enum: Hungary
+  value:
+- enum: Iceland
+  value:
+- enum: India
+  value:
+- enum: Indonesia
+  value:
+- enum: IranIslamicRepublicOf
+  value:
+- enum: Iraq
+  value:
+- enum: Ireland
+  value:
+- enum: IsleOfMan
+  value:
+- enum: Israel
+  value:
+- enum: Italy
+  value:
+- enum: Jamaica
+  value:
+- enum: Japan
+  value:
+- enum: Jersey
+  value:
+- enum: Jordan
+  value:
+- enum: Kazakhstan
+  value:
+- enum: Kenya
+  value:
+- enum: Kiribati
+  value:
+- enum: KoreaDemocraticPeopleSRepublicOf
+  value:
+- enum: KoreaRepublicOf
+  value:
+- enum: Kuwait
+  value:
+- enum: Kyrgyzstan
+  value:
+- enum: LaoPeopleSDemocraticRepublic
+  value:
+- enum: Latvia
+  value:
+- enum: Lebanon
+  value:
+- enum: Lesotho
+  value:
+- enum: Liberia
+  value:
+- enum: LibyanArabJamahiriya
+  value:
+- enum: Liechtenstein
+  value:
+- enum: Lithuania
+  value:
+- enum: Luxembourg
+  value:
+- enum: Macao
+  value:
+- enum: MacedoniaTheFormerYugoslavRepublicOf
+  value:
+- enum: Madagascar
+  value:
+- enum: Malawi
+  value:
+- enum: Malaysia
+  value:
+- enum: Maldives
+  value:
+- enum: Mali
+  value:
+- enum: Malta
+  value:
+- enum: MarshallIslands
+  value:
+- enum: Martinique
+  value:
+- enum: Mauritania
+  value:
+- enum: Mauritius
+  value:
+- enum: Mayotte
+  value:
+- enum: Mexico
+  value:
+- enum: MicronesiaFederatedStatesOf
+  value:
+- enum: MoldovaRepublicOf
+  value:
+- enum: Monaco
+  value:
+- enum: Mongolia
+  value:
+- enum: Montserrat
+  value:
+- enum: Morocco
+  value:
+- enum: Mozambique
+  value:
+- enum: Myanmar
+  value:
+- enum: Namibia
+  value:
+- enum: Nauru
+  value:
+- enum: Nepal
+  value:
+- enum: Netherlands
+  value:
+- enum: NetherlandsAntilles
+  value:
+- enum: NewCaledonia
+  value:
+- enum: NewZealand
+  value:
+- enum: Nicaragua
+  value:
+- enum: Niger
+  value:
+- enum: Nigeria
+  value:
+- enum: Niue
+  value:
+- enum: NorfolkIsland
+  value:
+- enum: NorthernMarianaIslands
+  value:
+- enum: Norway
+  value:
+- enum: Oman
+  value:
+- enum: Pakistan
+  value:
+- enum: Palau
+  value:
+- enum: PalestinianTerritoryOccupied
+  value:
+- enum: Panama
+  value:
+- enum: PapuaNewGuinea
+  value:
+- enum: Paraguay
+  value:
+- enum: Peru
+  value:
+- enum: Philippines
+  value:
+- enum: Pitcairn
+  value:
+- enum: Poland
+  value:
+- enum: Portugal
+  value:
+- enum: PuertoRico
+  value:
+- enum: Qatar
+  value:
+- enum: Reunion
+  value:
+- enum: Romania
+  value:
+- enum: RussianFederation
+  value:
+- enum: Rwanda
+  value:
+- enum: SaintHelena
+  value:
+- enum: SaintKittsAndNevis
+  value:
+- enum: SaintLucia
+  value:
+- enum: SaintPierreAndMiquelon
+  value:
+- enum: SaintVincentAndTheGrenadines
+  value:
+- enum: Samoa
+  value:
+- enum: SanMarino
+  value:
+- enum: SaoTomeAndPrincipe
+  value:
+- enum: SaudiArabia
+  value:
+- enum: Senegal
+  value:
+- enum: SerbiaAndMontenegro
+  value:
+- enum: Seychelles
+  value:
+- enum: SierraLeone
+  value:
+- enum: Singapore
+  value:
+- enum: Slovakia
+  value:
+- enum: Slovenia
+  value:
+- enum: SolomonIslands
+  value:
+- enum: Somalia
+  value:
+- enum: SouthAfrica
+  value:
+- enum: SouthGeorgiaAndTheSouthSandwichIslands
+  value:
+- enum: Spain
+  value:
+- enum: SriLanka
+  value:
+- enum: Sudan
+  value:
+- enum: Suriname
+  value:
+- enum: SvalbardAndJanMayen
+  value:
+- enum: Swaziland
+  value:
+- enum: Sweden
+  value:
+- enum: Switzerland
+  value:
+- enum: SyrianArabRepublic
+  value:
+- enum: TaiwanProvinceOfChina
+  value:
+- enum: Tajikistan
+  value:
+- enum: TanzaniaUnitedRepublicOf
+  value:
+- enum: Thailand
+  value:
+- enum: TimorLeste
+  value:
+- enum: Togo
+  value:
+- enum: Tokelau
+  value:
+- enum: Tonga
+  value:
+- enum: TrinidadAndTobago
+  value:
+- enum: Tunisia
+  value:
+- enum: Turkey
+  value:
+- enum: Turkmenistan
+  value:
+- enum: TurksAndCaicosIslands
+  value:
+- enum: Tuvalu
+  value:
+- enum: Uganda
+  value:
+- enum: Ukraine
+  value:
+- enum: UnitedArabEmirates
+  value:
+- enum: UnitedKingdom
+  value:
+- enum: UnitedStates
+  value:
+- enum: UnitedStatesMinorOutlyingIslands
+  value:
+- enum: Uruguay
+  value:
+- enum: Uzbekistan
+  value:
+- enum: Vanuatu
+  value:
+- enum: Venezuela
+  value:
+- enum: VietNam
+  value:
+- enum: VirginIslandsBritish
+  value:
+- enum: VirginIslandsUS
+  value:
+- enum: WallisAndFutuna
+  value:
+- enum: WesternSahara
+  value:
+- enum: Yemen
+  value:
+- enum: Zambia
+  value:
+- enum: Zimbabwe
+  value:
+- enum: Other
+  value:
