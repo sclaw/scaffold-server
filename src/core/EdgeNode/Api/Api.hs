@@ -14,6 +14,7 @@ module EdgeNode.Api.Api
        , module EdgeNode.Api.Admin
        , module EdgeNode.Api.Provider
        , module EdgeNode.Api.Feedback
+       , module EdgeNode.Api.Service
        ) where
 
 import Auth
@@ -24,6 +25,7 @@ import EdgeNode.Api.File
 import EdgeNode.Api.Admin
 import EdgeNode.Api.Provider
 import EdgeNode.Api.Feedback
+import EdgeNode.Api.Service
 
 import Servant.API.Generic
 import Servant.API
@@ -34,40 +36,45 @@ data HttpApi route =
      HttpApi
      { _httpApiAuth
        :: route
-       :- Tags "auth"
+       :- Tags "Auth"
        :> "auth"
        :> ToServant AuthApi AsApi
      , _httpApiUser
        :: route
-       :- Tags "user"
+       :- Tags "User"
        :> "user"
        :> Auth '[AppJwt] JWTUser
        :> ToServant UserApi AsApi
      , _httpApiSearch
        :: route
-       :- Tags "search"
+       :- Tags "Search"
        :> "search"
        :> ToServant SearchApi AsApi
      , _httpApiFile
        :: route
-       :- Tags "file"
+       :- Tags "File"
        :> "file"
        :> ToServant FileApi AsApi
      , _httpApiAdmin
        :: route
-       :- Tags "admin"
+       :- Tags "Admin"
        :> "admin"
        :> Auth '[Servant.Auth.Server.BasicAuth] BasicUser
        :> ToServant AdminApi AsApi
      , _httpApiProvider
        :: route
-       :- Tags "provider"
+       :- Tags "Provider"
        :> "provider"
        :> Auth '[AppJwt] JWTUser
        :> ToServant ProviderApi AsApi
      , _httpApiFeedback
        :: route
-       :- Tags "feedback"
+       :- Tags "Feedback"
        :> "feedback"
        :> ToServant FeedbackApi AsApi
+     , _httpApiService
+       :: route
+       :- Tags "Service"
+       :> "service"
+       :> ToServant ServiceApi AsApi
      } deriving stock Generic

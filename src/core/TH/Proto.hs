@@ -53,6 +53,11 @@ mkEnumConvertor ''EdgeNodeCountry
 mkParamSchemaEnum ''EdgeNodeCountry [|isoEdgeNodeCountry.stext.to String|]
 mkFromHttpApiDataEnum ''EdgeNodeCountry [|from stext.from isoEdgeNodeCountry.to Right|]
 
+mkSRGEqEnum ''Language "EdgeNode"
+mkEnumConvertor ''EdgeNodeLanguage
+mkParamSchemaEnum ''EdgeNodeLanguage [|isoEdgeNodeLanguage.stext.to String|]
+mkFromHttpApiDataEnum ''EdgeNodeLanguage [|from stext.from isoEdgeNodeLanguage.to Right|]
+
 mkToSchemaAndJSON ''EdgeNodeProviderCategory
 mkParamSchemaEnum ''EdgeNodeProviderCategory [|isoEdgeNodeProviderCategory.stext.to String|]
 mkFromHttpApiDataEnum ''EdgeNodeProviderCategory [|from stext.from isoEdgeNodeProviderCategory.to Right|]

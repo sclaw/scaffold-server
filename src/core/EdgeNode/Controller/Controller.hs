@@ -89,7 +89,14 @@ httpApi =
   , _httpApiAdmin    = (`withAuthResult` (toServant . admin))
   , _httpApiProvider = (`withAuthResult` (toServant . provider))
   , _httpApiFeedback = toServant feedback
+  , _httpApiService = toServant service
   }
+
+service :: ServiceApi (AsServerT KatipController)
+service = ServiceApi { _serviceApiEnum = toServant EdgeNode.Controller.Controller.enum }
+
+enum :: EnumApi (AsServerT KatipController)
+enum = EnumApi { _enumApiGetCountry = undefined }
 
 feedback :: FeedbackApi (AsServerT KatipController)
 feedback =
