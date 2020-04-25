@@ -29,11 +29,18 @@ import Control.Monad.IO.Class
 import Data.Aeson
 import Data.Time.Clock
 import Data.String.Conv
+import Control.Concurrent.Lifted
+import Control.Monad
 
 controller :: WithField "recaptcha" T.Text Feedback -> KatipController (Response Unit)
-controller (WithField recaptcha_resp feedback) = do
+controller x@(WithField recaptcha_resp feedback) = do
   $(logTM) DebugS (logStr (mkPretty mempty feedback))
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
+
+  telegram_service <- fmap (^.katipEnv.telegram) ask
+  logger <- askLoggerIO
+  void $ fork $ liftIO $ send telegram_service logger (T.pack (show x))
+
   case Validator.feedback feedback of
     Failure es -> pure $ Errors (map asError es)
     Data.Validation.Success _ -> do

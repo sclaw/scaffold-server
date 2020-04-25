@@ -24,14 +24,13 @@ import qualified EdgeNode.Controller.Controller as Controller
 import EdgeNode.Transport.Id
 
 import Auth
-import Katip.Monadic                 (askLoggerIO)
 import KatipController
 import Servant.Swagger.KatipController
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 import Katip
 import qualified Network.Wai.Handler.Warp      as Warp
-import Servant                    
+import Servant
 import Servant.API.Generic
 import Control.Lens
 import Servant.Swagger.UI
@@ -39,7 +38,7 @@ import Servant.Auth.Server
 import Crypto.JOSE.JWK
 import Control.Concurrent.Async
 import Network.Wai
-import Control.Lens.Iso.Extended 
+import Control.Lens.Iso.Extended
 import qualified Middleware
 import Control.Monad.RWS.Strict as RWS
 import Control.Monad.Base (MonadBase)
@@ -54,12 +53,12 @@ import Network.Wai.Parse
 import Network.HTTP.Types.Status
 import TextShow
 
-data Cfg = 
-     Cfg 
-     { cfgHost :: !String 
+data Cfg =
+     Cfg
+     { cfgHost :: !String
      , cfgPort :: !Int
-       -- JSON Web Key (JWK) is a JavaScript Object Notation (JSON) 
-       -- data structure that represents a cryptographic key 
+       -- JSON Web Key (JWK) is a JavaScript Object Notation (JSON)
+       -- data structure that represents a cryptographic key
      , cfgJwk :: !JWK
      , cfgIsAuthEnabled :: !Bool
      , cfgUserId :: !(Id "user")
@@ -80,8 +79,8 @@ newtype AppMonad a = AppMonad { runAppMonad :: RWS.RWST KatipEnv KatipLogger Kat
   deriving newtype MonadThrow
 
 run :: Cfg -> KatipContextT AppMonad ()
-run Cfg {..} = 
-  katipAddNamespace (Namespace ["application"]) $ 
+run Cfg {..} =
+  katipAddNamespace (Namespace ["application"]) $
     do
       $(logTM) DebugS "application run.."
       configKatipEnv <- lift ask
@@ -94,9 +93,9 @@ run Cfg {..} =
       cfg <- initCfg
       let withSwagger :: Proxy a -> Proxy (a :<|> SwaggerSchemaUI "swagger" "swagger.json")
           withSwagger _ = Proxy
-      let jwtCfg = defaultJWTSettings cfgJwk 
-      let context 
-           :: Proxy 
+      let jwtCfg = defaultJWTSettings cfgJwk
+      let context
+           :: Proxy
               '[ CookieSettings
                , JWTSettings
                , KatipLoggerIO
@@ -105,28 +104,28 @@ run Cfg {..} =
                , Proxy Tmp
                , Pool.Pool Hasql.Connection
                , BasicAuthCfg]
-          context = Proxy     
-      let server = 
-           hoistServerWithContext 
+          context = Proxy
+      let server =
+           hoistServerWithContext
            (withSwagger api)
            context
-           (runKatipController cfg (KatipControllerState 0)) 
-           (toServant Controller.controller :<|> 
+           (runKatipController cfg (KatipControllerState 0))
+           (toServant Controller.controller :<|>
             swaggerSchemaUIServerT (swaggerHttpApi cfgHost cfgPort))
       excep <-katipAddNamespace (Namespace ["exception"]) askLoggerIO
       ctxlog <-katipAddNamespace (Namespace ["context"]) askLoggerIO
-      let settings = 
+      let settings =
            Warp.defaultSettings
            & Warp.setPort cfgPort
            & Warp.setOnException (logUncaughtException excep)
-           & Warp.setOnExceptionResponse mkResponse 
-      let multipartOpts = 
-            (defaultMultipartOptions (Proxy :: Proxy Tmp)) 
-            { generalOptions = clearMaxRequestNumFiles defaultParseRequestBodyOptions }   
-      let mkCtx =    jwtCfg 
-                  :. defaultCookieSettings 
-                  :. ctxlog 
-                  :. cfgIsAuthEnabled 
+           & Warp.setOnExceptionResponse mkResponse
+      let multipartOpts =
+            (defaultMultipartOptions (Proxy :: Proxy Tmp))
+            { generalOptions = clearMaxRequestNumFiles defaultParseRequestBodyOptions }
+      let mkCtx =    jwtCfg
+                  :. defaultCookieSettings
+                  :. ctxlog
+                  :. cfgIsAuthEnabled
                   :. cfgUserId
                   :. (cfg^.katipEnv.hasqlDbPool)
                   :. multipartOpts
@@ -134,13 +133,13 @@ run Cfg {..} =
                   :. EmptyContext
       let runServer = serveWithContext (withSwagger api) mkCtx server
       mware <-katipAddNamespace (Namespace ["middleware"]) askLoggerIO
-      servAsync <- liftIO $ async $ Warp.runSettings settings (middleware mware runServer)     
+      servAsync <- liftIO $ async $ Warp.runSettings settings (middleware mware runServer)
       liftIO (void (waitAnyCancel [servAsync])) `logExceptionM` ErrorS
 
 middleware :: KatipLoggerIO -> Application -> Application
 middleware log app = mkCors $ Middleware.logger log app
 
-logUncaughtException :: KatipLoggerIO -> Maybe Request -> SomeException -> IO ()     
+logUncaughtException :: KatipLoggerIO -> Maybe Request -> SomeException -> IO ()
 logUncaughtException log req e = when (Warp.defaultShouldDisplayException e) $ maybe without within req
   where without = log ErrorS (logStr ("Uncaught exception " <> show e))
         within r = log ErrorS (logStr ("\"GET " <> rawPathInfo r^.from textbs.from stext <> " HTTP/1.1\" 500 - " <> show e))
@@ -151,12 +150,12 @@ mkResponse error = responseLBS status500 [("Access-Control-Allow-Origin", "*")] 
 deriving instance Generic CorsResourcePolicy
 
 mkCors :: Middleware
-mkCors = 
+mkCors =
   cors $ const $ pure $
-    simpleCorsResourcePolicy 
+    simpleCorsResourcePolicy
     & field @"corsRequestHeaders" .~
       ["Authorization", "content-type", "Access-Control-Allow-Origin"]
-    & field @"corsExposedHeaders" ?~ 
+    & field @"corsExposedHeaders" ?~
       ["X-Set-Bearer"]
     & field @"corsMethods" .~
       simpleMethods ++ ["PUT", "PATCH", "DELETE"]

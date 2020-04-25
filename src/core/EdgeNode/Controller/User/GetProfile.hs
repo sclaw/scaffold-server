@@ -14,6 +14,6 @@ import Database.Transaction
 import Control.Lens
 
 controller :: UserId -> KatipController (Response (OptField "image" (Id "image") Profile))
-controller user_id = do 
+controller user_id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap Ok $ katipTransaction hasql $ statement User.getProfile user_id

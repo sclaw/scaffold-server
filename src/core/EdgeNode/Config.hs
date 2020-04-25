@@ -6,7 +6,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
-module EdgeNode.Config 
+module EdgeNode.Config
        ( Config
        , Katip (..)
        , Db
@@ -14,6 +14,7 @@ module EdgeNode.Config
        , Service (..)
        , ApiKeys (..)
        , Swagger (..)
+       , Telegram (..)
        , db
        , pass
        , port
@@ -29,7 +30,7 @@ module EdgeNode.Config
        , load
        , path
        , verbosity
-       , severity  
+       , severity
        , env
        , auth
        , jwk
@@ -41,10 +42,13 @@ module EdgeNode.Config
        , minio
        , bucketPrefix
        , swagger
-       ) 
+       , bot
+       , chat
+       , telegram
+       )
        where
 
-import Data.Aeson    
+import Data.Aeson
 import Data.Aeson.TH.Extended
 import Control.Lens
 import Control.Exception
@@ -53,7 +57,7 @@ import Data.Time.Clock
 import Data.Int
 import qualified Data.Text as T
 
-data Db = Db 
+data Db = Db
      { dbHost :: !String
      , dbPort :: !Int
      , dbUser :: !String
@@ -64,31 +68,29 @@ data Db = Db
 data Swagger = Swagger { swaggerHost :: String, swaggerPort :: Int }
   deriving Show
 
-data HasqlSettings = 
-     HasqlSettings 
+data HasqlSettings =
+     HasqlSettings
      { hasqlSettingsPoolN :: !Int
      , hasqlSettingsTm :: !NominalDiffTime
-     , hasqlSettingsResPerStripe :: !Int 
+     , hasqlSettingsResPerStripe :: !Int
      } deriving Show
 
-data Katip = 
-     Katip 
+data Katip =
+     Katip
      { katipPath :: !FilePath
      , katipSeverity :: !String
      , katipVerbosity :: !String
      , katipEnv :: !String
-     } 
-  deriving Show
+     } deriving Show
 
 data Ekg = Ekg { ekgHost :: !String, ekgPort :: !Int } deriving Show
 
-data Auth = 
-     Auth 
+data Auth =
+     Auth
      { authJwk :: !FilePath
      , authIsAuthEnabled :: !Bool
-     , authUserId :: !Int64 
-     }
-  deriving Show 
+     , authUserId :: !Int64
+     } deriving Show
 
 newtype ApiKeys = ApiKeys [(String, String)]
   deriving Show
@@ -96,25 +98,32 @@ newtype ApiKeys = ApiKeys [(String, String)]
 newtype Service = Service { serviceApiKeys :: ApiKeys }
   deriving Show
 
-data Minio = 
+data Minio =
      Minio
      { minioAccessKey :: !T.Text
      , minioSecretKey :: !T.Text
      , minioBucketPrefix :: !T.Text
      , minioHost :: !String
      , minioPort :: !String
-     }
-  deriving Show
+     } deriving Show
 
-data Config = 
-     Config 
-     { configDb :: !Db 
+data Telegram =
+     Telegram
+     { telegramBot :: !T.Text
+     , telegramChat :: !T.Text
+     , telegramHost :: !T.Text
+     } deriving Show
+
+data Config =
+     Config
+     { configDb :: !Db
      , configSwagger :: !Swagger
      , configHasql :: !HasqlSettings
      , configKatip :: !Katip
      , configAuth :: !Auth
      , configService :: !Service
      , configMinio :: !Minio
+     , configTelegram :: !Telegram
      } deriving Show
 
 makeFields ''Config
@@ -125,6 +134,7 @@ makeFields ''Katip
 makeFields ''Auth
 makeFields ''Minio
 makeFields ''Swagger
+makeFields ''Telegram
 
 -- Load program configuration from file (server.yaml), or
 -- raise YamlException and terminate program.
@@ -141,3 +151,4 @@ deriveFromJSON defaultOptions ''ApiKeys
 deriveFromJSON defaultOptions ''Service
 deriveFromJSON defaultOptions ''Minio
 deriveFromJSON defaultOptions ''Swagger
+deriveFromJSON defaultOptions ''Telegram

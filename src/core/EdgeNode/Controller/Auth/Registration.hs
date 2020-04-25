@@ -24,19 +24,25 @@ import Data.Password
 import Pretty
 import Data.Traversable
 import Data.Bifunctor
+import Control.Concurrent.Lifted
+import Control.Monad.IO.Class
+import Control.Monad
 
 controller :: Registration -> KatipController (Response Unit)
 controller registeration_data = do
   $(logTM) DebugS (logStr (mkPretty "registeration data:" registeration_data))
-  hasql <- fmap (^.katipEnv.hasqlDbPool) ask  
-  resp <- fmap (fromValidation . first (map asError)) $ 
-    for (registration registeration_data) $ const $ do 
+  telegram_service <- fmap (^.katipEnv.telegram) ask
+  logger <- askLoggerIO
+  void $ fork $ liftIO $ send telegram_service logger (T.pack (show registeration_data))
+  hasql <- fmap (^.katipEnv.hasqlDbPool) ask
+  resp <- fmap (fromValidation . first (map asError)) $
+    for (registration registeration_data) $ const $ do
       salt <-  newSalt
-      katipTransaction hasql $ do 
+      katipTransaction hasql $ do
         ident_m <- statement (Auth.register salt) registeration_data
-        for ident_m $ \x -> 
-          statement 
-          Rbac.assignRoleToUser 
+        for ident_m $ \x ->
+          statement
+          Rbac.assignRoleToUser
           (x, RoleUser, Nothing)
   return $ case resp of
     Ok (Just _) -> Ok Unit

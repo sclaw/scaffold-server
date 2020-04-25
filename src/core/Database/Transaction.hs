@@ -30,7 +30,6 @@ import Katip
 import qualified Hasql.Session as Hasql
 import Hasql.Session (Session, QueryError (..), CommandError (..), ResultError (..))
 import Control.Monad.IO.Class
-import Katip.Monadic (askLoggerIO)
 import Control.Monad.Catch
 import Control.Monad.Reader
 import qualified Hasql.Connection as Hasql

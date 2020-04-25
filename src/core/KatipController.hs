@@ -33,10 +33,14 @@ module KatipController
        , bucketPrefix
        , hasqlDbPool
        , conn
+       , telegram
          -- * run
        , runKatipController
          -- * re-export
-       , module R  
+       , module R
+       , module Web.Telegram
+        -- * katip
+       , askLoggerIO
        ) where
 
 import Control.Lens
@@ -45,6 +49,7 @@ import Control.Monad.Reader
 import Control.Monad.Reader.Class as R
 import qualified Data.Pool as Pool
 import Katip
+import Katip.Monadic
 import Servant.Server (Handler)
 import Control.Monad.Trans.Control (MonadBaseControl)
 import Control.Monad.Base (MonadBase)
@@ -58,34 +63,36 @@ import Network.HTTP.Client
 import Crypto.JOSE.JWK
 import Control.Monad.Time
 import "time" Data.Time
-import qualified Control.Monad.RWS.Strict as RWS 
+import qualified Control.Monad.RWS.Strict as RWS
 import Control.Monad.RWS.Class
-import qualified Network.Minio as Minio 
+import qualified Network.Minio as Minio
 import qualified Data.Text as T
 import qualified Hasql.Connection as Hasql
+import Web.Telegram as Web.Telegram
 
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 
-data KatipEnv = 
-     KatipEnv 
-     { katipEnvTerminal 
+data KatipEnv =
+     KatipEnv
+     { katipEnvTerminal
        :: !Term
      , katipEnvHasqlDbPool
        :: !(Pool.Pool Hasql.Connection)
-     , katipEnvHttpReqManager 
+     , katipEnvHttpReqManager
        :: !Manager
      , katipEnvApiKeys
        :: ![(String, String)]
      , katipEnvJwk :: !JWK
      , katipEnvMinio :: !Minio
+     , katipEnvTelegram :: Web.Telegram.Service
      }
 
 data Minio = Minio { minioConn :: !Minio.MinioConn, minioBucketPrefix :: !T.Text }
 
-newtype KatipLogger = KatipWriter [String] 
+newtype KatipLogger = KatipWriter [String]
   deriving newtype Monoid
-  deriving newtype Semigroup  
-  deriving newtype NFData   
+  deriving newtype Semigroup
+  deriving newtype NFData
 
 newtype KatipState = KatipState Int
   deriving newtype Default
@@ -106,14 +113,14 @@ newtype KatipControllerState = KatipControllerState Int
 
 newtype KatipControllerWriter = KatipControllerWriter [String]
   deriving newtype Monoid
-  deriving newtype Semigroup  
+  deriving newtype Semigroup
 
-newtype KatipController a = 
-        KatipController 
-        { unwrap 
-          :: RWS.RWST Config 
+newtype KatipController a =
+        KatipController
+        { unwrap
+          :: RWS.RWST Config
              KatipControllerWriter
-             KatipControllerState 
+             KatipControllerState
              Handler a
         }
   deriving newtype Functor
@@ -128,10 +135,10 @@ newtype KatipController a =
   deriving newtype (MonadError ServerError)
   deriving newtype MonadCatch
   deriving newtype MonadThrow
-  deriving newtype MonadMask 
+  deriving newtype MonadMask
   deriving newtype MonadTime
   deriving newtype (MonadRWS Config KatipControllerWriter KatipControllerState)
-  
+
 makeFields ''Config
 makeFields ''KatipEnv
 makeFields ''Minio

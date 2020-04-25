@@ -30,21 +30,26 @@ import Data.Aeson
 import Control.Lens.Iso.Extended
 import Data.Foldable
 import Pretty
+import Control.Concurrent.Lifted
 
 controller :: Token -> Id "user" -> KatipController (Response Tokens)
 controller req user_id = do
   let token = req^.field @"tokenToken"
   $(logTM) DebugS (logStr (mkPretty "refresh token request:" token))
-  key <- fmap (^.katipEnv.jwk) ask 
+  key <- fmap (^.katipEnv.jwk) ask
+  telegram_service <- fmap (^.katipEnv.telegram) ask
+  logger <- askLoggerIO
+  void $ fork $ liftIO $ send telegram_service logger ((mkPretty "refresh token request:" token)^.stext)
+
   verify_result <- liftIO $ runExceptT $ verifyToken (defaultJWTSettings key) token
-  for_ (verify_result^?_Left) $ \e -> $(logTM) ErrorS (logStr (mkPretty "refresh token error:" e))   
-  fmap (fromEither . first (Error.asError @T.Text) . join) $ 
-    for (first mkJWTError verify_result) $ \claims -> do 
+  for_ (verify_result^?_Left) $ \e -> $(logTM) ErrorS (logStr (mkPretty "refresh token error:" e))
+  fmap (fromEither . first (Error.asError @T.Text) . join) $
+    for (first mkJWTError verify_result) $ \claims -> do
       hasql <- fmap (^.katipEnv.hasqlDbPool) ask
       key <- fmap (^.katipEnv.jwk) ask
-      let uqm = claims^.JWT.unregisteredClaims.at "dat".to (fmap fromJSON) 
-      case uqm of 
-        Just (Success uq) -> 
+      let uqm = claims^.JWT.unregisteredClaims.at "dat".to (fmap fromJSON)
+      case uqm of
+        Just (Success uq) ->
           katipTransaction hasql $ do
             tpl_m <- statement Auth.checkRefreshToken (uq, user_id)
             case tpl_m of
@@ -52,13 +57,13 @@ controller req user_id = do
                 log <- ask
                 tokens_e <- liftIO $ Auth.mkTokens key (user_id, user_role) log
                 void $ statement Auth.mkTokenInvalid ident
-                for tokens_e $ \(uq, a, r, h) -> do 
+                for tokens_e $ \(uq, a, r, h) -> do
                   void $ statement Auth.putRefreshToken (user_id, h, uq)
-                  pure $ 
+                  pure $
                     def & field @"tokensAccessToken" .~ (a^._1)
                         & field @"tokensRefreshToken" .~ r
                         & field @"tokensLifetime" ?~ (a^._2)
-              Nothing -> pure $ Left "token not found"  
+              Nothing -> pure $ Left "token not found"
         Nothing -> pure $ Left "dat not found"
 
 mkJWTError :: JWT.JWTError -> T.Text

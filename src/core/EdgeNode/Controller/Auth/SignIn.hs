@@ -30,6 +30,7 @@ import Data.Bifunctor
 import Data.Aeson.WithField
 import Data.Tuple.Ops
 import Data.Default.Class
+import Control.Concurrent.Lifted
 
 instance Default Tokens
 
@@ -37,22 +38,25 @@ controller :: Signin -> KatipController (Response (WithId (Id "user") (WithField
 controller req = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   cred_m <- katipTransaction hasql $ statement Auth.getUserCred req
-  fmap (fromMaybe (Error (Error.asError @T.Text "credential not found"))) $ 
-    for cred_m $ \ cred -> do 
+  telegram_service <- fmap (^.katipEnv.telegram) ask
+  logger <- askLoggerIO
+  void $ fork $ liftIO $ send telegram_service logger (T.pack (show req))
+  fmap (fromMaybe (Error (Error.asError @T.Text "credential not found"))) $
+    for cred_m $ \ cred -> do
       let check = checkPass (req^.field @"signinPassword".lazytext.to mkPass) (cred^._3)
-      case check of 
+      case check of
         PassCheckSuccess -> fmap (fromEither . first (Error.asError @T.Text)) $ do
           key <- fmap (^.katipEnv.jwk) ask
           log <- askLoggerIO
           tokens_e <- liftIO $ Auth.mkTokens key (initT cred) log
           for tokens_e $ \tpl@(uq, a, r, h) -> do
             hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-            void $ katipTransaction hasql $ 
+            void $ katipTransaction hasql $
               statement Auth.putRefreshToken
               (cred^._1, h, uq)
             pure $ WithField (cred^._1) $
                    WithField (cred^._2) $
                    def & field @"tokensAccessToken" .~ (a^._1)
                        & field @"tokensRefreshToken" .~ r
-                       & field @"tokensLifetime" ?~ (a^._2)   
+                       & field @"tokensLifetime" ?~ (a^._2)
         PassCheckFail -> pure $ Error (Error.asError @T.Text "wrong password")

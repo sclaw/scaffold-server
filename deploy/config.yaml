@@ -35,3 +35,9 @@ configMinio:
   minioBucketPrefix: edgenode
   minioHost: http://172.20.0.5
   minioPort: "9000"
+
+# https://api.telegram.org/bot996615482:AAHWG7H1p7lO52ll16erzyGIE7jEJme5TIw/sendMessage?chat_id=@edgenode_server&text=test%20log
+configTelegram:
+  telegramBot: bot996615482:AAHWG7H1p7lO52ll16erzyGIE7jEJme5TIw
+  telegramChat: edgenode_server
+  telegramHost: https://api.telegram.org/
