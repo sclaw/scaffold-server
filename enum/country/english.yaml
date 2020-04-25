@@ -113,9 +113,9 @@
 - enum: Cyprus
   value:
 - enum: CzechRepublic
-  value:
+  value: Czech Republic
 - enum: Denmark
-  value:
+  value: Denmark
 - enum: Djibouti
   value:
 - enum: Dominica
@@ -133,7 +133,7 @@
 - enum: Eritrea
   value:
 - enum: Estonia
-  value:
+  value: Estonia
 - enum: Ethiopia
   value:
 - enum: FalklandIslandsMalvinas
@@ -143,9 +143,9 @@
 - enum: Fiji
   value:
 - enum: Finland
-  value:
+  value: Finland
 - enum: France
-  value:
+  value: France
 - enum: FrenchGuiana
   value:
 - enum: FrenchPolynesia
@@ -211,13 +211,13 @@
 - enum: IsleOfMan
   value:
 - enum: Israel
-  value:
+  value: Israel
 - enum: Italy
-  value:
+  value: Italy
 - enum: Jamaica
   value:
 - enum: Japan
-  value:
+  value: Japan
 - enum: Jersey
   value:
 - enum: Jordan
@@ -239,7 +239,7 @@
 - enum: LaoPeopleSDemocraticRepublic
   value:
 - enum: Latvia
-  value:
+  value: Latvia
 - enum: Lebanon
   value:
 - enum: Lesotho
@@ -251,9 +251,9 @@
 - enum: Liechtenstein
   value:
 - enum: Lithuania
-  value:
+  value: Lithuania
 - enum: Luxembourg
-  value:
+  value: Luxembourg
 - enum: Macao
   value:
 - enum: MacedoniaTheFormerYugoslavRepublicOf
@@ -305,7 +305,7 @@
 - enum: Nepal
   value:
 - enum: Netherlands
-  value:
+  value: Netherlands
 - enum: NetherlandsAntilles
   value:
 - enum: NewCaledonia
@@ -325,7 +325,7 @@
 - enum: NorthernMarianaIslands
   value:
 - enum: Norway
-  value:
+  value: Norway
 - enum: Oman
   value:
 - enum: Pakistan
@@ -359,7 +359,7 @@
 - enum: Romania
   value:
 - enum: RussianFederation
-  value:
+  value: Russia
 - enum: Rwanda
   value:
 - enum: SaintHelena
@@ -391,9 +391,9 @@
 - enum: Singapore
   value:
 - enum: Slovakia
-  value:
+  value: Slovakia
 - enum: Slovenia
-  value:
+  value: Slovenia
 - enum: SolomonIslands
   value:
 - enum: Somalia
@@ -403,7 +403,7 @@
 - enum: SouthGeorgiaAndTheSouthSandwichIslands
   value:
 - enum: Spain
-  value:
+  value: Spain
 - enum: SriLanka
   value:
 - enum: Sudan
@@ -415,9 +415,9 @@
 - enum: Swaziland
   value:
 - enum: Sweden
-  value:
+  value: Sweden
 - enum: Switzerland
-  value:
+  value: Switzerland
 - enum: SyrianArabRepublic
   value:
 - enum: TaiwanProvinceOfChina
@@ -451,13 +451,13 @@
 - enum: Uganda
   value:
 - enum: Ukraine
-  value:
+  value: Ukraine
 - enum: UnitedArabEmirates
   value:
 - enum: UnitedKingdom
-  value:
+  value: United Kingdom
 - enum: UnitedStates
-  value:
+  value: United States
 - enum: UnitedStatesMinorOutlyingIslands
   value:
 - enum: Uruguay
@@ -485,4 +485,4 @@
 - enum: Zimbabwe
   value:
 - enum: Other
-  value:
+  value: Other
