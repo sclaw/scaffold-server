@@ -162,7 +162,7 @@ addTrajectory =
           provider_branch_qualification_fk = $2 :: int8) as flag)
     insert into edgenode.user_trajectory
     (user_fk, provider_branch_qualification_fk, compatibility)
-    select n.user, n.qual, $3 :: float8
+    select n.user, n.qual, round(($3 :: float8) :: "numeric", 1) :: float8
     from (select $1 :: int8 as user, $2 :: int8 as qual, true as flag) as n
     inner join already as a
     on n.user = a.user and n.qual = a.qual
