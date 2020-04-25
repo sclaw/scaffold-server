@@ -52,6 +52,7 @@ import Servant.Multipart
 import Network.Wai.Parse
 import Network.HTTP.Types.Status
 import TextShow
+import BuildInfo
 
 data Cfg =
      Cfg
@@ -119,6 +120,7 @@ run Cfg {..} =
            & Warp.setPort cfgPort
            & Warp.setOnException (logUncaughtException excep)
            & Warp.setOnExceptionResponse mkResponse
+           & Warp.setServerName ("edgenode api server, revision " <> $gitCommit)
       let multipartOpts =
             (defaultMultipartOptions (Proxy :: Proxy Tmp))
             { generalOptions = clearMaxRequestNumFiles defaultParseRequestBodyOptions }
