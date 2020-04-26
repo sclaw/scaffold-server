@@ -40,7 +40,7 @@ controller req = do
   cred_m <- katipTransaction hasql $ statement Auth.getUserCred req
   telegram_service <- fmap (^.katipEnv.telegram) ask
   logger <- askLoggerIO
-  void $ fork $ liftIO $ send telegram_service logger (T.pack (show req))
+  void $ fork $ liftIO $ send telegram_service logger (T.pack (show (req & field @"signinPassword" .~ "****")))
   fmap (fromMaybe (Error (Error.asError @T.Text "credential not found"))) $
     for cred_m $ \ cred -> do
       let check = checkPass (req^.field @"signinPassword".lazytext.to mkPass) (cred^._3)
