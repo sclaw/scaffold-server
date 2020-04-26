@@ -61,7 +61,7 @@ api = genericApi (Proxy :: Proxy ApplicationApi)
 swaggerHttpApi :: String -> Int -> Swagger
 swaggerHttpApi hs port =
   toSwagger (genericApi (Proxy :: Proxy HttpWrapperApi))
-  & schemes ?~ [Http]
+  & schemes ?~ [Http, Https]
   & host ?~ Host hs (Just (fromIntegral port))
   & info.description ?~ "EdgeNode server api"^.stext
   & info.version .~ "0.0.1"^.stext

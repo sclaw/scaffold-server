@@ -24,13 +24,13 @@ import Data.Bitraversable
 import Data.Traversable
 
 controller :: EdgeNodeLanguage -> KatipController (Response [WithField "enum" Country T.Text])
-controller country = do
+controller lang = do
   dir <- liftIO getCurrentDirectory
-  let country_dir = dir </> "enum" </> "country"
-  let path = country_dir </> country^.isoEdgeNodeLanguage <> ".yaml"
+  let country_dir = dir </> "enum" </> "lang"
+  let path = country_dir </> lang^.isoEdgeNodeLanguage <> ".yaml"
   let error e = do
         $(logTM) ErrorS (logStr (prettyPrintParseException e))
-        pure $ Error.asError @T.Text "error while getting country"
+        pure $ Error.asError @T.Text "error while getting lang"
   let ok xs = do
         $(logTM) DebugS (logStr (show xs))
         for xs $ \(WithField x val_m) ->

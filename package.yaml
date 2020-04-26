@@ -177,6 +177,7 @@ library:
     - servant-auth-swagger
     - generics-sop
     - string-conv
+    - warp-tls
 
   source-dirs:
     - src/core

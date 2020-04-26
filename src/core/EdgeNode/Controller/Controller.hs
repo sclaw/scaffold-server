@@ -54,6 +54,7 @@ import qualified EdgeNode.Controller.User.Trajectory.GetList as User.GetTrajecto
 import qualified EdgeNode.Controller.User.Trajectory.Remove as User.Trajectory.Remove
 import qualified EdgeNode.Controller.Feedback.Put as Feedback.Put
 import qualified EdgeNode.Controller.Service.Enum.GetCountries as Enum.GetCountries
+import qualified EdgeNode.Controller.Service.Enum.GetQualification as Enum.GetQualification
 
 import Auth
 import Katip
@@ -104,6 +105,11 @@ enum =
     katipAddNamespace
     (Namespace ["service", "enum", "countries"])
     (Enum.GetCountries.controller lang)
+  , _enumApiGetQualificationEnum = \lang ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["service", "enum", "qualification"])
+    (Enum.GetQualification.controller lang)
   }
 
 feedback :: FeedbackApi (AsServerT KatipController)

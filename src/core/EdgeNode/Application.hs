@@ -53,6 +53,9 @@ import Network.Wai.Parse
 import Network.HTTP.Types.Status
 import TextShow
 import BuildInfo
+import qualified Network.Wai.Handler.WarpTLS as Warp
+import System.Directory
+import System.FilePath.Posix
 
 data Cfg =
      Cfg
@@ -135,7 +138,11 @@ run Cfg {..} =
                   :. EmptyContext
       let runServer = serveWithContext (withSwagger api) mkCtx server
       mware <-katipAddNamespace (Namespace ["middleware"]) askLoggerIO
-      servAsync <- liftIO $ async $ Warp.runSettings settings (middleware mware runServer)
+
+      path <- liftIO getCurrentDirectory
+      let tls_settings = (Warp.tlsSettings (path </> "tls/certificate") (path </> "tls/key")) { Warp.onInsecure = Warp.AllowInsecure }
+
+      servAsync <- liftIO $ async $ Warp.runTLS tls_settings settings (middleware mware runServer)
       liftIO (void (waitAnyCancel [servAsync])) `logExceptionM` ErrorS
 
 middleware :: KatipLoggerIO -> Application -> Application
@@ -156,7 +163,7 @@ mkCors =
   cors $ const $ pure $
     simpleCorsResourcePolicy
     & field @"corsRequestHeaders" .~
-      ["Authorization", "content-type", "Access-Control-Allow-Origin"]
+      ["Authorization", "content-type", "Access-Control-Allow-Origin:*"]
     & field @"corsExposedHeaders" ?~
       ["X-Set-Bearer"]
     & field @"corsMethods" .~
