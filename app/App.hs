@@ -63,6 +63,7 @@ data Cmd w =
      , user :: w ::: Maybe Int64 <?> "user"
      , swaggerHost :: w ::: Maybe String <?> "swagger host"
      , swaggerPort :: w ::: Maybe Int <?> "swagger port"
+     , serverPort :: w ::: Maybe Int <?> "server port"
      } deriving stock Generic
 
 instance ParseRecord (Cmd Wrapped)
@@ -85,6 +86,7 @@ main =
             & EdgeNode.Config.minio.port %~ (`fromMaybe` minioPort)
             & swagger.host %~ (`fromMaybe` swaggerHost)
             & swagger.port %~ (`fromMaybe` swaggerPort)
+            & serverConnection.port %~ (`fromMaybe` serverPort)
       pPrint cfg
 
       term <- hGetTerm stdout
@@ -127,10 +129,10 @@ main =
            App.Cfg
            (cfg^.swagger.host.coerced)
            (cfg^.swagger.port)
+           (cfg^.serverConnection.port)
            (fromRight' jwke)
            (cfg^.auth.isAuthEnabled)
            (cfg^.auth.userId.coerced)
-
       let runApp le =
            runKatipContextT le (mempty :: LogContexts) mempty $
             do logger <- katipAddNamespace (Namespace ["db", "migration"]) askLoggerIO

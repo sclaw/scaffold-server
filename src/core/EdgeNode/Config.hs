@@ -45,6 +45,7 @@ module EdgeNode.Config
        , bot
        , chat
        , telegram
+       , serverConnection
        )
        where
 
@@ -114,6 +115,9 @@ data Telegram =
      , telegramHost :: !T.Text
      } deriving Show
 
+newtype ServerConnection = ServerConnection { serverConnectionPort :: Int }
+  deriving Show
+
 data Config =
      Config
      { configDb :: !Db
@@ -124,6 +128,7 @@ data Config =
      , configService :: !Service
      , configMinio :: !Minio
      , configTelegram :: !Telegram
+     , configServerConnection :: !ServerConnection
      } deriving Show
 
 makeFields ''Config
@@ -135,6 +140,7 @@ makeFields ''Auth
 makeFields ''Minio
 makeFields ''Swagger
 makeFields ''Telegram
+makeFields ''ServerConnection
 
 -- Load program configuration from file (server.yaml), or
 -- raise YamlException and terminate program.
@@ -152,3 +158,4 @@ deriveFromJSON defaultOptions ''Service
 deriveFromJSON defaultOptions ''Minio
 deriveFromJSON defaultOptions ''Swagger
 deriveFromJSON defaultOptions ''Telegram
+deriveFromJSON defaultOptions ''ServerConnection

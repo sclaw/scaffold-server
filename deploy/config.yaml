@@ -5,6 +5,9 @@ configDb:
   dbPass: 3190d261d186aeead3a8deec202737c7775af5c8d455a9e5ba958c48b5fd3f59
   dbDatabase: edgenode
 
+configServerConnection:
+  serverConnectionPort: 443
+
 configSwagger:
   swaggerHost: 136.243.173.173
   swaggerPort: 12000

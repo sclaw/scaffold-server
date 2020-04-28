@@ -16,6 +16,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module EdgeNode.Application (Cfg (..), AppMonad (..), run) where
 
@@ -56,16 +57,19 @@ import BuildInfo
 import qualified Network.Wai.Handler.WarpTLS as Warp
 import System.Directory
 import System.FilePath.Posix
+import Control.Concurrent.Lifted
+import Pretty
 
 data Cfg =
      Cfg
-     { cfgHost :: !String
-     , cfgPort :: !Int
+     { cfgHost         :: !String
+     , cfgSwaggerPort  :: !Int
+     , cfgServerPort   :: !Int
        -- JSON Web Key (JWK) is a JavaScript Object Notation (JSON)
        -- data structure that represents a cryptographic key
-     , cfgJwk :: !JWK
+     , cfgJwk           :: !JWK
      , cfgIsAuthEnabled :: !Bool
-     , cfgUserId :: !(Id "user")
+     , cfgUserId        :: !(Id "user")
      }
 
 newtype AppMonad a = AppMonad { runAppMonad :: RWS.RWST KatipEnv KatipLogger KatipState IO a }
@@ -86,7 +90,11 @@ run :: Cfg -> KatipContextT AppMonad ()
 run Cfg {..} =
   katipAddNamespace (Namespace ["application"]) $
     do
-      $(logTM) DebugS "application run.."
+      telegram_service <- fmap (^.telegram) ask
+      logger <- askLoggerIO
+      void $ fork $ liftIO $ send telegram_service logger $
+        (mkPretty $location ("server run on port " <> show cfgServerPort))^.stext
+      $(logTM) DebugS $ ls $ "server run on port " <> showt cfgServerPort
       configKatipEnv <- lift ask
       let initCfg =
            do
@@ -115,12 +123,12 @@ run Cfg {..} =
            context
            (runKatipController cfg (KatipControllerState 0))
            (toServant Controller.controller :<|>
-            swaggerSchemaUIServerT (swaggerHttpApi cfgHost cfgPort))
+            swaggerSchemaUIServerT (swaggerHttpApi cfgHost cfgSwaggerPort))
       excep <-katipAddNamespace (Namespace ["exception"]) askLoggerIO
       ctxlog <-katipAddNamespace (Namespace ["context"]) askLoggerIO
       let settings =
            Warp.defaultSettings
-           & Warp.setPort cfgPort
+           & Warp.setPort cfgServerPort
            & Warp.setOnException (logUncaughtException excep)
            & Warp.setOnExceptionResponse mkResponse
            & Warp.setServerName ("edgenode api server, revision " <> $gitCommit)
