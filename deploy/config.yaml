@@ -6,7 +6,7 @@ configDb:
   dbDatabase: edgenode
 
 configServerConnection:
-  serverConnectionPort: 443
+  serverConnectionPort: 12000
 
 configSwagger:
   swaggerHost: 136.243.173.173
