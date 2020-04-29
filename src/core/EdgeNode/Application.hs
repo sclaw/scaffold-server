@@ -91,9 +91,11 @@ run Cfg {..} =
   katipAddNamespace (Namespace ["application"]) $
     do
       telegram_service <- fmap (^.telegram) ask
-      logger <- askLoggerIO
-      void $ fork $ liftIO $ send telegram_service logger $
-        (mkPretty $location ("server run on port " <> show cfgServerPort))^.stext
+      let runTelegram l msg = void $ fork $ liftIO $ send telegram_service l ((mkPretty $location msg)^.stext)
+
+      logger <- katipAddNamespace (Namespace ["application"]) askLoggerIO
+      runTelegram logger $ "server run on port " <> show cfgServerPort
+
       $(logTM) DebugS $ ls $ "server run on port " <> showt cfgServerPort
       configKatipEnv <- lift ask
       let initCfg =
@@ -129,7 +131,7 @@ run Cfg {..} =
       let settings =
            Warp.defaultSettings
            & Warp.setPort cfgServerPort
-           & Warp.setOnException (logUncaughtException excep)
+           & Warp.setOnException (logUncaughtException excep runTelegram)
            & Warp.setOnExceptionResponse mkResponse
            & Warp.setServerName ("edgenode api server, revision " <> $gitCommit)
       let multipartOpts =
@@ -156,10 +158,14 @@ run Cfg {..} =
 middleware :: KatipLoggerIO -> Application -> Application
 middleware log app = mkCors $ Middleware.logger log app
 
-logUncaughtException :: KatipLoggerIO -> Maybe Request -> SomeException -> IO ()
-logUncaughtException log req e = when (Warp.defaultShouldDisplayException e) $ maybe without within req
-  where without = log ErrorS (logStr ("Uncaught exception " <> show e))
-        within r = log ErrorS (logStr ("\"GET " <> rawPathInfo r^.from textbs.from stext <> " HTTP/1.1\" 500 - " <> show e))
+logUncaughtException :: KatipLoggerIO -> (KatipLoggerIO -> String -> IO ()) -> Maybe Request -> SomeException -> IO ()
+logUncaughtException log runTelegram req e = when (Warp.defaultShouldDisplayException e) $ maybe without within req
+  where without = do
+          runTelegram log $ "Uncaught exception " <> show e
+          log ErrorS (logStr ("Uncaught exception " <> show e))
+        within r = do
+          runTelegram log $ "\"GET " <> rawPathInfo r^.from textbs.from stext <> " HTTP/1.1\" 500 - " <> show e
+          log ErrorS (logStr ("\"GET " <> rawPathInfo r^.from textbs.from stext <> " HTTP/1.1\" 500 - " <> show e))
 
 mkResponse :: SomeException  -> Response
 mkResponse error = responseLBS status500 [("Access-Control-Allow-Origin", "*")] (showt error^.textbsl)
