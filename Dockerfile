@@ -23,6 +23,7 @@ COPY --chown=nix:nix sub sub
 COPY --chown=nix:nix scripts scripts
 COPY --chown=nix:nix .env .env
 COPY --chown=nix:nix tls tls
+COPY --chown=nix:nix elk elk
 
 RUN touch .bash_profile && \
   curl https://nixos.org/nix/install | sh
