@@ -1,0 +1,24 @@
+filebeat.inputs:
+  - type: docker
+    combine_partial: true
+    containers:
+      path: "/var/lib/docker/containers"
+      stream: "stdout"
+      ids:
+        - "*"
+
+output:
+  logstash:
+    enabled: true
+    hosts:
+      - elk:5044
+    timeout: 15
+    ssl:
+      certificate_authorities:
+        - /etc/pki/tls/certs/logstash-beats.crt
+
+# output.file:
+#   path: "elk"
+#   filename: filebeat
+
+logging.json: true

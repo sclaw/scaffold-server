@@ -1,12 +1,10 @@
-version: '3.2'
+version: '3.7'
 services:
 
   database:
     image: postgres:latest
     container_name: "edge-node-server-db"
     restart: 'always'
-    expose:
-     - 5432
     ports:
       - '5432:5432'
     environment:
@@ -31,14 +29,15 @@ services:
     depends_on:
       - database
       - storage
+      - server-logger
     ports:
       - "12000:12000"
-      - "8000:8000"
-      - "25:25"
       - "443:443"
     networks:
       edgeNode:
         ipv4_address: ${SERVER_HOST}
+    labels:
+      somelabel: "server"
 
   storage:
     image: minio/minio:latest
@@ -56,6 +55,39 @@ services:
       edgeNode:
         ipv4_address: ${FILE_STORAGE_HOST}
 
+  server-logger:
+    image: elastic/filebeat:7.6.2
+    container_name: "edge-node-server-logger"
+    restart: 'always'
+    user: root
+    networks:
+      edgeNode:
+        ipv4_address: ${FILEBEAT_HOST}
+    volumes:
+      - $PWD/elk/filebeat.yaml:/usr/share/filebeat/filebeat.yml
+      - $PWD/elk/logstash-beats.crt:/etc/pki/tls/certs/logstash-beats.crt
+      - filebeat:/usr/share/filebeat/data
+      - /var/lib/docker/containers/:/var/lib/docker/containers/:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: filebeat -e -strict.perms=false
+
+  elk:
+    image: sebp/elk
+    container_name: "edge-node-elk"
+    depends_on:
+      - server-logger
+    ports:
+      - "5601:5601"
+      - "9200:9200"
+      - "5044:5044"
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elk-data:/var/lib/elasticsearch
+    networks:
+      edgeNode:
+        ipv4_address: ${ELK_HOST}
+
 networks:
   edgeNode:
     driver: bridge
@@ -66,5 +98,7 @@ networks:
 volumes:
   pg_data_db: {}
   minio_data: {}
+  filebeat: {}
+  elk-data: {}
 
 # vim: et:sw=2
