@@ -64,8 +64,8 @@ services:
       edgeNode:
         ipv4_address: ${FILEBEAT_HOST}
     volumes:
-      - ${PWD}/elk/filebeat.yml:/usr/share/filebeat/filebeat.yml
-      - ${PWD}/elk/logstash-beats.crt:/etc/pki/tls/certs/logstash-beats.crt
+      - ./elk/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./elk/logstash-beats.crt:/etc/pki/tls/certs/logstash-beats.crt
       - filebeat:/usr/share/filebeat/data
       - /var/lib/docker/containers/:/var/lib/docker/containers/:ro
       - /var/run/docker.sock:/var/run/docker.sock
