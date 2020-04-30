@@ -44,7 +44,7 @@ server:
   script:
     - cd /builds/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}
     - docker build -t ${IMAGE_TAG} .
-    - docker tag ${IMAGE_TAG} ${IMAGE_TAG_LATEST} 
+    - docker tag ${IMAGE_TAG} ${IMAGE_TAG_LATEST}
     - docker push ${IMAGE_TAG}
     - docker push ${IMAGE_TAG_LATEST}
   artifacts:
@@ -64,6 +64,7 @@ deploy:
   when: manual
   script:
     - docker pull $IMAGE_TAG_LATEST
+    - ls -la ${pwd}/elk
     - docker-compose down
     - docker-compose up -d
   environment:
