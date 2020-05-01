@@ -64,10 +64,6 @@ deploy:
   when: manual
   script:
     - docker pull $IMAGE_TAG_LATEST
-    - echo  "current dir -> $(pwd)"
-    - echo  "dir content -> $(ls -la)"
-    - cd $(pwd)/elk
-    - echo  "dir content elk -> $(ls -la)"
     - docker-compose down
     - docker-compose up -d
   environment:
