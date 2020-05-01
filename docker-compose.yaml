@@ -59,7 +59,6 @@ services:
     image: elastic/filebeat:7.6.2
     container_name: "edge-node-server-logger"
     restart: 'always'
-    user: root
     networks:
       edgeNode:
         ipv4_address: ${FILEBEAT_HOST}
