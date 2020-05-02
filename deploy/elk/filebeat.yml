@@ -15,7 +15,7 @@ output:
     timeout: 15
     ssl:
       certificate_authorities:
-        - logstash-beats.crt
+        - /etc/pki/tls/certs/logstash-beats.crt
 
 # output.file:
 #   path: "elk"
