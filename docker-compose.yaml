@@ -56,19 +56,13 @@ services:
         ipv4_address: ${FILE_STORAGE_HOST}
 
   server-logger:
-    image: elastic/filebeat:7.6.2
+    image: sclaw/edgenode-logger:latest
     container_name: "edge-node-server-logger"
     restart: 'always'
     networks:
       edgeNode:
         ipv4_address: ${FILEBEAT_HOST}
     volumes:
-      - type: bind
-        source: ${PWD}/deploy/elk/filebeat.yml
-        target: /usr/share/filebeat/filebeat.yml
-      - type: bind
-        source: ${PWD}/deploy/elk/logstash-beats.crt
-        target: /etc/pki/tls/certs/logstash-beats.crt
       - filebeat:/usr/share/filebeat/data
       - /var/lib/docker/containers/:/var/lib/docker/containers/:ro
       - /var/run/docker.sock:/var/run/docker.sock
@@ -77,6 +71,7 @@ services:
   elk:
     image: sebp/elk
     container_name: "edge-node-elk"
+    restart: 'always'
     depends_on:
       - server-logger
     ports:

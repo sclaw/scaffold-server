@@ -43,7 +43,7 @@ server:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   script:
     - cd /builds/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}
-    - docker build -t ${IMAGE_TAG} .
+    - docker build -f Dockerfile_server  -t ${IMAGE_TAG} .
     - docker tag ${IMAGE_TAG} ${IMAGE_TAG_LATEST}
     - docker push ${IMAGE_TAG}
     - docker push ${IMAGE_TAG_LATEST}

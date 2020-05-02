@@ -1,0 +1,7 @@
+FROM elastic/filebeat:7.6.2
+
+COPY deploy/elk .
+
+CMD ["filebeat", "-e", "-c", "filebeat.yml"]
+
+
