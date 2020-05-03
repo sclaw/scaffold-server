@@ -1,0 +1,12 @@
+create table edgenode.news (
+  id bigserial primary key,
+  caption text not null,
+  abstract text not null,
+  content text not null
+  created timestamptz not null default now(),
+  modified timestamptz);
+
+create table edgenode.news_file (
+  news_fk int8 constraint "news_file_news_id_fk" references edgenode.news(id),
+  file_fk int8 constraint "news_file_file_id_fk" references storage.file(id),
+  constraint news_file__news_fk__file_fk primary key (news_fk, file_fk));

@@ -15,6 +15,7 @@ module EdgeNode.Api.Api
        , module EdgeNode.Api.Provider
        , module EdgeNode.Api.Feedback
        , module EdgeNode.Api.Service
+       , module EdgeNode.Api.Site
        ) where
 
 import Auth
@@ -26,6 +27,7 @@ import EdgeNode.Api.Admin
 import EdgeNode.Api.Provider
 import EdgeNode.Api.Feedback
 import EdgeNode.Api.Service
+import EdgeNode.Api.Site
 
 import Servant.API.Generic
 import Servant.API
@@ -77,4 +79,9 @@ data HttpApi route =
        :- Tags "Service"
        :> "service"
        :> ToServant ServiceApi AsApi
+     , _httpApiSite
+       :: route
+       :- Tags "Site"
+       :> "site"
+       :> ToServant SiteApi AsApi
      } deriving stock Generic

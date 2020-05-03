@@ -20,6 +20,8 @@ module EdgeNode.Api
        , ProviderApi (..)
        , FeedbackApi (..)
        , ServiceApi (..)
+       , SiteApi (..)
+       , NewsApi (..)
        , EnumApi (..)
      --  , WebsocketApi (..)
        , api

@@ -91,7 +91,18 @@ httpApi =
   , _httpApiAdmin    = (`withAuthResult` (toServant . admin))
   , _httpApiProvider = (`withAuthResult` (toServant . provider))
   , _httpApiFeedback = toServant feedback
-  , _httpApiService = toServant service
+  , _httpApiService  = toServant service
+  , _httpApiSite     = toServant site
+  }
+
+site :: SiteApi (AsServerT KatipController)
+site= SiteApi { _siteApiNews = toServant news }
+
+news :: NewsApi (AsServerT KatipController)
+news =
+  NewsApi
+  { _newsApiGetNewsFeed = undefined
+  , _newsApiGetNewsItem = undefined
   }
 
 service :: ServiceApi (AsServerT KatipController)
