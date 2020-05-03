@@ -59,6 +59,8 @@ import System.Directory
 import System.FilePath.Posix
 import Control.Concurrent.Lifted
 import Pretty
+import Data.Either.Combinators
+import Control.Exception
 
 data Cfg =
      Cfg
@@ -92,8 +94,13 @@ run Cfg {..} =
     do
       telegram_service <- fmap (^.telegram) ask
       let runTelegram l msg = void $ fork $ liftIO $ send telegram_service l ((mkPretty $location msg)^.stext)
-
       logger <- katipAddNamespace (Namespace ["application"]) askLoggerIO
+
+      version_e <- liftIO getVersion
+      runTelegram logger $ "server version " <> show version_e
+      whenLeft version_e $ \e -> throwM $ ErrorCall e
+      let Right ver = version_e
+
       runTelegram logger $ "server run on port " <> show cfgServerPort
 
       $(logTM) DebugS $ ls $ "server run on port " <> showt cfgServerPort
@@ -125,7 +132,7 @@ run Cfg {..} =
            context
            (runKatipController cfg (KatipControllerState 0))
            (toServant Controller.controller :<|>
-            swaggerSchemaUIServerT (swaggerHttpApi cfgHost cfgSwaggerPort))
+            swaggerSchemaUIServerT (swaggerHttpApi cfgHost cfgSwaggerPort ver))
       excep <-katipAddNamespace (Namespace ["exception"]) askLoggerIO
       ctxlog <-katipAddNamespace (Namespace ["context"]) askLoggerIO
       let settings =

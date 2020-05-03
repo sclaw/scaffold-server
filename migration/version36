@@ -2,7 +2,7 @@ create table edgenode.news (
   id bigserial primary key,
   caption text not null,
   abstract text not null,
-  content text not null
+  content text not null,
   created timestamptz not null default now(),
   modified timestamptz);
 
