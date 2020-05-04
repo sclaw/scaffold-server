@@ -2,4 +2,5 @@ site_name: EdgeNode
 nav:
     - Home: index.md
     - JWT: jwt.md
+    - Auth: auth.md
 theme: readthedocs
