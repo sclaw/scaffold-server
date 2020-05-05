@@ -142,7 +142,6 @@ library:
     - sort
     - contravariant-extras
     - lens-aeson
-    - thyme
     - hashing
     - strict
     - optparse-generic

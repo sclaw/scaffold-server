@@ -9,7 +9,7 @@
 # to be used for project dependencies. For example:
 #
 # resolver: lts-3.5
-resolver: lts-15.4
+resolver: lts-15.3
 
 allow-newer: true
 
@@ -59,17 +59,17 @@ extra-deps:
     commit: d58d7ed698ed219cbb0fd4bc4d0be8c6569a51a3
   - git: https://github.com/haskell-servant/servant-auth.git
     commit: 27e2e237e3cbd4359fe345aab6364e007aaef81e
-    subdirs: 
+    subdirs:
      - servant-auth-swagger
-  - pretty-tree-0.1.0.0@sha256:49b0e17008f9d30328db2bcc2958f3a7b78d154d2335c2dbaa2073e237b524ae   
+  - pretty-tree-0.1.0.0@sha256:49b0e17008f9d30328db2bcc2958f3a7b78d154d2335c2dbaa2073e237b524ae
   - password-1.0.0.0@sha256:2ec79cb64be80a5254324c67a1e1aa16fc2e015dee9505ce598f4522efcf8899,1824
   - aeson-injector-1.1.2.0@sha256:2220abadf41f42d7ff1a8671560f12280c5066d9462d2d8cecc5f7136e55024b,1695
   - postgresql-error-codes-1.0.1@sha256:34ce40401dc21762996dadd38336436f40a09da95ad3309ba6dc506d707cff11,1413
   - string-interpolate-0.1.0.1@sha256:6efbc888a2986ee80ddd014fded600de113554684fe5eaca87cf02ab59cfa95c,1999
   - data-hash-0.2.0.1@sha256:0277d99cb8b535ecc375c59e55f1c91faab966d9167a946ef18445dd468ba727,1135
   - either-unwrap-1.1@sha256:bd9a8cc3ce127b0f922db4da0b3eb25036034406dd40c954d3f8aa6fe5aab313,605
-  - hashing-0.1.0.1@sha256:98861f16791946cdf28e3c7a6ee9ac8b72d546d6e33c569c7087ef18253294e7,2816 
- 
+  - hashing-0.1.0.1@sha256:98861f16791946cdf28e3c7a6ee9ac8b72d546d6e33c569c7087ef18253294e7,2816
+
   # threadscope deps
   - cairo-0.13.6.0@sha256:a9122d48957a2dbb5a177e5068b850efa1e99bb22c68eb2571165c3c945a8dd6,4187
   - ghc-events-0.8.0.2@sha256:3b591d15e8fab7426d9a9c2a0086872ee10232d78646d82705e0f2eea64df74c,4721
@@ -78,7 +78,7 @@ extra-deps:
   - pango-0.13.6.0@sha256:ed8d300945bea97ccb652efc73d159634aefebff8c64f60eef6b6ac5ecebc4ae,3881
   - gio-0.13.6.0@sha256:00fce1b49c902ba82433cc018fb5d4651797464342a9cbc66df2c62bb8884650,3102
   - gtk2hs-buildtools-0.13.5.0@sha256:a765766c4208a3e4def319ebf280fbb9e7d0a3f28d15922db36970404fb1daee,5238
-  
+
   - hasql-1.4.0.1@sha256:c6340403351d038a85632cd7f591f1b526b208d83757f0506371f7ce31934fd7,6586
   - hasql-th-0.4.0.4
   - fast-builder-0.1.2.0@sha256:d01db8a5f1ac262e2db0375c47e46660c67ad4145bef64cc7303ade096e461ee,2801
@@ -120,7 +120,7 @@ extra-deps:
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
-    
+
 nix:
   enable: true
   pure: true
@@ -129,4 +129,4 @@ nix:
 # docker:
 #   enable: true
 #   auto-pull: true
-#   repo: "fpco/stack-build:latest"  
+#   repo: "fpco/stack-build:latest"
