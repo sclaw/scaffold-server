@@ -170,4 +170,4 @@ runTelegram request = do
   void $ fork $ liftIO $ send telegram_service logger $ toS $
     mkPretty
     ("At module " <> $location)
-    ("request: " <> show request)
+    ("message: " <> show request)
