@@ -22,14 +22,16 @@ import Data.Word
 import Data.Int
 import Katip
 import Data.Traversable
+import Data.Functor
 
 controller :: [WithId (Id "qualification") AddQualificationRequest] -> UserId -> KatipController (Response AddQualificationResponse)
 controller qualifications user_id = do
+  runTelegram (qualifications, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   resp <- katipTransactionViolationError hasql $
     statement User.addQualification (user_id, qualifications)
   $(logTM) DebugS (logStr (show resp))
-  fmap fromEither $ for resp $ \xs -> do
+  response <- fmap fromEither $ for resp $ \xs -> do
     let qualifications_ids = qualifications <&> \(WithField i _) -> i
     let add el tpl
           | el `elem` map fst xs = tpl & _1 %~ ((el^.coerced.integral @Int64 @Word64):)
@@ -39,3 +41,4 @@ controller qualifications user_id = do
           (added^.vector)
           (rejected^.vector)
     return $ (mkResp . foldr add ([], [])) qualifications_ids
+  runTelegram response $> response

@@ -17,5 +17,6 @@ import Data.Aeson.Unit
 
 controller :: Id "trajectory" -> UserId -> KatipController (Response Unit)
 controller trajectory_id user_id = do
+  runTelegram (trajectory_id, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap (const (Ok Unit)) $ katipTransaction hasql $ statement User.removeTrajectory (trajectory_id, user_id)

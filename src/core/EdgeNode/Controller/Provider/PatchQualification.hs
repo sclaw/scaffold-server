@@ -35,6 +35,7 @@ controller
   -> KatipController (Response Unit)
 controller qualification_id patch@(PatchQualification {..}) user_id  = do
   $(logTM) DebugS (logStr ("qualification to be patched: " ++ mkPretty mempty patch))
+  runTelegram (qualification_id, patch, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap (fromValidation . bimap (map Error.asError) (const Unit)) $
     for (qualififcationPatch patch) $ const $

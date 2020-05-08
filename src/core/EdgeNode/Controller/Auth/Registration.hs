@@ -24,16 +24,11 @@ import Data.Password
 import Pretty
 import Data.Traversable
 import Data.Bifunctor
-import Control.Concurrent.Lifted
-import Control.Monad.IO.Class
-import Control.Monad
 
 controller :: Registration -> KatipController (Response Unit)
 controller registeration_data = do
   $(logTM) DebugS (logStr (mkPretty "registeration data:" registeration_data))
-  telegram_service <- fmap (^.katipEnv.telegram) ask
-  logger <- askLoggerIO
-  void $ fork $ liftIO $ send telegram_service logger (T.pack (show registeration_data))
+  runTelegram registeration_data
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   resp <- fmap (fromValidation . first (map asError)) $
     for (registration registeration_data) $ const $ do

@@ -19,10 +19,11 @@ import Database.Transaction
 import Control.Lens
 import Pretty
 import Data.Aeson.WithField
+import Data.Functor
 
 controller :: UserId -> KatipController (Response [WithId (Id "qualification") ListItem])
-controller uid = do 
-  hasql <- fmap (^.katipEnv.hasqlDbPool) ask 
-  resp <- katipTransaction hasql (statement Provider.getQualifications uid)
-  $(logTM) DebugS (logStr ("qualifications: " ++ mkPretty mempty resp))
-  return $ Ok resp
+controller uid = do
+  hasql <- fmap (^.katipEnv.hasqlDbPool) ask
+  response <- katipTransaction hasql (statement Provider.getQualifications uid)
+  $(logTM) DebugS (logStr ("qualifications: " ++ mkPretty mempty response))
+  runTelegram response $> Ok response

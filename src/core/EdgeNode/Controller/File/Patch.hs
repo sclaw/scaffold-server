@@ -29,27 +29,28 @@ import Control.Monad.IO.Class
 import Control.Monad.Error.Class
 
 controller :: Id "file" -> File -> KatipController (Response Unit)
-controller id file = do 
+controller id file = do
+  runTelegram (id, file)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  let notFound = "file {" <> show (coerce @(Id "file") @Int64 id)^.stext <> "} not found" 
-  resp <- fmap (maybeToRight (asError notFound)) $ 
+  let notFound = "file {" <> show (coerce @(Id "file") @Int64 id)^.stext <> "} not found"
+  resp <- fmap (maybeToRight (asError notFound)) $
     katipTransaction hasql $ statement File.getHashWithBucket id
-  let patch (hash, bucket) = do 
+  let patch (hash, bucket) = do
         Minio {..} <- fmap (^.katipEnv.minio) ask
-        void $ katipTransaction hasql $ 
-          statement  
-          File.patch 
+        void $ katipTransaction hasql $
+          statement
+          File.patch
           ( Name (UnicodeText (fileName file))
           , Mime (UnicodeText (fileMime file))
           , hash)
-        minioRes <- liftIO $ runMinioWith minioConn $ 
-          fPutObject 
-          (minioBucketPrefix <> "." <> coerce @Bucket bucket) 
-          (coerce hash) 
-          (filePath file) 
+        minioRes <- liftIO $ runMinioWith minioConn $
+          fPutObject
+          (minioBucketPrefix <> "." <> coerce @Bucket bucket)
+          (coerce hash)
+          (filePath file)
           defaultPutObjectOptions
         whenLeft minioRes $ \e -> do
           $(logTM) ErrorS (logStr (show e))
           throwError undefined
-        return Unit 
+        return Unit
   fmap fromEither $ for resp patch

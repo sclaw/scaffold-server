@@ -11,6 +11,5 @@ import EdgeNode.Transport.Qualification
 import TH.Proto
 import KatipController
 
-
 controller :: EdgeNodeLanguage -> KatipController (Response Enums)
 controller _ = undefined

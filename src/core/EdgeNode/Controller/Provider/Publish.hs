@@ -13,6 +13,7 @@ import Database.Transaction
 import Control.Lens
 
 controller :: Id "user" -> KatipController (Response Unit)
-controller uid = do 
-  hasql <- fmap (^.katipEnv.hasqlDbPool) ask 
+controller uid = do
+  hasql <- fmap (^.katipEnv.hasqlDbPool) ask
+  runTelegram uid
   fmap (const (Ok Unit)) $ katipTransaction hasql (statement Provider.publish uid)

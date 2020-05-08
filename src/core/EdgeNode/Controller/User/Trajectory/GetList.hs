@@ -15,10 +15,12 @@ import Katip
 import Database.Transaction
 import Control.Lens
 import Pretty
+import Data.Functor
 
 controller :: UserId -> KatipController (Response UserTrajectories)
 controller user_id = do
+  runTelegram user_id
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  resp <- fmap fromEither $ katipTransaction hasql $ statement User.getTrajectories user_id
-  $(logTM) DebugS (logStr ("trajectories: " ++ mkPretty mempty resp))
-  return resp
+  response <- fmap fromEither $ katipTransaction hasql $ statement User.getTrajectories user_id
+  $(logTM) DebugS (logStr ("trajectories: " ++ mkPretty mempty response))
+  runTelegram response $> response

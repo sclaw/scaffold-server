@@ -31,23 +31,24 @@ import Data.Coerce
 import Data.Password
 import qualified Data.Text as T
 import Data.Traversable
+import Data.Functor
 
 data ProviderRegistrationError = ProviderAlreadyExist
 
 deriving instance Enum ProviderCategory
 
-instance Error.AsError ProviderRegistrationError where 
+instance Error.AsError ProviderRegistrationError where
   asError ProviderAlreadyExist = Error.asError @T.Text "provider already registered"
 
 controller :: ProviderRegistration -> BasicUser -> KatipController (Response T.Text)
-controller provider user = do 
+controller provider user = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   (password, _) <- liftIO $ fmap (genPassword 16 (GenOptions True True True)) newStdGen
   $(logTM) DebugS (logStr ("admin password: " <> password))
   salt <- newSalt
-  let hashedPassword = hashPassWithSalt salt (mkPass (password^.stext)) 
-  let providerExt = 
-        ProviderRegistrationExt 
+  let hashedPassword = hashPassWithSalt salt (mkPass (password^.stext))
+  let providerExt =
+        ProviderRegistrationExt
         (provider^.field @"providerRegistrationAdminEmail")
         (provider^.field @"providerRegistrationProviderUID")
         (provider^.field @"providerRegistrationTitle")
@@ -55,7 +56,11 @@ controller provider user = do
         (unPassHash hashedPassword^.from lazytext)
         (Secondary^.isoUserRole.stextl)
         (Active^.isoRegisterStatus.stextl)
-  fmap (maybe (Error (Error.asError ProviderAlreadyExist)) (const (Ok (password^.stext)))) $ 
-    katipTransaction hasql $ do 
+
+  runTelegram providerExt
+
+  response <- fmap (maybe (Error (Error.asError ProviderAlreadyExist)) (const (Ok (password^.stext)))) $
+    katipTransaction hasql $ do
       ident <- statement Admin.newProvider providerExt
       for ident $ \x -> statement Rbac.assignRoleToUser (x, RoleProvider, Just (coerce (basicUserUserId user)))
+  runTelegram response $> response

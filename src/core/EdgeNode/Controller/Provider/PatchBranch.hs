@@ -21,14 +21,15 @@ import Control.Lens
 import Database.Transaction
 
 controller :: [PatchBranchReq] -> Id "user" -> KatipController (Response Unit)
-controller xs _ = do
+controller xs user_id = do
   $(logTM) DebugS (logStr ("branches to be patched: " ++ mkPretty mempty xs))
-  let xs' = xs <&> \x -> 
+  runTelegram (xs, user_id)
+  let xs' = xs <&> \x ->
         ( x^.field @"patchBranchReqId"
         , x^.field @"patchBranchReqImg"
         , x^.field @"patchBranchReqBranch"
         )
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  fmap (const (Ok Unit)) $ 
-    katipTransactionViolationError hasql $ 
-    statement Provider.updateBranches xs' 
+  fmap (const (Ok Unit)) $
+    katipTransactionViolationError hasql $
+    statement Provider.updateBranches xs'

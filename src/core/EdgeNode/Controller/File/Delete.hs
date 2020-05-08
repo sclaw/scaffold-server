@@ -18,8 +18,9 @@ import Control.Lens.Iso.Extended
 import Data.Bool
 
 controller :: Id "file" -> KatipController (Response Unit)
-controller id = do 
+controller id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  let notFound = "file {" <> show (coerce @(Id "file") @Int64 id)^.stext <> "} not found" 
+  let notFound = "file {" <> show (coerce @(Id "file") @Int64 id)^.stext <> "} not found"
+  runTelegram id
   isOk <- katipTransaction hasql $ statement File.delete id
   return $ bool (Error (asError notFound)) (Ok Unit) isOk

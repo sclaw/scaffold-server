@@ -17,13 +17,15 @@ import KatipController
 import Database.Transaction
 import Control.Lens
 import Pretty
+import Data.Functor
 
-controller 
-  :: Id "user" 
-  -> KatipController 
+controller
+  :: Id "user"
+  -> KatipController
      (Response [GetBranchResp])
-controller uid = do 
-  hasql <- fmap (^.katipEnv.hasqlDbPool) ask 
-  resp <- katipTransaction hasql (statement Provider.getBranches uid)
-  $(logTM) DebugS (logStr ("branches: " ++ mkPretty mempty resp))
-  return $ Ok resp
+controller uid = do
+  hasql <- fmap (^.katipEnv.hasqlDbPool) ask
+  runTelegram uid
+  response <- katipTransaction hasql (statement Provider.getBranches uid)
+  $(logTM) DebugS (logStr ("branches: " ++ mkPretty mempty response))
+  runTelegram response $> Ok response

@@ -21,21 +21,23 @@ import Pretty
 import Data.Aeson.WithField
 import Data.Bifunctor
 
-controller 
-  :: Id "qualification" 
-  -> UserId 
-  -> KatipController 
-     (Response 
-      (WithId (Id "qualification") 
+controller
+  :: Id "qualification"
+  -> UserId
+  -> KatipController
+     (Response
+      (WithId (Id "qualification")
        QualificationInfo))
-controller qualififcation_id user_id = do 
-  hasql <- fmap (^.katipEnv.hasqlDbPool) ask  
-  resp <- katipTransaction hasql $ do
-    logger <- ask 
-    statement 
+controller qualififcation_id user_id = do
+  hasql <- fmap (^.katipEnv.hasqlDbPool) ask
+  runTelegram (qualififcation_id, user_id)
+  response <- katipTransaction hasql $ do
+    logger <- ask
+    statement
      (Provider.getQualificationById logger)
      (user_id, qualififcation_id)
-  $(logTM) DebugS $ logStr $ 
-    "qualification: " ++ 
-    mkPretty mempty resp
-  return $ fromEither $ (second (WithField qualififcation_id)) resp
+  $(logTM) DebugS $ logStr $
+    "qualification: " ++
+    mkPretty mempty response
+  runTelegram response
+  return $ fromEither $ (second (WithField qualififcation_id)) response

@@ -18,19 +18,21 @@ import Katip
 import TH.Proto
 import Data.Aeson.WithField
 
-controller 
+controller
   :: EdgeNodeAcademicArea
   -> EdgeNodeCountry
   -> EdgeNodeQualificationDegree
-  -> KatipController 
-     (Response 
-      [WithId (Id "qualification") 
+  -> KatipController
+     (Response
+      [WithId (Id "qualification")
        DegreeTypeToQualification])
 controller area country degree = do
-  hasql <- fmap (^.katipEnv.hasqlDbPool) ask 
-  resp <- katipTransaction hasql $ 
-    statement 
+  hasql <- fmap (^.katipEnv.hasqlDbPool) ask
+  runTelegram (area, country, degree)
+  response <- katipTransaction hasql $
+    statement
     Provider.getTypeToQualifications
     (area, country, degree)
-  $(logTM) DebugS (logStr ("degrees: " ++ mkPretty mempty resp))
-  return $ Ok resp
+  $(logTM) DebugS (logStr ("degrees: " ++ mkPretty mempty response))
+  runTelegram response
+  return $ Ok response

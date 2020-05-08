@@ -6,8 +6,8 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module EdgeNode.Statement.Admin 
-       ( ProviderRegistrationExt (..) 
+module EdgeNode.Statement.Admin
+       ( ProviderRegistrationExt (..)
        , newProvider
        , resetPassword)
         where
@@ -27,16 +27,16 @@ import Data.Int
 import Test.QuickCheck.Extended
 import Test.QuickCheck.Arbitrary.Generic
 
-data ProviderRegistrationExt = 
+data ProviderRegistrationExt =
      ProviderRegistrationExt
-     { providerRegistrationExtAdminEmail     :: !LT.Text 
+     { providerRegistrationExtAdminEmail     :: !LT.Text
      , providerRegistrationExtProviderUID    :: !LT.Text
      , providerRegistrationExtTitle          :: !LT.Text
      , providerRegistrationExtCategory       :: !LT.Text
      , providerRegistrationExtPassword       :: !LT.Text
      , providerRegistrationExtType           :: !LT.Text
      , providerRegistrationExtRegisterStatus :: !LT.Text
-     } deriving Generic
+     } deriving (Generic, Show)
 
 mkEncoder ''ProviderRegistrationExt
 
@@ -45,7 +45,7 @@ instance Arbitrary ProviderRegistrationExt where
   shrink = genericShrink
 
 instance ParamsShow ProviderRegistrationExt where
-  render x = intercalate "," 
+  render x = intercalate ","
     [ x^.field @"providerRegistrationExtAdminEmail".from stextl
     , x^.field @"providerRegistrationExtProviderUID".from stextl
     , x^.field @"providerRegistrationExtTitle".from stextl
@@ -57,13 +57,13 @@ instance ParamsShow ProviderRegistrationExt where
 
 newProvider :: HS.Statement ProviderRegistrationExt (Maybe Int64)
 newProvider = lmap ((\x -> x & each %~ (^.lazytext) & _5 %~ (^.textbs)) . mkEncoderProviderRegistrationExt) statement
-  where  
-    statement = 
+  where
+    statement =
       [maybeStatement|
-        with 
+        with
           getProvider as (
-           insert into edgenode.provider 
-           (uid, title, category) 
+           insert into edgenode.provider
+           (uid, title, category)
            values ($2 :: text, $3 :: text, $4 :: text)
            on conflict do nothing
            returning id, 1 as m),
@@ -71,28 +71,28 @@ newProvider = lmap ((\x -> x & each %~ (^.lazytext) & _5 %~ (^.textbs)) . mkEnco
            insert into auth.user
            (identifier, password, user_type, email)
            values (
-             md5($1 :: text || $2 :: text), 
-             $5 :: bytea, 
-             $6 :: text, 
+             md5($1 :: text || $2 :: text),
+             $5 :: bytea,
+             $6 :: text,
              $1 :: text)
            on conflict do nothing
            returning id, 1 as m)
-        insert into edgenode.provider_user 
+        insert into edgenode.provider_user
         (email, status, provider_id, user_id)
-        select $1 :: text, $7 :: text, t.pi, t.ui from  
-        (select p.id as pi, u.id as ui 
+        select $1 :: text, $7 :: text, t.pi, t.ui from
+        (select p.id as pi, u.id as ui
          from getProvider as p inner join getUser as u on p.m = u.m) as t
         returning (select id from getUser) :: int8|]
 
 resetPassword :: HS.Statement (T.Text, T.Text, T.Text) Int64
-resetPassword = 
+resetPassword =
   lmap (& _3 %~ (^.textbs)) $
   [rowsAffectedStatement|
-   update auth.user set 
+   update auth.user set
    password = $3 :: bytea,
    modified = now()
    where id =
-     (select pu.user_id from edgenode.provider_user as pu  
-      inner join edgenode.provider as p 
+     (select pu.user_id from edgenode.provider_user as pu
+      inner join edgenode.provider as p
       on pu.provider_id = p.id
       where pu.email = $2 :: text and p.uid = $1 :: text)|]

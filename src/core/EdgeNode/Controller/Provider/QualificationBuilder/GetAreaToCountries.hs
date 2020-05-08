@@ -28,6 +28,7 @@ import Data.Swagger hiding (Response)
 
 newtype EdgeNodeCountryCapture = EdgeNodeCountryCapture EdgeNodeCountry
   deriving newtype Generic
+  deriving stock Show
 
 instance ToSchema EdgeNodeCountryCapture where
   declareNamedSchema _ = do
@@ -42,7 +43,9 @@ instance ToJSON EdgeNodeCountryCapture where
 controller :: EdgeNodeAcademicArea -> KatipController (Response [EdgeNodeCountryCapture])
 controller area = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  resp <- katipTransaction hasql $
+  runTelegram area
+  response <- katipTransaction hasql $
     statement Provider.getAreaToCountries area
-  $(logTM) DebugS (logStr ("countries: " ++ mkPretty mempty resp))
-  return $ Ok $ fmap coerce resp
+  $(logTM) DebugS (logStr ("countries: " ++ mkPretty mempty response))
+  runTelegram response
+  return $ Ok $ fmap coerce response

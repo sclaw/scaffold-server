@@ -39,8 +39,10 @@ module KatipController
          -- * re-export
        , module R
        , module Web.Telegram
-        -- * katip
+         -- * katip
        , askLoggerIO
+         -- * aux
+      , runTelegram
        ) where
 
 import Control.Lens
@@ -69,6 +71,10 @@ import qualified Network.Minio as Minio
 import qualified Data.Text as T
 import qualified Hasql.Connection as Hasql
 import Web.Telegram as Web.Telegram
+import BuildInfo
+import Pretty
+import Data.String.Conv
+import Control.Concurrent.Lifted
 
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 
@@ -156,3 +162,12 @@ instance KatipContext KatipController where
 
 runKatipController :: Config -> KatipControllerState -> KatipController a -> Handler a
 runKatipController cfg st app = fmap fst (RWS.evalRWST (unwrap app) cfg st)
+
+runTelegram :: Show a => a -> KatipController ()
+runTelegram request = do
+  telegram_service <- fmap (^.katipEnv.telegram) ask
+  logger <- askLoggerIO
+  void $ fork $ liftIO $ send telegram_service logger $ toS $
+    mkPretty
+    ("At module " <> $location)
+    ("request: " <> show request)

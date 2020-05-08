@@ -23,17 +23,19 @@ import Data.Maybe
 import Pretty
 
 controller :: [MkBranchReq] -> Id "user" -> KatipController (Response [Id "branch"])
-controller xs uid = do 
+controller xs uid = do
   $(logTM) DebugS (logStr ("branches: " ++ mkPretty mempty xs))
+  runTelegram (xs, uid)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  result <- katipTransactionViolationError hasql $ do
-    let (files, branches) = 
-          unzip $ 
-          flip map xs $ 
-          \(MkBranchReq fs img x) -> 
-           (fromMaybe [] fs, OptField (WithField img x)) 
+  response <- katipTransactionViolationError hasql $ do
+    let (files, branches) =
+          unzip $
+          flip map xs $
+          \(MkBranchReq fs img x) ->
+           (fromMaybe [] fs, OptField (WithField img x))
     ids <- statement Provider.createBranches (uid, branches)
-    statement Provider.createFiles $ 
+    statement Provider.createFiles $
       concat (zipWith (\i xs -> zip (repeat i) xs) ids files)
     return ids
-  return $ fromEither result
+  runTelegram response
+  return $ fromEither response

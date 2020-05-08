@@ -18,37 +18,37 @@ import Data.Swagger as Swagger
 import Control.Lens
 import Data.Typeable
 
-newtype Files = Files { filesXs :: [File] }
+newtype Files = Files { filesXs :: [File] } deriving Show
 
-data File = 
+data File =
      File
      { fileName :: !T.Text
      , fileMime :: !T.Text
      , filePath :: !FilePath
-     }
+     } deriving Show
 
-instance FromMultipart Tmp Files where 
-  fromMultipart x = 
-    Just $ Files $ flip map (files x) $ \FileData {..} -> 
+instance FromMultipart Tmp Files where
+  fromMultipart x =
+    Just $ Files $ flip map (files x) $ \FileData {..} ->
       File fdFileName fdFileCType fdPayload
 
-instance FromMultipart Tmp File where 
+instance FromMultipart Tmp File where
   fromMultipart x = fmap mkFile $ lookupFile "payloadFile" x
     where mkFile FileData {..} = File fdFileName fdFileCType fdPayload
 
 instance (Typeable a, HasSwagger sub) => HasSwagger (MultipartForm tag a :> sub) where
-  toSwagger _ = 
-    toSwagger (Proxy :: Proxy sub) & 
+  toSwagger _ =
+    toSwagger (Proxy :: Proxy sub) &
     Servant.Swagger.Internal.addParam paramFile
     where
-      paramFile = 
+      paramFile =
         mempty
         & Swagger.name .~ ("payload" <> T.pack (show (typeOf (undefined :: a))))
         & Swagger.required ?~ True
-        & Swagger.schema .~ 
+        & Swagger.schema .~
           Swagger.ParamOther
           (mempty
            & Swagger.in_ .~ Swagger.ParamFormData
-           & Swagger.paramSchema .~ 
-             (mempty & Swagger.type_ ?~ 
+           & Swagger.paramSchema .~
+             (mempty & Swagger.type_ ?~
              Swagger.SwaggerFile))

@@ -8,11 +8,14 @@ import TH.Proto
 import KatipController
 import Database.Transaction
 import Control.Lens
+import Data.Functor
 
 controller :: EdgeNodeProviderCategory -> EdgeNodeQualificationDegree -> KatipController (Response [EdgeNodeCountryCapture])
 controller category degree_type = do
+  runTelegram (category, degree_type)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  fmap Ok $ katipTransaction hasql $
+  response <- fmap Ok $ katipTransaction hasql $
     statement
     User.getCountriesByDegreeType
     (category, degree_type)
+  runTelegram response $> response

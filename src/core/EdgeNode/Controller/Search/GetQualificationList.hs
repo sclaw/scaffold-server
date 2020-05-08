@@ -22,6 +22,7 @@ import Data.Traversable
 import Data.Coerce
 import Database.Transaction
 import Control.Lens
+import Data.Functor
 
 unauthorizedController :: Maybe (OnlyField "query" T.Text) -> KatipController (Response SearchQualificationList)
 unauthorizedController query = fmap (fromMaybe (Ok (SearchQualificationList mempty))) $ for query (goQuery Nothing . coerce)
@@ -32,8 +33,10 @@ authorizedController query user_id = fmap (fromMaybe (Ok (SearchQualificationLis
 goQuery :: Maybe UserId -> T.Text -> KatipController (Response SearchQualificationList)
 goQuery user_id_m query = do
   $(logTM) DebugS (logStr query)
+  runTelegram (user_id_m, query)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  fmap Ok $ katipTransaction hasql $
+  response <- fmap Ok $ katipTransaction hasql $
     case user_id_m of
       Just user_id -> statement Search.getAuthorizedQualificationList (query, ProviderCategoryHigherDegree, user_id)
       Nothing -> statement Search.getQualificationList (query, ProviderCategoryHigherDegree)
+  runTelegram response $> response

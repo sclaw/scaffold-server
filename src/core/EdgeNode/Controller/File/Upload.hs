@@ -28,23 +28,24 @@ import Data.Either
 
 controller :: EdgeNodeBucket -> Files -> KatipController (Response [Id "file"])
 controller bucket x = do
+  runTelegram (bucket, x)
   Minio {..} <- fmap (^.katipEnv.minio) ask
-  es <- for (coerce x) $ \File {..} -> do 
+  es <- for (coerce x) $ \File {..} -> do
     tm <- liftIO getCurrentTime
     let hash = mkHash (fileName <> fileMime <> (show tm^.stext))
     minioResult <- liftIO $ runMinioWith minioConn $ do
-      let newBucket = 
-            minioBucketPrefix <> "." <> 
+      let newBucket =
+            minioBucketPrefix <> "." <>
             (bucket^.isoEdgeNodeBucket.stext)
       exist <- bucketExists newBucket
       unless exist $
-        makeBucket 
-        (minioBucketPrefix <> "." <> 
-        (bucket^.isoEdgeNodeBucket.stext)) 
+        makeBucket
+        (minioBucketPrefix <> "." <>
+        (bucket^.isoEdgeNodeBucket.stext))
         Nothing
-      fPutObject newBucket hash filePath defaultPutObjectOptions     
+      fPutObject newBucket hash filePath defaultPutObjectOptions
     $(logTM) DebugS (logStr (show minioResult))
-    let tpl = 
+    let tpl =
           ( Hash (UnicodeText hash)
           , Name (UnicodeText fileName)
           , Mime (UnicodeText fileMime)

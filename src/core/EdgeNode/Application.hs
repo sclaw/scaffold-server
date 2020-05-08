@@ -93,7 +93,7 @@ run Cfg {..} =
   katipAddNamespace (Namespace ["application"]) $
     do
       telegram_service <- fmap (^.telegram) ask
-      let runTelegram l msg = void $ fork $ liftIO $ send telegram_service l ((mkPretty $location msg)^.stext)
+      let runTelegram l msg = void $ fork $ liftIO $ send telegram_service l ((mkPretty ("At module " <> $location) msg)^.stext)
       logger <- katipAddNamespace (Namespace ["application"]) askLoggerIO
 
       version_e <- liftIO getVersion

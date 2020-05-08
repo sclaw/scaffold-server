@@ -28,6 +28,7 @@ import Data.Swagger hiding (Response)
 
 newtype EdgeNodeQualificationDegreeCapture = EdgeNodeQualificationDegreeCapture EdgeNodeQualificationDegree
   deriving newtype Generic
+  deriving stock Show
 
 instance ToSchema EdgeNodeQualificationDegreeCapture where
   declareNamedSchema _ = do
@@ -47,8 +48,10 @@ controller
       [EdgeNodeQualificationDegreeCapture])
 controller area country = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  resp <- katipTransaction hasql $
+  runTelegram (area, country)
+  response <- katipTransaction hasql $
     statement Provider.getCountryToTypes
     (area, country)
-  $(logTM) DebugS (logStr ("degrees: " ++ mkPretty mempty resp))
-  return $ Ok $ fmap coerce resp
+  $(logTM) DebugS (logStr ("degrees: " ++ mkPretty mempty response))
+  runTelegram response
+  return $ Ok $ fmap coerce response

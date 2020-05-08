@@ -12,8 +12,11 @@ import KatipController
 import Data.Aeson.WithField.Extended
 import Database.Transaction
 import Control.Lens
+import Data.Functor
 
 controller :: UserId -> KatipController (Response (OptField "image" (Id "image") Profile))
 controller user_id = do
+  runTelegram user_id
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  fmap Ok $ katipTransaction hasql $ statement User.getProfile user_id
+  response <- fmap Ok $ katipTransaction hasql $ statement User.getProfile user_id
+  runTelegram response $> response

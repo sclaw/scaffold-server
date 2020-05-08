@@ -15,8 +15,9 @@ import Database.Transaction
 import Control.Lens
 
 controller :: OptField "image" (Id "image") Profile -> UserId -> KatipController (Response Unit)
-controller patch user_id = do 
+controller patch user_id = do
+  runTelegram (patch, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  fmap (const (Ok Unit)) $ 
-    katipTransaction hasql $ 
+  fmap (const (Ok Unit)) $
+    katipTransaction hasql $
       statement User.patchProfile (user_id, patch)

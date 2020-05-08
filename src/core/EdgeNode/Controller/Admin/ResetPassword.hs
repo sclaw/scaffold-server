@@ -28,15 +28,16 @@ controller provider_id email = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   (password, _) <- liftIO $ fmap (genPassword 16 (GenOptions True True True)) newStdGen
   $(logTM) DebugS (logStr ("new admin password: " <> password))
+  runTelegram (provider_id, email, password)
   salt <- newSalt
   let mkResp 1 = Ok (password^.stext)
-      mkResp _ = Error $ Error.asError User404 
-  fmap mkResp $ 
-    katipTransaction hasql $ 
-    statement Admin.resetPassword 
+      mkResp _ = Error $ Error.asError User404
+  fmap mkResp $
+    katipTransaction hasql $
+    statement Admin.resetPassword
     (provider_id, coerce email, unPassHash (hashPassWithSalt salt (mkPass (password^.stext))))
 
 data ResetError = User404
 
-instance Error.AsError ResetError where 
+instance Error.AsError ResetError where
   asError User404 = Error.asError @T.Text "user not found"
