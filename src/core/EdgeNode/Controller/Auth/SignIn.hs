@@ -31,6 +31,7 @@ import Data.Aeson.WithField
 import Data.Tuple.Ops
 import Data.Default.Class
 import Data.Functor
+import BuildInfo
 
 instance Default Tokens
 
@@ -38,7 +39,7 @@ controller :: Signin -> KatipController (Response (WithId (Id "user") (WithField
 controller req = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   cred_m <- katipTransaction hasql $ statement Auth.getUserCred req
-  runTelegram (req & field @"signinPassword" .~ "****")
+  runTelegram $location (req & field @"signinPassword" .~ "****")
   response <- fmap (fromMaybe (Error (Error.asError @T.Text "credential not found"))) $
     for cred_m $ \ cred -> do
       let check = checkPass (req^.field @"signinPassword".lazytext.to mkPass) (cred^._3)
@@ -58,4 +59,4 @@ controller req = do
                        & field @"tokensRefreshToken" .~ r
                        & field @"tokensLifetime" ?~ (a^._2)
         PassCheckFail -> pure $ Error (Error.asError @T.Text "wrong password")
-  runTelegram response $> response
+  runTelegram $location response $> response

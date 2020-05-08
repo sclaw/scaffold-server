@@ -17,15 +17,16 @@ import Database.Transaction
 import Control.Lens
 import Pretty
 import qualified Data.Text as T
+import BuildInfo
 
 controller :: Id "qualification" -> KatipController (Response (WithField "image" (Maybe (Id "file")) SearchQualificationModal))
 controller qualification_id = do
-  runTelegram qualification_id
+  runTelegram $location qualification_id
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   response <- katipTransaction hasql $
     statement
     Search.getQualificationModal
     qualification_id
   $(logTM) DebugS (logStr ("resp: " ++ mkPretty mempty response))
-  runTelegram response
+  runTelegram $location response
   return $ liftMaybe @T.Text response "qualification not found"

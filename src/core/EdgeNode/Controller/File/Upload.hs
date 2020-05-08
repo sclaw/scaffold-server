@@ -25,10 +25,11 @@ import Data.Time.Clock
 import Data.Traversable
 import Data.Coerce
 import Data.Either
+import BuildInfo
 
 controller :: EdgeNodeBucket -> Files -> KatipController (Response [Id "file"])
 controller bucket x = do
-  runTelegram (bucket, x)
+  runTelegram $location (bucket, x)
   Minio {..} <- fmap (^.katipEnv.minio) ask
   es <- for (coerce x) $ \File {..} -> do
     tm <- liftIO getCurrentTime

@@ -23,10 +23,11 @@ import Data.Int
 import Katip
 import Data.Traversable
 import Data.Functor
+import BuildInfo
 
 controller :: [WithId (Id "qualification") AddQualificationRequest] -> UserId -> KatipController (Response AddQualificationResponse)
 controller qualifications user_id = do
-  runTelegram (qualifications, user_id)
+  runTelegram $location (qualifications, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   resp <- katipTransactionViolationError hasql $
     statement User.addQualification (user_id, qualifications)
@@ -41,4 +42,4 @@ controller qualifications user_id = do
           (added^.vector)
           (rejected^.vector)
     return $ (mkResp . foldr add ([], [])) qualifications_ids
-  runTelegram response $> response
+  runTelegram $location response $> response

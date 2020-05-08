@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module EdgeNode.Controller.User.Qualification.GetQualificationList (controller) where
 
@@ -11,10 +12,11 @@ import KatipController
 import Database.Transaction
 import Control.Lens
 import Data.Functor
+import BuildInfo
 
 controller :: UserId -> KatipController (Response UserQualification)
 controller user_id = do
-  runTelegram user_id
+  runTelegram $location user_id
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   response <- fmap fromEither $ katipTransaction hasql $ statement User.getQualificationList user_id
-  runTelegram response $> response
+  runTelegram $location response $> response

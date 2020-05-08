@@ -27,10 +27,11 @@ import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
 import Data.Word
 import Control.Monad.Error.Class
+import BuildInfo
 
 controller :: OnlyField "id" (Id "qualification") -> UserId -> KatipController (Response Unit)
 controller qualification_id user_id = do
-  runTelegram (qualification_id, user_id)
+  runTelegram $location (qualification_id, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   resp <- katipTransactionViolationError hasql $ do
     deps_m <- statement Provider.getDepsQualifiationValues qualification_id

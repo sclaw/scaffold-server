@@ -71,7 +71,6 @@ import qualified Network.Minio as Minio
 import qualified Data.Text as T
 import qualified Hasql.Connection as Hasql
 import Web.Telegram as Web.Telegram
-import BuildInfo
 import Pretty
 import Data.String.Conv
 import Control.Concurrent.Lifted
@@ -163,11 +162,11 @@ instance KatipContext KatipController where
 runKatipController :: Config -> KatipControllerState -> KatipController a -> Handler a
 runKatipController cfg st app = fmap fst (RWS.evalRWST (unwrap app) cfg st)
 
-runTelegram :: Show a => a -> KatipController ()
-runTelegram request = do
+runTelegram :: Show a => String -> a -> KatipController ()
+runTelegram location request = do
   telegram_service <- fmap (^.katipEnv.telegram) ask
   logger <- askLoggerIO
   void $ fork $ liftIO $ send telegram_service logger $ toS $
     mkPretty
-    ("At module " <> $location)
+    ("At module " <> location)
     ("message: " <> show request)

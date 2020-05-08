@@ -31,7 +31,7 @@ import Control.Lens.Iso.Extended
 
 controller :: EdgeNodeLanguage -> KatipController (Response [WithField "enum" Country T.Text])
 controller lang = do
-  runTelegram lang
+  runTelegram $location lang
   dir <- liftIO getCurrentDirectory
   let country_dir = dir </> "enum" </> "country"
   let path = country_dir </> lang^.isoEdgeNodeLanguage <> ".yaml"
@@ -46,5 +46,5 @@ controller lang = do
         for xs $ \(WithField x val_m) ->
           pure $ fmap (WithField x) val_m
   response <- liftIO $ decodeFileEither @[(WithField "enum" Country (Maybe T.Text))] path
-  runTelegram response
+  runTelegram $location response
   fmap (fmap catMaybes . fromEither) $ bitraverse error ok response

@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeOperators  #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module EdgeNode.Controller.Provider.Publish (controller) where
 
@@ -11,9 +12,10 @@ import KatipController
 import Data.Aeson.Unit
 import Database.Transaction
 import Control.Lens
+import BuildInfo
 
 controller :: Id "user" -> KatipController (Response Unit)
 controller uid = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  runTelegram uid
+  runTelegram $location uid
   fmap (const (Ok Unit)) $ katipTransaction hasql (statement Provider.publish uid)

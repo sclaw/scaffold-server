@@ -22,13 +22,14 @@ import Data.Password
 import qualified Data.Text as T
 import Data.Aeson.WithField
 import Data.Coerce
+import BuildInfo
 
 controller :: T.Text -> OnlyField "email" T.Text -> KatipController (Response T.Text)
 controller provider_id email = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   (password, _) <- liftIO $ fmap (genPassword 16 (GenOptions True True True)) newStdGen
   $(logTM) DebugS (logStr ("new admin password: " <> password))
-  runTelegram (provider_id, email, password)
+  runTelegram $location (provider_id, email, password)
   salt <- newSalt
   let mkResp 1 = Ok (password^.stext)
       mkResp _ = Error $ Error.asError User404

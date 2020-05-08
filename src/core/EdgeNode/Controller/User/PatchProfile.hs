@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module EdgeNode.Controller.User.PatchProfile (controller) where
 
@@ -13,10 +14,11 @@ import Data.Aeson.WithField.Extended
 import Data.Aeson.Unit
 import Database.Transaction
 import Control.Lens
+import BuildInfo
 
 controller :: OptField "image" (Id "image") Profile -> UserId -> KatipController (Response Unit)
 controller patch user_id = do
-  runTelegram (patch, user_id)
+  runTelegram $location (patch, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap (const (Ok Unit)) $
     katipTransaction hasql $

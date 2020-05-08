@@ -40,6 +40,7 @@ import Network.HTTP.Types.Header
 import Hash
 import System.Process (readProcess)
 import Data.Foldable
+import BuildInfo
 
 data Option = Embedded | Raw deriving Show
 
@@ -51,7 +52,7 @@ imageMimeTypes = ["image/apng", "image/bmp", "image/gif", "image/x-icon", "image
 
 controller :: Option -> Id "file" -> Maybe Int -> Maybe Int -> KatipController Application
 controller option id width_m height_m = do
-  runTelegram (option, id, width_m, height_m)
+  runTelegram $location (option, id, width_m, height_m)
   liftIO $ print $ show (width_m, height_m)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   let notFound = "file {" <> show (coerce @(Id "file") @Int64 id)^.stext <> "} not found"

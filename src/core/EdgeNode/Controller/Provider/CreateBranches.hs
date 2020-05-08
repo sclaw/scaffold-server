@@ -21,11 +21,12 @@ import Database.Transaction
 import Control.Lens
 import Data.Maybe
 import Pretty
+import BuildInfo
 
 controller :: [MkBranchReq] -> Id "user" -> KatipController (Response [Id "branch"])
 controller xs uid = do
   $(logTM) DebugS (logStr ("branches: " ++ mkPretty mempty xs))
-  runTelegram (xs, uid)
+  runTelegram $location (xs, uid)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   response <- katipTransactionViolationError hasql $ do
     let (files, branches) =
@@ -37,5 +38,5 @@ controller xs uid = do
     statement Provider.createFiles $
       concat (zipWith (\i xs -> zip (repeat i) xs) ids files)
     return ids
-  runTelegram response
+  runTelegram $location response
   return $ fromEither response

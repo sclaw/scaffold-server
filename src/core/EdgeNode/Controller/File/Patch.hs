@@ -27,10 +27,11 @@ import Control.Monad
 import Network.Minio hiding (Bucket)
 import Control.Monad.IO.Class
 import Control.Monad.Error.Class
+import BuildInfo
 
 controller :: Id "file" -> File -> KatipController (Response Unit)
 controller id file = do
-  runTelegram (id, file)
+  runTelegram $location (id, file)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   let notFound = "file {" <> show (coerce @(Id "file") @Int64 id)^.stext <> "} not found"
   resp <- fmap (maybeToRight (asError notFound)) $

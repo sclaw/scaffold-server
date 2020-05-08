@@ -29,13 +29,14 @@ import Control.Monad.IO.Class
 import Data.Aeson
 import Data.Time.Clock
 import Data.String.Conv
+import BuildInfo
 
 controller :: WithField "recaptcha" T.Text Feedback -> KatipController (Response Unit)
 controller x@(WithField recaptcha_resp feedback) = do
   $(logTM) DebugS (logStr (mkPretty mempty feedback))
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
 
-  runTelegram x
+  runTelegram $location x
 
   case Validator.feedback feedback of
     Failure es -> pure $ Errors (map asError es)

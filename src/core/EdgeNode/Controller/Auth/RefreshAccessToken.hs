@@ -30,13 +30,15 @@ import Data.Aeson
 import Control.Lens.Iso.Extended
 import Data.Foldable
 import Pretty
+import BuildInfo
+import Data.Functor
 
 controller :: Token -> Id "user" -> KatipController (Response Tokens)
 controller req user_id = do
   let token = req^.field @"tokenToken"
   $(logTM) DebugS (logStr (mkPretty "refresh token request:" token))
   key <- fmap (^.katipEnv.jwk) ask
-  runTelegram (req, user_id)
+  runTelegram $location (req, user_id)
 
   verify_result <- liftIO $ runExceptT $ verifyToken (defaultJWTSettings key) token
   for_ (verify_result^?_Left) $ \e -> $(logTM) ErrorS (logStr (mkPretty "refresh token error:" e))
@@ -62,8 +64,7 @@ controller req user_id = do
                         & field @"tokensLifetime" ?~ (a^._2)
               Nothing -> pure $ Left "token not found"
         Nothing -> pure $ Left "dat not found"
-  runTelegram (token, user_id)
-  return response
+  runTelegram $location (token, user_id) $> response
 
 mkJWTError :: JWT.JWTError -> T.Text
 mkJWTError JWT.JWTExpired = ErrorRefreshTokenExpired^.isoError.stext

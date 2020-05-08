@@ -20,6 +20,7 @@ import Control.Lens
 import Pretty
 import Data.Aeson.WithField
 import Data.Bifunctor
+import BuildInfo
 
 controller
   :: Id "qualification"
@@ -30,7 +31,7 @@ controller
        QualificationInfo))
 controller qualififcation_id user_id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  runTelegram (qualififcation_id, user_id)
+  runTelegram $location (qualififcation_id, user_id)
   response <- katipTransaction hasql $ do
     logger <- ask
     statement
@@ -39,5 +40,5 @@ controller qualififcation_id user_id = do
   $(logTM) DebugS $ logStr $
     "qualification: " ++
     mkPretty mempty response
-  runTelegram response
+  runTelegram $location response
   return $ fromEither $ (second (WithField qualififcation_id)) response

@@ -17,6 +17,7 @@ import Pretty
 import Katip
 import TH.Proto
 import Data.Aeson.WithField
+import BuildInfo
 
 controller
   :: EdgeNodeAcademicArea
@@ -28,11 +29,11 @@ controller
        DegreeTypeToQualification])
 controller area country degree = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  runTelegram (area, country, degree)
+  runTelegram $location (area, country, degree)
   response <- katipTransaction hasql $
     statement
     Provider.getTypeToQualifications
     (area, country, degree)
   $(logTM) DebugS (logStr ("degrees: " ++ mkPretty mempty response))
-  runTelegram response
+  runTelegram $location response
   return $ Ok response

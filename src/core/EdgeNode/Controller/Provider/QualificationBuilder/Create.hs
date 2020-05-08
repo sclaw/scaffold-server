@@ -25,6 +25,7 @@ import Data.Generics.Product.Positions
 import Data.Generics.Product.Fields
 import Data.Maybe
 import Data.Functor
+import BuildInfo
 
 controller
   :: (WithField
@@ -34,7 +35,7 @@ controller
   -> KatipController (Response (Id "qualification"))
 controller builder = do
   $(logTM) DebugS (logStr ("builder: " ++ mkPretty mempty builder))
-  runTelegram builder
+  runTelegram $location builder
   let save = do
         hasql <- fmap (^.katipEnv.hasqlDbPool) ask
         katipTransaction hasql $ do
@@ -50,4 +51,4 @@ controller builder = do
           statement Provider.saveTuitionFees (ident, fees)
           return ident
   response <- fromValidation . (first (map asError)) <$> for (Validator.qualificationBuilder (builder^.position @2)) (const save)
-  runTelegram response $> response
+  runTelegram $location response $> response

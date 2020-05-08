@@ -25,6 +25,7 @@ import Data.Coerce
 import Data.Swagger.Internal.Schema
 import Data.Proxy
 import Data.Swagger hiding (Response)
+import BuildInfo
 
 newtype EdgeNodeCountryCapture = EdgeNodeCountryCapture EdgeNodeCountry
   deriving newtype Generic
@@ -43,9 +44,9 @@ instance ToJSON EdgeNodeCountryCapture where
 controller :: EdgeNodeAcademicArea -> KatipController (Response [EdgeNodeCountryCapture])
 controller area = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  runTelegram area
+  runTelegram $location area
   response <- katipTransaction hasql $
     statement Provider.getAreaToCountries area
   $(logTM) DebugS (logStr ("countries: " ++ mkPretty mempty response))
-  runTelegram response
+  runTelegram $location response
   return $ Ok $ fmap coerce response

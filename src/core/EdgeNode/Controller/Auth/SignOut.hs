@@ -18,11 +18,12 @@ import qualified Data.Text as T
 import Database.Transaction
 import Data.Bifunctor
 import Control.Lens
+import BuildInfo
 
 controller :: UserId -> (OnlyField "hash" T.Text) -> KatipController (Response Unit)
 controller user_id hash = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  runTelegram (user_id, hash)
+  runTelegram $location (user_id, hash)
   logout_e <- katipTransaction hasql $ statement Auth.logout (user_id, hash)
   let error = "credential not found"
   pure $ fromEither $ (first (const (Error.asError @T.Text error))) logout_e

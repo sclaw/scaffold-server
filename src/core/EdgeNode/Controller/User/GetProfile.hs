@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module EdgeNode.Controller.User.GetProfile (controller) where
 
@@ -13,10 +14,11 @@ import Data.Aeson.WithField.Extended
 import Database.Transaction
 import Control.Lens
 import Data.Functor
+import BuildInfo
 
 controller :: UserId -> KatipController (Response (OptField "image" (Id "image") Profile))
 controller user_id = do
-  runTelegram user_id
+  runTelegram $location user_id
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   response <- fmap Ok $ katipTransaction hasql $ statement User.getProfile user_id
-  runTelegram response $> response
+  runTelegram $location response $> response

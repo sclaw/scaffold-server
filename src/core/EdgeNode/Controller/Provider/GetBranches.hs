@@ -18,6 +18,7 @@ import Database.Transaction
 import Control.Lens
 import Pretty
 import Data.Functor
+import BuildInfo
 
 controller
   :: Id "user"
@@ -25,7 +26,7 @@ controller
      (Response [GetBranchResp])
 controller uid = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  runTelegram uid
+  runTelegram $location uid
   response <- katipTransaction hasql (statement Provider.getBranches uid)
   $(logTM) DebugS (logStr ("branches: " ++ mkPretty mempty response))
-  runTelegram response $> Ok response
+  runTelegram $location response $> Ok response

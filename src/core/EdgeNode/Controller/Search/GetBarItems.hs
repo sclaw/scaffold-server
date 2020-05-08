@@ -17,6 +17,7 @@ import Data.Traversable
 import Data.Coerce
 import Database.Transaction
 import Control.Lens
+import BuildInfo
 
 controller :: Maybe (OnlyField "query" T.Text) -> KatipController (Response SearchBar)
 controller query = fmap (fromMaybe (Ok (SearchBar mempty))) $ for query (goQuery . coerce)
@@ -24,7 +25,7 @@ controller query = fmap (fromMaybe (Ok (SearchBar mempty))) $ for query (goQuery
 goQuery :: T.Text -> KatipController (Response SearchBar)
 goQuery query = do
   $(logTM) DebugS (logStr query)
-  runTelegram query
+  runTelegram $location query
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap Ok $ katipTransaction hasql $
     statement Search.getBarItems query

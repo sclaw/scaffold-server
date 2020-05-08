@@ -32,6 +32,7 @@ import Data.Password
 import qualified Data.Text as T
 import Data.Traversable
 import Data.Functor
+import BuildInfo
 
 data ProviderRegistrationError = ProviderAlreadyExist
 
@@ -57,10 +58,10 @@ controller provider user = do
         (Secondary^.isoUserRole.stextl)
         (Active^.isoRegisterStatus.stextl)
 
-  runTelegram providerExt
+  runTelegram $location providerExt
 
   response <- fmap (maybe (Error (Error.asError ProviderAlreadyExist)) (const (Ok (password^.stext)))) $
     katipTransaction hasql $ do
       ident <- statement Admin.newProvider providerExt
       for ident $ \x -> statement Rbac.assignRoleToUser (x, RoleProvider, Just (coerce (basicUserUserId user)))
-  runTelegram response $> response
+  runTelegram $location response $> response

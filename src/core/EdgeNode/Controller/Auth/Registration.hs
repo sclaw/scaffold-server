@@ -24,11 +24,12 @@ import Data.Password
 import Pretty
 import Data.Traversable
 import Data.Bifunctor
+import BuildInfo
 
 controller :: Registration -> KatipController (Response Unit)
 controller registeration_data = do
   $(logTM) DebugS (logStr (mkPretty "registeration data:" registeration_data))
-  runTelegram registeration_data
+  runTelegram $location registeration_data
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   resp <- fmap (fromValidation . first (map asError)) $
     for (registration registeration_data) $ const $ do

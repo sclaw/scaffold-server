@@ -25,6 +25,7 @@ import Data.Aeson
 import Control.Lens.Iso.Extended
 import Data.Proxy
 import Data.Swagger hiding (Response)
+import BuildInfo
 
 newtype EdgeNodeQualificationDegreeCapture = EdgeNodeQualificationDegreeCapture EdgeNodeQualificationDegree
   deriving newtype Generic
@@ -48,10 +49,10 @@ controller
       [EdgeNodeQualificationDegreeCapture])
 controller area country = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  runTelegram (area, country)
+  runTelegram $location (area, country)
   response <- katipTransaction hasql $
     statement Provider.getCountryToTypes
     (area, country)
   $(logTM) DebugS (logStr ("degrees: " ++ mkPretty mempty response))
-  runTelegram response
+  runTelegram $location response
   return $ Ok $ fmap coerce response

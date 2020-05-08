@@ -27,6 +27,7 @@ import Data.Traversable
 import Data.Int
 import qualified Data.Vector as V
 import qualified Data.Map as Map
+import BuildInfo
 
 controller
   :: Id "qualification"
@@ -35,7 +36,7 @@ controller
   -> KatipController (Response Unit)
 controller qualification_id patch@(PatchQualification {..}) user_id  = do
   $(logTM) DebugS (logStr ("qualification to be patched: " ++ mkPretty mempty patch))
-  runTelegram (qualification_id, patch, user_id)
+  runTelegram $location (qualification_id, patch, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap (fromValidation . bimap (map Error.asError) (const Unit)) $
     for (qualififcationPatch patch) $ const $

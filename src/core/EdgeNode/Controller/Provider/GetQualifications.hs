@@ -20,10 +20,11 @@ import Control.Lens
 import Pretty
 import Data.Aeson.WithField
 import Data.Functor
+import BuildInfo
 
 controller :: UserId -> KatipController (Response [WithId (Id "qualification") ListItem])
 controller uid = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   response <- katipTransaction hasql (statement Provider.getQualifications uid)
   $(logTM) DebugS (logStr ("qualifications: " ++ mkPretty mempty response))
-  runTelegram response $> Ok response
+  runTelegram $location response $> Ok response

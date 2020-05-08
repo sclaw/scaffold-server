@@ -19,11 +19,12 @@ import Pretty
 import Data.Generics.Product.Fields
 import Control.Lens
 import Database.Transaction
+import BuildInfo
 
 controller :: [PatchBranchReq] -> Id "user" -> KatipController (Response Unit)
 controller xs user_id = do
   $(logTM) DebugS (logStr ("branches to be patched: " ++ mkPretty mempty xs))
-  runTelegram (xs, user_id)
+  runTelegram $location (xs, user_id)
   let xs' = xs <&> \x ->
         ( x^.field @"patchBranchReqId"
         , x^.field @"patchBranchReqImg"

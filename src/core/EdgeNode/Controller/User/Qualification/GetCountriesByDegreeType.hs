@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module EdgeNode.Controller.User.Qualification.GetCountriesByDegreeType (controller) where
 
 import EdgeNode.Transport.Response
@@ -9,13 +11,14 @@ import KatipController
 import Database.Transaction
 import Control.Lens
 import Data.Functor
+import BuildInfo
 
 controller :: EdgeNodeProviderCategory -> EdgeNodeQualificationDegree -> KatipController (Response [EdgeNodeCountryCapture])
 controller category degree_type = do
-  runTelegram (category, degree_type)
+  runTelegram $location (category, degree_type)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   response <- fmap Ok $ katipTransaction hasql $
     statement
     User.getCountriesByDegreeType
     (category, degree_type)
-  runTelegram response $> response
+  runTelegram $location response $> response

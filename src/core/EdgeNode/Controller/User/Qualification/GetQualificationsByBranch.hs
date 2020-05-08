@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module EdgeNode.Controller.User.Qualification.GetQualificationsByBranch (controller) where
 
@@ -16,10 +17,11 @@ import qualified Data.Text as T
 import Database.Transaction
 import Control.Lens
 import Data.Functor
+import BuildInfo
 
 controller :: Id "branch" -> EdgeNodeQualificationDegree -> UserId -> KatipController (Response [WithId (Id "qualification") (OnlyField "title" T.Text)])
 controller ident degree_type user_id = do
-  runTelegram (ident, degree_type, user_id)
+  runTelegram $location (ident, degree_type, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   response <- fmap Ok $ katipTransaction hasql $ statement User.getQualificationsByBranch (user_id, ident, degree_type)
-  runTelegram response $> response
+  runTelegram $location response $> response

@@ -873,9 +873,9 @@ getDepsQualifiationValues =
   lmap (coerce @_ @Int64) $
   statement $
   fmap wrapToMaybe (premap (& _2 %~ (toQualificationDegree . toS)) list)
-  wrapToMaybe [] = Nothing
-  wrapToMaybe xs = Just xs
   where
+    wrapToMaybe [] = Nothing
+    wrapToMaybe xs = Just xs
     statement =
       [foldStatement|
         with recursive dependencies as (
