@@ -873,16 +873,24 @@ getDepsQualifiationValues =
   lmap (coerce @_ @Int64) $
   statement $
   fmap wrapToMaybe (premap (& _2 %~ (toQualificationDegree . toS)) list)
+  wrapToMaybe [] = Nothing
+  wrapToMaybe xs = Just xs
   where
     statement =
       [foldStatement|
+        with recursive dependencies as (
+          select pbqd.provider_branch_qualification_fk as ident, pbqd.required_degree as val
+          from edgenode.provider_branch_qualification_dependency as pbqd
+          where pbqd.dependency_fk = $1 :: int8
+          union all
+          select pbqd.provider_branch_qualification_fk as ident, pbqd.required_degree as val
+          from edgenode.provider_branch_qualification_dependency as pbqd
+          join dependencies as deps
+          on pbqd.dependency_fk = deps.ident)
         select
-          distinct (pbqd.provider_branch_qualification_fk) :: int8,
+          distinct (deps.ident) :: int8,
           pbq.type :: text,
-          pbqd.required_degree :: text
-        from edgenode.provider_branch_qualification_dependency as pbqd
+          val :: text
+        from dependencies as deps
         inner join edgenode.provider_branch_qualification as pbq
-        on pbqd.provider_branch_qualification_fk = pbq.id
-        where pbqd.dependency_fk = $1 :: int8|]
-    wrapToMaybe [] = Nothing
-    wrapToMaybe xs = Just xs
+        on deps.ident = pbq.id|]
