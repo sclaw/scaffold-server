@@ -5,6 +5,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module EdgeNode.Controller.Controller (controller) where
 
@@ -66,20 +67,24 @@ import Control.Lens
 import Database.Transaction
 import Data.Bool
 import qualified Data.Text as T
+import BuildInfo
 
 controller :: ApplicationApi (AsServerT KatipController)
 controller = ApplicationApi { _applicationApiHttp = toServant httpApi }
 
 verifyAuthorization :: UserId -> Rbac.Permission -> (UserId -> KatipController (Response a)) -> KatipController (Response a)
-verifyAuthorization uid perm controller =
-  do
-    hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
-    isOk <- katipTransaction hasql $ do
-      xs <- statement Rbac.getTopLevelRoles (uid, perm)
-      statement Rbac.isPermissionBelongToRole (xs, perm)
-    let error = "you have no permissions to fulfill this operation"
-    bool (return (Error (asError @T.Text error)))
-         (controller uid) isOk
+verifyAuthorization user_id perm controller = do
+  runTelegram $location $
+    "authorization check: user {" <>
+    show user_id <>
+    "}, permission {" <>
+    show perm <> "}"
+  hasql <- (^.katipEnv.hasqlDbPool) `fmap` ask
+  isOk <- katipTransaction hasql $ do
+    xs <- statement Rbac.getTopLevelRoles (user_id, perm)
+    statement Rbac.isPermissionBelongToRole (xs, perm)
+  let error = "you have no permissions to fulfill this operation"
+  bool (return (Error (asError @T.Text error))) (controller user_id) isOk
 
 httpApi :: HttpApi (AsServerT KatipController)
 httpApi =
