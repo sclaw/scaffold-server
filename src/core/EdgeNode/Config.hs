@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
@@ -15,6 +16,7 @@ module EdgeNode.Config
        , ApiKeys (..)
        , Swagger (..)
        , Telegram (..)
+       , Env (..)
        , db
        , pass
        , port
@@ -46,6 +48,8 @@ module EdgeNode.Config
        , chat
        , telegram
        , serverConnection
+         -- * Iso
+       , isoEnv
        )
        where
 
@@ -57,6 +61,8 @@ import Data.Yaml
 import Data.Time.Clock
 import Data.Int
 import qualified Data.Text as T
+import TH.Mk
+import Data.String.Conv
 
 data Db = Db
      { dbHost :: !String
@@ -76,12 +82,18 @@ data HasqlSettings =
      , hasqlSettingsResPerStripe :: !Int
      } deriving Show
 
+data Env = Prodution | Development deriving (Show, Eq)
+
+mkEnumConvertor ''Env
+
+instance FromJSON Env where parseJSON = withText "EdgeNode.Config:Env" (pure . toEnv . toS)
+
 data Katip =
      Katip
      { katipPath :: !FilePath
      , katipSeverity :: !String
      , katipVerbosity :: !String
-     , katipEnv :: !String
+     , katipEnv :: !Env
      } deriving Show
 
 data Ekg = Ekg { ekgHost :: !String, ekgPort :: !Int } deriving Show
@@ -110,9 +122,10 @@ data Minio =
 
 data Telegram =
      Telegram
-     { telegramBot :: !T.Text
+     { telegramBot  :: !T.Text
      , telegramChat :: !T.Text
      , telegramHost :: !T.Text
+     , telegramEnv  :: !Env
      } deriving Show
 
 newtype ServerConnection = ServerConnection { serverConnectionPort :: Int }

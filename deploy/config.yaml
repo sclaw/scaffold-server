@@ -21,7 +21,7 @@ configKatip:
   katipPath: katip
   katipSeverity: DebugS
   katipVerbosity: V3
-  katipEnv: production
+  katipEnv: development
 
 configAuth:
   authJwk: symmetric.jwk
@@ -44,3 +44,4 @@ configTelegram:
   telegramBot: bot996615482:AAHWG7H1p7lO52ll16erzyGIE7jEJme5TIw
   telegramChat: edgenode_server
   telegramHost: https://api.telegram.org/
+  telegramEnv: development

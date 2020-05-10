@@ -118,7 +118,7 @@ main =
               (permitItem (cfg^.katip.severity.from stringify))
               (cfg^.katip.verbosity.from stringify)
       let mkNm = Namespace [("<" ++ $(gitCommit) ++ ">")^.stext]
-      init_env <- initLogEnv mkNm (cfg^.katip.EdgeNode.Config.env.stext.coerced)
+      init_env <- initLogEnv mkNm (cfg^.katip.EdgeNode.Config.env.isoEnv.stext.coerced)
       let env = do
             env' <- registerScribe "stdout" std defaultScribeSettings init_env
             registerScribe "file" file defaultScribeSettings env'
