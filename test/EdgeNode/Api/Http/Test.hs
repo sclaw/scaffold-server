@@ -28,13 +28,9 @@ mkArbitrary ''SearchQualificationItem
 mkArbitrary ''SearchQualificationList
 
 spec_api :: Spec
-spec_api = 
-  describe "Swagger spec for API v1" $ do 
-   context "ToJSON matches ToSchema (AdminApi)" $  
+spec_api =
+  describe "Swagger spec for API v1" $ do
+   context "ToJSON matches ToSchema (AdminApi)" $
      validateEveryToJSON (genericApi (Proxy :: Proxy AdminApi))
-   context "ToJSON matches ToSchema (FileApi)" $   
+   context "ToJSON matches ToSchema (FileApi)" $
      validateEveryToJSON (genericApi (Proxy :: Proxy FileApi))
- --  context "ToJSON matches ToSchema (SearchApi)" $
- --    validateEveryToJSON (genericApi (Proxy :: Proxy SearchApi))
- --  context "ToJSON matches ToSchema (ProviderApi)" $    
- --    validateEveryToJSON (genericApi (Proxy :: Proxy ProviderApi))

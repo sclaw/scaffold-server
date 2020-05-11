@@ -32,11 +32,10 @@ controller
 controller qualififcation_id user_id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   runTelegram $location (qualififcation_id, user_id)
-  response <- katipTransaction hasql $ do
-    logger <- ask
+  response <- katipTransaction hasql $
     statement
-     (Provider.getQualificationById logger)
-     (user_id, qualififcation_id)
+    Provider.getQualificationById
+    (user_id, qualififcation_id)
   $(logTM) DebugS $ logStr $
     "qualification: " ++
     mkPretty mempty response

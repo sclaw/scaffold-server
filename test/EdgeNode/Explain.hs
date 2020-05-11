@@ -33,7 +33,6 @@ import Test.Hspec.Expectations.Lifted
 import Data.Generics.Product.Positions
 import Control.Lens
 import GHC.Generics
-import Data.Password
 
 spec_explain :: Spec
 spec_explain =
@@ -45,7 +44,7 @@ spec_explain =
     $ \(modl, tests) ->
         context modl
         $ for_ tests
-        $ \(name, SomeQuery st) ->
+        $ \(name, ST st) ->
             itHasql name $ do
               let st' =
                     st & position @1 %~ ("explain " <>)
@@ -56,10 +55,13 @@ spec_explain =
 deriving instance Generic (Statement a b)
 
 -- | Existential wrapper for the query
-data SomeQuery = forall a b . Arbitrary a => SomeQuery (Statement a b)
+data ST = forall a b . Arbitrary a => ST (Statement a b)
+
+(==>) a b = (a, b)
+(=>>) a b = (a, ST b)
 
 -- | List of all database queries.
-explainTests :: [(String, [(String, SomeQuery)])]
+explainTests :: [(String, [(String, ST)])]
 explainTests =
   [ "EdgeNode.Statement.Rbac" ==>
     [ "getTopLevelRoles" =>> EdgeNode.Statement.Rbac.getTopLevelRoles
@@ -89,7 +91,7 @@ explainTests =
     , "saveDependencies" =>> EdgeNode.Statement.Provider.saveDependencies
     , "saveTuitionFees" =>> EdgeNode.Statement.Provider.saveTuitionFees
     , "getQualifications" =>> EdgeNode.Statement.Provider.getQualifications
-    , "getQualificationById" =>> (EdgeNode.Statement.Provider.getQualificationById undefined)
+    , "getQualificationById" =>> (EdgeNode.Statement.Provider.getQualificationById)
     , "patchQualification" =>> EdgeNode.Statement.Provider.patchQualification
     , "deleteFees" =>> EdgeNode.Statement.Provider.deleteFees
     , "patchClusters" =>> EdgeNode.Statement.Provider.patchClusters
@@ -100,7 +102,7 @@ explainTests =
     , "checkRefreshToken" =>> EdgeNode.Statement.Auth.checkRefreshToken
     , "mkTokenInvalid" =>> EdgeNode.Statement.Auth.mkTokenInvalid
     , "logout" =>> EdgeNode.Statement.Auth.logout
-    , "register" =>> EdgeNode.Statement.Auth.register (Salt mempty)]
+    , "register" =>> EdgeNode.Statement.Auth.register]
   , "EdgeNode.Statement.Search" ==>
     [ "getBarItems" =>> EdgeNode.Statement.Search.getBarItems
     , "getQualificationList" =>> EdgeNode.Statement.Search.getQualificationList
@@ -122,6 +124,3 @@ explainTests =
     , "getUserQualificationValues" =>> EdgeNode.Statement.User.getUserQualificationValues]
   , "EdgeNode.Statement.Feedback" ==> ["put" =>> EdgeNode.Statement.Feedback.put]
   ]
-
-(==>) a b = (a, b)
-(=>>) a b = (a, SomeQuery b)

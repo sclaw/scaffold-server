@@ -35,7 +35,7 @@ controller registeration_data = do
     for (registration registeration_data) $ const $ do
       salt <-  newSalt
       katipTransaction hasql $ do
-        ident_m <- statement (Auth.register salt) registeration_data
+        ident_m <- statement Auth.register (salt, registeration_data)
         for ident_m $ \x ->
           statement
           Rbac.assignRoleToUser

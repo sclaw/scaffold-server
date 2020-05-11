@@ -3,7 +3,7 @@ version:             1.0.0
 license:             BSD3
 author:              "edgeNode"
 maintainer:          "Sergey Yakovlev<fclaw007@gmail.com>"
-copyright:           "2019 edgenode"
+copyright:           "2020 edgenode"
 ghc-options:
   - -threaded
   - -rtsopts
@@ -23,7 +23,6 @@ ghc-options:
   - -Wunused-pattern-binds
   - -Wtabs
   - -Wmissing-pattern-synonym-signatures
-  - -XOverloadedStrings
  #  - -ddump-splices
 
 extra-source-files:

@@ -644,8 +644,8 @@ replaceEnumQIFW =
     periodPattern = [Regexp.re|"(?<=\"period\",String\s\")[a-z_]*(?=\"\))"|]
     countriesPattern = [Regexp.re|(?<=Array\s\[String\s\"|,String\s\")[a-z_]*(?=\",|\"\])|]
 
-getQualificationById :: KatipLoggerIO -> HS.Statement (UserId, Id "qualification") (Either GetQualificationByIdError QualificationInfo)
-getQualificationById _ =
+getQualificationById :: HS.Statement (UserId, Id "qualification") (Either GetQualificationByIdError QualificationInfo)
+getQualificationById =
   dimap (bimap (coerce @(Id "user") @Int64) (coerce @_ @Int64))
         (maybe (Left GetQualificationByIdNF) mkResp . fmap mkInfo) $
   statement
