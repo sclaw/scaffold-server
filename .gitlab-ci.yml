@@ -50,6 +50,8 @@ server:
   after_script:
     - echo  "current dir -> $(pwd)"
     - echo  "dir content -> $(ls -la)"
+    - mv test/app.html test/app-`date "+%Y.%m.%d-%H.%M.%S"`.html
+    - ./scripts/minio_uploader.sh
   artifacts:
     paths:
       - /builds/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}
