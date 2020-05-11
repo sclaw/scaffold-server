@@ -24,10 +24,8 @@ import Data.Maybe
 import Data.Bitraversable
 import Data.Traversable
 import BuildInfo
-import Pretty
-import Control.Concurrent.Lifted
-import Control.Monad
 import Control.Lens.Iso.Extended
+import Data.Functor
 
 controller :: EdgeNodeLanguage -> KatipController (Response [WithField "enum" Country T.Text])
 controller lang = do
@@ -37,14 +35,12 @@ controller lang = do
   let path = country_dir </> lang^.isoEdgeNodeLanguage <> ".yaml"
   let error e = do
         $(logTM) ErrorS (logStr (prettyPrintParseException e))
-        telegram_service <- fmap (^.katipEnv.telegram) ask
-        logger <- askLoggerIO
-        void $ fork $ liftIO $ send telegram_service logger (mkPretty $location (prettyPrintParseException e)^.stext)
+        runTelegram $location $ prettyPrintParseException e^.stext
         pure $ Error.asError @T.Text "error while getting country"
   let ok xs = do
         $(logTM) DebugS (logStr (show xs))
         for xs $ \(WithField x val_m) ->
           pure $ fmap (WithField x) val_m
   response <- liftIO $ decodeFileEither @[(WithField "enum" Country (Maybe T.Text))] path
-  runTelegram $location response
-  fmap (fmap catMaybes . fromEither) $ bitraverse error ok response
+  response' <- fmap (fmap catMaybes . fromEither) $ bitraverse error ok response
+  runTelegram $location response' $> response'
