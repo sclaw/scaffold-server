@@ -23,7 +23,7 @@ import EdgeNode.Transport.Auth
 import EdgeNode.Transport.Feedback
 
 import TH.Mk
-import Data.Validation
+import Validation
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
 import Data.Maybe

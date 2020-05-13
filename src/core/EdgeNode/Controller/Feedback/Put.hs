@@ -22,7 +22,7 @@ import Katip
 import Pretty
 import Data.Aeson.WithField
 import qualified Data.Text as T
-import Data.Validation
+import Validation
 import Data.Bifunctor
 import qualified Network.HTTP.Client as HTTP
 import Control.Monad.IO.Class
@@ -40,11 +40,11 @@ controller x@(WithField recaptcha_resp feedback) = do
 
   case Validator.feedback feedback of
     Failure es -> pure $ Errors (map asError es)
-    Data.Validation.Success _ -> do
+    Validation.Success _ -> do
       captcha_result_e <- verifyReCaptcha recaptcha_resp
       let captcha_result =
             first (map asError) $
-            Data.Validation.fromEither captcha_result_e
+            eitherToValidation captcha_result_e
       fmap (fromValidation . second (const Unit)) $
         for captcha_result $
           const $

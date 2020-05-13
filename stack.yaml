@@ -90,6 +90,7 @@ extra-deps:
   - elocrypt-2.1.0@sha256:2bf49f367186e82b36c434f5304063f5443a0f9e8e00b83636ba5ee62bc39111,2709
   - template-haskell-compat-v0208-0.1.2.1@sha256:039deac4225c1d2fa7ac349f09d2050f8a7b932a892fa040e11d639a12851dc5,1524
   - pretty-simple-3.2.1.0
+  - validation-selective-0.1.0.0@sha256:e02444f8f5ea82c0b63eaba3d7cc5b04d7ff953e46e7486b199a4e16ad881d49,3573
 
 # - acme-missiles-0.3
 # - git: https://github.com/commercialhaskell/stack.git

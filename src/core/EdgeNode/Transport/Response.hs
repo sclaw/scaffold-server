@@ -31,7 +31,7 @@ import Data.Aeson.Extended hiding (Error)
 import qualified Data.Text as T
 import Data.Typeable
 import Data.Swagger hiding (Response)
-import Data.Validation hiding (fromEither)
+import Validation
 import GHC.Exts
 import GHC.Generics
 import Test.QuickCheck.Extended
@@ -92,8 +92,8 @@ instance (ToSchema a, Typeable a) => ToSchema (Response a) where
 instance Arbitrary a => Arbitrary (Response a) where arbitrary = fmap (\x -> Response x [] []) arbitrary
 
 
-fromValidation :: Validate v => v [EdgeNode.Error] a -> Response a
-fromValidation v = either Errors Ok $ v ^. _Either
+fromValidation :: Validation [EdgeNode.Error] a -> Response a
+fromValidation v = either Errors Ok $ validationToEither v
 
 fromEither :: AsError e => Either e a -> Response a
 fromEither = either (Errors . flip (:) [] . asError) Ok
