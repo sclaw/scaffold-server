@@ -49,6 +49,7 @@ import Data.String
 import Data.Int
 import System.IO
 import qualified Web.Telegram as Web.Telegram
+import Logo
 
 data Cmd w =
      Cmd
@@ -70,92 +71,92 @@ instance ParseRecord (Cmd Wrapped)
 deriving instance Show (Cmd Unwrapped)
 
 main :: IO ()
-main =
-    do
-      Cmd {..} <- unwrapRecord "edgenode server"
-      rawCfg <- EdgeNode.Config.load cfgPath
-      let cfg =
-            rawCfg
-            & db.host %~ (`fromMaybe` localhost)
-            & db.port %~ (`fromMaybe` localport)
-            & auth.isAuthEnabled %~ (`fromMaybe` isAuth)
-            & auth.userId %~ (`fromMaybe` user)
-            & katip.path %~ (\path -> maybe path (</> path) pathToKatip)
-            & auth.EdgeNode.Config.jwk %~ (\path -> maybe path (</> path) pathToJwk)
-            & EdgeNode.Config.minio.host %~ (`fromMaybe` minioHost)
-            & EdgeNode.Config.minio.port %~ (`fromMaybe` minioPort)
-            & swagger.host %~ (`fromMaybe` swaggerHost)
-            & swagger.port %~ (`fromMaybe` swaggerPort)
-            & serverConnection.port %~ (`fromMaybe` serverPort)
-      pPrint cfg
+main = do
+  Cmd {..} <- unwrapRecord "edgenode server"
+  rawCfg <- EdgeNode.Config.load cfgPath
+  let cfg =
+        rawCfg
+        & db.host %~ (`fromMaybe` localhost)
+        & db.port %~ (`fromMaybe` localport)
+        & auth.isAuthEnabled %~ (`fromMaybe` isAuth)
+        & auth.userId %~ (`fromMaybe` user)
+        & katip.path %~ (\path -> maybe path (</> path) pathToKatip)
+        & auth.EdgeNode.Config.jwk %~ (\path -> maybe path (</> path) pathToJwk)
+        & EdgeNode.Config.minio.host %~ (`fromMaybe` minioHost)
+        & EdgeNode.Config.minio.port %~ (`fromMaybe` minioPort)
+        & swagger.host %~ (`fromMaybe` swaggerHost)
+        & swagger.port %~ (`fromMaybe` swaggerPort)
+        & serverConnection.port %~ (`fromMaybe` serverPort)
+  pPrint cfg
+  haskellSay "Welcome to EdgeNode!!!"
 
-      term <- hGetTerm stdout
-      hSetBuffering stdout NoBuffering
+  term <- hGetTerm stdout
+  hSetBuffering stdout NoBuffering
 
-      hasqlpool <- Pool.createPool
-        (HasqlConn.acquire (mkRawConn (cfg^.db)) >>=
-         either (throwIO . ErrorCall . maybe "hasql conn error" (^.from textbs.from stext)) pure)
-        HasqlConn.release
-        (cfg^.hasql.poolN)
-        (cfg^.hasql.tm)
-        (cfg^.hasql.resPerStripe)
+  hasqlpool <- Pool.createPool
+    (HasqlConn.acquire (mkRawConn (cfg^.db)) >>=
+      either (throwIO . ErrorCall . maybe "hasql connection error" (^.from textbs.from stext)) pure)
+    HasqlConn.release
+    (cfg^.hasql.poolN)
+    (cfg^.hasql.tm)
+    (cfg^.hasql.resPerStripe)
 
-      std <- mkHandleScribeWithFormatter
-             jsonFormat
-             ColorIfTerminal
-             stdout
-             (permitItem (cfg^.katip.severity.from stringify))
-             (cfg^.katip.verbosity.from stringify)
-      tm <- getCurrentTime
-      let katipFilePath = cfg^.katip.path <> "/" <> show tm <> ".log"
-      fileHdl <- openFile katipFilePath AppendMode
+  std <- mkHandleScribeWithFormatter
+          jsonFormat
+          ColorIfTerminal
+          stdout
+          (permitItem (cfg^.katip.severity.from stringify))
+          (cfg^.katip.verbosity.from stringify)
+  tm <- getCurrentTime
+  let katipFilePath = cfg^.katip.path <> "/" <> show tm <> ".log"
+  fileHdl <- openFile katipFilePath AppendMode
 
-      mapM_ (`hSetEncoding` utf8) [stdout, stderr, fileHdl]
+  mapM_ (`hSetEncoding` utf8) [stdout, stderr, fileHdl]
 
-      file <- mkHandleScribe
-              (ColorLog True)
-              fileHdl
-              (permitItem (cfg^.katip.severity.from stringify))
-              (cfg^.katip.verbosity.from stringify)
-      let mkNm = Namespace [("<" ++ $(gitCommit) ++ ">")^.stext]
-      init_env <- initLogEnv mkNm (cfg^.katip.EdgeNode.Config.env.isoEnv.stext.coerced)
-      let env = do
-            env' <- registerScribe "stdout" std defaultScribeSettings init_env
-            registerScribe "file" file defaultScribeSettings env'
+  file <- mkHandleScribe
+          (ColorLog True)
+          fileHdl
+          (permitItem (cfg^.katip.severity.from stringify))
+          (cfg^.katip.verbosity.from stringify)
+  let mkNm = Namespace [("<" ++ $(gitCommit) ++ ">")^.stext]
+  init_env <- initLogEnv mkNm (cfg^.katip.EdgeNode.Config.env.isoEnv.stext.coerced)
+  let env = do
+        env' <- registerScribe "stdout" std defaultScribeSettings init_env
+        registerScribe "file" file defaultScribeSettings env'
 
-      jwke <- eitherDecode `fmap` B.readFile (cfg^.auth.EdgeNode.Config.jwk)
-      jwke `whenLeft` (error . (<>) "jwk decode error: ")
-      let appCfg =
-           App.Cfg
-           (cfg^.swagger.host.coerced)
-           (cfg^.swagger.port)
-           (cfg^.serverConnection.port)
-           (fromRight' jwke)
-           (cfg^.auth.isAuthEnabled)
-           (cfg^.auth.userId.coerced)
-      let runApp le =
-           runKatipContextT le (mempty :: LogContexts) mempty $
-            do logger <- katipAddNamespace (Namespace ["db", "migration"]) askLoggerIO
-               liftIO $ Migration.run hasqlpool logger
-               App.run appCfg
-      manager <- Http.newTlsManagerWith Http.tlsManagerSettings
-        { managerConnCount = 1
-        , managerResponseTimeout =
-          responseTimeoutMicro (5 * 10^6) }
+  jwke <- eitherDecode `fmap` B.readFile (cfg^.auth.EdgeNode.Config.jwk)
+  jwke `whenLeft` (error . (<>) "jwk decode error: ")
+  let appCfg =
+        App.Cfg
+        (cfg^.swagger.host.coerced)
+        (cfg^.swagger.port)
+        (cfg^.serverConnection.port)
+        (fromRight' jwke)
+        (cfg^.auth.isAuthEnabled)
+        (cfg^.auth.userId.coerced)
+  let runApp le =
+        runKatipContextT le (mempty :: LogContexts) mempty $ do
+          logger <- katipAddNamespace (Namespace ["db", "migration"]) askLoggerIO
+          liftIO $ Migration.run hasqlpool logger
+          App.run appCfg
+  manager <- Http.newTlsManagerWith Http.tlsManagerSettings
+    { managerConnCount = 1
+    , managerResponseTimeout =
+      responseTimeoutMicro (5 * 10^6) }
 
-      minioEnv <-  flip Minio.mkMinioConn manager $
-        Minio.setCreds
-        (Minio.Credentials
-         (cfg^.EdgeNode.Config.minio.accessKey)
-         (cfg^.EdgeNode.Config.minio.secretKey))
-        (fromString (cfg^.EdgeNode.Config.minio.host <> ":" <> cfg^.EdgeNode.Config.minio.port))
+  minioEnv <-  flip Minio.mkMinioConn manager $
+    Minio.setCreds
+    (Minio.Credentials
+     (cfg^.EdgeNode.Config.minio.accessKey)
+     (cfg^.EdgeNode.Config.minio.secretKey))
+    (fromString (cfg^.EdgeNode.Config.minio.host <> ":" <> cfg^.EdgeNode.Config.minio.port))
 
-      telegram <- Web.Telegram.mkService manager (cfg^.EdgeNode.Config.telegram)
+  telegram <- Web.Telegram.mkService manager (cfg^.EdgeNode.Config.telegram)
 
-      let katipMinio = Minio minioEnv (cfg^.EdgeNode.Config.minio.EdgeNode.Config.bucketPrefix)
-      let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) (fromRight' jwke) katipMinio telegram
+  let katipMinio = Minio minioEnv (cfg^.EdgeNode.Config.minio.EdgeNode.Config.bucketPrefix)
+  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) (fromRight' jwke) katipMinio telegram
 
-      bracket env closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)
+  bracket env closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)
 
 mkRawConn :: Db -> HasqlConn.Settings
 mkRawConn x = HasqlConn.settings (x^.host.stext.textbs) (x^.port.to fromIntegral) (x^.EdgeNode.Config.user.stext.textbs) (x^.pass.stext.textbs) (x^.database.stext.textbs)
