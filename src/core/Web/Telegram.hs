@@ -30,7 +30,8 @@ mkService mgr Telegram {..} = do
             response <- flip HTTP.httpLbs mgr $
               HTTP.urlEncodedBody
               [ ("chat_id", toS ("@" <> telegramChat))
-              , ("text", toS chunk)
+              , ("text", "`" <> toS chunk <> "`")
+              , ("parse_mode", "markdown")
               ] req { HTTP.method = "POST" }
             let response_status = HTTP.statusCode $ HTTP.responseStatus response
             let response_body = toS $ HTTP.responseBody response
