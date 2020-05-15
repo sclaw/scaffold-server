@@ -26,7 +26,7 @@ ghc-options:
  #  - -ddump-splices
 
 verbatim:
-  cabal-version: 3.0
+  cabal-version: 2.4
 
 extra-source-files:
 - README.md
