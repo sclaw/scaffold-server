@@ -1,6 +1,6 @@
 name:                edgenode
 version:             1.0.0
-license:             BSD3
+license:             BSD-3-Clause
 author:              "edgeNode"
 maintainer:          "Sergey Yakovlev<fclaw007@gmail.com>"
 copyright:           "2020 edgenode"
@@ -24,6 +24,9 @@ ghc-options:
   - -Wtabs
   - -Wmissing-pattern-synonym-signatures
  #  - -ddump-splices
+
+verbatim:
+  cabal-version: 3.0
 
 extra-source-files:
 - README.md
