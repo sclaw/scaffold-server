@@ -36,8 +36,6 @@ services:
     networks:
       edgeNode:
         ipv4_address: ${SERVER_HOST}
-    labels:
-      somelabel: "server"
 
   storage:
     image: minio/minio:latest

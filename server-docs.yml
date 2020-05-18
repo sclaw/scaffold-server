@@ -1,0 +1,10 @@
+site_name: EdgeNode Server Docs V1
+site_url: http://edgenode.org
+repo_url: https://gitlab.com/edgenode2/server
+copyright: Copyright (c) 2020, EdgeNode
+site_author: fclaw007@gmail.com
+nav:
+  - Overview: index.md
+  - JWT: jwt.md
+  - Auth: auth.md
+theme: windmill
