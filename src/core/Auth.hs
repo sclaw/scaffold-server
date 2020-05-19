@@ -87,9 +87,9 @@ type UserId = Id "user"
 
 data JWTUser =
      JWTUser
-     { jWTUserUserId :: !(Id "user")
-     , jWTUserEmail  :: !T.Text
-     , jWTUserUserRole :: !UserRole
+     { jWTUserUserId           :: !(Id "user")
+     , jWTUserEmail            :: !T.Text
+     , jWTUserUserRole         :: !UserRole
      , jwtUserRefreshTokenHash :: !T.Text
      } deriving stock Show
 
@@ -135,27 +135,25 @@ applyController unauthorized user authorized =
         unkonwnError = Error $ Transport.asError @T.Text (Auth.ErrorUnknownError^.isoError.stext)
 
 jwtAuthCheck :: JWTSettings -> KatipLoggerIO -> Pool.Pool Hasql.Connection -> AuthCheck JWTUser
-jwtAuthCheck cfg logger pool =
-  do
-    headers <- fmap requestHeaders ask
-    jwt <- for (getToken headers) $ \token -> do
-      verified <- liftIO $ runExceptT $ verifyToken cfg token
-      getJWTUser logger verified
-    liftIO $ logger DebugS (logStr (mkPretty "jwt user:" jwt))
-    check <- liftIO $ transaction pool logger $
-      lift (actionCheckToken jwt)
-    let mkErr e = do liftIO (logger ErrorS (logStr e)); mzero
-    either mkErr return check
+jwtAuthCheck cfg logger pool = do
+  headers <- fmap requestHeaders ask
+  jwt <- for (getToken headers) $ \token -> do
+    verified <- liftIO $ runExceptT $ verifyToken cfg token
+    getJWTUser logger verified
+  liftIO $ logger DebugS (logStr (mkPretty "jwt user:" jwt))
+  check <- liftIO $ transaction pool logger $
+    lift (actionCheckToken jwt)
+  let mkErr e = do liftIO (logger ErrorS (logStr e)); mzero
+  either mkErr return check
 
 getToken :: RequestHeaders -> Maybe BS.ByteString
-getToken headers =
-  do
-    authHdr <- lookup "Authorization" headers
-    let bearer = "Bearer "
-        (mbearer, token) =
-         BS.splitAt (BS.length bearer) authHdr
-    guard (mbearer `constEq` bearer)
-    return token
+getToken headers = do
+  authHdr <- lookup "Authorization" headers
+  let bearer = "Bearer "
+      (mbearer, token) =
+        BS.splitAt (BS.length bearer) authHdr
+  guard (mbearer `constEq` bearer)
+  return token
 
 verifyToken :: JWTSettings -> BS.ByteString -> ExceptT Jose.JWTError IO Jose.ClaimsSet
 verifyToken cfg token =
@@ -171,19 +169,19 @@ getJWTUser log (Right claim) = either err return (decodeJWT claim)
 
 actionCheckToken :: Maybe JWTUser -> Hasql.Session (Either String JWTUser)
 actionCheckToken Nothing = return $ Left "access token not found"
-actionCheckToken (Just user) =
-  do
-     let mkStatement =
-          [singletonStatement|
-            select exists
-            (select 1
-             from auth.token
-             where "user_fk" = $1 :: int8
-             and refresh_token_hash = $2 :: text) :: bool|]
-     exists <- Hasql.statement user $
-       flip lmap mkStatement $ \x ->
-         (mkEncoderJWTUser x^._1.coerced, mkEncoderJWTUser x^._4)
-     return $ if exists then Right user else Left "refresh token not found"
+actionCheckToken (Just user) = do
+  let mkStatement =
+        [singletonStatement|
+          select exists (
+            select 1
+            from auth.token
+            where "user_fk" = $1 :: int8
+            and refresh_token_hash = $2 :: text) :: bool|]
+  exists <- Hasql.statement user $
+    flip lmap mkStatement $ \x ->
+      ( mkEncoderJWTUser x^._1.coerced
+      , mkEncoderJWTUser x^._4)
+  return $ if exists then Right user else Left "refresh token not found"
 
 mkAccessToken :: JWK -> Id "user" -> T.Text -> UserRole -> ExceptT JWTError IO (SignedJWT, Time)
 mkAccessToken jwk uid refresh_token_hash utype = do
@@ -202,18 +200,17 @@ mkAccessToken jwk uid refresh_token_hash utype = do
   (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims
 
 mkRefreshToken :: JWK -> T.Text -> ExceptT JWTError IO SignedJWT
-mkRefreshToken jwk unique =
-  do
-    alg <- bestJWSAlg jwk
-    ct <- liftIO getCurrentTime
-    let claims =
-         emptyClaimsSet
-         & claimIss ?~ "edgeNode"
-         & claimIat ?~ NumericDate ct
-         & claimExp ?~ NumericDate (addUTCTime (7 * 10^6) ct)
-         & unregisteredClaims .~
-           HM.singleton "dat" (toJSON unique)
-    signClaims jwk (newJWSHeader ((), alg)) claims
+mkRefreshToken jwk unique = do
+  alg <- bestJWSAlg jwk
+  ct <- liftIO getCurrentTime
+  let claims =
+        emptyClaimsSet
+        & claimIss ?~ "edgeNode"
+        & claimIat ?~ NumericDate ct
+        & claimExp ?~ NumericDate (addUTCTime (7 * 10^6) ct)
+        & unregisteredClaims .~
+          HM.singleton "dat" (toJSON unique)
+  signClaims jwk (newJWSHeader ((), alg)) claims
 
 data BasicUser = BasicUser { basicUserUserId :: !(Id "user") }
 
