@@ -20,13 +20,13 @@ data StatisticsApi route =
      { _statisticsApiGetRegistrations
        :: route
        :- Description "registration per day"
-       :> "registration"
+       :> "registrations"
        :> QueryParam "from" (OnlyField "from" Int32)
        :> Get '[JSON] (Response [WithField "day" T.Text (OnlyField "count" Int32)])
      , _statisticsApiGetActiveUsers
        :: route
        :- Description "active users per day"
-       :> "activeUsers"
+       :> "users"
        :> QueryParam "from" (OnlyField "from" Int32)
        :> Get '[JSON] (Response [WithField "day" T.Text (OnlyField "count" Int32)])
      } deriving stock Generic
