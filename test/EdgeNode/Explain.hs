@@ -19,6 +19,7 @@ import qualified EdgeNode.Statement.Provider
 import qualified EdgeNode.Statement.Auth
 import qualified EdgeNode.Statement.Search
 import qualified EdgeNode.Statement.Feedback
+import qualified EdgeNode.Statement.Statistics
 
 import Database.Migration.Test
 import Test.Hspec hiding (shouldBe)
@@ -123,4 +124,7 @@ explainTests =
     , "removeTrajectory" =>> EdgeNode.Statement.User.removeTrajectory
     , "getUserQualificationValues" =>> EdgeNode.Statement.User.getUserQualificationValues]
   , "EdgeNode.Statement.Feedback" ==> ["put" =>> EdgeNode.Statement.Feedback.put]
+  , "EdgeNode.Statement.Statistics" ==>
+     ["registrations" =>> EdgeNode.Statement.Statistics.registrations
+     , "activeUsers" =>> EdgeNode.Statement.Statistics.activeUsers]
   ]

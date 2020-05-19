@@ -23,6 +23,7 @@ module EdgeNode.Api
        , SiteApi (..)
        , NewsApi (..)
        , EnumApi (..)
+       , StatisticsApi (..)
      --  , WebsocketApi (..)
        , api
        , swaggerHttpApi

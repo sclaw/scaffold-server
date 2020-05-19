@@ -66,7 +66,6 @@ import qualified Data.HashMap.Strict as HM
 import Data.Aeson hiding (Error)
 import Data.Aeson.TH
 import qualified Hasql.Session as Hasql
-import Servant.Server
 import qualified Hasql.Connection as Hasql
 import qualified Data.Pool as Pool
 import Database.Transaction
@@ -249,12 +248,12 @@ instance FromBasicAuthData BasicUser where
            where login = $1 :: text
            and password = $2 :: bytea|])
 
-withUser :: AuthResult user -> (user -> KatipController a) -> KatipController a
+withUser :: AuthResult user -> (user -> KatipController (Response a)) -> KatipController (Response a)
 withUser user controller = do
   resp <- for user controller
   case resp of
     Authenticated resp -> return resp
-    _ -> throwError err403
+    _ -> return $ Error $ Transport.asError @T.Text "authentication required"
 
 mkTokens :: JWK -> (Id "user", UserRole) -> KatipLoggerIO -> IO (Either T.Text (T.Text, (ByteString, Time), ByteString, T.Text))
 mkTokens key cred log = do

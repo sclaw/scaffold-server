@@ -16,6 +16,7 @@ module EdgeNode.Api.Api
        , module EdgeNode.Api.Feedback
        , module EdgeNode.Api.Service
        , module EdgeNode.Api.Site
+       , module EdgeNode.Api.Statistics
        ) where
 
 import Auth
@@ -28,6 +29,7 @@ import EdgeNode.Api.Provider
 import EdgeNode.Api.Feedback
 import EdgeNode.Api.Service
 import EdgeNode.Api.Site
+import EdgeNode.Api.Statistics
 
 import Servant.API.Generic
 import Servant.API
@@ -84,4 +86,10 @@ data HttpApi route =
        :- Tags "Site"
        :> "site"
        :> ToServant SiteApi AsApi
+     , _httpApiStatistics
+       :: route
+       :- Tags "Statistics"
+       :> "statistics"
+       :> Auth '[Servant.Auth.Server.BasicAuth] BasicUser
+       :> ToServant StatisticsApi AsApi
      } deriving stock Generic

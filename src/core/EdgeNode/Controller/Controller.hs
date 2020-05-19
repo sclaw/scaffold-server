@@ -56,6 +56,8 @@ import qualified EdgeNode.Controller.User.Trajectory.Remove as User.Trajectory.R
 import qualified EdgeNode.Controller.Feedback.Put as Feedback.Put
 import qualified EdgeNode.Controller.Service.Enum.GetCountries as Enum.GetCountries
 import qualified EdgeNode.Controller.Service.Enum.GetQualification as Enum.GetQualification
+import qualified EdgeNode.Controller.Statistics.GetActiveUsers as Statistics.GetActiveUsers
+import qualified EdgeNode.Controller.Statistics.GetRegistrations as Statistics.GetRegistrations
 
 import Auth
 import Katip
@@ -89,15 +91,16 @@ verifyAuthorization user_id perm controller = do
 httpApi :: HttpApi (AsServerT KatipController)
 httpApi =
   HttpApi
-  { _httpApiAuth     = toServant auth
-  , _httpApiUser     = (`withAuthResult` (toServant . user))
-  , _httpApiSearch   = toServant search
-  , _httpApiFile     = toServant file
-  , _httpApiAdmin    = (`withAuthResult` (toServant . admin))
-  , _httpApiProvider = (`withAuthResult` (toServant . provider))
-  , _httpApiFeedback = toServant feedback
-  , _httpApiService  = toServant service
-  , _httpApiSite     = toServant site
+  { _httpApiAuth       = toServant auth
+  , _httpApiUser       = (`withAuthResult` (toServant . user))
+  , _httpApiSearch     = toServant search
+  , _httpApiFile       = toServant file
+  , _httpApiAdmin      = (`withAuthResult` (toServant . admin))
+  , _httpApiProvider   = (`withAuthResult` (toServant . provider))
+  , _httpApiFeedback   = toServant feedback
+  , _httpApiService    = toServant service
+  , _httpApiSite       = toServant site
+  , _httpApiStatistics = (`withAuthResult` (toServant . statistics))
   }
 
 site :: SiteApi (AsServerT KatipController)
@@ -484,4 +487,19 @@ provider user =
       (jWTUserUserId x)
       Rbac.PermissionProviderAdmin
       (Provider.PatchQualification.controller ident patch))
+  }
+
+statistics :: AuthResult BasicUser -> StatisticsApi (AsServerT KatipController)
+statistics user =
+  StatisticsApi
+  { _statisticsApiGetRegistrations = \from ->
+    flip logExceptionM ErrorS $
+     katipAddNamespace
+     (Namespace ["statistics", "registrations"])
+     (withUser user (const (Statistics.GetRegistrations.controller from)))
+  , _statisticsApiGetActiveUsers = \from ->
+    flip logExceptionM ErrorS $
+     katipAddNamespace
+     (Namespace ["statistics", "users"])
+     (withUser user (const (Statistics.GetActiveUsers.controller from)))
   }
