@@ -1,14 +1,15 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module EdgeNode.Controller.Statistics.GetRegistrations (controller) where
 
 import EdgeNode.Transport.Response
 import qualified EdgeNode.Statement.Statistics as Statistics
+import EdgeNode.Transport.Statistics
 
 import KatipController
-import qualified Data.Text as T
 import Data.Aeson.WithField.Extended
 import Data.Int
 import Database.Transaction
@@ -16,11 +17,20 @@ import Control.Lens
 import BuildInfo
 import Data.Functor
 import Data.Coerce
+import qualified Data.Vector as V
+import Data.String.Conv
 
-controller :: Maybe (OnlyField "from" Int32) -> KatipController (Response [WithField "day" T.Text (OnlyField "count" Int32)])
+controller :: Maybe (OnlyField "from" Int32) -> KatipController (Response Items)
 controller from = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  let mk tpl = WithField (tpl^._1) $ OnlyField (tpl^._2)
-  response <- fmap (Ok . map mk) $ katipTransaction hasql $
+  let mk tpl = (`V.snoc` Item (toS (tpl^._1)) (fromIntegral (tpl^._2)) (tpl^._3))
+  let mkGrowth _ [] = []
+      mkGrowth xs [x] = reverse $ (x^._1, x^._2, 0) : xs
+      mkGrowth ys (x:next@(y:xs)) =
+        let growth = round $ fromIntegral (y^._2 - x^._2) / (fromIntegral (x^._2)) * 100
+        in mkGrowth ((x^._1, x^._2, growth):ys) next
+  response <-
+    fmap (Ok . Items . mempty . foldMap mk . mkGrowth []) $
+    katipTransaction hasql $
     statement Statistics.registrations (coerce from)
   runTelegram $location response $> response
