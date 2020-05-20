@@ -24,7 +24,7 @@ mkService mgr Telegram {..} = do
   let url = telegramHost <> telegramBot <> "/sendMessage"
   req <- HTTP.parseRequest $ T.unpack url
   let send logger msg = catch @IO @HTTP.HttpException (
-        when (telegramEnv == Development) $ do
+        when (telegramEnv == Dev) $ do
           for_ (splitByteString (toS msg)) $ \chunk -> do
             void $ logger DebugS (ls ("telegram req: " <> chunk))
             response <- flip HTTP.httpLbs mgr $

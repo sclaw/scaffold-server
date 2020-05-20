@@ -63,6 +63,7 @@ import Data.Int
 import qualified Data.Text as T
 import TH.Mk
 import Data.String.Conv
+import Debug.Trace
 
 data Db = Db
      { dbHost :: !String
@@ -82,11 +83,11 @@ data HasqlSettings =
      , hasqlSettingsResPerStripe :: !Int
      } deriving Show
 
-data Env = Prodution | Development deriving (Show, Eq)
+data Env = Prod | Dev deriving (Show, Eq)
 
 mkEnumConvertor ''Env
 
-instance FromJSON Env where parseJSON = withText "EdgeNode.Config:Env" (pure . toEnv . toS)
+instance FromJSON Env where parseJSON = withText "EdgeNode.Config:Env" (pure . (\x -> trace x (toEnv x)) . toS)
 
 data Katip =
      Katip
