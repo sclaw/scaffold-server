@@ -1,7 +1,7 @@
 create schema if not exists stat;
 create table stat.api_call_counter (
   api text not null,
-  created timestamptz not null default now(),
+  created date not null default (now() :: date),
   user_fk int8 not null constraint "api_call_counter___user_id_fk" references auth.user(id)
 );
 create index api_call_counter__api__idx on stat.api_call_counter (api);
