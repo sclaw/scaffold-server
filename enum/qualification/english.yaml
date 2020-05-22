@@ -1,0 +1,107 @@
+qualificationDegree:
+ - enum: BSc
+   value:
+ - enum: BA
+   value:
+ - enum: MSc
+   value:
+ - enum: MA
+   value:
+ - enum: MRes
+   value:
+ - enum: Bakalavr
+   value:
+ - enum: Magistr
+   value:
+ - enum: AdvancedLevelGCE
+   value:
+ - enum: UnifiedStateExam
+   value:
+ - enum: ToeflIBT
+   value:
+ - enum: ToeflPBT
+   value:
+ - enum: TestDeConnaissanceDuFrançaisTCF
+   value:
+ - enum: IELTS
+   value:
+
+studyTime:
+ - enum: PartTime
+   value:
+ - enum: FullTime
+   value:
+ - enum: Sandwich
+   value:
+ - enum: None
+   value:
+
+academicArea:
+ - enum: Mathematics
+   value:
+ - enum: History
+   value:
+ - enum: Physiology
+   value:
+ - enum: Archaeology
+   value:
+ - enum: Architecture
+   value:
+ - enum: ArtAndDesign
+   value:
+ - enum: Linguistics
+   value:
+ - enum: LanguageStandardizedTesting
+   value:
+ - enum: Theology
+   value:
+ - enum: Philosophy
+   value:
+ - enum: ComputerScienceAndInformatics
+   value:
+ - enum: Engineering
+   value:
+ - enum: EarthAndMarineSciences
+   value:
+ - enum: Medicine
+   value:
+ - enum: Psychology
+   value:
+ - enum: BiologicalSciences
+   value:
+ - enum: Chemistry
+   value:
+ - enum: PhysicsAndAstronomy
+   value:
+ - enum: AccountingAndFinance
+   value:
+ - enum: Anthropology
+   value:
+ - enum: BusinessAndManagement
+   value:
+ - enum: CommunicationAndMedia
+   value:
+ - enum: Law
+   value:
+ - enum: PoliticsAndSociology
+   value:
+ - enum: EconomicsAndEconometrics
+   value:
+
+period:
+ - enum: Annum
+   value:
+ - enum: Month
+   value:
+ - enum: Day
+   value:
+
+currency:
+ - enum: RUB
+   value:
+ - enum: USD
+   value:
+ - enum: EUR
+   value:
+ - enum: GBP
+   value:
