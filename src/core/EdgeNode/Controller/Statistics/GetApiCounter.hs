@@ -2,8 +2,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeApplications #-}
 
-module EdgeNode.Controller.Statistics.GetRegistrations (controller) where
+module EdgeNode.Controller.Statistics.GetApiCounter (controller) where
 
 import EdgeNode.Transport.Response
 import qualified EdgeNode.Statement.Statistics as Statistics
@@ -15,4 +16,4 @@ import Data.Aeson.WithField.Extended
 import Data.Int
 
 controller :: Maybe (OnlyField "from" Int32) -> KatipController (Response Items)
-controller = go Statistics.registrations
+controller = go Statistics.apiCounter

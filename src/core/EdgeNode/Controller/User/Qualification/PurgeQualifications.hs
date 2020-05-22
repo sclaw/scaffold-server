@@ -21,5 +21,7 @@ controller :: Id "provider" -> [Id "qualification"] -> UserId -> KatipController
 controller provider_id xs user_id = do
   runTelegram $location (provider_id, xs, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  response <- fmap Ok $ katipTransaction hasql $ statement User.purgeQualifications (provider_id, user_id, xs)
+  response <- fmap Ok $ katipTransaction hasql $ do
+    statement User.apiCaller ($location, user_id)
+    statement User.purgeQualifications (provider_id, user_id, xs)
   runTelegram $location response $> response

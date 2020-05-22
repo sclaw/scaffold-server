@@ -41,6 +41,7 @@ controller qualification_id patch@(PatchQualification {..}) user_id  = do
   fmap (fromValidation . bimap (map Error.asError) (const Unit)) $
     for (qualififcationPatch patch) $ const $
       katipTransaction hasql $ do
+        statement Provider.apiCaller ($location, user_id)
         for_ patchQualificationItem $ \patch ->
           statement Provider.patchQualification
          (qualification_id, user_id, patch)

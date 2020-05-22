@@ -126,5 +126,7 @@ explainTests =
   , "EdgeNode.Statement.Feedback" ==> ["put" =>> EdgeNode.Statement.Feedback.put]
   , "EdgeNode.Statement.Statistics" ==>
      ["registrations" =>> EdgeNode.Statement.Statistics.registrations
-     , "activeUsers" =>> EdgeNode.Statement.Statistics.activeUsers]
+     , "activeUsers" =>> EdgeNode.Statement.Statistics.activeUsers
+     , "apiCaller" =>> EdgeNode.Statement.Statistics.apiCaller
+     , "apiCounter" =>> EdgeNode.Statement.Statistics.apiCounter]
   ]

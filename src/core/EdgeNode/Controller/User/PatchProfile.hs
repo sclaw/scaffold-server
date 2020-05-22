@@ -21,5 +21,6 @@ controller patch user_id = do
   runTelegram $location (patch, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap (const (Ok Unit)) $
-    katipTransaction hasql $
+    katipTransaction hasql $ do
+      statement User.apiCaller ($location, user_id)
       statement User.patchProfile (user_id, patch)

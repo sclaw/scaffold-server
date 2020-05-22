@@ -13,6 +13,7 @@ import qualified EdgeNode.Transport.Validator as Validator
 import EdgeNode.Statement.Provider as Provider
 import EdgeNode.Transport.Qualification
 
+import Auth
 import KatipController
 import Katip
 import Pretty
@@ -32,13 +33,15 @@ controller
       "branch"
       (Id "branch")
       QualificationBuilder)
+  -> UserId
   -> KatipController (Response (Id "qualification"))
-controller builder = do
+controller builder user_id = do
   $(logTM) DebugS (logStr ("builder: " ++ mkPretty mempty builder))
   runTelegram $location builder
   let save = do
         hasql <- fmap (^.katipEnv.hasqlDbPool) ask
         katipTransaction hasql $ do
+          statement Provider.apiCaller ($location, user_id)
           let qualification =
                 builder
                 & position @2 %~

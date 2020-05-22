@@ -29,4 +29,10 @@ data StatisticsApi route =
        :> "users"
        :> QueryParam "from" (OnlyField "from" Int32)
        :> Get '[JSON] (Response Items)
+     , _statisticsApiGetApiCounter
+       :: route
+       :- Description "api counter per day"
+       :> "api"
+       :> QueryParam "from" (OnlyField "from" Int32)
+       :> Get '[JSON] (Response Items)
      } deriving stock Generic

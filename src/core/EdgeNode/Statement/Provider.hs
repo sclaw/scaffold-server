@@ -38,6 +38,7 @@ module EdgeNode.Statement.Provider
        , deleteClusters
        , deleteDeps
        , getDepsQualifiationValues
+       , apiCaller
        ) where
 
 import EdgeNode.Transport.Id
@@ -47,6 +48,7 @@ import EdgeNode.Transport.Extended
 import EdgeNode.Transport.Qualification
 import EdgeNode.Transport.Validator (degreeToValues)
 import qualified EdgeNode.Transport.Error as Error
+import EdgeNode.Statement.Statistics (apiCaller)
 
 import KatipController
 import Katip

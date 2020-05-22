@@ -58,6 +58,7 @@ import qualified EdgeNode.Controller.Service.Enum.GetCountries as Enum.GetCountr
 import qualified EdgeNode.Controller.Service.Enum.GetQualification as Enum.GetQualification
 import qualified EdgeNode.Controller.Statistics.GetActiveUsers as Statistics.GetActiveUsers
 import qualified EdgeNode.Controller.Statistics.GetRegistrations as Statistics.GetRegistrations
+import qualified EdgeNode.Controller.Statistics.GetApiCounter as Statistics.GetApiCounter
 
 import Auth
 import Katip
@@ -414,7 +415,7 @@ provider user =
        verifyAuthorization
        (jWTUserUserId x)
        Rbac.PermissionProviderAdmin
-       (const (QualificationBuilder.Create.controller builder)))
+       (QualificationBuilder.Create.controller builder))
   , _providerApiBuilderGetAvailableBranches =
     flip logExceptionM ErrorS $
      katipAddNamespace
@@ -502,4 +503,9 @@ statistics user =
      katipAddNamespace
      (Namespace ["statistics", "users"])
      (withUser user (const (Statistics.GetActiveUsers.controller from)))
+  , _statisticsApiGetApiCounter = \from ->
+    flip logExceptionM ErrorS $
+     katipAddNamespace
+     (Namespace ["statistics", "api"])
+     (withUser user (const (Statistics.GetApiCounter.controller from)))
   }

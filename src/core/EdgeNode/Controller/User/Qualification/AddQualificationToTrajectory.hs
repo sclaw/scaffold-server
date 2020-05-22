@@ -29,7 +29,8 @@ controller :: [WithId (Id "qualification") AddQualificationRequest] -> UserId ->
 controller qualifications user_id = do
   runTelegram $location (qualifications, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  resp <- katipTransactionViolationError hasql $
+  resp <- katipTransactionViolationError hasql $ do
+    statement User.apiCaller ($location, user_id)
     statement User.addQualification (user_id, qualifications)
   $(logTM) DebugS (logStr (show resp))
   response <- fmap fromEither $ for resp $ \xs -> do

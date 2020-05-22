@@ -4,7 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeApplications #-}
 
-module EdgeNode.Controller.Statistics.GetActiveUsers (controller) where
+module EdgeNode.Controller.Statistics.GetActiveUsers (controller, go) where
 
 import EdgeNode.Transport.Response
 import qualified EdgeNode.Statement.Statistics as Statistics
@@ -21,11 +21,16 @@ import Data.Functor
 import Data.Coerce
 import qualified Data.Vector as V
 import Data.String.Conv
+import Hasql.Statement
+import qualified Data.Text as T
 
 controller :: Maybe (OnlyField "from" Int32) -> KatipController (Response Items)
-controller from = do
+controller = go Statistics.activeUsers
+
+go :: Statement (Maybe Int32) [(T.Text, Int32)] -> Maybe (OnlyField "from" Int32) -> KatipController (Response Items)
+go st from = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   let mk tpl = (`V.snoc` Items_Value (toS (tpl^._1)) (fromIntegral (tpl^._2)))
-  response <- katipTransaction hasql $ statement Statistics.activeUsers (coerce from)
+  response <- katipTransaction hasql $ statement st (coerce from)
   $(logTM) DebugS $ logStr $ show $ ($ mempty) $ foldMap mk response
   runTelegram $location response $> (Ok . Items . ($ mempty) . foldMap mk) response

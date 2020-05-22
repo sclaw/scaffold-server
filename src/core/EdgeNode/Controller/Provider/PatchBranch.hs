@@ -8,10 +8,10 @@
 module EdgeNode.Controller.Provider.PatchBranch (controller) where
 
 import EdgeNode.Transport.Response
-import EdgeNode.Transport.Id
 import qualified EdgeNode.Statement.Provider as Provider
 import EdgeNode.Transport.Extended
 
+import Auth
 import Katip
 import KatipController
 import Data.Aeson.Unit
@@ -21,7 +21,7 @@ import Control.Lens
 import Database.Transaction
 import BuildInfo
 
-controller :: [PatchBranchReq] -> Id "user" -> KatipController (Response Unit)
+controller :: [PatchBranchReq] -> UserId -> KatipController (Response Unit)
 controller xs user_id = do
   $(logTM) DebugS (logStr ("branches to be patched: " ++ mkPretty mempty xs))
   runTelegram $location (xs, user_id)
@@ -32,5 +32,6 @@ controller xs user_id = do
         )
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   fmap (const (Ok Unit)) $
-    katipTransactionViolationError hasql $
-    statement Provider.updateBranches xs'
+    katipTransactionViolationError hasql $ do
+      statement Provider.apiCaller ($location, user_id)
+      statement Provider.updateBranches xs'

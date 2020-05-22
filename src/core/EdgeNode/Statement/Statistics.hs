@@ -4,8 +4,16 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeApplications #-}
 
-module EdgeNode.Statement.Statistics (registrations, activeUsers) where
+module EdgeNode.Statement.Statistics
+       ( registrations
+       , activeUsers
+       , apiCaller
+       , apiCounter
+       ) where
 
+import EdgeNode.Transport.Id
+
+import Auth
 import qualified Hasql.Statement as HS
 import Hasql.TH
 import Control.Lens
@@ -13,6 +21,7 @@ import Control.Foldl
 import qualified Data.Text as T
 import Data.Int
 import Data.String.Conv
+import Data.Coerce
 
 registrations :: HS.Statement (Maybe Int32) [(T.Text, Int32)]
 registrations =
@@ -58,3 +67,13 @@ activeUsers =
      group by d.day
      order by d.day|] $
   premap (& _1 %~ (toS . show)) list
+
+apiCaller :: HS.Statement (T.Text, UserId) ()
+apiCaller =
+  lmap (& _2 %~ (coerce @UserId @Int64)) $
+  [resultlessStatement|
+    insert into stat.api_call_counter (api, created, user_fk)
+    values ($1 :: text, now(), $2 :: int8)|]
+
+apiCounter :: HS.Statement (Maybe Int32) [(T.Text, Int32)]
+apiCounter = undefined

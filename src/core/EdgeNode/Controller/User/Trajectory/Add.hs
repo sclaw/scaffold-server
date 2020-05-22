@@ -34,6 +34,7 @@ controller qualification_id user_id = do
   runTelegram $location (qualification_id, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   resp <- katipTransactionViolationError hasql $ do
+    statement User.apiCaller ($location, user_id)
     deps_m <- statement Provider.getDepsQualifiationValues qualification_id
     compatilbity_m <- for deps_m $ \dep_xs -> do
        user_xs_m <- statement User.getUserQualificationValues user_id

@@ -25,6 +25,7 @@ module EdgeNode.Statement.User
        , getTrajectories
        , removeTrajectory
        , getUserQualificationValues
+       , apiCaller
        ) where
 
 import EdgeNode.Transport.Id
@@ -36,6 +37,7 @@ import EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries
        (EdgeNodeCountryCapture (..))
 import qualified EdgeNode.Transport.Error as Error
 import EdgeNode.Transport.Qualification
+import EdgeNode.Statement.Statistics (apiCaller)
 
 import qualified Hasql.Statement as HS
 import Auth
