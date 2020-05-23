@@ -90,7 +90,7 @@ apiCounter =
        order by created
        asc limit 1),
      api_counter as (
-       select created, api, count(distinct "user_fk") as cnt
+       select created, api, count("user_fk") as cnt
        from stat.api_call_counter
        group by created, api)
      select
@@ -99,7 +99,8 @@ apiCounter =
         'api',
         ac.api,
         'count',
-        ac.cnt) order by api) filter (where api is not null) :: jsonb[]?
+        ac.cnt) order by api)
+      filter (where api is not null) :: jsonb[]?
      from (select t.day :: date
        from generate_series(
          (select
