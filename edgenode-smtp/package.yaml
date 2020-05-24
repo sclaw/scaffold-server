@@ -1,0 +1,68 @@
+name:                edgenode-smtp
+version:             1.0.0
+license:             BSD-3-Clause
+author:              "edgeNode"
+maintainer:
+ - "Sergey Yakovlev, home<fclaw007@gmail.com>"
+ - "Sergey Yakovlev, work<s.yakovlev@edgenode.org>"
+copyright:           "2020 edgenode"
+ghc-options:
+  - -threaded
+  - -rtsopts
+  - -O2
+  - -Werror
+  - -fwarn-unused-imports
+  - -Wredundant-constraints
+  - -Wduplicate-exports
+  - -Widentities
+  - -Wincomplete-record-updates
+  - -Wmissing-fields
+  - -Wmissing-exported-signatures
+  - -Wunused-binds
+  - -Wwrong-do-bind
+  - -Wcpp-undef
+  - -Wunused-do-bind
+  - -Wunused-pattern-binds
+  - -Wtabs
+  - -Wmissing-pattern-synonym-signatures
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/githubuser/edgenode-smtp#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+
+executables:
+  edgenode-smtp:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - edgenode-smtp
+
+tests:
+  edgenode-smtp-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - edgenode-smtp

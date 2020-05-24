@@ -1,0 +1,58 @@
+cabal-version: 2.2
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 410e1c8d00da89e35ea04fdda5c7d79435f4330cf2d5ec447f24896f80b22a04
+
+name:           edgenode-smtp
+version:        1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/edgenode-smtp#readme>
+author:         edgeNode
+maintainer:     Sergey Yakovlev, home<fclaw007@gmail.com>,
+                Sergey Yakovlev, work<s.yakovlev@edgenode.org>
+copyright:      2020 edgenode
+license:        BSD-3-Clause
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+library
+  exposed-modules:
+      Lib
+  other-modules:
+      Paths_edgenode_smtp
+  hs-source-dirs:
+      src
+  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures
+  build-depends:
+      base >=4.7 && <5
+  default-language: Haskell2010
+
+executable edgenode-smtp
+  main-is: Main.hs
+  other-modules:
+      Paths_edgenode_smtp
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , edgenode-smtp
+  default-language: Haskell2010
+
+test-suite edgenode-smtp-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_edgenode_smtp
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -O2 -Werror -fwarn-unused-imports -Wredundant-constraints -Wduplicate-exports -Widentities -Wincomplete-record-updates -Wmissing-fields -Wmissing-exported-signatures -Wunused-binds -Wwrong-do-bind -Wcpp-undef -Wunused-do-bind -Wunused-pattern-binds -Wtabs -Wmissing-pattern-synonym-signatures -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , edgenode-smtp
+  default-language: Haskell2010
