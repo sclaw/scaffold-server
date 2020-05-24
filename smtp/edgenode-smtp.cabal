@@ -4,11 +4,11 @@ cabal-version: 2.2
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 410e1c8d00da89e35ea04fdda5c7d79435f4330cf2d5ec447f24896f80b22a04
+-- hash: b4657f9cb24575a95e5b5f1e2d1fa5609a38478126eecacf4d5a70e37a955891
 
 name:           edgenode-smtp
 version:        1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/edgenode-smtp#readme>
+description:    Please see the README on GitHub at <https://gitlab.com/edgenode2/server/-/blob/master/smtp/README.md>
 author:         edgeNode
 maintainer:     Sergey Yakovlev, home<fclaw007@gmail.com>,
                 Sergey Yakovlev, work<s.yakovlev@edgenode.org>

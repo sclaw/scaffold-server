@@ -29,7 +29,7 @@ allow-newer: true
 #
 packages:
  - .
- - edgenode-smtp
+ - smtp
 # - git: git@github.com:sclaw/doctest-discover.git
 # - some-directory
 # - https://example.com/foo/bar/baz-0.0.2.tar.gz
