@@ -175,7 +175,7 @@ logUncaughtException log runTelegram req e = when (Warp.defaultShouldDisplayExce
           log ErrorS (logStr ("\"GET " <> rawPathInfo r^.from textbs.from stext <> " HTTP/1.1\" 500 - " <> show e))
 
 mkResponse :: SomeException  -> Response
-mkResponse error = responseLBS status500 [("Access-Control-Allow-Origin", "*")] (showt error^.textbsl)
+mkResponse error = responseLBS status500 [("Access-Control-Allow-Origin", "http://edgenode.org")] (showt error^.textbsl)
 
 deriving instance Generic CorsResourcePolicy
 
@@ -184,7 +184,9 @@ mkCors =
   cors $ const $ pure $
     simpleCorsResourcePolicy
     & field @"corsRequestHeaders" .~
-      ["Authorization", "Content-Type", "Access-Control-Allow-Origin:*"]
+      [ "Authorization"
+      , "Content-Type"
+      , "Access-Control-Allow-Origin: http://edgenode.org"]
     & field @"corsExposedHeaders" ?~
       ["X-Set-Bearer"]
     & field @"corsMethods" .~
