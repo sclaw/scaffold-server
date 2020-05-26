@@ -678,7 +678,8 @@ getQualificationById =
         with
           clusters as (
             select
-              pbqd.cluster,
+              pbqdc.cluster,
+              pbqdc.title,
               pbqd.dependency_fk as ident,
               array_agg(jsonb_build_object(
               'position', pbqd.position,
@@ -692,12 +693,14 @@ getQualificationById =
                  'title', pbq.title),
                'requiredDegree', pbqd.required_degree))
                 order by pbqd.position) as dependencies
-            from edgenode.provider_branch_qualification_dependency as pbqd
+            from edgenode.provider_branch_qualification_dependency_cluster as pbqdc
+            inner join edgenode.provider_branch_qualification_dependency as pbqd
+            on pbqd.cluster_fk = pbqdc.id
             inner join edgenode.provider_branch_qualification as pbq
             on pbqd.provider_branch_qualification_fk = pbq.id
             inner join edgenode.provider_branch as pb
             on pbq.provider_branch_fk = pb.id
-            group by pbqd.cluster, pbqd.dependency_fk),
+            group by pbqdc.cluster, pbqdc.title, pbqd.dependency_fk),
           fees as (
             select
               pbq.id as ident,
@@ -727,6 +730,7 @@ getQualificationById =
           pbq.min_degree_value :: text?,
           array_agg(jsonb_build_object(
             'cluster', c.cluster,
+            'title', c.title,
             'value', jsonb_build_object('dependencies', c.dependencies)
           )) :: jsonb[],
         pb.id :: int8,
