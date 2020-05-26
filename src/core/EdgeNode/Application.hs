@@ -183,11 +183,13 @@ mkCors :: Middleware
 mkCors =
   cors $ const $ pure $
     simpleCorsResourcePolicy
+    & field @"corsOrigins" .~ Just (["http://edgenode.org"], True)
     & field @"corsRequestHeaders" .~
       [ "Authorization"
       , "Content-Type"
-      , "Access-Control-Allow-Origin: http://edgenode.org"]
+      , "Origin"]
     & field @"corsExposedHeaders" ?~
       ["X-Set-Bearer"]
     & field @"corsMethods" .~
-      simpleMethods ++ ["PUT", "PATCH", "DELETE", "OPTIONS"]
+      simpleMethods <>
+      ["PUT", "PATCH", "DELETE", "OPTIONS"]
