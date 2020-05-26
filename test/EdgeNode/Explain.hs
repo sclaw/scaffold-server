@@ -97,6 +97,7 @@ explainTests =
     , "patchQualification" =>> EdgeNode.Statement.Provider.patchQualification
     , "deleteFees" =>> EdgeNode.Statement.Provider.deleteFees
     , "patchClusters" =>> EdgeNode.Statement.Provider.patchClusters
+    , "patchDeps" =>> EdgeNode.Statement.Provider.patchDeps
     , "getDepsQualifiationValues" =>> EdgeNode.Statement.Provider.getDepsQualifiationValues]
   , "EdgeNode.Statement.Auth" ==>
     [ "getUserCred" =>> EdgeNode.Statement.Auth.getUserCred

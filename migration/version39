@@ -26,4 +26,6 @@ with clusters as
   set cluster_fk = cls.id
   from cluster_ids as cls where dependency_fk = cls.dep and cluster = cl;
 
+alter table  edgenode.provider_branch_qualification_dependency drop constraint provider_branch_qualification_dependency__cluster__provider_branch_qualification_fk__dependency_fk;
+
 alter table edgenode.provider_branch_qualification_dependency drop column cluster;

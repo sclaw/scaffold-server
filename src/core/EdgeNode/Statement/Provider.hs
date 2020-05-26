@@ -35,6 +35,7 @@ module EdgeNode.Statement.Provider
        , patchQualification
        , patchTuitionFees
        , patchClusters
+       , patchDeps
        , deleteFees
        , deleteClusters
        , deleteDeps
@@ -678,9 +679,10 @@ getQualificationById =
         with
           clusters as (
             select
+              pbqdc.id as cluster_ident,
               pbqdc.cluster,
               pbqdc.title,
-              pbqd.dependency_fk as ident,
+              pbqd.dependency_fk as dep_ident,
               array_agg(jsonb_build_object(
               'position', pbqd.position,
               'ident', pbqd.id,
@@ -700,7 +702,7 @@ getQualificationById =
             on pbqd.provider_branch_qualification_fk = pbq.id
             inner join edgenode.provider_branch as pb
             on pbq.provider_branch_fk = pb.id
-            group by pbqdc.cluster, pbqdc.title, pbqd.dependency_fk),
+            group by pbqdc.id, pbqdc.cluster, pbqdc.title, pbqd.dependency_fk),
           fees as (
             select
               pbq.id as ident,
@@ -731,6 +733,7 @@ getQualificationById =
           array_agg(jsonb_build_object(
             'cluster', c.cluster,
             'title', c.title,
+            'ident', c.cluster_ident,
             'value', jsonb_build_object('dependencies', c.dependencies)
           )) :: jsonb[],
         pb.id :: int8,
@@ -744,7 +747,7 @@ getQualificationById =
         left join edgenode.provider_branch_qualification as pbq
         on pb.id = pbq.provider_branch_fk
         left join clusters as c
-        on pbq.id = c.ident
+        on pbq.id = c.dep_ident
         left join fees as f
         on pbq.id = f.ident
         where pu.user_id = $1 :: int8 and pbq.id = $2 :: int8 and not pbq.is_deleted
@@ -831,28 +834,38 @@ patchQualification = lmap mkEncoder statement
           on pbq.provider_branch_fk = pb.id
           where pu.user_id = $2 :: int8 and pbq.id = $1 :: int8 and not pbq.is_deleted)|]
 
-patchClusters :: HS.Statement (Id "qualification", V.Vector (Int32, Int32, Dependency)) ()
-patchClusters = lmap mkTpl statement
+patchClusters :: HS.Statement (V.Vector (Int64, Maybe T.Text)) ()
+patchClusters =
+  lmap V.unzip $
+  [resultlessStatement|
+    update edgenode.provider_branch_qualification_dependency_cluster
+    set title = coalesce(tl, title)
+    from unnest($1 :: int8[], $2 :: text?[]) as x(ident, tl)
+    where id = ident|]
+
+patchDeps :: HS.Statement (Id "qualification", V.Vector (Int64, Dependency)) ()
+patchDeps =
+  lmap mkTpl statement
   where
     mkTpl (i, xs) =
       consT (coerce i) $
-      V.unzip5 $
-      xs <&> \(c, p, dep) ->
-        consT c $
-        consT p $
+      V.unzip4 $
+      xs <&> \(ident, dep) ->
+        consT ident $
         ((mkEncoderDependency dep)
           & _1 %~ (^.academicArea)
           & _2 %~ fromIntegral
           & _3 %~ (^.lazytext))
     statement =
       [resultlessStatement|
-        insert into edgenode.provider_branch_qualification_dependency
-        (provider_branch_qualification_fk, cluster, position, academic_area, dependency_fk, required_degree)
-        select dep, cl, pos, area, $1 :: int8, val
-        from unnest($2 :: int4[], $3 :: int4[], $4 :: text[], $5 :: int8[], $6 :: text[])
-        as x(cl, pos, area, dep, val)
-        on conflict (cluster, provider_branch_qualification_fk, dependency_fk)
-        do update set required_degree = excluded.required_degree, modified = now()|]
+        update edgenode.provider_branch_qualification_dependency
+        set academic_area = area,
+            required_degree = val,
+            provider_branch_qualification_fk = dep,
+            modified = now()
+        from unnest($2 :: int8[], $3 :: text[], $4 :: int8[], $5 :: text[])
+        as x(ident, area, dep, val)
+        where dependency_fk = $1 :: int8 and cluster_fk = ident|]
 
 instance ParamsShow PatchTuitionFees_Fees where
   render fees =
