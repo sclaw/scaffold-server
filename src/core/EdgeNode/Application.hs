@@ -17,12 +17,14 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 
 module EdgeNode.Application (Cfg (..), AppMonad (..), run) where
 
 import EdgeNode.Api
 import qualified EdgeNode.Controller.Controller as Controller
 import EdgeNode.Transport.Id
+import qualified EdgeNode.Config as Cfg
 
 import Auth
 import KatipController
@@ -61,6 +63,7 @@ import Control.Concurrent.Lifted
 import Pretty
 import Data.Either.Combinators
 import Control.Exception
+import Data.String.Conv
 
 data Cfg =
      Cfg
@@ -72,6 +75,7 @@ data Cfg =
      , cfgJwk           :: !JWK
      , cfgIsAuthEnabled :: !Bool
      , cfgUserId        :: !(Id "user")
+     , cfgCors          :: !Cfg.Cors
      }
 
 newtype AppMonad a = AppMonad { runAppMonad :: RWS.RWST KatipEnv KatipLogger KatipState IO a }
@@ -154,16 +158,16 @@ run Cfg {..} =
                   :. (BasicAuthCfgData (cfg^.katipEnv.hasqlDbPool) ctxlog)
                   :. EmptyContext
       let runServer = serveWithContext (withSwagger api) mkCtx server
-      mware <-katipAddNamespace (Namespace ["middleware"]) askLoggerIO
+      mware_logger <-katipAddNamespace (Namespace ["middleware"]) askLoggerIO
 
       path <- liftIO getCurrentDirectory
       let tls_settings = (Warp.tlsSettings (path </> "tls/certificate") (path </> "tls/key")) { Warp.onInsecure = Warp.AllowInsecure }
 
-      servAsync <- liftIO $ async $ Warp.runTLS tls_settings settings (middleware mware runServer)
+      servAsync <- liftIO $ async $ Warp.runTLS tls_settings settings (middleware cfgCors mware_logger runServer)
       liftIO (void (waitAnyCancel [servAsync])) `logExceptionM` ErrorS
 
-middleware :: KatipLoggerIO -> Application -> Application
-middleware log app = mkCors $ Middleware.logger log app
+middleware :: Cfg.Cors -> KatipLoggerIO -> Application -> Application
+middleware cors log app = mkCors cors $ Middleware.logger log app
 
 logUncaughtException :: KatipLoggerIO -> (KatipLoggerIO -> String -> IO ()) -> Maybe Request -> SomeException -> IO ()
 logUncaughtException log runTelegram req e = when (Warp.defaultShouldDisplayException e) $ maybe without within req
@@ -175,19 +179,20 @@ logUncaughtException log runTelegram req e = when (Warp.defaultShouldDisplayExce
           log ErrorS (logStr ("\"GET " <> rawPathInfo r^.from textbs.from stext <> " HTTP/1.1\" 500 - " <> show e))
 
 mkResponse :: SomeException  -> Response
-mkResponse error = responseLBS status500 [("Access-Control-Allow-Origin", "http://edgenode.org")] (showt error^.textbsl)
+mkResponse error = responseLBS status500 mempty (showt error^.textbsl)
 
 deriving instance Generic CorsResourcePolicy
 
-mkCors :: Middleware
-mkCors =
+mkCors :: Cfg.Cors -> Middleware
+mkCors cfg_cors =
   cors $ const $ pure $
     simpleCorsResourcePolicy
-    & field @"corsOrigins" .~ Just (["http://edgenode.org"], True)
+    & field @"corsOrigins" .~ fmap ((, True) . map toS) (Cfg.corsOrigins cfg_cors)
     & field @"corsRequestHeaders" .~
       [ "Authorization"
       , "Content-Type"
-      , "Origin"]
+      , "Origin"
+      , "Access-Control-Allow-Origin"]
     & field @"corsExposedHeaders" ?~
       ["X-Set-Bearer"]
     & field @"corsMethods" .~

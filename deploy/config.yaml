@@ -45,3 +45,9 @@ configTelegram:
   telegramChat: edgenode_server
   telegramHost: https://api.telegram.org/
   telegramEnv: dev
+
+configCors:
+  corsOrigins:
+    - http://edgenode.org
+    - http://localhost:3000
+    - http://localhost:12000

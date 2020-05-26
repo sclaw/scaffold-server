@@ -17,6 +17,7 @@ module EdgeNode.Config
        , Swagger (..)
        , Telegram (..)
        , Env (..)
+       , Cors (..)
        , db
        , pass
        , port
@@ -48,6 +49,8 @@ module EdgeNode.Config
        , chat
        , telegram
        , serverConnection
+       , cors
+       , origins
          -- * Iso
        , isoEnv
        )
@@ -132,6 +135,8 @@ data Telegram =
 newtype ServerConnection = ServerConnection { serverConnectionPort :: Int }
   deriving Show
 
+newtype Cors = Cors { corsOrigins :: (Maybe [T.Text]) } deriving Show
+
 data Config =
      Config
      { configDb :: !Db
@@ -143,6 +148,7 @@ data Config =
      , configMinio :: !Minio
      , configTelegram :: !Telegram
      , configServerConnection :: !ServerConnection
+     , configCors :: !Cors
      } deriving Show
 
 makeFields ''Config
@@ -155,6 +161,7 @@ makeFields ''Minio
 makeFields ''Swagger
 makeFields ''Telegram
 makeFields ''ServerConnection
+makeFields ''Cors
 
 -- Load program configuration from file (server.yaml), or
 -- raise YamlException and terminate program.
@@ -173,3 +180,4 @@ deriveFromJSON defaultOptions ''Minio
 deriveFromJSON defaultOptions ''Swagger
 deriveFromJSON defaultOptions ''Telegram
 deriveFromJSON defaultOptions ''ServerConnection
+deriveFromJSON defaultOptions ''Cors
