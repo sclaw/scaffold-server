@@ -5,6 +5,7 @@ copyright: Copyright (c) 2020, EdgeNode
 site_author: fclaw007@gmail.com
 nav:
   - Overview: index.md
+  - Provider: provider.md
   - JWT: jwt.md
   - Auth: auth.md
 theme: windmill
