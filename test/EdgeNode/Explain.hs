@@ -90,6 +90,7 @@ explainTests =
     , "getCountryToTypes" =>> EdgeNode.Statement.Provider.getCountryToTypes
     , "getTypeToQualifications" =>> EdgeNode.Statement.Provider.getTypeToQualifications
     , "saveDependencies" =>> EdgeNode.Statement.Provider.saveDependencies
+    , "saveClusters" =>> EdgeNode.Statement.Provider.saveClusters
     , "saveTuitionFees" =>> EdgeNode.Statement.Provider.saveTuitionFees
     , "getQualifications" =>> EdgeNode.Statement.Provider.getQualifications
     , "getQualificationById" =>> (EdgeNode.Statement.Provider.getQualificationById)

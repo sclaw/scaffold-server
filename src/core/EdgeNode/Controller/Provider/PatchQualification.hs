@@ -62,5 +62,5 @@ controller qualification_id patch@(PatchQualification {..}) user_id  = do
 mkDependencies :: V.Vector Cluster -> V.Vector (Int32, Int32, Dependency)
 mkDependencies = V.fromList . Map.elems . ifoldr goCluster mempty
   where
-    goCluster i (Cluster deps) v = ifoldr (goDeps i) v deps
+    goCluster i (Cluster _ deps) v = ifoldr (goDeps i) v deps
     goDeps c p  x = Map.insert (c, dependencyDependency x)  (fromIntegral c, fromIntegral p, x)

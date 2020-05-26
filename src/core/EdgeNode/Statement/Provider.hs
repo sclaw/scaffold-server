@@ -27,6 +27,7 @@ module EdgeNode.Statement.Provider
        , getAreaToCountries
        , getCountryToTypes
        , getTypeToQualifications
+       , saveClusters
        , saveDependencies
        , saveTuitionFees
        , getQualifications
@@ -460,24 +461,44 @@ instance ParamsShow Dependency where
     & _3 %~ (^.lazytext.from stext))^..each
 
 instance ParamsShow Cluster where
-  render (Cluster v) = intercalate ", " $ V.foldl (\xs e -> xs ++ ["[" ++ render e ++ "]"]) [] v
+  render (Cluster _ v) = intercalate ", " $ V.foldl (\xs e -> xs ++ ["[" ++ render e ++ "]"]) [] v
 
-saveDependencies :: HS.Statement (Id "qualification", V.Vector Cluster) ()
+saveClusters :: HS.Statement (Id "qualification", V.Vector (Int32, Maybe T.Text)) (V.Vector Int64)
+saveClusters =
+  lmap mkEncoder $
+  [foldStatement|
+    with qual_title as
+    (select title
+     from edgenode.provider_branch_qualification
+     where id = $1 :: int8)
+    insert into edgenode.provider_branch_qualification_dependency_cluster
+    (title, cluster, dependency_fk)
+    select
+      coalesce(
+        title,
+        (select title from qual_title) || '_' || cast(cluster as text)),
+      cluster,
+      $1 :: int8
+    from unnest($2 :: int4[], $3 :: text?[])
+    as x(cluster, title) returning id :: int8|] vector
+  where mkEncoder (ident, v) = consT (coerce ident) $ V.unzip v
+
+saveDependencies :: HS.Statement (Id "qualification", V.Vector (Int64, Cluster)) ()
 saveDependencies =
   lmap mkEncoder
   [resultlessStatement|
     insert into edgenode.provider_branch_qualification_dependency
-    (cluster, position, academic_area,
+    (cluster_fk, position, academic_area,
      provider_branch_qualification_fk,
      dependency_fk, required_degree)
     select cluster, pos, ac_area, qual_fk, $1 :: int8, req_degree
-    from unnest($2 :: int4[], $3 :: int4[], $4 :: text[], $5 :: int8[], $6 :: text[])
+    from unnest($2 :: int8[], $3 :: int4[], $4 :: text[], $5 :: int8[], $6 :: text[])
     as x(cluster, pos, ac_area, qual_fk, req_degree)|]
   where
-    mkEncoder (ident, v) = consT (coerce ident) (V.unzip5 (V.concat (V.foldl go [] (V.indexed v))))
-    go xs (idx, Cluster v) = xs ++ [V.map (mkTpl idx) (V.indexed v)]
-    mkTpl idx (pos, x) =
-      consT (fromIntegral idx) $
+    mkEncoder (ident, v) = consT (coerce ident) (V.unzip5 (V.concat (V.foldl go [] v)))
+    go xs (cluster_id, Cluster _ v) = xs ++ [V.map (mkTpl cluster_id) (V.indexed v)]
+    mkTpl cluster_id (pos, x) =
+      consT cluster_id $
       consT (fromIntegral pos) $
       ((mkEncoderDependency x) & _1 %~ (^.academicArea)  & _2 %~ fromIntegral & _3 %~ (^.lazytext))
 

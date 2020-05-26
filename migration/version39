@@ -1,0 +1,29 @@
+create table edgenode.provider_branch_qualification_dependency_cluster (
+  id bigserial primary key,
+  title text not null,
+  cluster int4 not null,
+  dependency_fk int8 not null
+  constraint "provider_branch_qualification_dependency_cluster__provider_branch_qualification_id_fk"
+  references edgenode.provider_branch_qualification(id),
+  constraint "provider_branch_qualification_dependency_cluster__title__dependency_fk__uniq" unique (title, dependency_fk));
+
+alter table edgenode.provider_branch_qualification_dependency add column cluster_fk int8;
+alter table edgenode.provider_branch_qualification_dependency add constraint "provider_branch_qualification_dependency__cluster_id_fk"
+foreign key (cluster_fk) references edgenode.provider_branch_qualification_dependency_cluster(id);
+
+with clusters as
+  (select
+    distinct pbqd.cluster,
+    pbq.id as dep_id,
+    pbq.title
+   from edgenode.provider_branch_qualification_dependency as pbqd
+   inner join edgenode.provider_branch_qualification as pbq
+   on pbqd.dependency_fk = pbq.id),
+  cluster_ids as (
+    insert into edgenode.provider_branch_qualification_dependency_cluster (title, cluster, dependency_fk)
+    select title || '_' || cast(cluster as text), cluster, dep_id from clusters returning id, dependency_fk as dep, cluster as cl)
+  update edgenode.provider_branch_qualification_dependency
+  set cluster_fk = cls.id
+  from cluster_ids as cls where dependency_fk = cls.dep and cluster = cl;
+
+alter table edgenode.provider_branch_qualification_dependency drop column cluster;
