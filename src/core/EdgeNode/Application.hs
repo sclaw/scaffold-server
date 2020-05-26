@@ -190,4 +190,4 @@ mkCors =
     & field @"corsExposedHeaders" ?~
       ["X-Set-Bearer"]
     & field @"corsMethods" .~
-      simpleMethods ++ ["PUT", "PATCH", "DELETE"]
+      simpleMethods ++ ["PUT", "PATCH", "DELETE", "OPTIONS"]
