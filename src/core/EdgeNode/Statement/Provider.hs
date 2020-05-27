@@ -103,7 +103,7 @@ deriving instance Enum Period
 mkEncoder ''Branch
 mkArbitrary ''Branch
 mkArbitrary ''Qualification
-mkArbitrary ''Cluster
+mkArbitrary ''QualificationBuilder_Cluster
 mkArbitrary ''QualificationBuilder
 mkArbitrary ''TuitionFees
 mkArbitrary ''Dependency
@@ -461,8 +461,8 @@ instance ParamsShow Dependency where
     & _2 %~ show
     & _3 %~ (^.lazytext.from stext))^..each
 
-instance ParamsShow Cluster where
-  render (Cluster _ v) = intercalate ", " $ V.foldl (\xs e -> xs ++ ["[" ++ render e ++ "]"]) [] v
+instance ParamsShow QualificationBuilder_Cluster where
+  render (QualificationBuilder_Cluster _ v) = intercalate ", " $ V.foldl (\xs e -> xs ++ ["[" ++ render e ++ "]"]) [] v
 
 saveClusters :: HS.Statement (Id "qualification", V.Vector (Int32, Maybe T.Text)) (V.Vector Int64)
 saveClusters =
@@ -484,7 +484,7 @@ saveClusters =
     as x(cluster, title) returning id :: int8|] vector
   where mkEncoder (ident, v) = consT (coerce ident) $ V.unzip v
 
-saveDependencies :: HS.Statement (Id "qualification", V.Vector (Int64, Cluster)) ()
+saveDependencies :: HS.Statement (Id "qualification", V.Vector (Int64, V.Vector Dependency)) ()
 saveDependencies =
   lmap mkEncoder
   [resultlessStatement|
@@ -497,7 +497,7 @@ saveDependencies =
     as x(cluster, pos, ac_area, qual_fk, req_degree)|]
   where
     mkEncoder (ident, v) = consT (coerce ident) (V.unzip5 (V.concat (V.foldl go [] v)))
-    go xs (cluster_id, Cluster _ v) = xs ++ [V.map (mkTpl cluster_id) (V.indexed v)]
+    go xs (cluster_id, v) = xs ++ [V.map (mkTpl cluster_id) (V.indexed v)]
     mkTpl cluster_id (pos, x) =
       consT cluster_id $
       consT (fromIntegral pos) $

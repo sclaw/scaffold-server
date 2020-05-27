@@ -29,7 +29,7 @@ import Data.Functor
 import BuildInfo
 import qualified Data.Vector as V
 import Protobuf.Scalar
-import qualified Data.Text.Lazy as L
+import qualified Data.Text.Lazy as LT
 
 controller
   :: (WithField
@@ -53,12 +53,12 @@ controller builder user_id = do
           let clusters = builder^.position @2.field @"qualificationBuilderClusters"
           let fees = builder^.position @2.field @"qualificationBuilderFees"
           ident <- statement Provider.saveQualification qualification
-          let xs =
-                V.indexed clusters <&> \(idx, c) ->
-                  ( fromIntegral idx
-                  , (fmap (L.toStrict . stringValue) . clusterTitle) c)
-          ids <- statement Provider.saveClusters (ident, xs)
-          statement Provider.saveDependencies (ident, V.zip ids clusters)
+          let mkCluster (pos, cl) =
+                ( fromIntegral pos
+                , fmap (LT.toStrict . stringValue)
+                  (qualificationBuilder_ClusterTitle cl))
+          ids <- statement Provider.saveClusters (ident, V.indexed clusters <&> mkCluster)
+          statement Provider.saveDependencies (ident, V.zipWith (\i cl -> (i, qualificationBuilder_ClusterDependencies cl)) ids clusters)
           statement Provider.saveTuitionFees (ident, fees)
           return ident
   response <- fromValidation . (first (map asError)) <$> for (Validator.qualificationBuilder (builder^.position @2)) (const save)
