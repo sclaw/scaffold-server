@@ -13,6 +13,40 @@ Tools for promoting qualifications among target audience.
 Goal - primary user are able to search various qualification to be added to trajectory by
 2 approaches. first via search bar (let's call it active), second via promoted by provider by ad-hoc tools (provider may want to promote a qualification for target audience).
 
+Table at which promoted qualification, matched primary user are strored. Fiiled after new tags was added.
+```
+edgenode.provider_branch_promoted_qualification_user (
+  id: int8, serial,
+  qualification_fk: int8 not null refer to edgenode.provider_branch_qualification(id),
+  user_fk: int8 not null refer to auth.user(id),
+  trajectory_status: text not null (refers to TrajectoryStatus),
+  created: timestamp not null default now,
+  processed: timestamp null,
+  promoted_type: text not null
+)
+```
+
+[TrajectoryStatus](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Pool/Tags.proto)
+
+```
+data TrajectoryStatus = TrajectoryStatusNew | TrajectoryStatusConfirmed | TrajectoryStatusRejected
+```
+
+[PromotedType](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Pool/Tags.proto)
+
+```
+data PromotedType = PromotedTypeTags
+```
+
+user data taken from profile:
+```
+edgenode.user_profile_token (
+  user_fk: int8 not null refer to auth.user(id),
+  token: text not null
+)
+```
+
+
 1. **Tag**
 Definition: **tags allow to promote the given qualification for target audience employing data taken from primary user (e.g. his qualififcation, additional skills, etc)**.
 Tages are created not linked to any data at edgenode. Provider creates any tags that he wants.
@@ -40,22 +74,22 @@ Tages are created not linked to any data at edgenode. Provider creates any tags 
     Response: [message QualificationCluster](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Pool/Tags.proto)
 
  Sql tables:
-  ``edgenode.pool_tags (
+  ```
+   edgenode.provider_pool_tags (
       id: int8, serial,
       ttile: text not null,
       qualification_fk: int8 not null refer to edgenode.provider_branch_qualification(id)
-  )``,
-  ``edgenode.pool_tags_value (
+  ),
+  edgenode.provider_pool_tags_value (
       value: text not null,
       tags_fk: int8 not null refer to edgenode.pool_tags(id),
       unique: (value, tags_fk)
-  ) ``,
-  ``edgenode.pool_tags_cluster (
+  ),
+  edgenode.provider_pool_tags_cluster (
       cluster_fk: int8 not null refer to edgenode.provider_branch_qualification_dependency_cluster(id),
       tags_fk: int8 not null refer to edgenode.pool_tags(id),
       unique: (cluster_fk, tags_fk)
   )
-  ``
-
+  ```
 
 Validation:
