@@ -702,6 +702,7 @@ getQualificationById =
             on pbqd.provider_branch_qualification_fk = pbq.id
             inner join edgenode.provider_branch as pb
             on pbq.provider_branch_fk = pb.id
+            where pbq.id = $2 :: int8
             group by pbqdc.id, pbqdc.cluster, pbqdc.title, pbqd.dependency_fk),
           fees as (
             select
@@ -719,6 +720,7 @@ getQualificationById =
             from edgenode.provider_branch_qualification_tuition_fees as pbqtf
             inner join edgenode.provider_branch_qualification as pbq
             on pbqtf.provider_branch_qualification_fk = pbq.id
+            where pbq.id = $2 :: int8
             group by pbq.id)
         select
           pbq.title :: text,
@@ -730,15 +732,15 @@ getQualificationById =
           pbq.study_time :: text,
           pbq.type :: text,
           pbq.min_degree_value :: text?,
-          array_agg(jsonb_build_object(
+          (select array_agg(jsonb_build_object(
             'cluster', c.cluster,
             'title', c.title,
             'ident', c.cluster_ident,
             'value', jsonb_build_object('dependencies', c.dependencies)
-          )) :: jsonb[],
+          )) from clusters as c) :: jsonb[]? as cls,
         pb.id :: int8,
         pb.title :: text,
-        f.fs :: jsonb[]?
+        (select fs from fees) :: jsonb[]? as fees
         from edgenode.provider_user as pu
         inner join edgenode.provider as p
         on pu.provider_id = p.id
@@ -746,18 +748,14 @@ getQualificationById =
         on p.id = pb.provider_fk
         left join edgenode.provider_branch_qualification as pbq
         on pb.id = pbq.provider_branch_fk
-        left join clusters as c
-        on pbq.id = c.dep_ident
-        left join fees as f
-        on pbq.id = f.ident
         where pu.user_id = $1 :: int8 and pbq.id = $2 :: int8 and not pbq.is_deleted
         group by pbq.title, pbq.academic_area, pbq.start,
         finish, pbq.is_repeated, pbq.application_deadline,
-        pbq.study_time, pbq.type, pbq.min_degree_value, pb.id, pb.title, f.fs|]
+        pbq.study_time, pbq.type, pbq.min_degree_value, pb.id, pb.title|]
     mkInfo x =
       let json_result = do
                  areas <- fromJSON @[T.Text] (x^._2)
-                 clusters <- traverse (coerce . fromJSON @QICW) (x^._10)
+                 clusters <- for (x^._10) $ traverse (coerce . fromJSON @QICW)
                  fees <- for (x^._13) $ traverse (coerce . fromJSON @QIFW)
                  pure (areas, clusters, fees)
       in flip fmap json_result $ \(areas, clusters, fees) ->
@@ -773,7 +771,7 @@ getQualificationById =
             & field @"qualificationStudyTime" .~ x^._7.from qualStudyTime
             & field @"qualificationDegreeType" .~ x^._8.from qualQualificationDegree
             & field @"qualificationDegreeValue" .~ x^?_9._Just.from lazytext.to Protobuf.String)
-          & field @"qualificationInfoClusters" .~ clusters
+          & field @"qualificationInfoClusters" .~ fromMaybe mempty clusters
           & field @"qualificationInfoFees" .~ fromMaybe mempty fees
           & field @"qualificationInfoBranch" ?~ BranchInfo (x^._11.integral) (x^._12.from lazytext)
     mkResp (Error error) = Left (GetQualificationByIdJsonDecodeError error)
