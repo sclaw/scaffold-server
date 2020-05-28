@@ -38,14 +38,18 @@ data TrajectoryStatus = TrajectoryStatusNew | TrajectoryStatusConfirmed | Trajec
 data PromotedType = PromotedTypeTags
 ```
 
-user data taken from profile:
+user data taken from profile. We use the same technique that at searching: get necessary data, tokenize it by ts_vector.
+To search appropriate token we employ trigram at our service.
 ```
 edgenode.user_profile_token (
   user_fk: int8 not null refer to auth.user(id),
   token: text not null
 )
 ```
-
+```
+select word_similarity('сам', v)
+from unnest(tsvector_to_array(to_tsvector(text))) as x(v)
+```
 
 1. **Tag**
 Definition: **tags allow to promote the given qualification for target audience employing data taken from primary user (e.g. his qualififcation, additional skills, etc)**.

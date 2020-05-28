@@ -26,6 +26,8 @@ module EdgeNode.Statement.User
        , removeTrajectory
        , getUserQualificationValues
        , apiCaller
+       , tokenizeQualifications
+       , removeTokenizedQualifications
        ) where
 
 import EdgeNode.Transport.Id
@@ -432,3 +434,22 @@ getUserQualificationValues =
         where uq.user_fk = $1 :: int8|]
     wrapToMaybe [] = Nothing
     wrapToMaybe xs = Just xs
+
+tokenizeQualifications :: HS.Statement [Id "user_qualification"] ()
+tokenizeQualifications =
+  lmap (V.fromList . coerce @_ @[Int64])
+  [resultlessStatement|
+    insert into edgenode.user_qualification_token
+    (user_fk, provider_branch_qualification_fk, token)
+    select uq.user_fk, pbq.id, unnest(tsvector_to_array(to_tsvector(pbq.title)))
+    from edgenode.user_qualification as uq
+    inner join edgenode.provider_branch_qualification as pbq
+    on uq.provider_branch_qualification_fk = pbq.id
+    where uq.id = any($1 :: int8[])|]
+
+removeTokenizedQualifications :: HS.Statement (UserId, [Id "qualification"]) ()
+removeTokenizedQualifications =
+  lmap (\x -> x & _1 %~ coerce & _2 %~ (V.fromList . coerce @_ @[Int64]))
+  [resultlessStatement|
+    delete from edgenode.user_qualification_token
+    where "user_fk" = $1 :: int8 and provider_branch_qualification_fk = any($2 :: int8[])|]

@@ -124,7 +124,9 @@ explainTests =
     , "purgeQualifications" =>> EdgeNode.Statement.User.purgeQualifications
     , "getTrajectories" =>> EdgeNode.Statement.User.getTrajectories
     , "removeTrajectory" =>> EdgeNode.Statement.User.removeTrajectory
-    , "getUserQualificationValues" =>> EdgeNode.Statement.User.getUserQualificationValues]
+    , "getUserQualificationValues" =>> EdgeNode.Statement.User.getUserQualificationValues
+    , "tokenizeQualifications" =>> EdgeNode.Statement.User.tokenizeQualifications
+    , "removeTokenizedQualifications" =>> EdgeNode.Statement.User.removeTokenizedQualifications]
   , "EdgeNode.Statement.Feedback" ==> ["put" =>> EdgeNode.Statement.Feedback.put]
   , "EdgeNode.Statement.Statistics" ==>
      ["registrations" =>> EdgeNode.Statement.Statistics.registrations

@@ -23,5 +23,6 @@ controller provider_id xs user_id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   response <- fmap Ok $ katipTransaction hasql $ do
     statement User.apiCaller ($location, user_id)
+    statement User.removeTokenizedQualifications (user_id, xs)
     statement User.purgeQualifications (provider_id, user_id, xs)
   runTelegram $location response $> response

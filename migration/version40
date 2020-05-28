@@ -1,0 +1,14 @@
+create table edgenode.user_profile_token (
+  user_fk int8 not null constraint "user_profile_token___user_id_fk" references auth.user(id),
+  token text not null);
+
+create index user_profile_token__trgm_idx ON edgenode.user_profile_token USING GIN (token gin_trgm_ops);
+
+create table edgenode.user_qualification_token (
+  user_fk int8 not null constraint "user_profile_token___user_id_fk" references auth.user(id),
+  provider_branch_qualification_fk int8 not null
+  constraint "user_qualification_token__provider_branch_qualification_id_fk"
+  references edgenode.provider_branch_qualification(id),
+  token text not null);
+
+create index user_qualification_token__trgm_idx ON edgenode.user_qualification_token USING GIN (token gin_trgm_ops);

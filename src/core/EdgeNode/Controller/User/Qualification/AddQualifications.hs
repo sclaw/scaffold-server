@@ -4,7 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module EdgeNode.Controller.User.Qualification.AddQualificationToTrajectory (controller) where
+module EdgeNode.Controller.User.Qualification.AddQualifications (controller) where
 
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
@@ -31,7 +31,9 @@ controller qualifications user_id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   resp <- katipTransactionViolationError hasql $ do
     statement User.apiCaller ($location, user_id)
-    statement User.addQualification (user_id, qualifications)
+    ids <- statement User.addQualification (user_id, qualifications)
+    statement User.tokenizeQualifications $ map snd ids
+    return ids
   $(logTM) DebugS (logStr (show resp))
   response <- fmap fromEither $ for resp $ \xs -> do
     let qualifications_ids = qualifications <&> \(WithField i _) -> i
