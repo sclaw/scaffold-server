@@ -9,7 +9,7 @@ module EdgeNode.Api.Service (ServiceApi (..), EnumApi (..)) where
 
 import EdgeNode.Transport.Response
 import EdgeNode.Country
-import EdgeNode.Transport.Qualification
+import EdgeNode.Transport.Provider.Qualification
 
 import TH.Proto
 import Servant.API.Generic

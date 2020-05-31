@@ -8,7 +8,7 @@
 module EdgeNode.Controller.Service.Enum.GetQualification (controller) where
 
 import EdgeNode.Transport.Response
-import EdgeNode.Transport.Qualification
+import EdgeNode.Transport.Provider.Qualification
 import qualified  EdgeNode.Transport.Error as Error
 
 import Katip

@@ -488,7 +488,14 @@ provider user =
       (jWTUserUserId x)
       Rbac.PermissionProviderAdmin
       (Provider.PatchQualification.controller ident patch))
+  , _providerApiPool = toServant (pool user)
   }
+
+pool :: AuthResult JWTUser -> PoolApi (AsServerT KatipController)
+pool user = PoolApi { _poolApiTags = toServant (tags user) }
+
+tags :: AuthResult JWTUser -> TagsApi (AsServerT KatipController)
+tags _ = TagsApi { _tagsApiCreate = undefined }
 
 statistics :: AuthResult BasicUser -> StatisticsApi (AsServerT KatipController)
 statistics user =

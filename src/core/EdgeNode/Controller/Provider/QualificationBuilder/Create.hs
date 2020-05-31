@@ -11,7 +11,7 @@ import EdgeNode.Transport.Response
 import EdgeNode.Transport.Id
 import qualified EdgeNode.Transport.Validator as Validator
 import EdgeNode.Statement.Provider as Provider
-import EdgeNode.Transport.Qualification
+import EdgeNode.Transport.Provider.Qualification
 
 import Auth
 import KatipController

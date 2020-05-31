@@ -8,7 +8,7 @@ module EdgeNode.Controller.Provider.QualificationBuilder.GetTypeToQualifications
 import EdgeNode.Transport.Response
 import EdgeNode.Statement.Provider as Provider
 import EdgeNode.Transport.Id
-import EdgeNode.Transport.Qualification
+import EdgeNode.Transport.Provider.Qualification
 
 import KatipController
 import Database.Transaction

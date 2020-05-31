@@ -38,7 +38,7 @@ import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes
 import EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries
        (EdgeNodeCountryCapture (..))
 import qualified EdgeNode.Transport.Error as Error
-import EdgeNode.Transport.Qualification
+import EdgeNode.Transport.Provider.Qualification
 import EdgeNode.Statement.Statistics (apiCaller)
 
 import qualified Hasql.Statement as HS

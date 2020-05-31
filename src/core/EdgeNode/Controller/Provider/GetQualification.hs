@@ -10,7 +10,7 @@ module EdgeNode.Controller.Provider.GetQualification (controller) where
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Id
 import EdgeNode.Statement.Provider as Provider
-import EdgeNode.Transport.Qualification
+import EdgeNode.Transport.Provider.Qualification
 
 import Auth
 import Katip

@@ -17,7 +17,7 @@ module EdgeNode.Transport.Validator
        , MandatoryField (..)
        ) where
 
-import EdgeNode.Transport.Qualification
+import EdgeNode.Transport.Provider.Qualification
 import EdgeNode.Transport.Error
 import EdgeNode.Transport.Auth
 import EdgeNode.Transport.Feedback

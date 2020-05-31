@@ -47,7 +47,7 @@ import EdgeNode.Transport.Id
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.Iso
 import EdgeNode.Transport.Extended
-import EdgeNode.Transport.Qualification
+import EdgeNode.Transport.Provider.Qualification
 import EdgeNode.Transport.Validator (degreeToValues)
 import qualified EdgeNode.Transport.Error as Error
 import EdgeNode.Statement.Statistics (apiCaller)

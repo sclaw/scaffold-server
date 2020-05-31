@@ -42,9 +42,14 @@ user data taken from profile. We use the same technique that at searching: get n
 To search appropriate token we employ trigram at our service.
 ```
 edgenode.user_profile_token (
-  user_fk: int8 not null refer to auth.user(id),
-  token: text not null
-)
+  user_fk: int8 not null refers to auth.user(id),
+  token: text not null),
+
+edgenode.user_qualification_token (
+  user_fk: int8 not null refers to auth.user(id),
+  provider_branch_qualification_fk: int8 not null refers to edgenode.provider_branch_qualification(id),
+  token text not null)
+
 ```
 ```
 select word_similarity('сам', v)
@@ -56,26 +61,27 @@ Definition: **tags allow to promote the given qualification for target audience 
 Tages are created not linked to any data at edgenode. Provider creates any tags that he wants.
 
  Handles:
-   - `PUT /provider/pools/tags` - create new tags
+   - `PUT /provider/pool/tags` - create new tags
      Request: [message TagsBuilder](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Pool/Tags.proto)
      Response: `uint64`
-   - `DELETE /provider/pools/tags/{tags_id}` - purge tags
+   - `DELETE /provider/pool/tags/{tags_id}` - purge tags
      Request: empty
      Response: `unit`
      Error: tags not found
-   - `GET /provider/pools/tags/list` - list all tags
+   - `GET /provider/pool/tags/list` - list all tags
      Request: empty
      Response: `TagsList`
-   - `PATCH /provider/pools/tags/{tags_id}` - patch tags
+   - `PATCH /provider/pool/tags/{tags_id}` - patch tags
      Request: [message TagsPatch](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Pool/Tags.proto)
      Response: `unit`
      Error: tags not found
-   - `POST /provider/pools/tags/builder/affected-audience` - number of primary users affected by tags Querty are send by putting tag.
+   - `POST /provider/pool/tags/builder/affected-audience` - number of primary users affected by tags Querty are send by putting tag.
      Request: [message AffectedAudience](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Pool/Tags.proto)
      Response: `uint32`
-    - `GET /provider/pools/tags/builder/{qualification_id}/clusters` - qualification's cluster
+    - `GET /provider/pool/tags/builder/{qualification_id}/clusters` - qualification's cluster
     Request: empty
     Response: [message QualificationCluster](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Pool/Tags.proto)
+    - `POST /provider/pool/tags/{tags_id}/publish` - publish  tags
 
  Sql tables:
   ```

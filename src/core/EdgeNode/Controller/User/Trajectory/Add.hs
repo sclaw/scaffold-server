@@ -9,7 +9,7 @@ module EdgeNode.Controller.User.Trajectory.Add (controller) where
 
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
-import EdgeNode.Transport.Qualification
+import EdgeNode.Transport.Provider.Qualification
 import EdgeNode.Statement.User as User
 import EdgeNode.Statement.Provider as Provider
 import qualified EdgeNode.Transport.Error as Error

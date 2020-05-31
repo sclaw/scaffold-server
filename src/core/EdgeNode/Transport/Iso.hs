@@ -6,7 +6,7 @@ module EdgeNode.Transport.Iso where
 
 import EdgeNode.Country
 import EdgeNode.Lang
-import EdgeNode.Transport.Qualification
+import EdgeNode.Transport.Provider.Qualification
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.User
 import EdgeNode.Transport.Feedback

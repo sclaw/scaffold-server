@@ -5,16 +5,21 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module EdgeNode.Api.Provider (ProviderApi (..)) where
+module EdgeNode.Api.Provider
+       ( ProviderApi (..)
+       , PoolApi (..)
+       , TagsApi (..)
+       ) where
 
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Extended
-import EdgeNode.Transport.Qualification
+import EdgeNode.Transport.Provider.Qualification
 import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes
        (EdgeNodeQualificationDegreeCapture)
 import EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries
        (EdgeNodeCountryCapture)
+import EdgeNode.Transport.Provider.Pool.Tags
 
 import Servant.API.Generic
 import Servant.API
@@ -118,4 +123,27 @@ data ProviderApi route =
        :> Capture "qualification_id" (Id "qualification")
        :> ReqBody '[JSON] PatchQualification
        :> Patch '[JSON] (Response Unit)
+     , _providerApiPool
+       :: route
+       :- Description "tools for promoting qualifiation for target audience"
+       :> "pool"
+       :> ToServant PoolApi AsApi
      } deriving stock Generic
+
+data PoolApi route =
+     PoolApi
+     { _poolApiTags
+       :: route
+       :- "tags"
+       :> ToServant TagsApi AsApi
+     } deriving stock Generic
+
+data TagsApi route =
+     TagsApi
+     { _tagsApiCreate
+       :: route
+       :- ReqBody '[JSON] TagsBuilder
+       :> Put '[JSON] (Response (Id "tags"))
+     } deriving stock Generic
+
+
