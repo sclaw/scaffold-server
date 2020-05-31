@@ -144,6 +144,21 @@ data TagsApi route =
        :: route
        :- ReqBody '[JSON] TagsBuilder
        :> Put '[JSON] (Response (Id "tags"))
+     , _tagsApiGet
+       :: route
+       :- Capture "tags_id" (Id "tags")
+       :> Get '[JSON] (Response Tags)
+     , _tagsApiGetAllTags
+       :: route
+       :- "list"
+       :> Get '[JSON] (Response TagsList)
+     , _tagsApiPatch
+       :: route
+       :- Capture "tags_id" (Id "tags")
+       :> ReqBody '[JSON] TagsPatch
+       :> Patch '[JSON] (Response Unit)
+     , _tagsApiPublish
+       :: route
+       :- Capture "tags_id" (Id "tags")
+       :> Post '[JSON] (Response Unit)
      } deriving stock Generic
-
-

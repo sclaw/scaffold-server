@@ -41,6 +41,7 @@ import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetTypeToQual
 import qualified EdgeNode.Controller.Provider.GetQualifications as Provider.GetQualifications
 import qualified EdgeNode.Controller.Provider.GetQualification as Provider.GetQualification
 import qualified EdgeNode.Controller.Provider.PatchQualification as Provider.PatchQualification
+import qualified EdgeNode.Controller.Provider.CreateTags as Provider.CreateTags
 import qualified EdgeNode.Controller.User.GetProfile as User.GetProfile
 import qualified EdgeNode.Controller.User.PatchProfile as User.PatchProfile
 import qualified EdgeNode.Controller.User.Trajectory.Add as User.AddTrajectory
@@ -488,14 +489,26 @@ provider user =
       (jWTUserUserId x)
       Rbac.PermissionProviderAdmin
       (Provider.PatchQualification.controller ident patch))
-  , _providerApiPool = toServant (pool user)
+  , _providerApiPool = toServant (PoolApi { _poolApiTags = toServant (tags user) } :: PoolApi (AsServerT KatipController))
   }
 
-pool :: AuthResult JWTUser -> PoolApi (AsServerT KatipController)
-pool user = PoolApi { _poolApiTags = toServant (tags user) }
-
 tags :: AuthResult JWTUser -> TagsApi (AsServerT KatipController)
-tags _ = TagsApi { _tagsApiCreate = undefined }
+tags user =
+  TagsApi
+  { _tagsApiCreate = \tags_buuilder ->
+    flip logExceptionM ErrorS $
+     katipAddNamespace
+     (Namespace ["provider", "tags", "create"])
+     (applyController Nothing user $ \x ->
+      verifyAuthorization
+      (jWTUserUserId x)
+      Rbac.PermissionProviderAdmin
+      (Provider.CreateTags.controller tags_buuilder))
+  , _tagsApiGet = undefined
+  , _tagsApiGetAllTags = undefined
+  , _tagsApiPatch = undefined
+  , _tagsApiPublish = undefined
+  }
 
 statistics :: AuthResult BasicUser -> StatisticsApi (AsServerT KatipController)
 statistics user =
