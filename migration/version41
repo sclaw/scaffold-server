@@ -11,7 +11,7 @@ create table edgenode.provider_branch_promoted_qualification_user (
 
 create table edgenode.provider_pool_tags (
   id bigserial primary key,
-  ttile text not null,
+  title text not null,
   qualification_fk int8 not null
   constraint "provider_pool_tags__provider_branch_qualification_id_fk"
   references edgenode.provider_branch_qualification(id));

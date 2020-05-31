@@ -41,6 +41,7 @@ module EdgeNode.Statement.Provider
        , deleteDeps
        , getDepsQualifiationValues
        , apiCaller
+       , createTags
        ) where
 
 import EdgeNode.Transport.Id
@@ -51,6 +52,7 @@ import EdgeNode.Transport.Provider.Qualification
 import EdgeNode.Transport.Validator (degreeToValues)
 import qualified EdgeNode.Transport.Error as Error
 import EdgeNode.Statement.Statistics (apiCaller)
+import EdgeNode.Transport.Provider.Pool.Tags
 
 import KatipController
 import Katip
@@ -128,6 +130,8 @@ mkEncoder ''PatchTuitionFees_Fees
 mkEncoder ''FeesInfo
 mkArbitrary ''FeesInfo
 mkArbitrary ''PatchTuitionFees_Fees
+mkEncoder ''TagsBuilder
+mkArbitrary ''TagsBuilder
 
 instance Default AcademicArea where def = toEnum 0
 instance Default StudyTime where def = toEnum 0
@@ -932,3 +936,26 @@ getDepsQualifiationValues =
         from dependencies as deps
         inner join edgenode.provider_branch_qualification as pbq
         on deps.ident = pbq.id|]
+
+instance ParamsShow TagsBuilder where
+  render x =
+    (mkEncoderTagsBuilder x
+    & _1 %~ (^.lazytext.from stext)
+    & _2 %~ (\xs -> "[ " ++ intercalate ", " (Prelude.foldMap ((:[]) . (^.lazytext.from stext)) xs) ++ "]")
+    & _3 %~ (show . fromIntegral))^.each
+
+createTags :: HS.Statement TagsBuilder (Id "tags")
+createTags =
+  dimap mkTpl (coerce @Int64 @_) $
+  [singletonStatement|
+    with new_tags as (
+      insert into edgenode.provider_pool_tags
+      (title, qualification_fk)
+      values ($1 :: text, $3 :: int8)
+      returning id :: int8),
+      tags_value as (
+        insert into edgenode.provider_pool_tags_value
+        (tags_fk, value)
+        select (select id from new_tags), v from unnest($2 :: text[]) as x(v))
+    select id :: int8 from new_tags|]
+  where mkTpl x = mkEncoderTagsBuilder x & _1 %~ (^.lazytext) & _2 %~ V.map (^.lazytext) & _3 %~ fromIntegral
