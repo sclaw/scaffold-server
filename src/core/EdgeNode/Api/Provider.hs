@@ -160,5 +160,6 @@ data TagsApi route =
      , _tagsApiPublish
        :: route
        :- Capture "tags_id" (Id "tags")
+       :> "publish"
        :> Post '[JSON] (Response Unit)
      } deriving stock Generic
