@@ -101,8 +101,8 @@ explainTests =
     , "getDepsQualifiationValues" =>> EdgeNode.Statement.Provider.getDepsQualifiationValues
     , "createTags" =>> EdgeNode.Statement.Provider.createTags
     , "getTags" =>> EdgeNode.Statement.Provider.getTags
-    , "getMatchedUsers" =>> EdgeNode.Statement.Provider.getMatchedUsers]
-   -- , "savePromotedQualification" =>> EdgeNode.Statement.Provider.savePromotedQualification]
+    , "getMatchedUsers" =>> EdgeNode.Statement.Provider.getMatchedUsers
+    , "savePromotedQualification" =>> EdgeNode.Statement.Provider.savePromotedQualification]
   , "EdgeNode.Statement.Auth" ==>
     [ "getUserCred" =>> EdgeNode.Statement.Auth.getUserCred
     , "putRefreshToken" =>> EdgeNode.Statement.Auth.putRefreshToken

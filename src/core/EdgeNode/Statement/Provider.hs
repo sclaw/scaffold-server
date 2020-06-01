@@ -1004,5 +1004,16 @@ getMatchedUsers =
       union all
       select "user_fk" :: int8 from profile|] vector
 
-savePromotedQualification :: HS.Statement (Int64, V.Vector (V.Vector Int64)) ()
-savePromotedQualification = undefined
+savePromotedQualification :: HS.Statement (Int64, Int64, V.Vector Int64) ()
+savePromotedQualification =
+  [resultlessStatement|
+    with tags as (
+      update edgenode.provider_pool_tags
+      set frozen_up_to = now() + interval '10 days',
+          status = 'published'
+      where id = $1 :: int8)
+    insert into edgenode.provider_branch_promoted_qualification_user
+    ("user_fk", provider_branch_qualification_fk, trajectory_status, promoted_type, tags_fk)
+    select x.v, $2 :: int8, 'new', 'tags', $1 :: int8
+    from (select distinct v from unnest($3 :: int8[]) as x(v)) as x
+    on conflict ("user_fk", provider_branch_qualification_fk, tags_fk) do nothing|]

@@ -27,6 +27,7 @@ import qualified Data.Text as T
 import qualified Data.Vector as V
 import Data.Time.Clock
 import Data.Maybe
+import Data.Coerce
 
 controller :: Id "tags" -> UserId -> KatipController (Response Unit)
 controller tags_id user_id = do
@@ -36,8 +37,9 @@ controller tags_id user_id = do
     katipTransaction hasql $ do
       tags@Tags {..} <- statement Provider.getTags tags_id
       for (validate tags) $ const $ do
-        us <- for tagsTags $ statement Provider.getMatchedUsers
-        statement Provider.savePromotedQualification (tagsQualifiationId, us) $> Unit
+        uss <- for tagsTags $ statement Provider.getMatchedUsers
+        let us = V.concat $ V.toList uss
+        statement Provider.savePromotedQualification (coerce tags_id, tagsQualifiationId, us) $> Unit
 
 data Error = ErrorTagsEmpty | ErrorFrozen UTCTime
 
