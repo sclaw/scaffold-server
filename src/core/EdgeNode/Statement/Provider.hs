@@ -42,6 +42,9 @@ module EdgeNode.Statement.Provider
        , getDepsQualifiationValues
        , apiCaller
        , createTags
+       , getTagsValues
+       , getMatchedUsers
+       , savePromotedQualification
        ) where
 
 import EdgeNode.Transport.Id
@@ -959,3 +962,35 @@ createTags =
         select (select id from new_tags), v from unnest($2 :: text[]) as x(v))
     select id :: int8 from new_tags|]
   where mkTpl x = mkEncoderTagsBuilder x & _1 %~ (^.lazytext) & _2 %~ V.map (^.lazytext) & _3 %~ fromIntegral
+
+getTagsValues :: HS.Statement (Id "tags") (Int64, V.Vector T.Text)
+getTagsValues =
+  lmap coerce $
+  [singletonStatement|
+    select
+      ppt.qualification_fk :: int8,
+      array_agg(pptv.value) :: text[]
+    from edgenode.provider_pool_tags as ppt
+    left join edgenode.provider_pool_tags_value as pptv
+    on ppt.id = pptv.tags_fk
+    where ppt.id = $1 :: int8
+    group by ppt.qualification_fk|]
+
+getMatchedUsers :: HS.Statement T.Text (V.Vector Int64)
+getMatchedUsers =
+  [foldStatement|
+    with
+      quals as (
+       select "user_fk" :: int8
+       from edgenode.user_qualification_token
+       where word_similarity($1 :: text, token) > 0.5),
+      profile as (
+        select "user_fk" :: int8
+        from edgenode.user_profile_token
+        where word_similarity($1 :: text, token) > 0.5)
+      select "user_fk" :: int8 from quals
+      union all
+      select "user_fk" :: int8 from profile|] vector
+
+savePromotedQualification :: HS.Statement (Int64, V.Vector (V.Vector Int64)) ()
+savePromotedQualification = undefined

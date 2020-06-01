@@ -42,6 +42,7 @@ import qualified EdgeNode.Controller.Provider.GetQualifications as Provider.GetQ
 import qualified EdgeNode.Controller.Provider.GetQualification as Provider.GetQualification
 import qualified EdgeNode.Controller.Provider.PatchQualification as Provider.PatchQualification
 import qualified EdgeNode.Controller.Provider.CreateTags as Provider.CreateTags
+import qualified EdgeNode.Controller.Provider.PublishTags as Provider.PublishTags
 import qualified EdgeNode.Controller.User.GetProfile as User.GetProfile
 import qualified EdgeNode.Controller.User.PatchProfile as User.PatchProfile
 import qualified EdgeNode.Controller.User.Trajectory.Add as User.AddTrajectory
@@ -507,7 +508,15 @@ tags user =
   , _tagsApiGet = undefined
   , _tagsApiGetAllTags = undefined
   , _tagsApiPatch = undefined
-  , _tagsApiPublish = undefined
+  , _tagsApiPublish = \tags_id ->
+    flip logExceptionM ErrorS $
+     katipAddNamespace
+     (Namespace ["provider", "tags", "publish"])
+     (applyController Nothing user $ \x ->
+      verifyAuthorization
+      (jWTUserUserId x)
+      Rbac.PermissionProviderAdmin
+      (Provider.PublishTags.controller tags_id))
   }
 
 statistics :: AuthResult BasicUser -> StatisticsApi (AsServerT KatipController)
