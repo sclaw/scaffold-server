@@ -39,23 +39,25 @@ controller tags_id user_id = do
   fmap (fromValidation . first (map asError)) $
     katipTransaction hasql $ do
       log <- ask
-      tags@Tags {..} <- statement Provider.getTags tags_id
-      liftIO $ send telegram log $ toS $ "tags: " <> show tags
-      for (validate tags) $ const $ do
+      tags_m <- statement Provider.getTags tags_id
+      liftIO $ send telegram log $ toS $ "tags: " <> show tags_m
+      for (validate tags_m) $ \Tags {..} -> do
         uss <- for tagsTags $ statement Provider.getMatchedUsers
         let us = V.concat $ V.toList uss
         liftIO $ send telegram log $ toS $ "users: " <> show us
         statement Provider.savePromotedQualification (coerce tags_id, tagsQualifiationId, us) $> Unit
 
-data Error = ErrorTagsEmpty | ErrorFrozen UTCTime
+data Error = ErrorTagsEmpty | ErrorFrozen UTCTime | ErrorTagsNF
 
 instance Error.AsError Error where
   asError ErrorTagsEmpty = Error.asError @T.Text "tags shouldn't be empty"
   asError (ErrorFrozen tm) = Error.asError @T.Text $ "the given tags are frozen to be changed up to " <> T.pack (show tm)
+  asError ErrorTagsNF = Error.asError @T.Text "tags not found"
 
-validate :: Tags -> Validation [Error] ()
-validate Tags {..} =
+validate :: Maybe Tags -> Validation [Error] Tags
+validate Nothing = Failure [ErrorTagsNF]
+validate (Just tags@Tags {..}) =
   if V.null tagsTags then Failure [ErrorTagsEmpty] else Success () *>
   case tagsStatus of
-   TagsStatusNew -> Success ()
+   TagsStatusNew -> Success tags
    TagsStatusPublished -> Failure [ErrorFrozen (fromMaybe (error "frozen tm empty") tagsFrozenTM)]

@@ -972,10 +972,10 @@ data Tags =
      , tagsStatus :: !TagsStatus
      } deriving Show
 
-getTags :: HS.Statement (Id "tags") EdgeNode.Statement.Provider.Tags
+getTags :: HS.Statement (Id "tags") (Maybe EdgeNode.Statement.Provider.Tags)
 getTags =
-  dimap coerce mkTags $
-  [singletonStatement|
+  dimap coerce (fmap mkTags) $
+  [maybeStatement|
     select
       ppt.qualification_fk :: int8,
       array_agg(pptv.value) :: text[],
