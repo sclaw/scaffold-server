@@ -130,7 +130,8 @@ explainTests =
     , "removeTrajectory" =>> EdgeNode.Statement.User.removeTrajectory
     , "getUserQualificationValues" =>> EdgeNode.Statement.User.getUserQualificationValues
     , "tokenizeQualifications" =>> EdgeNode.Statement.User.tokenizeQualifications
-    , "removeTokenizedQualifications" =>> EdgeNode.Statement.User.removeTokenizedQualifications]
+    , "removeTokenizedQualifications" =>> EdgeNode.Statement.User.removeTokenizedQualifications
+    , "getSuggestions" =>> EdgeNode.Statement.User.getSuggestions]
   , "EdgeNode.Statement.Feedback" ==> ["put" =>> EdgeNode.Statement.Feedback.put]
   , "EdgeNode.Statement.Statistics" ==>
      ["registrations" =>> EdgeNode.Statement.Statistics.registrations

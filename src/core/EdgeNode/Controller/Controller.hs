@@ -55,6 +55,7 @@ import qualified EdgeNode.Controller.User.Qualification.GetQualificationList as 
 import qualified EdgeNode.Controller.User.Qualification.PurgeQualifications as User.PurgeQualifications
 import qualified EdgeNode.Controller.User.Trajectory.GetList as User.GetTrajectories
 import qualified EdgeNode.Controller.User.Trajectory.Remove as User.Trajectory.Remove
+import qualified EdgeNode.Controller.User.Qualification.GetSuggestions as User.GetSuggestions
 import qualified EdgeNode.Controller.Feedback.Put as Feedback.Put
 import qualified EdgeNode.Controller.Service.Enum.GetCountries as Enum.GetCountries
 import qualified EdgeNode.Controller.Service.Enum.GetQualification as Enum.GetQualification
@@ -296,6 +297,15 @@ userQualification user =
        (jWTUserUserId x)
        Rbac.PermissionUser
        (User.PurgeQualifications.controller provider_id qualification_list))
+  , _userQualificationApiGetSuggestions =
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["user", "qualificaton", "suggestions"])
+    (applyController Nothing user $ \x ->
+     verifyAuthorization
+     (jWTUserUserId x)
+     Rbac.PermissionUser
+     User.GetSuggestions.controller)
   }
 
 search :: SearchApi (AsServerT KatipController)

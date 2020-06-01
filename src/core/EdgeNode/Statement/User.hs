@@ -28,6 +28,7 @@ module EdgeNode.Statement.User
        , apiCaller
        , tokenizeQualifications
        , removeTokenizedQualifications
+       , getSuggestions
        ) where
 
 import EdgeNode.Transport.Id
@@ -453,3 +454,18 @@ removeTokenizedQualifications =
   [resultlessStatement|
     delete from edgenode.user_qualification_token
     where "user_fk" = $1 :: int8 and provider_branch_qualification_fk = any($2 :: int8[])|]
+
+getSuggestions :: HS.Statement UserId (Either T.Text QualificationSuggestions)
+getSuggestions =
+  dimap coerce
+  ( fmap QualificationSuggestions
+  . sequence
+  . V.map (mkEither . fromJSON @QualificationSuggestions_Value)) $
+  [singletonStatement|
+    select array_agg(jsonb_build_object('title', pbq.title)) :: jsonb[]
+    from edgenode.provider_branch_promoted_qualification_user as pbpqu
+    inner join edgenode.provider_branch_qualification as pbq
+    on pbpqu.provider_branch_qualification_fk = pbq.id
+    where "user_fk" = $1 :: int8 and trajectory_status = 'new'|]
+  where mkEither (Success x) = Right x
+        mkEither (Error e) = Left $ T.pack e

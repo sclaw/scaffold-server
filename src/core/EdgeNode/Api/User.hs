@@ -104,6 +104,11 @@ data UserQualificationApi route =
         :> Capture "provider_id" (Id "provider")
         :> ReqBody '[JSON] [Id "qualification"]
         :> Delete '[JSON] (Response Int64)
+      , _userQualificationApiGetSuggestions
+        :: route
+        :- Description "suggested qualifications (via provider pool)"
+        :> "suggestions"
+        :> Get '[JSON] (Response QualificationSuggestions)
      } deriving stock Generic
 
 data TrajectoryApi route =
