@@ -1,12 +1,17 @@
 {-# LANGUAGE TypeOperators  #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module EdgeNode.Controller.Provider.PublishTags (controller) where
 
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Id
 import EdgeNode.Statement.Provider as Provider
+import qualified EdgeNode.Transport.Error as Error
+import EdgeNode.Transport.Provider.Pool.Tags (TagsStatus (..))
 
 import Auth
 import KatipController
@@ -15,12 +20,34 @@ import Database.Transaction
 import Control.Lens
 import BuildInfo
 import Data.Traversable
+import Validation
+import Data.Functor
+import Data.Bifunctor
+import qualified Data.Text as T
+import qualified Data.Vector as V
+import Data.Time.Clock
+import Data.Maybe
 
 controller :: Id "tags" -> UserId -> KatipController (Response Unit)
 controller tags_id user_id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   runTelegram $location (tags_id, user_id)
-  fmap (const (Ok Unit)) $ katipTransaction hasql $ do
-    (qual_id, xs) <- statement Provider.getTagsValues tags_id
-    us <- for xs $ statement Provider.getMatchedUsers
-    statement Provider.savePromotedQualification (qual_id, us)
+  fmap (fromValidation . first (map asError)) $
+    katipTransaction hasql $ do
+      tags@Tags {..} <- statement Provider.getTags tags_id
+      for (validate tags) $ const $ do
+        us <- for tagsTags $ statement Provider.getMatchedUsers
+        statement Provider.savePromotedQualification (tagsQualifiationId, us) $> Unit
+
+data Error = ErrorTagsEmpty | ErrorFrozen UTCTime
+
+instance Error.AsError Error where
+  asError ErrorTagsEmpty = Error.asError @T.Text "tags shouldn't be empty"
+  asError (ErrorFrozen tm) = Error.asError @T.Text $ "the given tags are frozen to be changed up to " <> T.pack (show tm)
+
+validate :: Tags -> Validation [Error] ()
+validate Tags {..} =
+  if V.null tagsTags then Failure [ErrorTagsEmpty] else Success () *>
+  case tagsStatus of
+   TagsStatusNew -> Success ()
+   TagsStatusPublished -> Failure [ErrorFrozen (fromMaybe (error "frozen tm empty") tagsFrozenTM)]

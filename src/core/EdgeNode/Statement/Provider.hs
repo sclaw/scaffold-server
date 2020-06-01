@@ -42,7 +42,8 @@ module EdgeNode.Statement.Provider
        , getDepsQualifiationValues
        , apiCaller
        , createTags
-       , getTagsValues
+       , EdgeNode.Statement.Provider.Tags (..)
+       , getTags
        , getMatchedUsers
        , savePromotedQualification
        ) where
@@ -963,18 +964,29 @@ createTags =
     select id :: int8 from new_tags|]
   where mkTpl x = mkEncoderTagsBuilder x & _1 %~ (^.lazytext) & _2 %~ V.map (^.lazytext) & _3 %~ fromIntegral
 
-getTagsValues :: HS.Statement (Id "tags") (Int64, V.Vector T.Text)
-getTagsValues =
-  lmap coerce $
+data Tags =
+     Tags
+     { tagsQualifiationId :: !Int64
+     , tagsTags :: !(V.Vector T.Text)
+     , tagsFrozenTM :: !(Maybe UTCTime)
+     , tagsStatus :: !TagsStatus
+     }
+
+getTags :: HS.Statement (Id "tags") EdgeNode.Statement.Provider.Tags
+getTags =
+  dimap coerce mkTags $
   [singletonStatement|
     select
       ppt.qualification_fk :: int8,
-      array_agg(pptv.value) :: text[]
+      array_agg(pptv.value) :: text[],
+      ppt.frozen_up_to :: timestamptz?,
+      ppt.status :: text
     from edgenode.provider_pool_tags as ppt
     left join edgenode.provider_pool_tags_value as pptv
     on ppt.id = pptv.tags_fk
     where ppt.id = $1 :: int8
-    group by ppt.qualification_fk|]
+    group by ppt.qualification_fk, ppt.frozen_up_to, ppt.status|]
+  where mkTags x = EdgeNode.Statement.Provider.Tags (x^._1) (x^._2) (x^._3) (x^._4.from stext.from isoTagsStatus)
 
 getMatchedUsers :: HS.Statement T.Text (V.Vector Int64)
 getMatchedUsers =

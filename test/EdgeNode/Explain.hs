@@ -100,7 +100,7 @@ explainTests =
     , "patchDeps" =>> EdgeNode.Statement.Provider.patchDeps
     , "getDepsQualifiationValues" =>> EdgeNode.Statement.Provider.getDepsQualifiationValues
     , "createTags" =>> EdgeNode.Statement.Provider.createTags
-    , "getTagsValues" =>> EdgeNode.Statement.Provider.getTagsValues
+    , "getTags" =>> EdgeNode.Statement.Provider.getTags
     , "getMatchedUsers" =>> EdgeNode.Statement.Provider.getMatchedUsers]
    -- , "savePromotedQualification" =>> EdgeNode.Statement.Provider.savePromotedQualification]
   , "EdgeNode.Statement.Auth" ==>
