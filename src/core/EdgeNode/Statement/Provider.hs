@@ -970,7 +970,7 @@ data Tags =
      , tagsTags :: !(V.Vector T.Text)
      , tagsFrozenTM :: !(Maybe UTCTime)
      , tagsStatus :: !TagsStatus
-     }
+     } deriving Show
 
 getTags :: HS.Statement (Id "tags") EdgeNode.Statement.Provider.Tags
 getTags =
