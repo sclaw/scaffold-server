@@ -39,6 +39,7 @@ mkEnumConvertor ''Period
 mkEnumConvertor ''Gender
 mkEnumConvertor ''Reason
 mkEnumConvertor ''TagsStatus
+mkEnumConvertor ''TrajectoryStatus
 
 mkSRGEqEnum ''AcademicArea "EdgeNode"
 mkSRGEqEnum ''ProviderCategory "EdgeNode"

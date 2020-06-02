@@ -107,8 +107,17 @@ data UserQualificationApi route =
       , _userQualificationApiGetSuggestions
         :: route
         :- Description "suggested qualifications (via provider pool)"
-        :> "suggestions"
+        :> "suggestion"
+        :> "list"
         :> Get '[JSON] (Response QualificationSuggestions)
+      , _userQualificationApiMarkSuggestion
+        :: route
+        :- Description "apply or reject suggestion"
+        :> "suggestion"
+        :> Capture "suggestion_id" (Id "suggestion")
+        :> "mark"
+        :> ReqBody '[JSON] QualificationSuggestion
+        :> Post '[JSON] (Response Unit)
      } deriving stock Generic
 
 data TrajectoryApi route =

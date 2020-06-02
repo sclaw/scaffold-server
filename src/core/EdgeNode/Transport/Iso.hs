@@ -10,6 +10,7 @@ import EdgeNode.Transport.Provider.Qualification
 import EdgeNode.Transport.Provider
 import EdgeNode.Transport.User
 import EdgeNode.Transport.Feedback
+import EdgeNode.Transport.Provider.Pool.Tags
 
 import TH.Proto
 import Control.Lens
@@ -46,6 +47,9 @@ gender = isoEnum fromGender toGender
 
 reason :: Enum Reason => Iso' (Enumerated Reason) T.Text
 reason = isoEnum fromReason toReason
+
+trajectory :: Enum TrajectoryStatus => Iso' (Enumerated TrajectoryStatus) T.Text
+trajectory = isoEnum fromTrajectoryStatus toTrajectoryStatus
 
 isoEnum :: (Enum a, Show a) => (a -> String) -> (String -> a) -> Iso' (Enumerated a) T.Text
 isoEnum f t = iso fromEnuma toEnuma

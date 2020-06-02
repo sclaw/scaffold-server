@@ -131,7 +131,8 @@ explainTests =
     , "getUserQualificationValues" =>> EdgeNode.Statement.User.getUserQualificationValues
     , "tokenizeQualifications" =>> EdgeNode.Statement.User.tokenizeQualifications
     , "removeTokenizedQualifications" =>> EdgeNode.Statement.User.removeTokenizedQualifications
-    , "getSuggestions" =>> EdgeNode.Statement.User.getSuggestions]
+    , "getSuggestions" =>> EdgeNode.Statement.User.getSuggestions
+    , "markSuggestion" =>> EdgeNode.Statement.User.markSuggestion]
   , "EdgeNode.Statement.Feedback" ==> ["put" =>> EdgeNode.Statement.Feedback.put]
   , "EdgeNode.Statement.Statistics" ==>
      ["registrations" =>> EdgeNode.Statement.Statistics.registrations

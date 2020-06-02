@@ -29,6 +29,7 @@ module EdgeNode.Statement.User
        , tokenizeQualifications
        , removeTokenizedQualifications
        , getSuggestions
+       , markSuggestion
        ) where
 
 import EdgeNode.Transport.Id
@@ -41,6 +42,7 @@ import EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries
 import qualified EdgeNode.Transport.Error as Error
 import EdgeNode.Transport.Provider.Qualification
 import EdgeNode.Statement.Statistics (apiCaller)
+import EdgeNode.Transport.Provider.Pool.Tags
 
 import qualified Hasql.Statement as HS
 import Auth
@@ -73,6 +75,7 @@ mkEncoder ''Profile
 mkEncoder ''FullDay
 mkArbitrary ''AddQualificationRequest
 mkArbitrary ''EdgeNodeProviderCategory
+mkArbitrary ''QualificationSuggestion
 
 mkFullDay x =
   case fromJSON x of
@@ -462,10 +465,31 @@ getSuggestions =
   . sequence
   . V.map (mkEither . fromJSON @QualificationSuggestions_Value)) $
   [singletonStatement|
-    select array_agg(jsonb_build_object('title', pbq.title)) :: jsonb[]
+    select
+      array_agg(jsonb_build_object(
+        'suggestionIdent',
+        pbq.id,
+        'qualificatonTitle',
+        pbq.title)) :: jsonb[]
     from edgenode.provider_branch_promoted_qualification_user as pbpqu
     inner join edgenode.provider_branch_qualification as pbq
     on pbpqu.provider_branch_qualification_fk = pbq.id
     where "user_fk" = $1 :: int8 and trajectory_status = 'new'|]
   where mkEither (Success x) = Right x
         mkEither (Error e) = Left $ T.pack e
+
+deriving instance Enum TrajectoryStatus
+
+instance ParamsShow QualificationSuggestion where
+  render x = qualificationSuggestionStatus x^.trajectory.from stext
+
+markSuggestion :: HS.Statement (Id "suggestion", UserId, QualificationSuggestion) (Maybe Int64)
+markSuggestion =
+  lmap mkEncoder $
+  [singletonStatement|
+    update edgenode.provider_branch_promoted_qualification_user
+    set trajectory_status = $3 :: text,
+        processed = now()
+    where id = $1 :: int8 and "user_fk" = $2 :: int8
+    returning case when $3 :: text = 'confirmed' then provider_branch_qualification_fk else null end :: int8?|]
+  where mkEncoder x = x & _1 %~ (coerce @_ @Int64) & _2 %~ (coerce @_ @Int64) & _3 %~ (\x -> qualificationSuggestionStatus x^.trajectory)
