@@ -9,6 +9,8 @@ module EdgeNode.Api.Provider
        ( ProviderApi (..)
        , PoolApi (..)
        , TagsApi (..)
+       , SettingsApi (..)
+       , AccountApi (..)
        ) where
 
 import EdgeNode.Transport.Id
@@ -20,7 +22,9 @@ import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes
 import EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries
        (EdgeNodeCountryCapture)
 import EdgeNode.Transport.Provider.Pool.Tags
+import EdgeNode.Transport.Provider.Settings
 
+import Auth
 import Servant.API.Generic
 import Servant.API
 import Data.Aeson.Unit
@@ -128,6 +132,11 @@ data ProviderApi route =
        :- Description "tools for promoting qualifiation for target audience"
        :> "pool"
        :> ToServant PoolApi AsApi
+     , _providerApiSettings
+       :: route
+       :- Description "settings"
+       :> "settings"
+       :> ToServant SettingsApi AsApi
      } deriving stock Generic
 
 data PoolApi route =
@@ -162,4 +171,34 @@ data TagsApi route =
        :- Capture "tags_id" (Id "tags")
        :> "publish"
        :> Post '[JSON] (Response Unit)
+     } deriving stock Generic
+
+data SettingsApi route =
+     SettingsApi
+     { _settingsApiAccount
+       :: route
+       :- "account"
+       :> ToServant AccountApi AsApi
+     } deriving stock Generic
+
+data AccountApi route =
+     AccountApi
+     { _accountApiCreateAccount
+       :: route
+       :- ReqBody '[JSON] NewAccount
+       :> Put '[JSON] (Response Unit)
+     , _accountApiListAccounts
+       :: route
+       :- "list"
+       :> Get '[JSON] (Response Accounts)
+     , _accountApiPatchRoles
+       :: route
+       :- Capture "account_id" UserId
+       :> ReqBody '[JSON] AccountRoles
+       :> Post '[JSON] (Response Unit)
+     , _accountApiPatchPersonal
+       :: route
+       :- "personal"
+       :> ReqBody '[JSON] PatchPersonal
+       :> Patch '[JSON] (Response Unit)
      } deriving stock Generic

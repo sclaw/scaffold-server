@@ -24,6 +24,8 @@ module EdgeNode.Model.Rbac
        )
        where
 
+import EdgeNode.Transport.Rbac
+
 import TH.Mk
 import Control.Lens
 import Database.Transaction
@@ -52,27 +54,6 @@ permissions:
                           |
                     providerGuest
 -}
-
-data Permission =
-       PermissionRoot
-     | PermissionProviderAdmin
-     | PermissionProviderEditor
-     | PermissionProviderSettings
-     | PermissionProviderGuest
-     | PermissionUser
-     deriving stock Eq
-     deriving stock Show
-     deriving stock Generic
-
-data Role =
-       RoleRoot
-     | RoleUser
-     | RoleProvider
-     | RoleEditor
-     | RoleGuest
-     deriving stock Eq
-     deriving stock Show
-     deriving stock Generic
 
 mkEnumConvertor ''Permission
 mkEnumConvertor ''Role

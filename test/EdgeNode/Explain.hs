@@ -102,7 +102,8 @@ explainTests =
     , "createTags" =>> EdgeNode.Statement.Provider.createTags
     , "getTags" =>> EdgeNode.Statement.Provider.getTags
     , "getMatchedUsers" =>> EdgeNode.Statement.Provider.getMatchedUsers
-    , "savePromotedQualification" =>> EdgeNode.Statement.Provider.savePromotedQualification]
+    , "savePromotedQualification" =>> EdgeNode.Statement.Provider.savePromotedQualification
+    , "newAccount" =>> EdgeNode.Statement.Provider.newAccount]
   , "EdgeNode.Statement.Auth" ==>
     [ "getUserCred" =>> EdgeNode.Statement.Auth.getUserCred
     , "putRefreshToken" =>> EdgeNode.Statement.Auth.putRefreshToken

@@ -15,12 +15,16 @@ module EdgeNode.Transport.Validator
        , registration
        , feedback
        , MandatoryField (..)
+       , NewAccountError (..)
+       , newAccount
        ) where
 
 import EdgeNode.Transport.Provider.Qualification
 import EdgeNode.Transport.Error
 import EdgeNode.Transport.Auth
 import EdgeNode.Transport.Feedback
+import EdgeNode.Transport.Provider.Settings
+import EdgeNode.Transport.Rbac
 
 import TH.Mk
 import Validation
@@ -196,3 +200,17 @@ feedback feedback = sequenceA_
   , if LT.null (feedbackMessage feedback) then Failure [MandatoryField "message"] else Success ()
   , if LT.null (feedbackEmail feedback) then Failure [MandatoryField "email"] else Success ()
   ]
+
+data NewAccountError =
+       NewAccountErrorEmail
+     | NewAccountErrorRole
+     | NewAccountErrorTaken
+     deriving stock Show
+
+instance AsError NewAccountError where
+  asError NewAccountErrorEmail = asError @T.Text "email wrong"
+  asError NewAccountErrorRole = asError @T.Text "available role: editor, guest"
+  asError NewAccountErrorTaken = asError @T.Text "email taken"
+
+newAccount :: NewAccount -> Validation [NewAccountError] (T.Text, Role)
+newAccount _ = undefined

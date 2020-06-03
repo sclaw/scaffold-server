@@ -113,9 +113,13 @@ only account whose role has role-providerSettings relation is allowed to add new
  - `PUT /provider/settings/account` - create new account
     Request: [message NewAccount](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Provider/Settings.proto)
     Create interim password, mail data: provider id, login (email), password
+    1. make records at edgenode.provider_user, auth.user
+    2. notify by mailing (table public.mailing)
   - `GET /provider/settings/account/list` - get list of accounts
     Response: [message Accounts](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Provider/Settings.proto)
   - `POST /provider/settings/account/{account_id}/role` - set roles
     Request: [message AccountRoles](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Provider/Settings.proto)
+
+# Personal
 
 patch account (email, password): `PATCH /provider/settings/account/personal` [message PatchPersonal](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Provider/Settings.proto)

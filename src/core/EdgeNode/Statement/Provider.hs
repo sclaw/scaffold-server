@@ -46,6 +46,7 @@ module EdgeNode.Statement.Provider
        , getTags
        , getMatchedUsers
        , savePromotedQualification
+       , createAccount
        ) where
 
 import EdgeNode.Transport.Id
@@ -1017,3 +1018,6 @@ savePromotedQualification =
     select x.v, $2 :: int8, 'new', 'tags', $1 :: int8
     from (select distinct v from unnest($3 :: int8[]) as x(v)) as x
     on conflict ("user_fk", provider_branch_qualification_fk, tags_fk) do nothing|]
+
+createAccount :: HS.Statement T.Text Int64
+createAccount = undefined

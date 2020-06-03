@@ -43,6 +43,7 @@ import qualified EdgeNode.Controller.Provider.GetQualification as Provider.GetQu
 import qualified EdgeNode.Controller.Provider.PatchQualification as Provider.PatchQualification
 import qualified EdgeNode.Controller.Provider.CreateTags as Provider.CreateTags
 import qualified EdgeNode.Controller.Provider.PublishTags as Provider.PublishTags
+import qualified EdgeNode.Controller.Provider.CreateAccount as Provider.CreateAccount
 import qualified EdgeNode.Controller.User.GetProfile as User.GetProfile
 import qualified EdgeNode.Controller.User.PatchProfile as User.PatchProfile
 import qualified EdgeNode.Controller.User.Trajectory.Add as User.AddTrajectory
@@ -511,12 +512,13 @@ provider user =
       Rbac.PermissionProviderEditor
       (Provider.PatchQualification.controller ident patch))
   , _providerApiPool = toServant (PoolApi { _poolApiTags = toServant (tags user) } :: PoolApi (AsServerT KatipController))
+  , _providerApiSettings = toServant (SettingsApi { _settingsApiAccount = toServant (account user) } :: SettingsApi (AsServerT KatipController))
   }
 
 tags :: AuthResult JWTUser -> TagsApi (AsServerT KatipController)
 tags user =
   TagsApi
-  { _tagsApiCreate = \tags_buuilder ->
+  { _tagsApiCreate = \tags_builder ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["provider", "tags", "create"])
@@ -524,7 +526,7 @@ tags user =
       verifyAuthorization
       (jWTUserUserId x)
       Rbac.PermissionProviderEditor
-      (Provider.CreateTags.controller tags_buuilder))
+      (Provider.CreateTags.controller tags_builder))
   , _tagsApiGet = undefined
   , _tagsApiGetAllTags = undefined
   , _tagsApiPatch = undefined
@@ -537,6 +539,23 @@ tags user =
       (jWTUserUserId x)
       Rbac.PermissionProviderEditor
       (Provider.PublishTags.controller tags_id))
+  }
+
+account :: AuthResult JWTUser -> AccountApi (AsServerT KatipController)
+account user =
+  AccountApi
+  { _accountApiCreateAccount = \account ->
+    flip logExceptionM ErrorS $
+     katipAddNamespace
+     (Namespace ["provider", "settings", "account"])
+     (applyController Nothing user $ \x ->
+      verifyAuthorization
+      (jWTUserUserId x)
+      Rbac.PermissionProviderSettings
+      (Provider.CreateAccount.controller account))
+  , _accountApiListAccounts = undefined
+  , _accountApiPatchRoles = undefined
+  , _accountApiPatchPersonal = undefined
   }
 
 statistics :: AuthResult BasicUser -> StatisticsApi (AsServerT KatipController)
