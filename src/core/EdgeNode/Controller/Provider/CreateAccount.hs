@@ -30,6 +30,8 @@ import Data.Elocrypt
 import Data.Coerce
 import Data.Password
 import Control.Lens.Iso.Extended
+import Data.Functor
+import Data.Bifunctor
 
 controller :: NewAccount -> UserId -> KatipController (Response Unit)
 controller account user_id = do
@@ -38,6 +40,7 @@ controller account user_id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   telegram <- fmap (^.katipEnv.telegram) ask
   response <- for (newAccount account) $ \(email, role) ->
+    fmap (eitherToValidation . first (const [NewAccountErrorTaken])) $
     katipTransactionViolationError hasql $ do
       (password, _) <- liftIO $ fmap (genPassword 16 (GenOptions True True True)) newStdGen
       salt <- liftIO newSalt
@@ -46,8 +49,4 @@ controller account user_id = do
       log <- ask
       liftIO $ send telegram log $ toS $ "At module " <> $location <> "new account: " <> show (ident, password)
       statement Rbac.assignRoleToUser (ident, role, Nothing)
-  runTelegram $location response
-  case response of
-    Success (Right _) -> pure $ Ok Unit
-    Success (Left e) -> pure $ Error $ asError NewAccountErrorTaken
-    Failure es -> pure $ Errors $ map asError es
+  runTelegram $location response $> (fromValidation . (bimap (map asError) (const Unit)) . sequenceA) response
