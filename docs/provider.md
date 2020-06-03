@@ -107,5 +107,15 @@ Validation:
 
 ## Settings
 
+# Account Management
 
+only account whose role has role-providerSettings relation is allowed to add new user
+ - `PUT /provider/settings/account` - create new account
+    Request: [message NewAccount](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Provider/Settings.proto)
+    Create interim password, mail data: provider id, login (email), password
+  - `GET /provider/settings/account/list` - get list of accounts
+    Response: [message Accounts](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Provider/Settings.proto)
+  - `POST /provider/settings/account/{account_id}/role` - set roles
+    Request: [message AccountRoles](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Provider/Settings.proto)
 
+patch account (email, password): `PATCH /provider/settings/account/personal` [message PatchPersonal](https://gitlab.com/edgenode2/proto/-/blob/master/EdgeNode/Transport/Provider/Settings.proto)
