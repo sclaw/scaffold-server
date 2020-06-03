@@ -22,10 +22,7 @@ import Pretty
 import BuildInfo
 import Data.Aeson.Unit
 import Data.Traversable
-import Data.Bifunctor
-import Data.Foldable
 import Validation
-import Data.Functor
 import Control.Monad.IO.Class
 import Data.String.Conv
 import System.Random
@@ -38,13 +35,15 @@ controller account user_id = do
   runTelegram $location (account, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   telegram <- fmap (^.katipEnv.telegram) ask
-  response <- fmap (fromValidation . (bimap (map asError) (const Unit)) . sequenceA_) $
-    for (newAccount account) $ \(email, role) ->
-    fmap (eitherToValidation . first (const [NewAccountErrorTaken])) $
+  response <- for (newAccount account) $ \(email, role) ->
     katipTransactionViolationError hasql $ do
       (password, _) <- liftIO $ fmap (genPassword 16 (GenOptions True True True)) newStdGen
       ident <- statement Provider.createAccount (coerce user_id, email, toS password)
       log <- ask
       liftIO $ send telegram log $ toS $ "At module " <> $location <> "new account: " <> show (ident, password)
       statement Rbac.assignRoleToUser (ident, role, Nothing)
-  runTelegram $location response $> response
+  runTelegram $location response
+  case response of
+    Success (Right _) -> pure $ Ok Unit
+    Success (Left e) -> pure $ Error $ asError NewAccountErrorTaken
+    Failure es -> pure $ Errors $ map asError es
