@@ -67,12 +67,12 @@ deploy:
     - apk add --no-cache curl
     - curl -L "https://github.com/docker/compose/releases/download/1.25.5/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     - chmod +x /usr/local/bin/docker-compose
-    - docker-compose --version
+    - /usr/local/bin/docker-compose --version
   when: manual
   script:
     - docker pull $IMAGE_TAG_LATEST
-    - docker-compose down
-    - docker-compose up -d
+    - /usr/local/bin/docker-compose down
+    - /usr/local/bin/docker-compose up -d
   environment:
     name: Production
     url: http://136.243.173.173
