@@ -28,6 +28,8 @@ import Data.String.Conv
 import System.Random
 import Data.Elocrypt
 import Data.Coerce
+import Data.Password
+import Control.Lens.Iso.Extended
 
 controller :: NewAccount -> UserId -> KatipController (Response Unit)
 controller account user_id = do
@@ -38,7 +40,9 @@ controller account user_id = do
   response <- for (newAccount account) $ \(email, role) ->
     katipTransactionViolationError hasql $ do
       (password, _) <- liftIO $ fmap (genPassword 16 (GenOptions True True True)) newStdGen
-      ident <- statement Provider.createAccount (coerce user_id, email, toS password)
+      salt <- liftIO newSalt
+      let hashedPassword = toS $ unPassHash $ hashPassWithSalt salt (mkPass (password^.stext))
+      ident <- statement Provider.createAccount (coerce user_id, email, hashedPassword)
       log <- ask
       liftIO $ send telegram log $ toS $ "At module " <> $location <> "new account: " <> show (ident, password)
       statement Rbac.assignRoleToUser (ident, role, Nothing)
