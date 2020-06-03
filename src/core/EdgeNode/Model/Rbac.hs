@@ -29,7 +29,6 @@ import EdgeNode.Transport.Rbac
 import TH.Mk
 import Control.Lens
 import Database.Transaction
-import GHC.Generics
 
 {-
 roles:

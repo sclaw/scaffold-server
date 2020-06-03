@@ -38,6 +38,9 @@ import TextShow
 import qualified Text.RE.PCRE.Text as RegExp
 import Control.Lens.Iso.Extended
 import Data.Foldable
+import Data.Coerce
+import Proto3.Suite.Types
+import Data.Int
 
 mkEncoder ''TuitionFees
 mkEncoder ''FeesInfo
@@ -213,4 +216,15 @@ instance AsError NewAccountError where
   asError NewAccountErrorTaken = asError @T.Text "email taken"
 
 newAccount :: NewAccount -> Validation [NewAccountError] (T.Text, Role)
-newAccount _ = undefined
+newAccount account =
+  (,) <$>
+  checkEmail (newAccountEmil account^.lazytext) <*>
+  checkRole (coerce @_ @(Either Int32 Role) (newAccountRole account))
+  where
+    checkEmail email
+      | emailValidation email = Success email
+      | otherwise = Failure [NewAccountErrorEmail]
+    checkRole (Right r)
+      | r == RoleEditor || r == RoleGuest = Success r
+      | otherwise = Failure [NewAccountErrorRole]
+    checkRole (Left _) = Failure [NewAccountErrorRole]

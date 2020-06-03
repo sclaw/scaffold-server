@@ -58,6 +58,7 @@ import EdgeNode.Transport.Validator (degreeToValues)
 import qualified EdgeNode.Transport.Error as Error
 import EdgeNode.Statement.Statistics (apiCaller)
 import EdgeNode.Transport.Provider.Pool.Tags
+import EdgeNode.Model.User
 
 import KatipController
 import Katip
@@ -99,6 +100,7 @@ import Data.Char
 import Data.Tuple.Extended
 import Data.Traversable
 import Data.String.Conv
+import qualified Data.ByteString as B
 
 deriving instance Enum QualificationDegree
 deriving instance Enum Country
@@ -1019,5 +1021,34 @@ savePromotedQualification =
     from (select distinct v from unnest($3 :: int8[]) as x(v)) as x
     on conflict ("user_fk", provider_branch_qualification_fk, tags_fk) do nothing|]
 
-createAccount :: HS.Statement T.Text Int64
-createAccount = undefined
+createAccount :: HS.Statement (Int64, T.Text, B.ByteString) Int64
+createAccount =
+  lmap ( consT (Primary^.isoUserRole.stext) .
+        consT (Active^.isoRegisterStatus.stext)) $
+  [singletonStatement|
+    with
+      get_prov as (
+        select p.id, p.uid
+        from edgenode.provider_user as pu
+        inner join edgenode.provider as p
+        on pu.provider_id = p.id
+        where pu.user_id = $3 :: int8),
+      get_user as
+      (insert into auth.user
+       (identifier, password, user_type, email)
+       select
+         md5($4 :: text || p.uid :: text),
+         $5 :: bytea,
+         $1 :: text,
+         $4 :: text
+       from get_prov as p
+       returning id as uid)
+    insert into edgenode.provider_user
+     (email, status, provider_id, user_id)
+    select
+      $4 :: text,
+      $2 :: text,
+      (select id from get_prov) :: int8,
+      uid :: int8
+    from get_user
+    returning "user_id" :: int8|]
