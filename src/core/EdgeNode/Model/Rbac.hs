@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-missing-exported-signatures #-}
-{-# OPTIONS_GHC -fno-warn-unused-binds #-}
-
 {-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveGeneric         #-}
@@ -28,40 +25,59 @@ module EdgeNode.Model.Rbac
        where
 
 import TH.Mk
-import Control.Lens 
-import Test.QuickCheck
-import Database.Transaction (ParamsShow (..))
-import Test.QuickCheck.Arbitrary.Generic
+import Control.Lens
+import Database.Transaction
 import GHC.Generics
 
-data Permission = 
+{-
+roles:
+
+                  root
+          _________|_________
+          |                  |
+         user             provider
+                             |
+                           editor
+                             |
+                           guest
+permissions:
+
+                      root
+              _________|_________
+             |                   |
+            user            providerAdmin
+                          _______|_________
+                          |               |
+                    providerEditor   providerSettings
+                          |
+                    providerGuest
+-}
+
+data Permission =
        PermissionRoot
      | PermissionProviderAdmin
+     | PermissionProviderEditor
+     | PermissionProviderSettings
      | PermissionProviderGuest
-     | PermissionUser 
+     | PermissionUser
      deriving stock Eq
      deriving stock Show
      deriving stock Generic
 
-data Role = 
-       RoleRoot 
+data Role =
+       RoleRoot
      | RoleUser
      | RoleProvider
+     | RoleEditor
      | RoleGuest
      deriving stock Eq
      deriving stock Show
      deriving stock Generic
 
 mkEnumConvertor ''Permission
-mkEnumConvertor ''Role 
-
-instance Arbitrary Role where
-  arbitrary = genericArbitrary
-  shrink = genericShrink
-
-instance Arbitrary Permission where
-  arbitrary = genericArbitrary
-  shrink = genericShrink
+mkEnumConvertor ''Role
+mkArbitrary ''Role
+mkArbitrary ''Permission
 
 instance ParamsShow Permission where render = (^.isoPermission)
 instance ParamsShow Role where render = (^.isoRole)

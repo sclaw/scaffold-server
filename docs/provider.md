@@ -103,3 +103,9 @@ Tages are created not linked to any data at edgenode. Provider creates any tags 
   ```
 
 Validation:
+
+
+## Settings
+
+
+

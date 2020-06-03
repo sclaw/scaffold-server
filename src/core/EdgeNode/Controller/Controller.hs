@@ -400,7 +400,7 @@ provider user =
      (applyController Nothing user $ \x ->
        verifyAuthorization
        (jWTUserUserId x)
-       Rbac.PermissionProviderAdmin
+       Rbac.PermissionProviderEditor
        (Provider.CreateBranches.controller branch))
   , _providerApiPatchBranches = \branches ->
     flip logExceptionM ErrorS $
@@ -409,7 +409,7 @@ provider user =
      (applyController Nothing user $ \x ->
        verifyAuthorization
        (jWTUserUserId x)
-       Rbac.PermissionProviderAdmin
+       Rbac.PermissionProviderEditor
        (Provider.PatchBranch.controller branches))
   , _providerApiDeleteBranch = \ident ->
     flip logExceptionM ErrorS $
@@ -418,7 +418,7 @@ provider user =
      (applyController Nothing user $ \x ->
        verifyAuthorization
        (jWTUserUserId x)
-       Rbac.PermissionProviderAdmin
+       Rbac.PermissionProviderEditor
        (Provider.DeleteBranch.controller ident))
   , _providerApiSetHQ = \ident ->
     flip logExceptionM ErrorS $
@@ -427,7 +427,7 @@ provider user =
      (applyController Nothing user $ \x ->
        verifyAuthorization
        (jWTUserUserId x)
-       Rbac.PermissionProviderAdmin
+       Rbac.PermissionProviderEditor
        (Provider.SetHQ.controller ident))
   , _providerApiBuilderCreateQualification = \builder ->
     flip logExceptionM ErrorS $
@@ -436,7 +436,7 @@ provider user =
      (applyController Nothing user $ \x ->
        verifyAuthorization
        (jWTUserUserId x)
-       Rbac.PermissionProviderAdmin
+       Rbac.PermissionProviderEditor
        (QualificationBuilder.Create.controller builder))
   , _providerApiBuilderGetAvailableBranches =
     flip logExceptionM ErrorS $
@@ -445,7 +445,7 @@ provider user =
      (applyController Nothing user $ \x ->
        verifyAuthorization
        (jWTUserUserId x)
-       Rbac.PermissionProviderAdmin
+       Rbac.PermissionProviderEditor
        QualificationBuilder.GetAvailableBranches.controller)
   , _providerApiPublish =
     flip logExceptionM ErrorS $
@@ -454,7 +454,7 @@ provider user =
      (applyController Nothing user $ \x ->
       verifyAuthorization
       (jWTUserUserId x)
-      Rbac.PermissionProviderAdmin
+      Rbac.PermissionProviderEditor
       Provider.Publish.controller)
   , _providerApiBuilderGetDependencyAreaToCountries = \area ->
     flip logExceptionM ErrorS $
@@ -463,7 +463,7 @@ provider user =
      (applyController Nothing user $ \x ->
       verifyAuthorization
       (jWTUserUserId x)
-      Rbac.PermissionProviderAdmin
+      Rbac.PermissionProviderEditor
       (const (QualificationBuilder.GetAreaToCountries.controller area)))
   , _providerApiBuilderGetDependencyCountryToTypes = \area cntry ->
     flip logExceptionM ErrorS $
@@ -472,7 +472,7 @@ provider user =
      (applyController Nothing user $ \x ->
       verifyAuthorization
       (jWTUserUserId x)
-      Rbac.PermissionProviderAdmin
+      Rbac.PermissionProviderEditor
       (const (QualificationBuilder.GetCountryToTypes.controller area cntry)))
   , _providerApiBuilderGetDependencTypeToQualifications = \area cntry degree ->
     flip logExceptionM ErrorS $
@@ -481,7 +481,7 @@ provider user =
      (applyController Nothing user $ \x ->
       verifyAuthorization
       (jWTUserUserId x)
-      Rbac.PermissionProviderAdmin
+      Rbac.PermissionProviderEditor
       (const (QualificationBuilder.GetTypeToQualifications.controller area cntry degree)))
   , _providerApiGetQualifications =
     flip logExceptionM ErrorS $
@@ -499,7 +499,7 @@ provider user =
      (applyController Nothing user $ \x ->
       verifyAuthorization
       (jWTUserUserId x)
-      Rbac.PermissionProviderAdmin
+      Rbac.PermissionProviderEditor
       (Provider.GetQualification.controller ident))
   , _providerApiPatchQualification = \ident patch ->
     flip logExceptionM ErrorS $
@@ -508,7 +508,7 @@ provider user =
      (applyController Nothing user $ \x ->
       verifyAuthorization
       (jWTUserUserId x)
-      Rbac.PermissionProviderAdmin
+      Rbac.PermissionProviderEditor
       (Provider.PatchQualification.controller ident patch))
   , _providerApiPool = toServant (PoolApi { _poolApiTags = toServant (tags user) } :: PoolApi (AsServerT KatipController))
   }
@@ -523,7 +523,7 @@ tags user =
      (applyController Nothing user $ \x ->
       verifyAuthorization
       (jWTUserUserId x)
-      Rbac.PermissionProviderAdmin
+      Rbac.PermissionProviderEditor
       (Provider.CreateTags.controller tags_buuilder))
   , _tagsApiGet = undefined
   , _tagsApiGetAllTags = undefined
@@ -535,7 +535,7 @@ tags user =
      (applyController Nothing user $ \x ->
       verifyAuthorization
       (jWTUserUserId x)
-      Rbac.PermissionProviderAdmin
+      Rbac.PermissionProviderEditor
       (Provider.PublishTags.controller tags_id))
   }
 
