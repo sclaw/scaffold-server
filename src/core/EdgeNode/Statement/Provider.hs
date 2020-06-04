@@ -1023,7 +1023,7 @@ savePromotedQualification =
 
 createAccount :: HS.Statement (Int64, T.Text, B.ByteString) Int64
 createAccount =
-  lmap ( consT (Primary^.isoUserRole.stext) .
+  lmap ( consT (Secondary^.isoUserRole.stext) .
         consT (Active^.isoRegisterStatus.stext)) $
   [singletonStatement|
     with
