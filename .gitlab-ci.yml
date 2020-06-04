@@ -60,14 +60,12 @@ server:
 
 deploy:
   stage: deploy_server
+  image: nixos/nix:latest
   tags:
     - edgenode
   before_script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - apk update
-    - apk upgrade
-    - apk add --no-cache py-pip python-dev libffi-dev openssl-dev gcc libc-dev make
-    - pip install docker-compose
+    - nix-env -iA nixpkgs.docker_compose
   when: manual
   script:
     - docker pull $IMAGE_TAG_LATEST

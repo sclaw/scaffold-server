@@ -49,4 +49,7 @@ controller account user_id = do
       log <- ask
       liftIO $ send telegram log $ toS $ "At module " <> $location <> "new account: " <> show (ident, password)
       statement Rbac.assignRoleToUser (ident, role, Nothing)
-  runTelegram $location response $> (fromValidation . (bimap (map asError) (const Unit)) . sequenceA) response
+  let mk (Success (Failure e)) = Failure $ map asError e
+      mk (Success (Success _)) = Success Unit
+      mk (Failure e) = Failure $ map asError e
+  runTelegram $location response $> (fromValidation . mk) response
