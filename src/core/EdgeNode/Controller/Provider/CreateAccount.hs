@@ -34,6 +34,7 @@ import Data.Password
 import Control.Lens.Iso.Extended
 import Data.Functor
 import Data.Bifunctor
+import Data.Aeson (toJSON)
 
 controller :: NewAccount -> UserId -> KatipController (Response Unit)
 controller account user_id = do
@@ -48,9 +49,18 @@ controller account user_id = do
       salt <- liftIO newSalt
       let hashedPassword = toS $ unPassHash $ hashPassWithSalt salt (mkPass (password^.stext))
       (ident, provider_id) <- statement Provider.createAccount (coerce user_id, email, hashedPassword)
-      statement Mail.new (NewProviderAccount (toS email) (toS provider_id) (toS password) (toS email))
+      statement Mail.new
+       ( email
+       , TypeNewProviderAccount
+       , StatusNew
+       , toJSON (
+          NewProviderAccount
+          (toS email)
+          (toS provider_id)
+          (toS password)
+          (toS email)))
       log <- ask
-      liftIO $ send telegram log $ toS $ "At module " <> $location <> "new account: " <> show (ident, password)
+      liftIO $ send telegram log $ toS $ "At module " <> $location <> " new account: " <> show (ident, password)
       statement Rbac.assignRoleToUser (ident, role, Nothing)
   let mk (Success (Failure e)) = Failure $ map asError e
       mk (Success (Success _)) = Success Unit

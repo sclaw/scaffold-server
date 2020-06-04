@@ -20,6 +20,7 @@ import qualified EdgeNode.Statement.Auth
 import qualified EdgeNode.Statement.Search
 import qualified EdgeNode.Statement.Feedback
 import qualified EdgeNode.Statement.Statistics
+import qualified EdgeNode.Statement.Mail
 
 import Database.Migration.Test
 import Test.Hspec hiding (shouldBe)
@@ -140,4 +141,8 @@ explainTests =
      , "activeUsers" =>> EdgeNode.Statement.Statistics.activeUsers
      , "apiCaller" =>> EdgeNode.Statement.Statistics.apiCaller
      , "apiCounter" =>> EdgeNode.Statement.Statistics.apiCounter]
+  , "EdgeNode.Statement.Mail" ==>
+     [ "new" =>> EdgeNode.Statement.Mail.new
+     , "getMails" =>> EdgeNode.Statement.Mail.getMails
+     , "setAsProcessed" =>> EdgeNode.Statement.Mail.setAsProcessed]
   ]

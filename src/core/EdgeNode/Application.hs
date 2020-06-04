@@ -64,6 +64,7 @@ import Pretty
 import Data.Either.Combinators
 import Control.Exception
 import Data.String.Conv
+import Mail
 
 data Cfg =
      Cfg
@@ -158,13 +159,15 @@ run Cfg {..} =
                   :. (BasicAuthCfgData (cfg^.katipEnv.hasqlDbPool) ctxlog)
                   :. EmptyContext
       let runServer = serveWithContext (withSwagger api) mkCtx server
-      mware_logger <-katipAddNamespace (Namespace ["middleware"]) askLoggerIO
+      mware_logger <- katipAddNamespace (Namespace ["middleware"]) askLoggerIO
 
       path <- liftIO getCurrentDirectory
       let tls_settings = (Warp.tlsSettings (path </> "tls/certificate") (path </> "tls/key")) { Warp.onInsecure = Warp.AllowInsecure }
 
       servAsync <- liftIO $ async $ Warp.runTLS tls_settings settings (middleware cfgCors mware_logger runServer)
-      liftIO (void (waitAnyCancel [servAsync])) `logExceptionM` ErrorS
+      mail_logger <- katipAddNamespace (Namespace ["mail"]) askLoggerIO
+      mailAsync <- liftIO $ async $ runMailing (cfg^.katipEnv.hasqlDbPool) mail_logger
+      liftIO (void (waitAnyCancel [servAsync, mailAsync])) `logExceptionM` ErrorS
 
 middleware :: Cfg.Cors -> KatipLoggerIO -> Application -> Application
 middleware cors log app = mkCors cors $ Middleware.logger log app
