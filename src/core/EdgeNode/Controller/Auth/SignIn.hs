@@ -3,6 +3,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module EdgeNode.Controller.Auth.SignIn (controller) where
 
@@ -46,8 +47,9 @@ controller req = do
       case check of
         PassCheckSuccess -> fmap (fromEither . first (Error.asError @T.Text)) $ do
           key <- fmap (^.katipEnv.jwk) ask
+          TokensLT {..} <- fmap (^.katipEnv.tokensLT) ask
           log <- askLoggerIO
-          tokens_e <- liftIO $ Auth.mkTokens key (initT cred) log
+          tokens_e <- liftIO $ Auth.mkTokens key (initT cred) log tokensLTAccessLT tokensLTRefreshLT
           for tokens_e $ \tpl@(uq, a, r, h) -> do
             hasql <- fmap (^.katipEnv.hasqlDbPool) ask
             void $ katipTransaction hasql $

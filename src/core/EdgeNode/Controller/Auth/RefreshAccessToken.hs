@@ -3,6 +3,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module EdgeNode.Controller.Auth.RefreshAccessToken (controller) where
 
@@ -46,6 +47,7 @@ controller req user_id = do
     for (first mkJWTError verify_result) $ \claims -> do
       hasql <- fmap (^.katipEnv.hasqlDbPool) ask
       key <- fmap (^.katipEnv.jwk) ask
+      TokensLT {..} <- fmap (^.katipEnv.tokensLT) ask
       let uqm = claims^.JWT.unregisteredClaims.at "dat".to (fmap fromJSON)
       case uqm of
         Just (Success uq) ->
@@ -54,7 +56,7 @@ controller req user_id = do
             case tpl_m of
               Just (ident, user_role) -> do
                 log <- ask
-                tokens_e <- liftIO $ Auth.mkTokens key (user_id, user_role) log
+                tokens_e <- liftIO $ Auth.mkTokens key (user_id, user_role) log tokensLTAccessLT tokensLTRefreshLT
                 void $ statement Auth.mkTokenInvalid ident
                 for tokens_e $ \(uq, a, r, h) -> do
                   void $ statement Auth.putRefreshToken (user_id, h, uq)

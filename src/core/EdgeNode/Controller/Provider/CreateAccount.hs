@@ -12,6 +12,8 @@ import EdgeNode.Transport.Provider.Settings
 import EdgeNode.Transport.Validator
 import EdgeNode.Statement.Provider as Provider
 import EdgeNode.Statement.Rbac as Rbac
+import EdgeNode.Statement.Mail as Mail
+import EdgeNode.Mail
 
 import Auth
 import KatipController
@@ -45,7 +47,8 @@ controller account user_id = do
       (password, _) <- liftIO $ fmap (genPassword 16 (GenOptions True True True)) newStdGen
       salt <- liftIO newSalt
       let hashedPassword = toS $ unPassHash $ hashPassWithSalt salt (mkPass (password^.stext))
-      ident <- statement Provider.createAccount (coerce user_id, email, hashedPassword)
+      (ident, provider_id) <- statement Provider.createAccount (coerce user_id, email, hashedPassword)
+      statement Mail.new (NewProviderAccount (toS email) (toS provider_id) (toS password) (toS email))
       log <- ask
       liftIO $ send telegram log $ toS $ "At module " <> $location <> "new account: " <> show (ident, password)
       statement Rbac.assignRoleToUser (ident, role, Nothing)

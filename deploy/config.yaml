@@ -27,6 +27,8 @@ configAuth:
   authJwk: symmetric.jwk
   authIsAuthEnabled: true
   authUserId: 1
+  authAccessTokenLifetime: 6000
+  authRefreshTokenLifetime: 7000000
 
 configService:
   serviceApiKeys:

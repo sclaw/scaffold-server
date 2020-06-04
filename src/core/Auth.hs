@@ -79,6 +79,7 @@ import Hash
 import Data.Bifunctor
 import System.Random.PCG.Unique
 import Pretty
+import Data.Int
 
 data AppJwt
 
@@ -182,8 +183,8 @@ actionCheckToken (Just user) = do
       , mkEncoderJWTUser x^._4)
   return $ if exists then Right user else Left "refresh token not found"
 
-mkAccessToken :: JWK -> Id "user" -> T.Text -> UserRole -> ExceptT JWTError IO (SignedJWT, Time)
-mkAccessToken jwk uid refresh_token_hash utype = do
+mkAccessToken :: NominalDiffTime -> JWK -> Id "user" -> T.Text -> UserRole -> ExceptT JWTError IO (SignedJWT, Time)
+mkAccessToken lt jwk uid refresh_token_hash utype = do
   alg <- bestJWSAlg jwk
   utc <- liftIO getCurrentTime
   let user = JWTUser uid "" utype refresh_token_hash
@@ -191,22 +192,22 @@ mkAccessToken jwk uid refresh_token_hash utype = do
         emptyClaimsSet
         & claimIss ?~ "edgeNode"
         & claimIat ?~ NumericDate utc
-        & claimExp ?~ NumericDate (addUTCTime 600 utc)
+        & claimExp ?~ NumericDate (addUTCTime lt utc)
         & unregisteredClaims .~
           HM.singleton "dat" (toJSON user)
-  let epoch =fromIntegral $ systemSeconds $ utcToSystemTime (addUTCTime 600 utc)
+  let epoch =fromIntegral $ systemSeconds $ utcToSystemTime (addUTCTime lt utc)
   let tm = Time epoch 0
   (,tm) <$> signClaims jwk (newJWSHeader ((), alg)) claims
 
-mkRefreshToken :: JWK -> T.Text -> ExceptT JWTError IO SignedJWT
-mkRefreshToken jwk unique = do
+mkRefreshToken :: NominalDiffTime -> JWK -> T.Text -> ExceptT JWTError IO SignedJWT
+mkRefreshToken lt jwk unique = do
   alg <- bestJWSAlg jwk
   ct <- liftIO getCurrentTime
   let claims =
         emptyClaimsSet
         & claimIss ?~ "edgeNode"
         & claimIat ?~ NumericDate ct
-        & claimExp ?~ NumericDate (addUTCTime (7 * 10^6) ct)
+        & claimExp ?~ NumericDate (addUTCTime lt ct)
         & unregisteredClaims .~
           HM.singleton "dat" (toJSON unique)
   signClaims jwk (newJWSHeader ((), alg)) claims
@@ -255,12 +256,12 @@ withUser user controller = do
     Authenticated resp -> return resp
     _ -> return $ Error $ Transport.asError @T.Text "authentication required"
 
-mkTokens :: JWK -> (Id "user", UserRole) -> KatipLoggerIO -> IO (Either T.Text (T.Text, (ByteString, Time), ByteString, T.Text))
-mkTokens key cred log = do
+mkTokens :: JWK -> (Id "user", UserRole) -> KatipLoggerIO -> Int64 -> Int64 -> IO (Either T.Text (T.Text, (ByteString, Time), ByteString, T.Text))
+mkTokens key cred log access_token_lt refresh_token_lt = do
   uq <- fmap mkHash $ uniformW64 =<< createSystemRandom
   tokens_e <- runExceptT $ do
-    refresh <- mkRefreshToken key uq
-    access <- mkAccessToken key (cred^._1) (mkHash refresh) (cred^._2)
+    refresh <- mkRefreshToken (fromIntegral refresh_token_lt) key uq
+    access <- mkAccessToken (fromIntegral access_token_lt) key (cred^._1) (mkHash refresh) (cred^._2)
     pure $ (uq, access, refresh, mkHash refresh)
   let encode x = x^.to Jose.encodeCompact.bytesLazy
   let mkError err = show err^.stext

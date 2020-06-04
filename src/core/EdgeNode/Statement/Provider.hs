@@ -1021,7 +1021,7 @@ savePromotedQualification =
     from (select distinct v from unnest($3 :: int8[]) as x(v)) as x
     on conflict ("user_fk", provider_branch_qualification_fk, tags_fk) do nothing|]
 
-createAccount :: HS.Statement (Int64, T.Text, B.ByteString) Int64
+createAccount :: HS.Statement (Int64, T.Text, B.ByteString) (Int64, T.Text)
 createAccount =
   lmap ( consT (Secondary^.isoUserRole.stext) .
         consT (Active^.isoRegisterStatus.stext)) $
@@ -1051,4 +1051,4 @@ createAccount =
       (select id from get_prov) :: int8,
       uid :: int8
     from get_user
-    returning "user_id" :: int8|]
+    returning "user_id" :: int8, (select uid from get_prov) :: text|]

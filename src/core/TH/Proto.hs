@@ -18,6 +18,7 @@ import EdgeNode.Transport.Provider
 import EdgeNode.Transport.User
 import EdgeNode.Transport.Feedback
 import EdgeNode.Transport.Provider.Pool.Tags
+import qualified EdgeNode.Mail as M
 
 import TH.Mk
 import GHC.Generics hiding (from, to)
@@ -40,6 +41,8 @@ mkEnumConvertor ''Gender
 mkEnumConvertor ''Reason
 mkEnumConvertor ''TagsStatus
 mkEnumConvertor ''TrajectoryStatus
+mkEnumConvertor ''M.Status
+mkEnumConvertor ''M.Type
 
 mkSRGEqEnum ''AcademicArea "EdgeNode"
 mkSRGEqEnum ''ProviderCategory "EdgeNode"

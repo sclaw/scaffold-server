@@ -51,6 +51,8 @@ module EdgeNode.Config
        , serverConnection
        , cors
        , origins
+       , accessTokenLifetime
+       , refreshTokenLifetime
          -- * Iso
        , isoEnv
        )
@@ -100,13 +102,13 @@ data Katip =
      , katipEnv :: !Env
      } deriving Show
 
-data Ekg = Ekg { ekgHost :: !String, ekgPort :: !Int } deriving Show
-
 data Auth =
      Auth
      { authJwk :: !FilePath
      , authIsAuthEnabled :: !Bool
      , authUserId :: !Int64
+     , authAccessTokenLifetime :: !Int64
+     , authRefreshTokenLifetime :: !Int64
      } deriving Show
 
 newtype ApiKeys = ApiKeys [(String, String)]
@@ -154,7 +156,6 @@ data Config =
 makeFields ''Config
 makeFields ''Db
 makeFields ''HasqlSettings
-makeFields ''Ekg
 makeFields ''Katip
 makeFields ''Auth
 makeFields ''Minio
@@ -171,7 +172,6 @@ load path = decodeFileEither path >>= either throwIO pure
 deriveFromJSON defaultOptions ''Db
 deriveFromJSON defaultOptions ''Config
 deriveFromJSON defaultOptions ''HasqlSettings
-deriveFromJSON defaultOptions ''Ekg
 deriveFromJSON defaultOptions ''Katip
 deriveFromJSON defaultOptions ''Auth
 deriveFromJSON defaultOptions ''ApiKeys

@@ -1,0 +1,8 @@
+create table edgenode.email (
+  id bigserial primary key,
+  type text not null,
+  status text not null,
+  created timestamp not null default now(),
+  take_to_processing timestamp,
+  done timestamp,
+  value jsonb not null);

@@ -20,6 +20,7 @@ module KatipController
        , KatipLoggerIO
        , KatipControllerState (..)
        , Minio (..)
+       , TokensLT (..)
          -- * lens
        , nm
        , ctx
@@ -34,6 +35,7 @@ module KatipController
        , hasqlDbPool
        , conn
        , telegram
+       , tokensLT
          -- * run
        , runKatipController
          -- * re-export
@@ -74,6 +76,7 @@ import Web.Telegram as Web.Telegram
 import Pretty
 import Data.String.Conv
 import Control.Concurrent.Lifted
+import Data.Int
 
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 
@@ -90,9 +93,12 @@ data KatipEnv =
      , katipEnvJwk :: !JWK
      , katipEnvMinio :: !Minio
      , katipEnvTelegram :: Web.Telegram.Service
+     , katipEnvTokensLT :: !TokensLT
      }
 
 data Minio = Minio { minioConn :: !Minio.MinioConn, minioBucketPrefix :: !T.Text }
+
+data TokensLT = TokensLT { tokensLTAccessLT :: !Int64, tokensLTRefreshLT :: !Int64 }
 
 newtype KatipLogger = KatipWriter [String]
   deriving newtype Monoid
@@ -147,6 +153,7 @@ newtype KatipController a =
 makeFields ''Config
 makeFields ''KatipEnv
 makeFields ''Minio
+makeFields ''TokensLT
 
 -- These instances get even easier with lenses!
 instance Katip KatipController where
