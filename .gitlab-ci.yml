@@ -64,8 +64,9 @@ deploy:
   tags:
     - edgenode
   before_script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - nix-env -iA nixpkgs.docker
     - nix-env -iA nixpkgs.docker_compose
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
   when: manual
   script:
     - docker pull $IMAGE_TAG_LATEST
