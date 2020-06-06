@@ -77,6 +77,7 @@ data Cfg =
      , cfgIsAuthEnabled :: !Bool
      , cfgUserId        :: !(Id "user")
      , cfgCors          :: !Cfg.Cors
+     , cfgSmtp          :: !Cfg.Smtp
      }
 
 newtype AppMonad a = AppMonad { runAppMonad :: RWS.RWST KatipEnv KatipLogger KatipState IO a }
@@ -166,7 +167,7 @@ run Cfg {..} =
 
       servAsync <- liftIO $ async $ Warp.runTLS tls_settings settings (middleware cfgCors mware_logger runServer)
       mail_logger <- katipAddNamespace (Namespace ["mail"]) askLoggerIO
-      mailAsync <- liftIO $ async $ Mail.run (cfg^.katipEnv.hasqlDbPool) mail_logger
+      mailAsync <- liftIO $ async $ Mail.run cfgSmtp telegram_service (cfg^.katipEnv.hasqlDbPool) mail_logger
       liftIO (void (waitAnyCancel [servAsync, mailAsync])) `logExceptionM` ErrorS
 
 middleware :: Cfg.Cors -> KatipLoggerIO -> Application -> Application

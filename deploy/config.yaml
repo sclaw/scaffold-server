@@ -55,3 +55,8 @@ configCors:
     - http://localhost:3000
     - http://localhost:12000
     - http://136.243.173.173:12000
+
+configSmtp:
+  smtpServer: smtp.gmail.com
+  smtpLogin: fclaw007
+  smtpPassword: hosvxrxoiuauokae

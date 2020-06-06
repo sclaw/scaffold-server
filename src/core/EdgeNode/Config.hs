@@ -18,6 +18,7 @@ module EdgeNode.Config
        , Telegram (..)
        , Env (..)
        , Cors (..)
+       , Smtp (..)
        , db
        , pass
        , port
@@ -53,6 +54,7 @@ module EdgeNode.Config
        , origins
        , accessTokenLifetime
        , refreshTokenLifetime
+       , smtp
          -- * Iso
        , isoEnv
        )
@@ -139,6 +141,9 @@ newtype ServerConnection = ServerConnection { serverConnectionPort :: Int }
 
 newtype Cors = Cors { corsOrigins :: (Maybe [T.Text]) } deriving Show
 
+data Smtp = Smtp { smtpServer :: !T.Text, smtpLogin :: !T.Text, smtpPassword :: !T.Text }
+  deriving Show
+
 data Config =
      Config
      { configDb :: !Db
@@ -151,6 +156,7 @@ data Config =
      , configTelegram :: !Telegram
      , configServerConnection :: !ServerConnection
      , configCors :: !Cors
+     , configSmtp :: !Smtp
      } deriving Show
 
 makeFields ''Config
@@ -163,6 +169,7 @@ makeFields ''Swagger
 makeFields ''Telegram
 makeFields ''ServerConnection
 makeFields ''Cors
+makeFields ''Smtp
 
 -- Load program configuration from file (server.yaml), or
 -- raise YamlException and terminate program.
@@ -181,3 +188,4 @@ deriveFromJSON defaultOptions ''Swagger
 deriveFromJSON defaultOptions ''Telegram
 deriveFromJSON defaultOptions ''ServerConnection
 deriveFromJSON defaultOptions ''Cors
+deriveFromJSON defaultOptions ''Smtp

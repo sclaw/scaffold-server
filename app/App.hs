@@ -135,6 +135,7 @@ main = do
         (cfg^.auth.isAuthEnabled)
         (cfg^.auth.userId.coerced)
         (cfg^.cors)
+        (cfg^.smtp)
   let runApp le =
         runKatipContextT le (mempty :: LogContexts) mempty $ do
           logger <- katipAddNamespace (Namespace ["db", "migration"]) askLoggerIO
