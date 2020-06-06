@@ -1,0 +1,6 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <p>{{login}}, {{password}}, {{providerId}}</p>
+  </body>
+</html>

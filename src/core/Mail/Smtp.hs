@@ -38,7 +38,7 @@ import Control.Exception
 import Data.String.Conv
 
 ciphers :: [Cipher]
-ciphers = ciphersuite_all
+ciphers = ciphersuite_default
 
 tlsParams :: String ->  B.ByteString -> ClientParams
 tlsParams h p =

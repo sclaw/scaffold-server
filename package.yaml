@@ -188,6 +188,7 @@ library:
     - mime-mail
     - cprng-aes
     - base64-bytestring
+    - ginger
 
   source-dirs:
     - src/core
