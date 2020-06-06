@@ -18,10 +18,14 @@ import TH.Mk
 import Data.Int
 import qualified Data.Vector as V
 import qualified Data.Text as T
+import Test.QuickCheck.Arbitrary
+import Data.Aeson.Types
 
 mkArbitrary ''Type
 mkArbitrary ''Status
-mkArbitrary ''Value
+
+instance Arbitrary Value where
+  arbitrary =  pure emptyObject
 
 instance ParamsShow Status where render = toS . fromStatus
 instance ParamsShow Type where render = toS . fromType
