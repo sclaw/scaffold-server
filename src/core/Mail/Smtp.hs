@@ -33,6 +33,9 @@ import Network.TLS
 import Network.TLS.Extra
 import System.IO
 import Text.Printf
+import System.Timeout
+import Control.Exception
+import Data.String.Conv
 
 ciphers :: [Cipher]
 ciphers = ciphersuite_all
@@ -56,7 +59,7 @@ write h = hPrintf h "%s\r\n"
 waitFor :: Handle -> String -> IO ()
 waitFor h str = do
         ln <- hGetLine h
-        putStrLn $ "<<< " <> ln
+      --  putStrLn $ "<<< " <> ln
         unless (str `isPrefixOf` ln) (waitFor h str)
         hFlush stdout
 
@@ -101,7 +104,11 @@ tlsWaitFor ctx str = do
             _  -> return ()
 
 tlsWriteWait :: Writeable a => Context -> a -> T.Text -> IO ()
-tlsWriteWait ctx cmd waitFor = tlsWrite ctx cmd >> tlsWaitFor ctx waitFor
+tlsWriteWait ctx cmd waitFor = do
+  resp <- timeout (10 ^ 6) (tlsWrite ctx cmd >> tlsWaitFor ctx waitFor)
+  case resp of
+    Just _ -> pure ()
+    Nothing -> throwIO $ ErrorCall ("error occured while sending mail at command \"" <> toS (toCommand cmd) <> "\"")
 
 sendMailTlsDefPort :: String -> UserName -> Password -> Mail -> IO ()
 sendMailTlsDefPort host = sendMailTls host 587

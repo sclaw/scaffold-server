@@ -17,8 +17,8 @@ import Control.Monad.IO.Class
 import Data.Foldable
 import Data.Aeson
 import Data.String.Conv
-import qualified Network.Mail.Mime
-import Mail.Smtp
+import qualified Network.Mail.Mime ()
+import Mail.Smtp ()
 
 run :: Pool Connection -> KatipLoggerIO -> IO ()
 run pool logger = do
@@ -32,6 +32,6 @@ run pool logger = do
   threadDelay (30 * 10 ^ 6)
   run pool logger
 
-test = do
-  let m = Network.Mail.Mime.simpleMail' (Network.Mail.Mime.Address Nothing "fclaw007@gmail.com") (Network.Mail.Mime.Address Nothing "info@edgenode.org") "saf" "asfs"
-  sendMailTlsDefPort "smtp.gmail.com" "fclaw007" "hosvxrxoiuauokae" m
+-- test = do
+--   let m = Network.Mail.Mime.simpleMail' (Network.Mail.Mime.Address Nothing "fclaw007@gmail.com") (Network.Mail.Mime.Address Nothing "info@edgenode.org") "saf" "asfs"
+--   sendMailTlsDefPort "smtp.gmail.com" "fclaw007" "hosvxrxoiuauokae" m
