@@ -181,6 +181,13 @@ library:
     - generics-sop
     - string-conv
     - warp-tls
+    - tls
+    - crypto-random
+    - smtp-mail
+    - network
+    - mime-mail
+    - cprng-aes
+    - base64-bytestring
 
   source-dirs:
     - src/core

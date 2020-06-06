@@ -8,6 +8,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Database.Transaction
       ( transactionViolationError
@@ -23,6 +24,7 @@ module Database.Transaction
 
 import EdgeNode.Transport.Error
 
+import Hasql.TH
 import KatipController
 import GHC.Exception.Type
 import Data.Pool
@@ -100,13 +102,17 @@ transactionViolationError pool logger session =
   where
     run = withResource pool $ \conn ->
       mask $ \release -> do
-        bg <- begin conn
-        let action =
-              Hasql.run (runReaderT session logger) conn >>=
-                handleDBResult
+        bg <- Hasql.run (Hasql.sql [uncheckedSql|begin|]) conn
+        let action = do
+              db_res <- Hasql.run (runReaderT session logger) conn
+              handleDBResult db_res
         let withBegin = do
-              result <- release action `onException` rollback conn
-              cm <- commit conn
+              result <-
+                onException
+                (release action)
+                (do logger CriticalS "error while performing sql"
+                    Hasql.run (Hasql.sql [uncheckedSql|rollback|]) conn)
+              cm <- Hasql.run (Hasql.sql [uncheckedSql|commit|]) conn
               traverse (const (pure result)) cm
         traverse (const withBegin) bg
 
@@ -122,11 +128,6 @@ handleDBResult (Left e) =
     Nothing -> throwIO $ QueryErrorWrapper e
   where codem = e^?position @3._Ctor @"ResultError"._Ctor @"ServerError"._1
 handleDBResult (Right  val) = return $ Right val
-
-begin, commit, rollback :: Hasql.Connection -> IO (Either Hasql.QueryError ())
-begin = Hasql.run (Hasql.sql "begin")
-commit = Hasql.run (Hasql.sql "commit")
-rollback = Hasql.run (Hasql.sql "rollback")
 
 transaction :: Pool Hasql.Connection -> KatipLoggerIO -> ReaderT KatipLoggerIO Session a -> IO a
 transaction pool logger session = transactionViolationError pool logger session >>= either throwIO  pure

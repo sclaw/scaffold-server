@@ -55,7 +55,6 @@ controller account user_id = do
        , StatusNew
        , toJSON (
           NewProviderAccount
-          (toS email)
           (toS provider_id)
           (toS password)
           (toS email)))

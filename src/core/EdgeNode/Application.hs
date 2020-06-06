@@ -64,7 +64,7 @@ import Pretty
 import Data.Either.Combinators
 import Control.Exception
 import Data.String.Conv
-import Mail
+import qualified Mail
 
 data Cfg =
      Cfg
@@ -166,7 +166,7 @@ run Cfg {..} =
 
       servAsync <- liftIO $ async $ Warp.runTLS tls_settings settings (middleware cfgCors mware_logger runServer)
       mail_logger <- katipAddNamespace (Namespace ["mail"]) askLoggerIO
-      mailAsync <- liftIO $ async $ runMailing (cfg^.katipEnv.hasqlDbPool) mail_logger
+      mailAsync <- liftIO $ async $ Mail.run (cfg^.katipEnv.hasqlDbPool) mail_logger
       liftIO (void (waitAnyCancel [servAsync, mailAsync])) `logExceptionM` ErrorS
 
 middleware :: Cfg.Cors -> KatipLoggerIO -> Application -> Application

@@ -34,14 +34,14 @@ new =
     (to_whom, type, status, value)
     values ($1 :: text, $2 :: text, $3 :: text, $4 :: jsonb)|]
 
-getMails :: HS.Statement Status (V.Vector (Int64, Type, Value))
+getMails :: HS.Statement Status (V.Vector (Int64, Type, T.Text, Value))
 getMails =
   dimap (toS . fromStatus) (V.map (& _2 %~ (toType . toS))) $
   [vectorStatement|
     update edgenode.email
     set take_to_processing = now()
     where status = $1 :: text
-    returning id :: int8, type :: text, value :: jsonb|]
+    returning id :: int8, type :: text, to_whom :: text, value :: jsonb|]
 
 setAsProcessed :: HS.Statement (Status, V.Vector Int64) ()
 setAsProcessed =
