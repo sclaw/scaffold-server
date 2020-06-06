@@ -24,6 +24,7 @@ COPY --chown=nix:nix scripts scripts
 COPY --chown=nix:nix .env .env
 COPY --chown=nix:nix tls tls
 COPY --chown=nix:nix test test
+COPY --chown=nix:nix email-template email-template
 
 RUN touch .bash_profile && \
   curl https://nixos.org/nix/install | sh
