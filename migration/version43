@@ -19,3 +19,6 @@ where title = 'provider_guest';
 
 insert into auth.role_permission (role_fk, permission_fk)
 values ((select id from auth.role where title = 'provider'), (select id from auth.permission where title = 'provider_settings'));
+
+insert into auth.role_permission (role_fk, permission_fk)
+values ((select id from auth.role where title = 'editor'), (select id from auth.permission where title = 'provider_editor'));

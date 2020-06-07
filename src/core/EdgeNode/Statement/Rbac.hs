@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DataKinds #-}
 
-module EdgeNode.Statement.Rbac 
+module EdgeNode.Statement.Rbac
        ( getTopLevelRoles
        , isPermissionBelongToRole
        , assignRoleToUser
@@ -22,45 +22,45 @@ import qualified Data.Vector as V
 import Data.Coerce
 
 getTopLevelRoles :: HS.Statement (Id "user", Permission) [Id "role"]
-getTopLevelRoles = lmap (bimap (^.coerced) (^.isoPermission.stext)) $ statement $ premap (^.coerced) list                
+getTopLevelRoles = lmap (bimap (^.coerced) (^.isoPermission.stext)) $ statement $ premap (^.coerced) list
   where
-    statement = 
-      [foldStatement| 
-        with recursive 
+    statement =
+      [foldStatement|
+        with recursive
           roles as (
-           select ur.role_fk, array[ur.role_fk] as arr 
-           from auth.user_role as ur 
+           select ur.role_fk, array[ur.role_fk] as arr
+           from auth.user_role as ur
            where ur.user_fk = $1 :: int8
            union all
              select r.id, array_append(rs.arr, r.id)
              from auth.role as r
              join roles as rs
              on r.parent_fk = rs.role_fk)
-        select r.arr[1] :: int8 
+        select distinct(r.arr[1] :: int8)
         from roles as r
-        inner join (select role_fk 
-                   from auth.role_permission 
-                   where permission_fk in 
-                   (select id from auth.permission 
+        inner join (select role_fk
+                   from auth.role_permission
+                   where permission_fk in
+                   (select id from auth.permission
                     where title = $2 :: text)) as rp
         on r.role_fk = rp.role_fk|]
 
 isPermissionBelongToRole :: HS.Statement ([Id "role"], Permission) Bool
-isPermissionBelongToRole = 
+isPermissionBelongToRole =
   lmap (bimap ((V.fromList . Prelude.map coerce) :: [Id "role"] -> V.Vector Int64) (^.isoPermission.stext)) statement
-  where 
-    statement = 
+  where
+    statement =
       [singletonStatement|
-        with recursive 
+        with recursive
           perms as (
            select id, title
            from auth.permission
-           where id in 
-             (select permission_fk 
-              from auth.role_permission 
+           where id in
+             (select permission_fk
+              from auth.role_permission
               where role_fk = any($1 :: int8[]))
            union
-             select p.id, p.title 
+             select p.id, p.title
              from perms as ps
              inner join auth.permission as p
              on ps.id = p.parent_fk)
@@ -69,7 +69,7 @@ isPermissionBelongToRole =
 assignRoleToUser :: HS.Statement (Int64, Role, Maybe Int64) ()
 assignRoleToUser = lmap (& _2 %~ (^.isoRole.stext)) $
   [resultlessStatement|
-    insert into auth.user_role 
-    (user_fk, role_fk, admin_fk) 
-    select $1 :: int8, id, coalesce($3 :: int8?, 1) 
+    insert into auth.user_role
+    (user_fk, role_fk, admin_fk)
+    select $1 :: int8, id, coalesce($3 :: int8?, 1)
     from auth.role where title = $2 :: text|]
