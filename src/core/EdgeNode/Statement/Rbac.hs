@@ -36,7 +36,7 @@ getTopLevelRoles = lmap (bimap (^.coerced) (^.isoPermission.stext)) $ statement 
              from auth.role as r
              join roles as rs
              on r.parent_fk = rs.role_fk)
-        select distinct(r.arr[1] :: int8)
+        select r.arr[1] :: int8
         from roles as r
         inner join (select role_fk
                    from auth.role_permission
