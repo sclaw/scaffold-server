@@ -18,7 +18,7 @@ services:
 proto:
   stage: prepare_proto
   #image: haskell
-  image: nixos/nix:2.3.4`
+  image: nixos/nix:2.3.4
   tags:
     - edgenode
   script:
