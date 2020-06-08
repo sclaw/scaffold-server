@@ -36,13 +36,14 @@ getTopLevelRoles = lmap (bimap (^.coerced) (^.isoPermission.stext)) $ statement 
              from auth.role as r
              join roles as rs
              on r.parent_fk = rs.role_fk)
-        select r.arr[1] :: int8
+        select distinct r.arr[1] :: int8
         from roles as r
-        inner join (select role_fk
-                   from auth.role_permission
-                   where permission_fk in
-                   (select id from auth.permission
-                    where title = $2 :: text)) as rp
+        inner join (
+          select role_fk
+          from auth.role_permission
+          where permission_fk in
+          (select id from auth.permission
+           where title = $2 :: text)) as rp
         on r.role_fk = rp.role_fk|]
 
 isPermissionBelongToRole :: HS.Statement ([Id "role"], Permission) Bool
