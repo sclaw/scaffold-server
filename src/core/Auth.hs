@@ -22,6 +22,7 @@ module Auth
       , BasicUser (..)
       , BasicAuthCfgData (..)
       , UserId
+      , UserResetPassData (..)
       , withAuthResult
       , mkAccessToken
       , mkRefreshToken
@@ -29,6 +30,7 @@ module Auth
       , verifyToken
       , withUser
       , mkTokens
+      , mkPasswordResetToken
       ) where
 
 import EdgeNode.Transport.Id
@@ -80,6 +82,7 @@ import Data.Bifunctor
 import System.Random.PCG.Unique
 import Pretty
 import Data.Int
+import Data.Functor
 
 data AppJwt
 
@@ -87,7 +90,7 @@ type UserId = Id "user"
 
 data JWTUser =
      JWTUser
-     { jWTUserUserId           :: !(Id "user")
+     { jWTUserUserId           :: !UserId
      , jWTUserEmail            :: !T.Text
      , jWTUserUserRole         :: !UserRole
      , jwtUserRefreshTokenHash :: !T.Text
@@ -101,8 +104,8 @@ mkEnumConvertor ''Auth.Error
 instance FromJWT JWTUser
 instance ToJWT JWTUser
 
-instance FromJWT (Id "user")
-instance ToJWT (Id "user")
+instance FromJWT UserId
+instance ToJWT UserId
 
 instance HasSecurity AppJwt where
   securityName _ = "JWT Security"
@@ -183,11 +186,11 @@ actionCheckToken (Just user) = do
       , mkEncoderJWTUser x^._4)
   return $ if exists then Right user else Left "refresh token not found"
 
-mkAccessToken :: NominalDiffTime -> JWK -> Id "user" -> T.Text -> UserRole -> ExceptT JWTError IO (SignedJWT, Time)
-mkAccessToken lt jwk uid refresh_token_hash utype = do
+mkAccessToken :: NominalDiffTime -> JWK -> UserId -> T.Text -> T.Text -> UserRole -> ExceptT JWTError IO (SignedJWT, Time)
+mkAccessToken lt jwk uid email refresh_token_hash utype = do
   alg <- bestJWSAlg jwk
   utc <- liftIO getCurrentTime
-  let user = JWTUser uid "" utype refresh_token_hash
+  let user = JWTUser uid email utype refresh_token_hash
   let claims =
         emptyClaimsSet
         & claimIss ?~ "edgeNode"
@@ -211,6 +214,33 @@ mkRefreshToken lt jwk unique = do
         & unregisteredClaims .~
           HM.singleton "dat" (toJSON unique)
   signClaims jwk (newJWSHeader ((), alg)) claims
+
+data UserResetPassData =
+     UserResetPassData
+     { userResetPassDataUserId   :: !UserId
+     , userResetPassDataUserRole :: !UserRole
+     , userResetPassDataEmail    :: !T.Text
+     }
+
+deriveJSON defaultOptions ''UserResetPassData
+
+mkPasswordResetToken :: JWK -> UserResetPassData -> KatipLoggerIO -> IO (Either T.Text ByteString)
+mkPasswordResetToken jwk dat log = do
+  token_e <- runExceptT $ do
+    alg <- bestJWSAlg jwk
+    ct <- liftIO getCurrentTime
+    let claims =
+          emptyClaimsSet
+         & claimIss ?~ "edgeNode"
+         & claimIat ?~ NumericDate ct
+         & claimExp ?~ NumericDate (addUTCTime 3600 ct)
+         & unregisteredClaims .~
+           HM.singleton "dat" (toJSON dat)
+    signClaims jwk (newJWSHeader ((), alg)) claims
+  let encode x = x^.to Jose.encodeCompact.bytesLazy
+  let mkError err = show @JWTError err^.stext
+  fmap (first mkError) $ for token_e $ \token ->
+    log DebugS (logStr (mkPretty "password reset token: " (encode token))) $> encode token
 
 data BasicUser = BasicUser { basicUserUserId :: !(Id "user") }
 
@@ -256,12 +286,12 @@ withUser user controller = do
     Authenticated resp -> return resp
     _ -> return $ Error $ Transport.asError @T.Text "authentication required"
 
-mkTokens :: JWK -> (Id "user", UserRole) -> KatipLoggerIO -> Int64 -> Int64 -> IO (Either T.Text (T.Text, (ByteString, Time), ByteString, T.Text))
+mkTokens :: JWK -> (UserId, T.Text, UserRole) -> KatipLoggerIO -> Int64 -> Int64 -> IO (Either T.Text (T.Text, (ByteString, Time), ByteString, T.Text))
 mkTokens key cred log access_token_lt refresh_token_lt = do
   uq <- fmap mkHash $ uniformW64 =<< createSystemRandom
   tokens_e <- runExceptT $ do
     refresh <- mkRefreshToken (fromIntegral refresh_token_lt) key uq
-    access <- mkAccessToken (fromIntegral access_token_lt) key (cred^._1) (mkHash refresh) (cred^._2)
+    access <- mkAccessToken (fromIntegral access_token_lt) key (cred^._1) (cred^._2) (mkHash refresh) (cred^._3)
     pure $ (uq, access, refresh, mkHash refresh)
   let encode x = x^.to Jose.encodeCompact.bytesLazy
   let mkError err = show err^.stext

@@ -19,6 +19,7 @@ module EdgeNode.Config
        , Env (..)
        , Cors (..)
        , Smtp (..)
+       , Urls (..)
        , db
        , pass
        , port
@@ -55,6 +56,7 @@ module EdgeNode.Config
        , accessTokenLifetime
        , refreshTokenLifetime
        , smtp
+       , urls
          -- * Iso
        , isoEnv
        )
@@ -144,19 +146,22 @@ newtype Cors = Cors { corsOrigins :: (Maybe [T.Text]) } deriving Show
 data Smtp = Smtp { smtpServer :: !T.Text, smtpLogin :: !T.Text, smtpPassword :: !T.Text }
   deriving Show
 
+newtype Urls = Urls { urlsResetPassword :: T.Text } deriving Show
+
 data Config =
      Config
-     { configDb :: !Db
-     , configSwagger :: !Swagger
-     , configHasql :: !HasqlSettings
-     , configKatip :: !Katip
-     , configAuth :: !Auth
-     , configService :: !Service
-     , configMinio :: !Minio
-     , configTelegram :: !Telegram
+     { configDb               :: !Db
+     , configSwagger          :: !Swagger
+     , configHasql            :: !HasqlSettings
+     , configKatip            :: !Katip
+     , configAuth             :: !Auth
+     , configService          :: !Service
+     , configMinio            :: !Minio
+     , configTelegram         :: !Telegram
      , configServerConnection :: !ServerConnection
-     , configCors :: !Cors
-     , configSmtp :: !Smtp
+     , configCors             :: !Cors
+     , configSmtp             :: !Smtp
+     , configUrls             :: !Urls
      } deriving Show
 
 makeFields ''Config
@@ -170,6 +175,7 @@ makeFields ''Telegram
 makeFields ''ServerConnection
 makeFields ''Cors
 makeFields ''Smtp
+makeFields ''Urls
 
 -- Load program configuration from file (server.yaml), or
 -- raise YamlException and terminate program.
@@ -189,3 +195,4 @@ deriveFromJSON defaultOptions ''Telegram
 deriveFromJSON defaultOptions ''ServerConnection
 deriveFromJSON defaultOptions ''Cors
 deriveFromJSON defaultOptions ''Smtp
+deriveFromJSON defaultOptions ''Urls

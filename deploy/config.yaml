@@ -60,3 +60,6 @@ configSmtp:
   smtpServer: smtp.gmail.com
   smtpLogin: fclaw007
   smtpPassword: hosvxrxoiuauokae
+
+configUrls:
+  urlsResetPassword: http://edgenode.org/reset-password/

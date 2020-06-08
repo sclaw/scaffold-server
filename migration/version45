@@ -1,10 +1,13 @@
 alter table auth.user rename column modified to password_modified_tm;
 alter table auth.user add column email_modified_tm timestamp;
 
-create table auth.credentials_updater (
+create table auth.password_updater (
   id bigserial primary key,
   user_fk int8 not null constraint "credentials_updater__user_id_fk" references auth.user(id),
-  what text not null,
   when_tm timestamp not null default now(),
   done_tm timestamp,
-  token text not null);
+  token bytea not null,
+  attempts int4 not null default 0 check (attempts < 4),
+  serial int4 not null,
+  status text not null,
+  constraint "password_updater__user_fk__serial" unique (user_fk, serial));

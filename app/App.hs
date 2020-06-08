@@ -157,7 +157,7 @@ main = do
 
   let katipMinio = Minio minioEnv (cfg^.EdgeNode.Config.minio.EdgeNode.Config.bucketPrefix)
   let tokens = TokensLT (cfg^.auth.accessTokenLifetime) (cfg^.auth.refreshTokenLifetime)
-  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) (fromRight' jwke) katipMinio telegram tokens
+  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) (fromRight' jwke) katipMinio telegram tokens (cfg^.EdgeNode.Config.urls)
 
   bracket env closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)
 

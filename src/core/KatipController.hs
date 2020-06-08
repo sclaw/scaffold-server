@@ -21,6 +21,7 @@ module KatipController
        , KatipControllerState (..)
        , Minio (..)
        , TokensLT (..)
+       , Urls (..)
          -- * lens
        , nm
        , ctx
@@ -36,6 +37,7 @@ module KatipController
        , conn
        , telegram
        , tokensLT
+       , urls
          -- * run
        , runKatipController
          -- * re-export
@@ -46,6 +48,8 @@ module KatipController
          -- * aux
       , runTelegram
        ) where
+
+import EdgeNode.Config (Urls (..))
 
 import Control.Lens
 import Control.Monad.IO.Class
@@ -94,6 +98,7 @@ data KatipEnv =
      , katipEnvMinio :: !Minio
      , katipEnvTelegram :: Web.Telegram.Service
      , katipEnvTokensLT :: !TokensLT
+     , katipEnvUrls :: !Urls
      }
 
 data Minio = Minio { minioConn :: !Minio.MinioConn, minioBucketPrefix :: !T.Text }

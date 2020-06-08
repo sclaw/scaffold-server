@@ -15,6 +15,7 @@ module EdgeNode.Statement.Auth
        , mkTokenInvalid
        , logout
        , register
+       , putResetPasswordToken
        ) where
 
 import EdgeNode.Transport.Auth
@@ -66,7 +67,7 @@ instance ParamsShow Registration where
     [ x^.field @"registrationEmail".from stextl
     , x^.field @"registrationPassword".from stextl]
 
-getUserCred :: HS.Statement Signin (Maybe (UserId, UserRole, PassHash))
+getUserCred :: HS.Statement Signin (Maybe (UserId, T.Text, UserRole, PassHash))
 getUserCred = dimap (initT . mkTpl . mkEncoderSignin) decoder statement
   where
     mkTpl x =
@@ -76,14 +77,15 @@ getUserCred = dimap (initT . mkTpl . mkEncoderSignin) decoder statement
       [maybeStatement|
         select
           id :: int8,
+           email :: text,
           "user_type" :: text,
           password :: bytea
         from auth.user
         where identifier = md5($2 :: text || $1 :: text)|]
     decoder x =
       x  & _Just._1 %~ coerce
-         & _Just._2 %~ (^.from stext.from isoUserRole)
-         & _Just._3 %~ (^.from textbs.to coerce)
+         & _Just._3 %~ (^.from stext.from isoUserRole)
+         & _Just._4 %~ (^.from textbs.to coerce)
 
 instance ParamsShow (B.ByteString, UserId, T.Text) where
     render x = intercalate ","
@@ -100,10 +102,13 @@ putRefreshToken = lmap (& _1 %~ coerce) statement
         (created, user_fk, refresh_token_hash, "unique")
         values (now(), $1 :: int8, $2 :: text, $3 :: text)|]
 
-checkRefreshToken :: HS.Statement (T.Text, UserId) (Maybe (Int64, UserRole))
-checkRefreshToken = dimap (& _2 %~ coerce) (fmap (& _2 %~ (^.from stext.from isoUserRole))) $
+checkRefreshToken :: HS.Statement (T.Text, UserId) (Maybe (Int64, T.Text, UserRole))
+checkRefreshToken = dimap (& _2 %~ coerce) (fmap (& _3 %~ (^.from stext.from isoUserRole))) $
   [maybeStatement|
-    select at.id :: int8, "user_type" :: text
+    select
+      at.id :: int8,
+      email ::text,
+      "user_type" :: text
     from auth.token as at
     inner join auth.user as au
     on at."user_fk" = au.id
@@ -156,3 +161,39 @@ register = lmap mkEncoder statement
         (user_id, status, birthday_id, gender)
         (select id, $2 :: text, (select id from get_day), $3 :: text from get_user)
         returning (select id from get_user) :: int8|]
+
+putResetPasswordToken :: HS.Statement (UserId, B.ByteString) (Maybe (Maybe T.Text))
+putResetPasswordToken =
+  lmap (& _1 %~ coerce)
+  [maybeStatement|
+    with
+      next as (
+        select count(*) as i
+        from auth.password_updater
+        where "user_fk" = $1 :: int8
+        and status = 'completed'),
+      token as (
+      insert into auth.password_updater
+      ("user_fk", serial, status, token, attempts)
+      values (
+        $1 :: int8,
+        (select (i + 1) from next),
+        'new',
+        $2 :: bytea,
+        1)
+      on conflict ("user_fk", serial)
+      do update set attempts = excluded.attempts + 1
+      returning
+        case when attempts = 3
+             then null
+             else "user_fk"
+        end as ident)
+    select (u.name || ' ' || u.surname) :: text?
+    from token as t
+    inner join edgenode.user as u
+    on t.ident = u.user_id
+    union
+    select null :: text?
+    from token as t
+    inner join edgenode.provider_user as pu
+    on t.ident = pu.user_id|]

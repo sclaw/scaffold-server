@@ -54,9 +54,15 @@ controller req user_id = do
           katipTransaction hasql $ do
             tpl_m <- statement Auth.checkRefreshToken (uq, user_id)
             case tpl_m of
-              Just (ident, user_role) -> do
+              Just (ident, email, user_role) -> do
                 log <- ask
-                tokens_e <- liftIO $ Auth.mkTokens key (user_id, user_role) log tokensLTAccessLT tokensLTRefreshLT
+                tokens_e <- liftIO $
+                  Auth.mkTokens
+                  key
+                  (user_id, email, user_role)
+                  log
+                  tokensLTAccessLT
+                  tokensLTRefreshLT
                 void $ statement Auth.mkTokenInvalid ident
                 for tokens_e $ \(uq, a, r, h) -> do
                   void $ statement Auth.putRefreshToken (user_id, h, uq)
