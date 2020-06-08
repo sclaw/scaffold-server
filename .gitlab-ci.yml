@@ -61,7 +61,7 @@ server:
 
 deploy:
   stage: deploy_server
-  image: nixos/nix:latest
+  image: nixos/nix:2.3.4
   tags:
     - edgenode
   before_script:

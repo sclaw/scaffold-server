@@ -168,26 +168,16 @@ putResetPasswordToken =
   [maybeStatement|
     with
       next as (
-        select count(*) as i
+        select count(*) + 1 as i
         from auth.password_updater
-        where "user_fk" = $1 :: int8
-        and status = 'completed'),
+        where "user_fk" = $1 :: int8),
       token as (
       insert into auth.password_updater
       ("user_fk", serial, status, token, attempts)
-      values (
-        $1 :: int8,
-        (select (i + 1) from next),
-        'new',
-        $2 :: bytea,
-        1)
+      values ($1 :: int8, (select i from next), 'new', $2 :: bytea, 1)
       on conflict ("user_fk", serial)
       do update set attempts = excluded.attempts + 1
-      returning
-        case when attempts = 3
-             then null
-             else "user_fk"
-        end as ident)
+      returning case when attempts = 3 then null else "user_fk" end as ident)
     select (u.name || ' ' || u.surname) :: text?
     from token as t
     inner join edgenode.user as u
