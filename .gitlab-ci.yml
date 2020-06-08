@@ -22,6 +22,7 @@ proto:
   tags:
     - edgenode
   script:
+    - nix-channel --update
     - nix-env -iA nixpkgs.gitAndTools.gitFull
     - git submodule update --init
   cache:
