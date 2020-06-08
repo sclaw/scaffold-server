@@ -18,12 +18,12 @@ services:
 proto:
   stage: prepare_proto
   #image: haskell
-  image: nixos/nix:latest
+  image: alpine/git:latest
   tags:
     - edgenode
   script:
-    - nix-channel --update
-    - nix-env -iA nixpkgs.gitAndTools.gitFull
+    # - nix-channel --update
+    # - nix-env -iA nixpkgs.gitAndTools.gitFull
     - git submodule update --init
   cache:
     paths:
