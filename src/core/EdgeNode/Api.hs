@@ -28,6 +28,7 @@ module EdgeNode.Api
        , TagsApi (..)
        , SettingsApi (..)
        , AccountApi (..)
+       , PasswordApi (..)
      --  , WebsocketApi (..)
        , api
        , swaggerHttpApi

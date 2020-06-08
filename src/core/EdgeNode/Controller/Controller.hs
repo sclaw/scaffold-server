@@ -32,6 +32,7 @@ import qualified EdgeNode.Controller.Auth.SignIn as Auth.SignIn
 import qualified EdgeNode.Controller.Auth.Registration as Auth.Registration
 import qualified EdgeNode.Controller.Auth.SignOut as Auth.SignOut
 import qualified EdgeNode.Controller.Auth.RefreshAccessToken as Auth.RefreshAccessToken
+import qualified EdgeNode.Controller.Auth.Password.New as Password.New
 import qualified EdgeNode.Controller.Provider.Publish as Provider.Publish
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetAvailableBranches as QualificationBuilder.GetAvailableBranches
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.Create as QualificationBuilder.Create
@@ -170,6 +171,21 @@ auth =
     katipAddNamespace
     (Namespace ["auth", "registration"])
     (Auth.Registration.controller registration)
+  , _authPassword = toServant password
+  }
+
+password :: PasswordApi (AsServerT KatipController)
+password =
+  PasswordApi
+  { _passwordApiNew = \jwt ->
+    jwt `withAuthResult` (\user ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["auth", "password", "new"])
+    (applyController Nothing user Password.New.controller))
+  , _passwordApiReset = undefined
+  , _passwordApiRegenerate = undefined
+  , _passwordApiCheckToken = undefined
   }
 
 user :: AuthResult JWTUser -> UserApi (AsServerT KatipController)
@@ -327,14 +343,14 @@ search =
      katipAddNamespace
      (Namespace ["search", "bar"])
      (Search.GetBarItems.controller query)
-  , _searchApiGetQualificationList = \user query -> do
+  , _searchApiGetQualificationList = \jwt query -> do
     let unauthorized = Search.GetQualificationList.unauthorizedController
     let authorized = Search.GetQualificationList.authorizedController
     flip logExceptionM ErrorS $
       katipAddNamespace
       (Namespace ["search", "qualification", "list"])
       (applyController (Just (unauthorized query))
-        user $ \x -> authorized query (jWTUserUserId x))
+       jwt $ \user -> authorized query (jWTUserUserId user))
   , _searchApiGetQualificationModal = \qualification_id ->
     flip logExceptionM ErrorS $
     katipAddNamespace

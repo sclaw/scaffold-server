@@ -5,7 +5,10 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module EdgeNode.Api.Auth (AuthApi (..)) where
+module EdgeNode.Api.Auth
+       ( AuthApi (..)
+       , PasswordApi (..)
+       ) where
 
 import EdgeNode.Transport.Auth
 import EdgeNode.Transport.Response
@@ -17,8 +20,9 @@ import Servant.API
 import Data.Aeson.WithField
 import Data.Aeson.Unit
 import qualified Data.Text as T
+import Servant.Auth.Server
 
-data AuthApi route = 
+data AuthApi route =
      AuthApi
      { _authApiAuthentication
        :: route
@@ -26,12 +30,12 @@ data AuthApi route =
        :> "authenticate"
        :> ReqBody '[JSON] Signin
        :> Post '[JSON]
-          (Response 
-           (WithId UserId 
-            (WithField "role" UserRole 
+          (Response
+           (WithId UserId
+            (WithField "role" UserRole
              Tokens)))
      , _authApiRefreshAccessToken
-       :: route 
+       :: route
        :- Description "refresh access token"
        :> "token"
        :> "user"
@@ -51,5 +55,38 @@ data AuthApi route =
        :- Description "registration primary user"
        :> "registration"
        :> ReqBody '[JSON] Registration
-       :> Post '[JSON] (Response Unit)   
+       :> Post '[JSON] (Response Unit)
+     , _authPassword
+       :: route
+       :- "password"
+       :> ToServant PasswordApi AsApi
+     } deriving stock Generic
+
+data PasswordApi route =
+     PasswordApi
+     { _passwordApiNew
+       :: route
+       :- Description "create new password"
+       :> "new"
+       :> Auth '[AppJwt] JWTUser
+       :> Post '[JSON] (Response Unit)
+     , _passwordApiReset
+       :: route
+       :- Description "reset password"
+       :> "reset"
+       :> ReqBody '[JSON] ResetPassword
+       :> Post '[JSON] (Response Unit)
+     , _passwordApiRegenerate
+       :: route
+       :- Description "regenerate new password"
+       :> "regenerate"
+       :> ReqBody '[JSON] RegeneratePassword
+       :> Post '[JSON] (Response Unit)
+     , _passwordApiCheckToken
+       :: route
+       :- Description "check if token is valid"
+       :> "token"
+       :> "check"
+       :> ReqBody '[JSON] TokenCheck
+       :> Post '[JSON] (Response Bool)
      } deriving stock Generic

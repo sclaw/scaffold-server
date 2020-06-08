@@ -90,7 +90,7 @@ resetPassword =
   [rowsAffectedStatement|
    update auth.user set
    password = $3 :: bytea,
-   modified = now()
+   password_modified_tm = now()
    where id =
      (select pu.user_id from edgenode.provider_user as pu
       inner join edgenode.provider as p
