@@ -26,6 +26,8 @@ import qualified Protobuf.Scalar as Protobuf
 import Data.String.Conv
 
 controller :: JWTUser -> KatipController (Response Unit)
+controller user | T.null (jWTUserEmail user) =
+  pure $ Error $ Error.asError @T.Text "email empty. please, appeal to developers to notify about this issue"
 controller user@JWTUser {..} = do
   key <- fmap (^.katipEnv.jwk) ask
   runTelegram $location user

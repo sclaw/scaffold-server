@@ -81,3 +81,5 @@ loadGingerFile path = do
 
 mkSubject :: Type -> T.Text
 mkSubject TypeNewProviderAccount = "Account"
+mkSubject TypeResetPassword = "Reset password"
+mkSubject TypeNewPassword = "New Password"
