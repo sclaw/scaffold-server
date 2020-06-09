@@ -31,7 +31,6 @@ import Data.Foldable
 
 controller :: RegeneratePassword -> KatipController (Response Unit)
 controller pass@RegeneratePassword {..} = do
-  runTelegram $location pass
   jwt_sett <- fmap (^.katipEnv.jwk.to defaultJWTSettings) ask
   let err e = do
         runTelegram $location (mkPretty "error while processing reset password token" e)
@@ -48,8 +47,11 @@ mkPassword x@RegeneratePassword {..} UserResetPassData {..} =
     go = do
       hasql <- fmap (^.katipEnv.hasqlDbPool) ask
       salt <- newSalt
-      $(logTM) DebugS (logStr ("new password: " <> regeneratePasswordPassword))
+      telegram <- fmap (^.katipEnv.telegram) ask
       let hashed_password = toS $ unPassHash $ hashPassWithSalt salt (mkPass (toS regeneratePasswordPassword))
       katipTransaction hasql $ do
+        log <- ask
         is_token_used_m <- statement Auth.isTokenUsed (userResetPassDataUserId, userResetPassDataTokenType)
+        liftIO $ log DebugS $ ls $ "is token used: " <> show is_token_used_m
+        liftIO $ send telegram log $ toS $ "is token used: " <> show is_token_used_m
         for_ is_token_used_m $ const $ statement Auth.setNewPassword (userResetPassDataUserId, userResetPassDataTokenType, hashed_password)
