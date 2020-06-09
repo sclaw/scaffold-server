@@ -206,14 +206,12 @@ putResetPasswordToken =
 
 getTokenStatus :: HS.Statement (Id "user", TokenType) (Maybe (Maybe UTCTime))
 getTokenStatus =
-  lmap (consT (New^.isoTokenProcessStatus.stext) . (\x -> x & _1 %~ (coerce @_ @Int64) & _2 %~ (^.isoTokenType.stext)))
+  lmap (\x -> x & _1 %~ (coerce @_ @Int64) & _2 %~ (^.isoTokenType.stext))
   [maybeStatement|
-    select
-      upu.block_until :: timestamptz?
+    select upu.block_until :: timestamptz?
     from auth.user_password_updater as upu
-    where upu.status = $1 :: text
-    and upu.user_fk = $2 :: int8
-    and upu.token_type = $3 :: text|]
+    where upu.user_fk = $1 :: int8
+    and upu.token_type = $2 :: text|]
 
 setNewPassword :: HS.Statement (Id "user", TokenType, B.ByteString) ()
 setNewPassword =
