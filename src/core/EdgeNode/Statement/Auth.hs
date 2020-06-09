@@ -18,6 +18,7 @@ module EdgeNode.Statement.Auth
        , register
        , putResetPasswordToken
        , getTokenStatus
+       , setNewPassword
        ) where
 
 import EdgeNode.Transport.Auth
@@ -213,3 +214,22 @@ getTokenStatus =
     where upu.status = $1 :: text
     and upu.user_fk = $2 :: int8
     and upu.token_type = $3 :: text|]
+
+setNewPassword :: HS.Statement (Id "user", TokenType, B.ByteString) ()
+setNewPassword =
+  lmap (consT (Completed^.isoTokenProcessStatus.stext) . (\x -> x & _1 %~ (coerce @_ @Int64) & _2 %~ (^.isoTokenType.stext)))
+  [resultlessStatement|
+    with new_user as (
+      update auth.user set
+      password = $4 :: bytea,
+      password_modified_tm = now()
+      where id = $2 :: int8),
+    pass as (
+      update auth.user_password_updater set
+      status = $1 :: text,
+      block_until = now() + interval '30 day'
+      where "user_fk" = $2 :: int8
+      and token_type = $3 :: text
+      returning password_updater_fk as ident)
+    update auth.password_updater set done_tm = now()
+    where id = any(select * from pass)|]

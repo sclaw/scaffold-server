@@ -112,7 +112,9 @@ explainTests =
     , "mkTokenInvalid" =>> EdgeNode.Statement.Auth.mkTokenInvalid
     , "logout" =>> EdgeNode.Statement.Auth.logout
     , "register" =>> EdgeNode.Statement.Auth.register
-    , "putResetPasswordToken" =>> EdgeNode.Statement.Auth.putResetPasswordToken]
+    , "putResetPasswordToken" =>> EdgeNode.Statement.Auth.putResetPasswordToken
+    , "setNewPassword" =>> EdgeNode.Statement.Auth.setNewPassword
+    , "getTokenStatus" =>> EdgeNode.Statement.Auth.getTokenStatus]
   , "EdgeNode.Statement.Search" ==>
     [ "getBarItems" =>> EdgeNode.Statement.Search.getBarItems
     , "getQualificationList" =>> EdgeNode.Statement.Search.getQualificationList

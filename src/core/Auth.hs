@@ -31,6 +31,7 @@ module Auth
       , withUser
       , mkTokens
       , mkPasswordResetToken
+      , getUserResetPassData
       ) where
 
 import EdgeNode.Transport.Id
@@ -84,6 +85,7 @@ import System.Random.PCG.Unique
 import Pretty
 import Data.Int
 import Data.Functor
+import Data.String.Conv
 
 data AppJwt
 
@@ -224,6 +226,8 @@ data UserResetPassData =
      , userResetPassDataTokenType :: !TokenType
      }
 
+instance FromJWT UserResetPassData
+
 deriveJSON defaultOptions ''UserResetPassData
 
 mkPasswordResetToken :: JWK -> UserResetPassData -> KatipLoggerIO -> IO (Either T.Text (ByteString, UTCTime))
@@ -233,16 +237,21 @@ mkPasswordResetToken jwk dat log = do
     alg <- bestJWSAlg jwk
     let claims =
           emptyClaimsSet
-         & claimIss ?~ "edgeNode"
-         & claimIat ?~ NumericDate ct
-         & claimExp ?~ NumericDate (addUTCTime 3600 ct)
-         & unregisteredClaims .~
-           HM.singleton "dat" (toJSON dat)
+          & claimIss ?~ "edgeNode"
+          & claimIat ?~ NumericDate ct
+          & claimExp ?~ NumericDate (addUTCTime 3600 ct)
+          & unregisteredClaims .~
+            HM.singleton "dat" (toJSON dat)
     signClaims jwk (newJWSHeader ((), alg)) claims
   let encode x = x^.to Jose.encodeCompact.bytesLazy
   let mkError err = show @JWTError err^.stext
   fmap (first mkError) $ for token_e $ \token ->
     log DebugS (logStr (mkPretty "password reset token: " (encode token))) $> (encode token, addUTCTime 3600 ct)
+
+getUserResetPassData :: JWTSettings -> BS.ByteString -> IO (Either T.Text UserResetPassData)
+getUserResetPassData cfg token = do
+  verified <- liftIO $ runExceptT $ verifyToken cfg token
+  pure $ join $ bimap (toS . show) decodeJWT verified
 
 data BasicUser = BasicUser { basicUserUserId :: !(Id "user") }
 

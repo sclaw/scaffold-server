@@ -14,6 +14,7 @@ module EdgeNode.Transport.Validator
        , qualififcationPatch
        , registration
        , feedback
+       , regeneratePassword
        , MandatoryField (..)
        , NewAccountError (..)
        , newAccount
@@ -41,6 +42,7 @@ import Data.Foldable
 import Data.Coerce
 import Proto3.Suite.Types
 import Data.Int
+import Data.String.Conv
 
 mkEncoder ''TuitionFees
 mkEncoder ''FeesInfo
@@ -228,3 +230,24 @@ newAccount account =
       | r == RoleEditor || r == RoleGuest = Success r
       | otherwise = Failure [NewAccountErrorRole]
     checkRole (Left _) = Failure [NewAccountErrorRole]
+
+data RegeneratePasswordError =
+       RegeneratePasswordWeak
+     | RegeneratePasswordMismatched
+     deriving stock Show
+
+instance AsError RegeneratePasswordError where
+  asError RegeneratePasswordWeak = asError @T.Text "pasword weak"
+  asError RegeneratePasswordMismatched = asError @T.Text "passwords mismatched"
+
+regeneratePassword :: RegeneratePassword -> Validation [RegeneratePasswordError] ()
+regeneratePassword RegeneratePassword {..} = sequenceA_
+  [ if regeneratePasswordPassword /=
+       regeneratePasswordOnceAgainPassword
+    then Failure [RegeneratePasswordMismatched]
+    else Success ()
+  , if passwordValidation
+       (toS regeneratePasswordPassword)
+     then Success ()
+    else Failure [RegeneratePasswordWeak]
+  ]
