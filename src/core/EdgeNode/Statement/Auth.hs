@@ -19,6 +19,7 @@ module EdgeNode.Statement.Auth
        , putResetPasswordToken
        , getTokenStatus
        , setNewPassword
+       , isTokenUsed
        ) where
 
 import EdgeNode.Transport.Auth
@@ -50,6 +51,7 @@ import Data.Aeson.WithField
 import Data.Tuple.Extended
 import Test.QuickCheck (Arbitrary (..))
 import Data.Time.Clock
+import Control.Monad
 
 mkEncoder ''Signin
 mkEncoder ''Registration
@@ -225,9 +227,22 @@ setNewPassword =
     pass as (
       update auth.user_password_updater set
       status = $1 :: text,
-      block_until = now() + interval '30 day'
+      block_until = now() + interval '30 day',
+      attempts = 0
       where "user_fk" = $2 :: int8
       and token_type = $3 :: text
       returning password_updater_fk as ident)
     update auth.password_updater set done_tm = now()
     where id = any(select * from pass)|]
+
+isTokenUsed :: HS.Statement (Id "user", TokenType) (Maybe ())
+isTokenUsed =
+  dimap (\x -> x & _1 %~ (coerce @_ @Int64) & _2 %~ (^.isoTokenType.stext))
+  (join . fmap (\x  -> if x then Just () else Nothing)) $
+  [maybeStatement|
+    select done_tm is null :: bool
+    from auth.user_password_updater as upu
+    inner join auth.password_updater as pu
+    on upu.password_updater_fk = pu.id
+    where upu.user_fk = $1 :: int8
+    and upu.token_type = $2 :: text|]

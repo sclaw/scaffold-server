@@ -27,6 +27,7 @@ import Data.Bifunctor
 import Database.Transaction
 import Data.Password
 import Data.Functor
+import Data.Foldable
 
 controller :: RegeneratePassword -> KatipController (Response Unit)
 controller pass@RegeneratePassword {..} = do
@@ -49,4 +50,6 @@ mkPassword x@RegeneratePassword {..} UserResetPassData {..} =
       salt <- newSalt
       $(logTM) DebugS (logStr ("new password: " <> regeneratePasswordPassword))
       let hashed_password = toS $ unPassHash $ hashPassWithSalt salt (mkPass (toS regeneratePasswordPassword))
-      katipTransaction hasql $ statement Auth.setNewPassword (userResetPassDataUserId, userResetPassDataTokenType, hashed_password)
+      katipTransaction hasql $ do
+        is_token_used_m <- statement Auth.isTokenUsed (userResetPassDataUserId, userResetPassDataTokenType)
+        for_ is_token_used_m $ const $ statement Auth.setNewPassword (userResetPassDataUserId, userResetPassDataTokenType, hashed_password)
