@@ -38,6 +38,7 @@ import EdgeNode.Transport.Response
 import qualified EdgeNode.Transport.Error as Transport
 import EdgeNode.Model.User
 import qualified EdgeNode.Transport.Auth as Auth
+import EdgeNode.Model.Auth
 
 import Data.Time.Transport
 import qualified Data.Text as T
@@ -217,9 +218,10 @@ mkRefreshToken lt jwk unique = do
 
 data UserResetPassData =
      UserResetPassData
-     { userResetPassDataUserId   :: !UserId
-     , userResetPassDataUserRole :: !UserRole
-     , userResetPassDataEmail    :: !T.Text
+     { userResetPassDataUserId    :: !UserId
+     , userResetPassDataUserRole  :: !UserRole
+     , userResetPassDataEmail     :: !T.Text
+     , userResetPassDataTokenType :: !TokenType
      }
 
 deriveJSON defaultOptions ''UserResetPassData

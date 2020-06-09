@@ -18,10 +18,6 @@ module EdgeNode.Statement.Auth
        , register
        , putResetPasswordToken
        , getTokenStatus
-       , TokenProcessStatus (..)
-       , TokenType (..)
-       , isoTokenProcessStatus
-       , isoTokenType
        ) where
 
 import EdgeNode.Transport.Auth
@@ -29,8 +25,8 @@ import EdgeNode.Transport.Id
 import EdgeNode.Model.User
 import EdgeNode.Statement.Provider ()
 import EdgeNode.Transport.User
+import EdgeNode.Model.Auth
 
-import Auth
 import qualified Hasql.Statement as HS
 import TH.Mk
 import TH.Proto
@@ -53,7 +49,6 @@ import Data.Aeson.WithField
 import Data.Tuple.Extended
 import Test.QuickCheck (Arbitrary (..))
 import Data.Time.Clock
-import GHC.Generics (Generic)
 
 mkEncoder ''Signin
 mkEncoder ''Registration
@@ -75,7 +70,7 @@ instance ParamsShow Registration where
     [ x^.field @"registrationEmail".from stextl
     , x^.field @"registrationPassword".from stextl]
 
-getUserCred :: HS.Statement Signin (Maybe (UserId, T.Text, UserRole, PassHash))
+getUserCred :: HS.Statement Signin (Maybe (Id "user", T.Text, UserRole, PassHash))
 getUserCred = dimap (initT . mkTpl . mkEncoderSignin) decoder statement
   where
     mkTpl x =
@@ -95,13 +90,13 @@ getUserCred = dimap (initT . mkTpl . mkEncoderSignin) decoder statement
          & _Just._3 %~ (^.from stext.from isoUserRole)
          & _Just._4 %~ (^.from textbs.to coerce)
 
-instance ParamsShow (B.ByteString, UserId, T.Text) where
+instance ParamsShow (B.ByteString, Id "user", T.Text) where
     render x = intercalate ","
       [ x^._1.from textbs.from stext
       , x^._2.coerced @_ @_ @Int64 @_.to show
       , x^._3.from stext]
 
-putRefreshToken :: HS.Statement (UserId, T.Text, T.Text) ()
+putRefreshToken :: HS.Statement (Id "user", T.Text, T.Text) ()
 putRefreshToken = lmap (& _1 %~ coerce) statement
   where
     statement =
@@ -110,7 +105,7 @@ putRefreshToken = lmap (& _1 %~ coerce) statement
         (created, user_fk, refresh_token_hash, "unique")
         values (now(), $1 :: int8, $2 :: text, $3 :: text)|]
 
-checkRefreshToken :: HS.Statement (T.Text, UserId) (Maybe (Int64, T.Text, UserRole))
+checkRefreshToken :: HS.Statement (T.Text, Id "user") (Maybe (Int64, T.Text, UserRole))
 checkRefreshToken = dimap (& _2 %~ coerce) (fmap (& _3 %~ (^.from stext.from isoUserRole))) $
   [maybeStatement|
     select
@@ -127,7 +122,7 @@ checkRefreshToken = dimap (& _2 %~ coerce) (fmap (& _3 %~ (^.from stext.from iso
 mkTokenInvalid :: HS.Statement Int64 ()
 mkTokenInvalid = [resultlessStatement|update auth.token set is_valid = false where id = $1 :: int8|]
 
-logout :: HS.Statement (UserId, OnlyField "hash" T.Text) (Either () Unit)
+logout :: HS.Statement (Id "user", OnlyField "hash" T.Text) (Either () Unit)
 logout = dimap (bimap coerce coerce) decoder statement
   where
     decoder i | i > 0 = Right Unit
@@ -170,17 +165,7 @@ register = lmap mkEncoder statement
         (select id, $2 :: text, (select id from get_day), $3 :: text from get_user)
         returning (select id from get_user) :: int8|]
 
-data TokenProcessStatus = New | Aborted | Completed
-
-data TokenType = ForgotPassword | NewPassword deriving Generic
-
-mkEnumConvertor ''TokenProcessStatus
-mkEnumConvertor ''TokenType
-mkArbitrary ''TokenType
-
-instance ParamsShow TokenType where render = (^.isoTokenType)
-
-putResetPasswordToken :: HS.Statement (UserId, TokenType, B.ByteString, UTCTime) (Maybe T.Text)
+putResetPasswordToken :: HS.Statement (Id "user", TokenType, B.ByteString, UTCTime) (Maybe T.Text)
 putResetPasswordToken =
   lmap (consT (New^.isoTokenProcessStatus.stext) . (\x -> x & _1 %~ (coerce @_ @Int64) & _2 %~ (^.isoTokenType.stext)))
   [singletonStatement|
@@ -218,7 +203,7 @@ putResetPasswordToken =
     inner join edgenode.provider_user as pu
     on nu."user_fk" = pu.user_id|]
 
-getTokenStatus :: HS.Statement (UserId, TokenType) (Maybe (Maybe UTCTime))
+getTokenStatus :: HS.Statement (Id "user", TokenType) (Maybe (Maybe UTCTime))
 getTokenStatus =
   lmap (consT (New^.isoTokenProcessStatus.stext) . (\x -> x & _1 %~ (coerce @_ @Int64) & _2 %~ (^.isoTokenType.stext)))
   [maybeStatement|

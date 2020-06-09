@@ -10,6 +10,7 @@ import qualified EdgeNode.Transport.Error as Error
 import EdgeNode.Statement.Auth as Auth
 import EdgeNode.Statement.Mail as Mail
 import EdgeNode.Mail
+import qualified EdgeNode.Model.Auth as Auth
 
 import Auth
 import KatipController
@@ -34,7 +35,12 @@ controller user@JWTUser {..} = do
   key <- fmap (^.katipEnv.jwk) ask
   runTelegram $location user
   logger <- askLoggerIO
-  let token_dat = UserResetPassData jWTUserUserId jWTUserUserRole jWTUserEmail
+  let token_dat =
+        UserResetPassData
+        jWTUserUserId
+        jWTUserUserRole
+        jWTUserEmail
+        Auth.NewPassword
   token_e <- liftIO $ mkPasswordResetToken key token_dat logger
   case token_e of
     Left e -> pure $ Error (Error.asError e)
