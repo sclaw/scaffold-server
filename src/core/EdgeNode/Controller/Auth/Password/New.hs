@@ -25,6 +25,7 @@ import qualified Protobuf.Scalar as Protobuf
 import Data.String.Conv
 import qualified Data.ByteString as B
 import Data.Time.Clock
+import Data.Maybe
 
 controller :: JWTUser -> KatipController (Response Unit)
 controller user | T.null (jWTUserEmail user) =
@@ -50,7 +51,8 @@ mkToken urlsResetPassword user_id email (token, valid_until) = do
     Nothing -> putToken
     Just tm
       | fmap (curr_tm <) tm == Just True ->
-        pure $ Error $ Error.asError @T.Text ("block until " <> toS (show tm))
+        pure $ Error $ Error.asError @T.Text $
+        "block until " <> toS (show (fromJust tm))
       | otherwise -> putToken
   where
     putToken = do
