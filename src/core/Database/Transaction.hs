@@ -52,6 +52,7 @@ import Data.Aeson.WithField
 import Data.Coerce
 import Data.Word
 import Data.Aeson
+import Data.Time.Clock
 
 newtype QueryErrorWrapper = QueryErrorWrapper Hasql.QueryError
   deriving Show
@@ -157,6 +158,7 @@ instance ParamsShow a => ParamsShow (OnlyField symb a) where
   render = render . coerce @_ @a
 instance ParamsShow Value where
   render = show
+instance ParamsShow UTCTime where render = show
 
 statement :: ParamsShow a => Hasql.Statement a b -> a -> ReaderT KatipLoggerIO Session b
 statement s@(Hasql.Statement sql _ _ _) a = do

@@ -224,11 +224,11 @@ data UserResetPassData =
 
 deriveJSON defaultOptions ''UserResetPassData
 
-mkPasswordResetToken :: JWK -> UserResetPassData -> KatipLoggerIO -> IO (Either T.Text ByteString)
+mkPasswordResetToken :: JWK -> UserResetPassData -> KatipLoggerIO -> IO (Either T.Text (ByteString, UTCTime))
 mkPasswordResetToken jwk dat log = do
+  ct <- getCurrentTime
   token_e <- runExceptT $ do
     alg <- bestJWSAlg jwk
-    ct <- liftIO getCurrentTime
     let claims =
           emptyClaimsSet
          & claimIss ?~ "edgeNode"
@@ -240,7 +240,7 @@ mkPasswordResetToken jwk dat log = do
   let encode x = x^.to Jose.encodeCompact.bytesLazy
   let mkError err = show @JWTError err^.stext
   fmap (first mkError) $ for token_e $ \token ->
-    log DebugS (logStr (mkPretty "password reset token: " (encode token))) $> encode token
+    log DebugS (logStr (mkPretty "password reset token: " (encode token))) $> (encode token, addUTCTime 3600 ct)
 
 data BasicUser = BasicUser { basicUserUserId :: !(Id "user") }
 

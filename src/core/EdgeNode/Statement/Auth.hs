@@ -9,13 +9,19 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module EdgeNode.Statement.Auth
-       ( getUserCred
+       ( -- * statements
+         getUserCred
        , putRefreshToken
        , checkRefreshToken
        , mkTokenInvalid
        , logout
        , register
        , putResetPasswordToken
+       , getTokenStatus
+       , TokenProcessStatus (..)
+       , TokenType (..)
+       , isoTokenProcessStatus
+       , isoTokenType
        ) where
 
 import EdgeNode.Transport.Auth
@@ -46,6 +52,8 @@ import Data.Aeson.Unit
 import Data.Aeson.WithField
 import Data.Tuple.Extended
 import Test.QuickCheck (Arbitrary (..))
+import Data.Time.Clock
+import GHC.Generics (Generic)
 
 mkEncoder ''Signin
 mkEncoder ''Registration
@@ -162,28 +170,61 @@ register = lmap mkEncoder statement
         (select id, $2 :: text, (select id from get_day), $3 :: text from get_user)
         returning (select id from get_user) :: int8|]
 
-putResetPasswordToken :: HS.Statement (UserId, B.ByteString) (Maybe (Maybe T.Text))
+data TokenProcessStatus = New | Aborted | Completed
+
+data TokenType = ForgotPassword | NewPassword deriving Generic
+
+mkEnumConvertor ''TokenProcessStatus
+mkEnumConvertor ''TokenType
+mkArbitrary ''TokenType
+
+instance ParamsShow TokenType where render = (^.isoTokenType)
+
+putResetPasswordToken :: HS.Statement (UserId, TokenType, B.ByteString, UTCTime) (Maybe T.Text)
 putResetPasswordToken =
-  lmap (& _1 %~ coerce)
-  [maybeStatement|
-    with
-      next as (
-        select count(*) + 1 as i
-        from auth.password_updater
-        where "user_fk" = $1 :: int8),
-      token as (
+  lmap (consT (New^.isoTokenProcessStatus.stext) . (\x -> x & _1 %~ (coerce @_ @Int64) & _2 %~ (^.isoTokenType.stext)))
+  [singletonStatement|
+    with new_updater as (
       insert into auth.password_updater
-      ("user_fk", serial, status, token, attempts)
-      values ($1 :: int8, (select i from next), 'new', $2 :: bytea, 1)
-      on conflict ("user_fk", serial)
-      do update set attempts = excluded.attempts + 1
-      returning case when attempts = 3 then null else "user_fk" end as ident)
+      (token, valid_until)
+      values ($4 :: bytea, $5 :: timestamptz)
+      returning id),
+    blocks as (
+      select attempts as att, block_until as until
+      from auth.user_password_updater
+      where "user_fk" = $2 :: int8
+      and token_type = $3 :: text),
+    new_user as (
+      insert into auth.user_password_updater
+      ("user_fk", password_updater_fk, status, token_type, attempts)
+      select $2 :: int8, id, $1 :: text, $3 :: text, 1
+      from new_updater
+      on conflict ("user_fk", token_type)
+      do update set
+        attempts =
+          case when coalesce((select until from blocks) < now(), false)
+          then 1 else (select att from blocks) + 1 end,
+        block_until =
+          case when (select att from blocks) + 1 > 3
+          then (now() + interval '1 day') else null end
+      returning "user_fk")
     select (u.name || ' ' || u.surname) :: text?
-    from token as t
+    from new_user as nu
     inner join edgenode.user as u
-    on t.ident = u.user_id
+    on nu."user_fk" = u.user_id
     union
     select null :: text?
-    from token as t
+    from new_user as nu
     inner join edgenode.provider_user as pu
-    on t.ident = pu.user_id|]
+    on nu."user_fk" = pu.user_id|]
+
+getTokenStatus :: HS.Statement (UserId, TokenType) (Maybe (Maybe UTCTime))
+getTokenStatus =
+  lmap (consT (New^.isoTokenProcessStatus.stext) . (\x -> x & _1 %~ (coerce @_ @Int64) & _2 %~ (^.isoTokenType.stext)))
+  [maybeStatement|
+    select
+      upu.block_until :: timestamptz?
+    from auth.user_password_updater as upu
+    where upu.status = $1 :: text
+    and upu.user_fk = $2 :: int8
+    and upu.token_type = $3 :: text|]
