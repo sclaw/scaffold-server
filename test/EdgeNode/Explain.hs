@@ -115,7 +115,7 @@ explainTests =
     , "putResetPasswordToken" =>> EdgeNode.Statement.Auth.putResetPasswordToken
     , "setNewPassword" =>> EdgeNode.Statement.Auth.setNewPassword
     , "getTokenStatus" =>> EdgeNode.Statement.Auth.getTokenStatus
-    , "getTokenUsageWithPass" =>> EdgeNode.Statement.Auth.getTokenUsageWithPass]
+    , "getUserId" =>> EdgeNode.Statement.Auth.getUserId]
   , "EdgeNode.Statement.Search" ==>
     [ "getBarItems" =>> EdgeNode.Statement.Search.getBarItems
     , "getQualificationList" =>> EdgeNode.Statement.Search.getQualificationList

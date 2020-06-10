@@ -20,6 +20,7 @@ module EdgeNode.Statement.Auth
        , getTokenStatus
        , setNewPassword
        , getTokenUsageWithPass
+       , getUserId
        ) where
 
 import EdgeNode.Transport.Auth
@@ -51,6 +52,7 @@ import Data.Aeson.WithField
 import Data.Tuple.Extended
 import Test.QuickCheck (Arbitrary (..))
 import Data.Time.Clock
+import Data.String.Conv
 
 mkEncoder ''Signin
 mkEncoder ''Registration
@@ -246,3 +248,10 @@ getTokenUsageWithPass =
     on upu.user_fk = u.id
     where upu.user_fk = $1 :: int8
     and upu.token_type = $2 :: text|]
+
+instance ParamsShow UserRole where render = fromUserRole
+
+getUserId :: HS.Statement (UserRole, T.Text) (Maybe (Id "user"))
+getUserId =
+  dimap (& _1 %~ (toS . fromUserRole)) (fmap coerce)
+  [maybeStatement|select id :: int8 from auth.user where "user_type" = $1 :: text and email = $2 :: text|]

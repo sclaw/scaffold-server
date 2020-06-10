@@ -13,6 +13,7 @@ module EdgeNode.Model.User
        ( UserRole (..)
        , RegisterStatus (..)
        , isoUserRole
+       , fromUserRole
        , isoRegisterStatus
        ) where
 
@@ -54,5 +55,6 @@ instance ToSchema UserRole
 
 mkEnumConvertor ''UserRole
 mkEnumConvertor ''RegisterStatus
+mkArbitrary ''UserRole
 
 deriveJSON defaultOptions ''UserRole

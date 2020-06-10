@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
 
-module EdgeNode.Controller.Auth.Password.New (controller) where
+module EdgeNode.Controller.Auth.Password.New (controller, mkToken) where
 
 import EdgeNode.Transport.Response
 import qualified EdgeNode.Transport.Error as Error
@@ -47,25 +47,26 @@ controller user@JWTUser {..} = do
     Right token -> do
       hasql <- fmap (^.katipEnv.hasqlDbPool) ask
       Urls {..} <- fmap (^.katipEnv.urls) ask
-      katipTransaction hasql $ mkToken urlsResetPassword jWTUserUserId jWTUserEmail token
+      fmap fromEither $
+        katipTransaction hasql $
+          mkToken urlsResetPassword jWTUserUserId jWTUserEmail Auth.NewPassword token
 
-mkToken :: T.Text -> UserId -> T.Text -> (B.ByteString, UTCTime) -> SessionR (Response Unit)
-mkToken urlsResetPassword user_id email (token, valid_until) = do
-  token_status_m <- statement getTokenStatus (user_id, Auth.NewPassword)
+mkToken :: T.Text -> UserId -> T.Text -> Auth.TokenType -> (B.ByteString, UTCTime) -> SessionR (Either T.Text Unit)
+mkToken urlsResetPassword user_id email token_type (token, valid_until) = do
+  token_status_m <- statement getTokenStatus (user_id, token_type)
   curr_tm <- liftIO getCurrentTime
   case token_status_m of
     Nothing -> putToken
     Just tm
       | fmap (curr_tm <) tm == Just True ->
-        pure $ Error $ Error.asError @T.Text $
-        "block until " <> toS (show (fromJust tm))
+        pure $ Left $ "block until " <> toS (show (fromJust tm))
       | otherwise -> putToken
   where
     putToken = do
       name <-
         statement
         Auth.putResetPasswordToken
-        (user_id, Auth.NewPassword, token, valid_until)
+        (user_id, token_type, token, valid_until)
       let mail_data =
            ( email
            , TypeResetPassword
@@ -74,4 +75,4 @@ mkToken urlsResetPassword user_id email (token, valid_until) = do
               ResetPassword
               (fmap (Protobuf.String . toS) name)
               (toS urlsResetPassword <> toS token)))
-      statement Mail.new mail_data $> Ok Unit
+      statement Mail.new mail_data $> Right Unit
