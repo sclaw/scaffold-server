@@ -18,6 +18,7 @@ module EdgeNode.Transport.Validator
        , MandatoryField (..)
        , NewAccountError (..)
        , newAccount
+       , RegeneratePasswordError (..)
        ) where
 
 import EdgeNode.Transport.Provider.Qualification
@@ -234,11 +235,17 @@ newAccount account =
 data RegeneratePasswordError =
        RegeneratePasswordWeak
      | RegeneratePasswordMismatched
+     | RegeneratePasswordTokenNF
+     | RegeneratePasswordTokenUsed
+     | RegeneratePasswordSamePass
      deriving stock Show
 
 instance AsError RegeneratePasswordError where
   asError RegeneratePasswordWeak = asError @T.Text "pasword weak"
   asError RegeneratePasswordMismatched = asError @T.Text "passwords mismatched"
+  asError RegeneratePasswordTokenNF = asError @T.Text "token not found"
+  asError RegeneratePasswordTokenUsed = asError @T.Text "token already used"
+  asError RegeneratePasswordSamePass = asError @T.Text "new password is matched with old one"
 
 regeneratePassword :: RegeneratePassword -> Validation [RegeneratePasswordError] ()
 regeneratePassword RegeneratePassword {..} = sequenceA_

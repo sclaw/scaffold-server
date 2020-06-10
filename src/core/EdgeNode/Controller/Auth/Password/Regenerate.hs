@@ -23,11 +23,11 @@ import BuildInfo
 import Katip
 import Pretty
 import Data.Traversable
-import Data.Bifunctor
 import Database.Transaction
 import Data.Password
-import Data.Functor
 import Data.Foldable
+import Validation
+import Data.Functor
 
 controller :: RegeneratePassword -> KatipController (Response Unit)
 controller pass@RegeneratePassword {..} = do
@@ -41,8 +41,8 @@ controller pass@RegeneratePassword {..} = do
 
 mkPassword :: RegeneratePassword -> UserResetPassData -> KatipController (Response Unit)
 mkPassword x@RegeneratePassword {..} u@UserResetPassData {..} =
-  fmap (fromValidation . first (map Error.asError)) $
-  for (regeneratePassword x) $ const $ (go $> Unit)
+  fmap (fromValidation . bimap (map (Error.asError)) (const Unit) . sequenceA_) $
+  for (regeneratePassword x) $ const $ go
   where
     go = do
       hasql <- fmap (^.katipEnv.hasqlDbPool) ask
@@ -51,7 +51,12 @@ mkPassword x@RegeneratePassword {..} u@UserResetPassData {..} =
       let hashed_password = toS $ unPassHash $ hashPassWithSalt salt (mkPass (toS regeneratePasswordPassword))
       katipTransaction hasql $ do
         log <- ask
-        is_token_used_m <- statement Auth.isTokenUsed (userResetPassDataUserId, userResetPassDataTokenType)
-        liftIO $ log DebugS $ ls $ "reset password: " <> show (is_token_used_m, regeneratePasswordToken, u)
-        liftIO $ send telegram log $ toS $ "reset password: " <> show (is_token_used_m, regeneratePasswordToken, u)
-        for_ is_token_used_m $ const $ statement Auth.setNewPassword (userResetPassDataUserId, userResetPassDataTokenType, hashed_password)
+        dat_m <- statement Auth.getTokenUsageWithPass (userResetPassDataUserId, userResetPassDataTokenType)
+        liftIO $ log DebugS $ ls $ "reset password: " <> show (fmap fst dat_m, regeneratePasswordToken, u)
+        liftIO $ send telegram log $ toS $ "reset password: " <> show (fmap fst dat_m, regeneratePasswordToken, u)
+        fmap (maybeToSuccess [RegeneratePasswordTokenNF]) $
+          for dat_m $ \(is_used, curr_pass) ->
+            if is_used then pure $ Failure [RegeneratePasswordTokenUsed]
+            else if curr_pass == hashed_password then
+                 pure $ Failure [RegeneratePasswordSamePass]
+                 else statement Auth.setNewPassword (userResetPassDataUserId, userResetPassDataTokenType, hashed_password) $> Success ()

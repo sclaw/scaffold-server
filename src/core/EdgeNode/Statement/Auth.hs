@@ -19,7 +19,7 @@ module EdgeNode.Statement.Auth
        , putResetPasswordToken
        , getTokenStatus
        , setNewPassword
-       , isTokenUsed
+       , getTokenUsageWithPass
        ) where
 
 import EdgeNode.Transport.Auth
@@ -51,7 +51,6 @@ import Data.Aeson.WithField
 import Data.Tuple.Extended
 import Test.QuickCheck (Arbitrary (..))
 import Data.Time.Clock
-import Control.Monad
 
 mkEncoder ''Signin
 mkEncoder ''Registration
@@ -235,14 +234,15 @@ setNewPassword =
     update auth.password_updater set done_tm = now()
     where id = any(select * from pass)|]
 
-isTokenUsed :: HS.Statement (Id "user", TokenType) (Maybe ())
-isTokenUsed =
-  dimap (\x -> x & _1 %~ (coerce @_ @Int64) & _2 %~ (^.isoTokenType.stext))
-  (join . fmap (\x  -> if x then Just () else Nothing)) $
+getTokenUsageWithPass :: HS.Statement (Id "user", TokenType) (Maybe (Bool, B.ByteString))
+getTokenUsageWithPass =
+  lmap (\x -> x & _1 %~ (coerce @_ @Int64) & _2 %~ (^.isoTokenType.stext))
   [maybeStatement|
-    select done_tm is null :: bool
+    select done_tm is null :: bool, u.password :: bytea
     from auth.user_password_updater as upu
     inner join auth.password_updater as pu
     on upu.password_updater_fk = pu.id
+    inner join auth.user as u
+    on upu.user_fk = u.id
     where upu.user_fk = $1 :: int8
     and upu.token_type = $2 :: text|]
