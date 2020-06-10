@@ -46,7 +46,7 @@ run smtp@Smtp {..} telegram pool logger = do
     xs <- statement Mail.getMails StatusNew
     liftIO $ logger InfoS $ ls $ "mail to be sent: " <> show xs
     xs_e <- liftIO $ for xs $ \(ident, ty, to_whom, msg) -> do
-      let path = dir </> "email-template" </> fromType ty
+      let path = dir </> "template" </> "email" </> fromType ty
       template_e <- Ginger.parseGingerFile loadGingerFile path
       for template_e $ \tmpl -> do
         let payloadHtml = toS $ Ginger.htmlSource $ Ginger.easyRender @Ginger.Html msg tmpl
