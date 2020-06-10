@@ -40,7 +40,7 @@ controller pass@RegeneratePassword {..} = do
   either err (mkPassword pass) token_e
 
 mkPassword :: RegeneratePassword -> UserResetPassData -> KatipController (Response Unit)
-mkPassword x@RegeneratePassword {..} UserResetPassData {..} =
+mkPassword x@RegeneratePassword {..} u@UserResetPassData {..} =
   fmap (fromValidation . first (map Error.asError)) $
   for (regeneratePassword x) $ const $ (go $> Unit)
   where
@@ -52,6 +52,6 @@ mkPassword x@RegeneratePassword {..} UserResetPassData {..} =
       katipTransaction hasql $ do
         log <- ask
         is_token_used_m <- statement Auth.isTokenUsed (userResetPassDataUserId, userResetPassDataTokenType)
-        liftIO $ log DebugS $ ls $ "is token used: " <> show is_token_used_m
-        liftIO $ send telegram log $ toS $ "is token used: " <> show is_token_used_m
+        liftIO $ log DebugS $ ls $ "reset password: " <> show (is_token_used_m, regeneratePasswordToken, u)
+        liftIO $ send telegram log $ toS $ "reset password: " <> show (is_token_used_m, regeneratePasswordToken, u)
         for_ is_token_used_m $ const $ statement Auth.setNewPassword (userResetPassDataUserId, userResetPassDataTokenType, hashed_password)
