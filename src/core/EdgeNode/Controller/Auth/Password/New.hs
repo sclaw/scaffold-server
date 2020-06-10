@@ -27,6 +27,9 @@ import Data.String.Conv
 import qualified Data.ByteString as B
 import Data.Time.Clock
 import Data.Maybe
+import Data.Bifunctor
+import Data.Traversable
+import Data.Foldable
 
 controller :: JWTUser -> KatipController (Response Unit)
 controller user | T.null (jWTUserEmail user) =
@@ -41,17 +44,14 @@ controller user@JWTUser {..} = do
         jWTUserUserRole
         jWTUserEmail
         Auth.NewPassword
+  hasql <- fmap (^.katipEnv.hasqlDbPool) ask
+  Urls {..} <- fmap (^.katipEnv.urls) ask
   token_e <- liftIO $ mkPasswordResetToken key token_dat logger
-  case token_e of
-    Left e -> pure $ Error (Error.asError e)
-    Right token -> do
-      hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-      Urls {..} <- fmap (^.katipEnv.urls) ask
-      fmap fromEither $
-        katipTransaction hasql $
-          mkToken urlsResetPassword jWTUserUserId jWTUserEmail Auth.NewPassword token
+  fmap (fromEither . second (const Unit) . sequenceA_) $ for token_e $
+      katipTransaction hasql
+    . mkToken urlsResetPassword jWTUserUserId jWTUserEmail Auth.NewPassword
 
-mkToken :: T.Text -> UserId -> T.Text -> Auth.TokenType -> (B.ByteString, UTCTime) -> SessionR (Either T.Text Unit)
+mkToken :: T.Text -> UserId -> T.Text -> Auth.TokenType -> (B.ByteString, UTCTime) -> SessionR (Either T.Text ())
 mkToken urlsResetPassword user_id email token_type (token, valid_until) = do
   token_status_m <- statement getTokenStatus (user_id, token_type)
   curr_tm <- liftIO getCurrentTime
@@ -75,4 +75,4 @@ mkToken urlsResetPassword user_id email token_type (token, valid_until) = do
               ResetPassword
               (fmap (Protobuf.String . toS) name)
               (toS urlsResetPassword <> toS token)))
-      statement Mail.new mail_data $> Right Unit
+      statement Mail.new mail_data $> Right ()

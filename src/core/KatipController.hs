@@ -179,6 +179,4 @@ runTelegram location request = do
   telegram_service <- fmap (^.katipEnv.telegram) ask
   logger <- askLoggerIO
   void $ fork $ liftIO $ send telegram_service logger $ toS $
-    mkPretty
-    ("At module " <> location)
-    ("message: " <> show request)
+    mkPretty ("At module " <> location) ("message: " <> show request)
