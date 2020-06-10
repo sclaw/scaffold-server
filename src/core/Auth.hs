@@ -224,7 +224,7 @@ data UserResetPassData =
      , userResetPassDataUserRole  :: !UserRole
      , userResetPassDataEmail     :: !T.Text
      , userResetPassDataTokenType :: !TokenType
-     }
+     } deriving Show
 
 instance FromJWT UserResetPassData
 

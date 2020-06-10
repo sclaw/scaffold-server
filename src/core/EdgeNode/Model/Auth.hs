@@ -32,7 +32,7 @@ import Data.String.Conv
 
 data TokenProcessStatus = New | Aborted | Completed
 
-data TokenType = ForgotPassword | NewPassword deriving Generic
+data TokenType = ForgotPassword | NewPassword deriving (Generic, Show)
 
 mkEnumConvertor ''TokenProcessStatus
 mkEnumConvertor ''TokenType

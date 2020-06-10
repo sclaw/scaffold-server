@@ -34,6 +34,7 @@ import qualified EdgeNode.Controller.Auth.SignOut as Auth.SignOut
 import qualified EdgeNode.Controller.Auth.RefreshAccessToken as Auth.RefreshAccessToken
 import qualified EdgeNode.Controller.Auth.Password.New as Password.New
 import qualified EdgeNode.Controller.Auth.Password.Regenerate as Password.Regenerate
+import qualified EdgeNode.Controller.Auth.Password.Reset as Password.Reset
 import qualified EdgeNode.Controller.Provider.Publish as Provider.Publish
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetAvailableBranches as QualificationBuilder.GetAvailableBranches
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.Create as QualificationBuilder.Create
@@ -184,7 +185,11 @@ password =
     katipAddNamespace
     (Namespace ["auth", "password", "new"])
     (applyController Nothing user Password.New.controller))
-  , _passwordApiReset = undefined
+  , _passwordApiReset = \email ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["auth", "password", "reset"])
+    (Password.Reset.controller email)
   , _passwordApiRegenerate = \password ->
     flip logExceptionM ErrorS $
     katipAddNamespace
