@@ -35,6 +35,7 @@ import qualified EdgeNode.Controller.Auth.RefreshAccessToken as Auth.RefreshAcce
 import qualified EdgeNode.Controller.Auth.Password.New as Password.New
 import qualified EdgeNode.Controller.Auth.Password.Regenerate as Password.Regenerate
 import qualified EdgeNode.Controller.Auth.Password.Reset as Password.Reset
+import qualified EdgeNode.Controller.Auth.Password.CheckToken as Password.CheckToken
 import qualified EdgeNode.Controller.Provider.Publish as Provider.Publish
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.GetAvailableBranches as QualificationBuilder.GetAvailableBranches
 import qualified EdgeNode.Controller.Provider.QualificationBuilder.Create as QualificationBuilder.Create
@@ -195,7 +196,11 @@ password =
     katipAddNamespace
     (Namespace ["auth", "password", "regenerate"])
     (Password.Regenerate.controller password)
-  , _passwordApiCheckToken = undefined
+  , _passwordApiCheckToken = \token ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["auth", "password", "regenerate"])
+    (Password.CheckToken.controller token)
   }
 
 user :: AuthResult JWTUser -> UserApi (AsServerT KatipController)
