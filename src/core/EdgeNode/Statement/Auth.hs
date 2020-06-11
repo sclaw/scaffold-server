@@ -242,7 +242,12 @@ setNewPassword =
       attempts = 0
       where "user_fk" = $2 :: int8
       and token_type = $3 :: text
-      returning password_updater_fk as ident)
+      returning password_updater_fk as ident),
+    set_token_invalid as (
+      update auth.token
+      set is_valid = false
+      where "user_fk" = $2 :: int8
+      and is_valid)
     update auth.password_updater set done_tm = now()
     where id = any(select * from pass)|]
 

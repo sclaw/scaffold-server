@@ -176,18 +176,20 @@ getJWTUser log (Right claim) = either err return (decodeJWT claim)
 actionCheckToken :: Maybe JWTUser -> Hasql.Session (Either String JWTUser)
 actionCheckToken Nothing = return $ Left "access token not found"
 actionCheckToken (Just user) = do
-  let mkStatement =
-        [singletonStatement|
-          select exists (
-            select 1
-            from auth.token
-            where "user_fk" = $1 :: int8
-            and refresh_token_hash = $2 :: text) :: bool|]
   exists <- Hasql.statement user $
     flip lmap mkStatement $ \x ->
       ( mkEncoderJWTUser x^._1.coerced
       , mkEncoderJWTUser x^._4)
   return $ if exists then Right user else Left "refresh token not found"
+  where
+    mkStatement =
+      [singletonStatement|
+        select exists (
+          select 1
+          from auth.token
+          where "user_fk" = $1 :: int8
+          and refresh_token_hash = $2 :: text
+          and is_valid :: book) :: bool|]
 
 mkAccessToken :: NominalDiffTime -> JWK -> UserId -> T.Text -> T.Text -> UserRole -> ExceptT JWTError IO (SignedJWT, Time)
 mkAccessToken lt jwk uid email refresh_token_hash utype = do
