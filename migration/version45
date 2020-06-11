@@ -14,5 +14,5 @@ create table auth.user_password_updater (
   status text not null,
   token_type text not null,
   block_until timestamp,
-  attempts int4 not null,
+  attempts int4 not null default 0,
   constraint "user_password_updater__user_fk__token_type" primary key (user_fk, token_type));

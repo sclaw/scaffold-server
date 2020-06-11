@@ -18,23 +18,20 @@ logger log app req runResp = do
     x <- runResp resp
     end <- getCPUTime
     let mills :: Double
-        mills = 
-         fromIntegral 
-         (end - start) 
+        mills =
+         fromIntegral
+         (end - start)
          * 1e-12
     let duration :: String
-        duration = 
-         printf 
-         "duration: %.2f sec" 
+        duration =
+         printf
+         "duration: %.2f sec"
          mills
-    let message = 
-         "response.http.status: " <> 
+    let message =
+         "response.http.status: " <>
          show (responseStatus resp) <>
-         ", request.http.rawPathInfo: " <> 
+         ", request.http.rawPathInfo: " <>
          (rawPathInfo req^.from textbs.from stext) <>
-         ", " <> duration         
+         ", " <> duration
     log InfoS (ls message)
-    return x 
-
-
-
+    return x

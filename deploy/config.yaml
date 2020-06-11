@@ -29,6 +29,7 @@ configAuth:
   authUserId: 1
   authAccessTokenLifetime: 6000
   authRefreshTokenLifetime: 7000000
+  authResetPasswordTokenLifetime: 6000
 
 configService:
   serviceApiKeys:

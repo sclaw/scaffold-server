@@ -2,6 +2,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module EdgeNode.Controller.Auth.Password.Regenerate (controller) where
 
@@ -25,7 +26,7 @@ import Pretty
 import Data.Traversable
 import Database.Transaction
 import Data.Password
-import Data.Foldable
+import Data.Foldable ()
 import Validation
 import Data.Functor
 
@@ -40,9 +41,10 @@ controller pass@RegeneratePassword {..} = do
   either err (mkPassword pass) token_e
 
 mkPassword :: RegeneratePassword -> UserResetPassData -> KatipController (Response Unit)
-mkPassword x@RegeneratePassword {..} u@UserResetPassData {..} =
-  fmap (fromValidation . bimap (map (Error.asError)) (const Unit) . sequenceA_) $
-  for (regeneratePassword x) $ const $ go
+mkPassword x@RegeneratePassword {..} u@UserResetPassData {..} = do
+--  fmap (fromValidation . bimap (map (Error.asError)) (const Unit) . sequenceA_) $
+  _  <- for (regeneratePassword x) $ const $ go
+  undefined
   where
     go = do
       hasql <- fmap (^.katipEnv.hasqlDbPool) ask

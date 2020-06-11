@@ -33,12 +33,13 @@ controller reset@ResetPassword {..} = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   Urls {..} <- fmap (^.katipEnv.urls) ask
   key <- fmap (^.katipEnv.jwk) ask
+  TokensLT {..} <- fmap (^.katipEnv.tokensLT) ask
   logger <- askLoggerIO
   response_m <- katipTransaction hasql $ do
     user_id_m <- statement Auth.getUserId (Primary, toS resetPasswordEmail)
     for user_id_m $ \user_id -> do
       let token_dat = UserResetPassData user_id Primary (toS resetPasswordEmail) Auth.ForgotPassword
-      token_e <- liftIO $ mkPasswordResetToken key token_dat logger
+      token_e <- liftIO $ mkPasswordResetToken key token_dat logger tokensLTResetLT
       fmap (sequenceA_ . first (Failure . (:[]) . Error.asError)) $ for token_e $
           fmap (eitherToValidation . first ((:[]) . Error.asError))
         . mkToken urlsResetPassword user_id (toS resetPasswordEmail) Auth.ForgotPassword

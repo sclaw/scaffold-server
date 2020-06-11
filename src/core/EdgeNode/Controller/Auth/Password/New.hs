@@ -8,8 +8,8 @@ module EdgeNode.Controller.Auth.Password.New (controller, mkToken) where
 import EdgeNode.Transport.Response
 import qualified EdgeNode.Transport.Error as Error
 import EdgeNode.Statement.Auth as Auth
-import EdgeNode.Statement.Mail as Mail
-import EdgeNode.Mail
+-- import EdgeNode.Statement.Mail as Mail
+-- import EdgeNode.Mail
 import qualified EdgeNode.Model.Auth as Auth
 
 import Auth
@@ -20,9 +20,9 @@ import Control.Lens
 import Control.Monad.IO.Class
 import Database.Transaction
 import qualified Data.Text as T
-import Data.Functor
-import Data.Aeson (toJSON)
-import qualified Protobuf.Scalar as Protobuf
+-- import Data.Functor
+-- import Data.Aeson (toJSON)
+-- import qualified Protobuf.Scalar as Protobuf
 import Data.String.Conv
 import qualified Data.ByteString as B
 import Data.Time.Clock
@@ -46,7 +46,8 @@ controller user@JWTUser {..} = do
         Auth.NewPassword
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   Urls {..} <- fmap (^.katipEnv.urls) ask
-  token_e <- liftIO $ mkPasswordResetToken key token_dat logger
+  TokensLT {..} <- fmap (^.katipEnv.tokensLT) ask
+  token_e <- liftIO $ mkPasswordResetToken key token_dat logger tokensLTResetLT
   fmap (fromEither . second (const Unit) . sequenceA_) $ for token_e $
       katipTransaction hasql
     . mkToken urlsResetPassword jWTUserUserId jWTUserEmail Auth.NewPassword
@@ -63,16 +64,17 @@ mkToken urlsResetPassword user_id email token_type (token, valid_until) = do
       | otherwise -> putToken
   where
     putToken = do
-      name <-
+      _ <-
         statement
         Auth.putResetPasswordToken
         (user_id, token_type, token, valid_until)
-      let mail_data =
-           ( email
-           , TypeResetPassword
-           , StatusNew
-           , toJSON (
-              ResetPassword
-              (fmap (Protobuf.String . toS) name)
-              (toS urlsResetPassword <> toS token)))
-      statement Mail.new mail_data $> Right ()
+      return $ Right ()
+      -- let mail_data =
+      --      ( email
+      --      , TypeResetPassword
+      --      , StatusNew
+      --      , toJSON (
+      --         ResetPassword
+      --         (fmap (Protobuf.String . toS) name)
+      --         (toS urlsResetPassword <> toS token)))
+      -- statement Mail.new mail_data $> Right ()

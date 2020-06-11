@@ -103,7 +103,7 @@ data KatipEnv =
 
 data Minio = Minio { minioConn :: !Minio.MinioConn, minioBucketPrefix :: !T.Text }
 
-data TokensLT = TokensLT { tokensLTAccessLT :: !Int64, tokensLTRefreshLT :: !Int64 }
+data TokensLT = TokensLT { tokensLTAccessLT :: !Int64, tokensLTRefreshLT :: !Int64, tokensLTResetLT :: !Int64 }
 
 newtype KatipLogger = KatipWriter [String]
   deriving newtype Monoid

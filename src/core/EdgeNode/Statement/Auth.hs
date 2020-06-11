@@ -179,23 +179,34 @@ putResetPasswordToken =
       values ($4 :: bytea, $5 :: timestamptz)
       returning id),
     blocks as (
-      select attempts as att, block_until as until
+      select block_until as until
       from auth.user_password_updater
       where "user_fk" = $2 :: int8
       and token_type = $3 :: text),
     new_user as (
       insert into auth.user_password_updater
-      ("user_fk", password_updater_fk, status, token_type, attempts)
-      select $2 :: int8, id, $1 :: text, $3 :: text, 1
+      ("user_fk", password_updater_fk, status, token_type)
+      select $2 :: int8, id, $1 :: text, $3 :: text
       from new_updater
       on conflict ("user_fk", token_type)
       do update set
         attempts =
-          case when coalesce((select until from blocks) < now(), false)
-          then 1 else (select att from blocks) + 1 end,
+        attempts =
+          case when (select until from blocks) is not null
+               and (select until from blocks) < now() then 1
+          when (select until from blocks) is not null
+               and (select until from blocks) > now()
+          then (select att from blocks)
+          else (select att from blocks) + 1 end,
         block_until =
-          case when (select att from blocks) + 1 > 3
-          then (now() + interval '1 day') else null end
+          case when (select att from blocks)  > 2
+               and (select until from blocks) is null
+          then now() + interval '10 sec'
+          when (select att from blocks)  > 2
+               and (select until from blocks) is not null
+               and (select until from blocks) > now()
+          then (select until from blocks)
+          else null end
       returning "user_fk")
     select (u.name || ' ' || u.surname) :: text?
     from new_user as nu

@@ -230,8 +230,8 @@ instance FromJWT UserResetPassData
 
 deriveJSON defaultOptions ''UserResetPassData
 
-mkPasswordResetToken :: JWK -> UserResetPassData -> KatipLoggerIO -> IO (Either T.Text (ByteString, UTCTime))
-mkPasswordResetToken jwk dat log = do
+mkPasswordResetToken :: JWK -> UserResetPassData -> KatipLoggerIO -> Int64 -> IO (Either T.Text (ByteString, UTCTime))
+mkPasswordResetToken jwk dat log lt = do
   ct <- getCurrentTime
   token_e <- runExceptT $ do
     alg <- bestJWSAlg jwk
@@ -239,14 +239,14 @@ mkPasswordResetToken jwk dat log = do
           emptyClaimsSet
           & claimIss ?~ "edgeNode"
           & claimIat ?~ NumericDate ct
-          & claimExp ?~ NumericDate (addUTCTime 3600 ct)
+          & claimExp ?~ NumericDate (addUTCTime (fromIntegral lt) ct)
           & unregisteredClaims .~
             HM.singleton "dat" (toJSON dat)
     signClaims jwk (newJWSHeader ((), alg)) claims
   let encode x = x^.to Jose.encodeCompact.bytesLazy
   let mkError err = show @JWTError err^.stext
   fmap (first mkError) $ for token_e $ \token ->
-    log DebugS (logStr (mkPretty "password reset token: " (encode token))) $> (encode token, addUTCTime 3600 ct)
+    log DebugS (logStr (mkPretty "password reset token: " (encode token))) $> (encode token, addUTCTime (fromIntegral lt) ct)
 
 getUserResetPassData :: JWTSettings -> BS.ByteString -> IO (Either T.Text UserResetPassData)
 getUserResetPassData cfg token = do

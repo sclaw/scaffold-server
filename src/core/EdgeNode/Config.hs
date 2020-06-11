@@ -55,6 +55,7 @@ module EdgeNode.Config
        , origins
        , accessTokenLifetime
        , refreshTokenLifetime
+       , resetPasswordTokenLifetime
        , smtp
        , urls
          -- * Iso
@@ -113,6 +114,7 @@ data Auth =
      , authUserId :: !Int64
      , authAccessTokenLifetime :: !Int64
      , authRefreshTokenLifetime :: !Int64
+     , authResetPasswordTokenLifetime :: !Int64
      } deriving Show
 
 newtype ApiKeys = ApiKeys [(String, String)]
