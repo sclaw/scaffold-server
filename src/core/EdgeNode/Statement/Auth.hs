@@ -179,7 +179,7 @@ putResetPasswordToken =
       values ($4 :: bytea, $5 :: timestamptz)
       returning id),
     blocks as (
-      select block_until as until
+      select attempts as att, block_until as until
       from auth.user_password_updater
       where "user_fk" = $2 :: int8
       and token_type = $3 :: text),
@@ -191,7 +191,6 @@ putResetPasswordToken =
       on conflict ("user_fk", token_type)
       do update set
         attempts =
-        attempts =
           case when (select until from blocks) is not null
                and (select until from blocks) < now() then 1
           when (select until from blocks) is not null
@@ -201,7 +200,7 @@ putResetPasswordToken =
         block_until =
           case when (select att from blocks)  > 2
                and (select until from blocks) is null
-          then now() + interval '10 sec'
+          then now() + interval '30 min'
           when (select att from blocks)  > 2
                and (select until from blocks) is not null
                and (select until from blocks) > now()
@@ -251,7 +250,7 @@ getTokenUsageWithPass :: HS.Statement (Id "user", TokenType) (Maybe (Bool, B.Byt
 getTokenUsageWithPass =
   lmap (\x -> x & _1 %~ (coerce @_ @Int64) & _2 %~ (^.isoTokenType.stext))
   [maybeStatement|
-    select done_tm is null :: bool, u.password :: bytea
+    select pu.done_tm is not null :: bool, u.password :: bytea
     from auth.user_password_updater as upu
     inner join auth.password_updater as pu
     on upu.password_updater_fk = pu.id

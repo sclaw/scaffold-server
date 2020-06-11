@@ -8,8 +8,8 @@ module EdgeNode.Controller.Auth.Password.New (controller, mkToken) where
 import EdgeNode.Transport.Response
 import qualified EdgeNode.Transport.Error as Error
 import EdgeNode.Statement.Auth as Auth
--- import EdgeNode.Statement.Mail as Mail
--- import EdgeNode.Mail
+import EdgeNode.Statement.Mail as Mail
+import EdgeNode.Mail
 import qualified EdgeNode.Model.Auth as Auth
 
 import Auth
@@ -20,9 +20,8 @@ import Control.Lens
 import Control.Monad.IO.Class
 import Database.Transaction
 import qualified Data.Text as T
--- import Data.Functor
--- import Data.Aeson (toJSON)
--- import qualified Protobuf.Scalar as Protobuf
+import Data.Aeson (toJSON)
+import qualified Protobuf.Scalar as Protobuf
 import Data.String.Conv
 import qualified Data.ByteString as B
 import Data.Time.Clock
@@ -60,21 +59,18 @@ mkToken urlsResetPassword user_id email token_type (token, valid_until) = do
     Nothing -> putToken
     Just tm
       | fmap (curr_tm <) tm == Just True ->
-        pure $ Left $ "block until " <> toS (show (fromJust tm))
+        pure $ Left $
+          "block until " <>
+          toS (show (fromJust tm))
       | otherwise -> putToken
   where
     putToken = do
-      _ <-
-        statement
-        Auth.putResetPasswordToken
-        (user_id, token_type, token, valid_until)
-      return $ Right ()
-      -- let mail_data =
-      --      ( email
-      --      , TypeResetPassword
-      --      , StatusNew
-      --      , toJSON (
-      --         ResetPassword
-      --         (fmap (Protobuf.String . toS) name)
-      --         (toS urlsResetPassword <> toS token)))
-      -- statement Mail.new mail_data $> Right ()
+      name <- statement Auth.putResetPasswordToken (user_id, token_type, token, valid_until)
+      fmap (const Right ()) $ statement Mail.new $
+        ( email
+        , TypeResetPassword
+        , StatusNew
+        , toJSON (
+          ResetPassword
+          (fmap (Protobuf.String . toS) name)
+          (toS urlsResetPassword <> toS token)))

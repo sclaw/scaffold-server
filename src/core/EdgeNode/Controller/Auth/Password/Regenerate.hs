@@ -26,9 +26,7 @@ import Pretty
 import Data.Traversable
 import Database.Transaction
 import Data.Password
-import Data.Foldable ()
 import Validation
-import Data.Functor
 
 controller :: RegeneratePassword -> KatipController (Response Unit)
 controller pass@RegeneratePassword {..} = do
@@ -42,9 +40,10 @@ controller pass@RegeneratePassword {..} = do
 
 mkPassword :: RegeneratePassword -> UserResetPassData -> KatipController (Response Unit)
 mkPassword x@RegeneratePassword {..} u@UserResetPassData {..} = do
---  fmap (fromValidation . bimap (map (Error.asError)) (const Unit) . sequenceA_) $
-  _  <- for (regeneratePassword x) $ const $ go
-  undefined
+  response_v <- for (regeneratePassword x) $ const $ go
+  pure $ case response_v of
+    Failure err -> Errors $ map Error.asError err
+    Success validation -> fromEither validation
   where
     go = do
       hasql <- fmap (^.katipEnv.hasqlDbPool) ask
@@ -56,9 +55,9 @@ mkPassword x@RegeneratePassword {..} u@UserResetPassData {..} = do
         dat_m <- statement Auth.getTokenUsageWithPass (userResetPassDataUserId, userResetPassDataTokenType)
         liftIO $ log DebugS $ ls $ "reset password: " <> show (fmap fst dat_m, regeneratePasswordToken, u)
         liftIO $ send telegram log $ toS $ "reset password: " <> show (fmap fst dat_m, regeneratePasswordToken, u)
-        fmap (maybeToSuccess [RegeneratePasswordTokenNF]) $
-          for dat_m $ \(is_used, curr_pass) ->
-            if is_used then pure $ Failure [RegeneratePasswordTokenUsed]
+        result_m <- for dat_m $ \(is_used, curr_pass) ->
+            if is_used then pure $ Left RegeneratePasswordTokenUsed
             else if curr_pass == hashed_password then
-                 pure $ Failure [RegeneratePasswordSamePass]
-                 else statement Auth.setNewPassword (userResetPassDataUserId, userResetPassDataTokenType, hashed_password) $> Success ()
+                 pure $ Left RegeneratePasswordSamePass
+                 else fmap (const (Right Unit)) $ statement Auth.setNewPassword (userResetPassDataUserId, userResetPassDataTokenType, hashed_password)
+        pure $ case result_m of Nothing -> Left RegeneratePasswordTokenNF; Just result -> result

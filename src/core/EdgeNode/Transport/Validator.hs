@@ -241,7 +241,7 @@ data RegeneratePasswordError =
      deriving stock Show
 
 instance AsError RegeneratePasswordError where
-  asError RegeneratePasswordWeak = asError @T.Text "pasword weak"
+  asError RegeneratePasswordWeak = asError @T.Text "password weak"
   asError RegeneratePasswordMismatched = asError @T.Text "passwords mismatched"
   asError RegeneratePasswordTokenNF = asError @T.Text "token not found"
   asError RegeneratePasswordTokenUsed = asError @T.Text "token already used"
