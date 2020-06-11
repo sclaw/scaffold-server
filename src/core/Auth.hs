@@ -189,7 +189,7 @@ actionCheckToken (Just user) = do
           from auth.token
           where "user_fk" = $1 :: int8
           and refresh_token_hash = $2 :: text
-          and is_valid :: book) :: bool|]
+          and is_valid :: bool) :: bool|]
 
 mkAccessToken :: NominalDiffTime -> JWK -> UserId -> T.Text -> T.Text -> UserRole -> ExceptT JWTError IO (SignedJWT, Time)
 mkAccessToken lt jwk uid email refresh_token_hash utype = do
