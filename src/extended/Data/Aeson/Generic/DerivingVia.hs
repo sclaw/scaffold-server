@@ -155,3 +155,34 @@ instance (Generic a, GToJSON Zero (Rep a), Reifies (options :: k) Options)
 instance (Generic a, GFromJSON Zero (Rep a), Reifies (options :: k) Options)
        => FromJSON (WithOptions options a) where
   parseJSON = fmap WithOptions . genericParseJSON (reflect (Proxy @options))
+
+
+{-
+data MyConfig = MyConfig { mcNameOfProcess :: String
+                         , mcArgsToProcess :: [String]
+                         }
+  deriving (Read, Show, Eq, Ord, Generic)
+  deriving (ToJSON, FromJSON)
+       via WithOptions '[ FieldLabelModifier     '[CamelTo2 "_" , Drop 2]
+                        , ConstructorTagModifier '[CamelTo2 "_"]
+                        ]
+                        MyConfig
+
+data Init
+instance Reifies Init (String -> String) where
+  reflect _ = init
+
+data OtherConfig = OtherConfig { otrNameOfProcess :: Maybe String
+                               , otrArgsToProcess :: [String]
+                               }
+  deriving (Read, Show, Eq, Ord, Generic)
+  deriving (ToJSON, FromJSON)
+       via WithOptions '[ FieldLabelModifier     '[CamelTo2 "-"]
+                        , ConstructorTagModifier '[CamelTo2 "-", UserDefined Init]
+                        , SumEnc                  TwoElemArr
+                        , TagSingleConstructors  'True
+                        , OmitNothingFields      'True
+                        ]
+                        OtherConfig
+-}
+
