@@ -189,6 +189,7 @@ library:
     - cprng-aes
     - base64-bytestring
     - ginger
+    - reflection
 
   source-dirs:
     - src/core

@@ -31,16 +31,13 @@ controller registeration_data = do
   $(logTM) DebugS (logStr (mkPretty "registeration data:" registeration_data))
   runTelegram $location registeration_data
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
-  resp <- fmap (fromValidation . first (map asError)) $
+  response <- fmap (fromValidation . first (map asError)) $
     for (registration registeration_data) $ const $ do
       salt <-  newSalt
       katipTransaction hasql $ do
         ident_m <- statement Auth.register (salt, registeration_data)
-        for ident_m $ \x ->
-          statement
-          Rbac.assignRoleToUser
-          (x, RoleUser, Nothing)
-  return $ case resp of
+        for ident_m $ \x -> statement Rbac.assignRoleToUser (x, RoleUser, Nothing)
+  return $ case response of
     Ok (Just _) -> Ok Unit
     Ok Nothing -> Error (Error.asError @T.Text "email taken")
     Error e  -> Error e
