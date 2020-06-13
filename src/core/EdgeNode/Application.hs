@@ -65,6 +65,7 @@ import Data.Either.Combinators
 import Control.Exception
 import Data.String.Conv
 import qualified Mail
+import qualified Network.HTTP.Types as H
 
 data Cfg =
      Cfg
@@ -140,24 +141,26 @@ run Cfg {..} =
            (toServant Controller.controller :<|>
             swaggerSchemaUIServerT (swaggerHttpApi cfgHost cfgSwaggerPort ver))
       excep <-katipAddNamespace (Namespace ["exception"]) askLoggerIO
-      ctxlog <-katipAddNamespace (Namespace ["context"]) askLoggerIO
+      ctx_logger <-katipAddNamespace (Namespace ["context"]) askLoggerIO
+      req_logger <- katipAddNamespace (Namespace ["request"]) askLoggerIO
       let settings =
            Warp.defaultSettings
            & Warp.setPort cfgServerPort
            & Warp.setOnException (logUncaughtException excep runTelegram)
-           & Warp.setOnExceptionResponse mkResponse
+           & Warp.setOnExceptionResponse mk500Response
            & Warp.setServerName ("edgenode api server, revision " <> $gitCommit)
+           & Warp.setLogger (logRequest req_logger runTelegram)
       let multipartOpts =
             (defaultMultipartOptions (Proxy :: Proxy Tmp))
             { generalOptions = clearMaxRequestNumFiles defaultParseRequestBodyOptions }
       let mkCtx =    jwtCfg
                   :. defaultCookieSettings
-                  :. ctxlog
+                  :. ctx_logger
                   :. cfgIsAuthEnabled
                   :. cfgUserId
                   :. (cfg^.katipEnv.hasqlDbPool)
                   :. multipartOpts
-                  :. (BasicAuthCfgData (cfg^.katipEnv.hasqlDbPool) ctxlog)
+                  :. (BasicAuthCfgData (cfg^.katipEnv.hasqlDbPool) ctx_logger)
                   :. EmptyContext
       let runServer = serveWithContext (withSwagger api) mkCtx server
       mware_logger <- katipAddNamespace (Namespace ["middleware"]) askLoggerIO
@@ -176,14 +179,17 @@ middleware cors log app = mkCors cors $ Middleware.logger log app
 logUncaughtException :: KatipLoggerIO -> (KatipLoggerIO -> String -> IO ()) -> Maybe Request -> SomeException -> IO ()
 logUncaughtException log runTelegram req e = when (Warp.defaultShouldDisplayException e) $ maybe without within req
   where without = do
-          runTelegram log $ "Uncaught exception " <> show e
-          log ErrorS (logStr ("Uncaught exception " <> show e))
+          runTelegram log $ "before request being handled" <> show e
+          log ErrorS (logStr ("before request being handled" <> show e))
         within r = do
-          runTelegram log $ "\"GET " <> rawPathInfo r^.from textbs.from stext <> " HTTP/1.1\" 500 - " <> show e
-          log ErrorS (logStr ("\"GET " <> rawPathInfo r^.from textbs.from stext <> " HTTP/1.1\" 500 - " <> show e))
+          runTelegram log $ "\"" <> toS (requestMethod r) <> " " <> toS (rawPathInfo r) <> " " <> toS (show (httpVersion r)) <> "500 - " <> show e
+          log ErrorS (logStr ("\"" <> toS (requestMethod r) <> " " <> toS (rawPathInfo r) <> " " <> toS (show (httpVersion r)) <> "500 - " <> show e))
 
-mkResponse :: SomeException  -> Response
-mkResponse error = responseLBS status500 mempty (showt error^.textbsl)
+mk500Response :: SomeException -> Response
+mk500Response error = responseLBS status500 [(H.hContentType, "text/plain; charset=utf-8")] (showt error^.textbsl)
+
+logRequest :: KatipLoggerIO -> (KatipLoggerIO -> String -> IO ()) -> Request -> Status -> Maybe Integer -> IO ()
+logRequest log runTelegram req _ _ = log ErrorS (logStr (show req)) >> runTelegram log (mkPretty mempty req)
 
 deriving instance Generic CorsResourcePolicy
 
@@ -192,13 +198,6 @@ mkCors cfg_cors =
   cors $ const $ pure $
     simpleCorsResourcePolicy
     & field @"corsOrigins" .~ fmap ((, True) . map toS) (Cfg.corsOrigins cfg_cors)
-    & field @"corsRequestHeaders" .~
-      [ "Authorization"
-      , "Content-Type"
-      , "Origin"
-      , "Access-Control-Allow-Origin"]
-    & field @"corsExposedHeaders" ?~
-      ["X-Set-Bearer"]
-    & field @"corsMethods" .~
-      simpleMethods <>
-      ["PUT", "PATCH", "DELETE", "OPTIONS"]
+    & field @"corsRequestHeaders" .~ [ "Authorization", "Content-Type", "Origin", "Access-Control-Allow-Origin"]
+    & field @"corsExposedHeaders" ?~ ["X-Set-Bearer"]
+    & field @"corsMethods" .~ simpleMethods <> ["PUT", "PATCH", "DELETE", "OPTIONS"]
