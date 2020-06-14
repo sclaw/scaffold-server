@@ -97,82 +97,80 @@ newtype AppMonad a = AppMonad { runAppMonad :: RWS.RWST KatipEnv KatipLogger Kat
   deriving newtype MonadThrow
 
 run :: Cfg -> KatipContextT AppMonad ()
-run Cfg {..} =
-  katipAddNamespace (Namespace ["application"]) $
-    do
-      telegram_service <- fmap (^.telegram) ask
-      let runTelegram l msg = void $ fork $ liftIO $ send telegram_service l ((mkPretty ("At module " <> $location) msg)^.stext)
-      logger <- katipAddNamespace (Namespace ["application"]) askLoggerIO
+run Cfg {..} = katipAddNamespace (Namespace ["application"]) $ do
+  telegram_service <- fmap (^.telegram) ask
+  let runTelegram l msg = void $ fork $ liftIO $ send telegram_service l ((mkPretty ("At module " <> $location) msg)^.stext)
+  logger <- katipAddNamespace (Namespace ["application"]) askLoggerIO
 
-      version_e <- liftIO getVersion
-      runTelegram logger $ "server version " <> show version_e
-      whenLeft version_e $ \e -> throwM $ ErrorCall e
-      let Right ver = version_e
+  version_e <- liftIO getVersion
+  runTelegram logger $ "server version " <> show version_e
+  whenLeft version_e $ \e -> throwM $ ErrorCall e
+  let Right ver = version_e
 
-      runTelegram logger $ "server run on port " <> show cfgServerPort
+  runTelegram logger $ "server run on port " <> show cfgServerPort
 
-      $(logTM) DebugS $ ls $ "server run on port " <> showt cfgServerPort
-      configKatipEnv <- lift ask
-      let initCfg =
-           do
-             configEnv <- getLogEnv
-             configCtx <- getKatipContext
-             configNm <-  getKatipNamespace
-             return $ Config {..}
-      cfg <- initCfg
-      let withSwagger :: Proxy a -> Proxy (a :<|> SwaggerSchemaUI "swagger" "swagger.json")
-          withSwagger _ = Proxy
-      let jwtCfg = defaultJWTSettings cfgJwk
-      let context
-           :: Proxy
-              '[ CookieSettings
-               , JWTSettings
-               , KatipLoggerIO
-               , Bool
-               , Id "user"
-               , Proxy Tmp
-               , Pool.Pool Hasql.Connection
-               , BasicAuthCfg]
-          context = Proxy
-      let server =
-           hoistServerWithContext
-           (withSwagger api)
-           context
-           (runKatipController cfg (KatipControllerState 0))
-           (toServant Controller.controller :<|>
-            swaggerSchemaUIServerT (swaggerHttpApi cfgHost cfgSwaggerPort ver))
-      excep <-katipAddNamespace (Namespace ["exception"]) askLoggerIO
-      ctx_logger <-katipAddNamespace (Namespace ["context"]) askLoggerIO
-      req_logger <- katipAddNamespace (Namespace ["request"]) askLoggerIO
-      let settings =
-           Warp.defaultSettings
-           & Warp.setPort cfgServerPort
-           & Warp.setOnException (logUncaughtException excep runTelegram)
-           & Warp.setOnExceptionResponse mk500Response
-           & Warp.setServerName ("edgenode api server, revision " <> $gitCommit)
-           & Warp.setLogger (logRequest req_logger runTelegram)
-      let multipartOpts =
-            (defaultMultipartOptions (Proxy :: Proxy Tmp))
-            { generalOptions = clearMaxRequestNumFiles defaultParseRequestBodyOptions }
-      let mkCtx =    jwtCfg
-                  :. defaultCookieSettings
-                  :. ctx_logger
-                  :. cfgIsAuthEnabled
-                  :. cfgUserId
-                  :. (cfg^.katipEnv.hasqlDbPool)
-                  :. multipartOpts
-                  :. (BasicAuthCfgData (cfg^.katipEnv.hasqlDbPool) ctx_logger)
-                  :. EmptyContext
-      let runServer = serveWithContext (withSwagger api) mkCtx server
-      mware_logger <- katipAddNamespace (Namespace ["middleware"]) askLoggerIO
+  $(logTM) DebugS $ ls $ "server run on port " <> showt cfgServerPort
+  configKatipEnv <- lift ask
+  let initCfg =
+        do
+          configEnv <- getLogEnv
+          configCtx <- getKatipContext
+          configNm <-  getKatipNamespace
+          return $ Config {..}
+  cfg <- initCfg
+  let withSwagger :: Proxy a -> Proxy (a :<|> SwaggerSchemaUI "swagger" "swagger.json")
+      withSwagger _ = Proxy
+  let jwtCfg = defaultJWTSettings cfgJwk
+  let context
+        :: Proxy
+          '[ CookieSettings
+            , JWTSettings
+            , KatipLoggerIO
+            , Bool
+            , Id "user"
+            , Proxy Tmp
+            , Pool.Pool Hasql.Connection
+            , BasicAuthCfg]
+      context = Proxy
+  let server =
+        hoistServerWithContext
+        (withSwagger api)
+        context
+        (runKatipController cfg (KatipControllerState 0))
+        (toServant Controller.controller :<|>
+        swaggerSchemaUIServerT (swaggerHttpApi cfgHost cfgSwaggerPort ver))
+  excep <-katipAddNamespace (Namespace ["exception"]) askLoggerIO
+  ctx_logger <-katipAddNamespace (Namespace ["context"]) askLoggerIO
+  req_logger <- katipAddNamespace (Namespace ["request"]) askLoggerIO
+  let settings =
+        Warp.defaultSettings
+        & Warp.setPort cfgServerPort
+        & Warp.setOnException (logUncaughtException excep runTelegram)
+        & Warp.setOnExceptionResponse mk500Response
+        & Warp.setServerName ("edgenode api server, revision " <> $gitCommit)
+        & Warp.setLogger (logRequest req_logger runTelegram)
+  let multipartOpts =
+        (defaultMultipartOptions (Proxy :: Proxy Tmp))
+        { generalOptions = clearMaxRequestNumFiles defaultParseRequestBodyOptions }
+  let mkCtx =    jwtCfg
+              :. defaultCookieSettings
+              :. ctx_logger
+              :. cfgIsAuthEnabled
+              :. cfgUserId
+              :. (cfg^.katipEnv.hasqlDbPool)
+              :. multipartOpts
+              :. (BasicAuthCfgData (cfg^.katipEnv.hasqlDbPool) ctx_logger)
+              :. EmptyContext
+  let runServer = serveWithContext (withSwagger api) mkCtx server
+  mware_logger <- katipAddNamespace (Namespace ["middleware"]) askLoggerIO
 
-      path <- liftIO getCurrentDirectory
-      let tls_settings = (Warp.tlsSettings (path </> "tls/certificate") (path </> "tls/key")) { Warp.onInsecure = Warp.AllowInsecure }
+  path <- liftIO getCurrentDirectory
+  let tls_settings = (Warp.tlsSettings (path </> "tls/certificate") (path </> "tls/key")) { Warp.onInsecure = Warp.AllowInsecure }
 
-      servAsync <- liftIO $ async $ Warp.runTLS tls_settings settings (middleware cfgCors mware_logger runServer)
-      mail_logger <- katipAddNamespace (Namespace ["mail"]) askLoggerIO
-      mailAsync <- liftIO $ async $ Mail.run cfgSmtp telegram_service (cfg^.katipEnv.hasqlDbPool) mail_logger
-      liftIO (void (waitAnyCancel [servAsync, mailAsync])) `logExceptionM` ErrorS
+  servAsync <- liftIO $ async $ Warp.runTLS tls_settings settings (middleware cfgCors mware_logger runServer)
+  mail_logger <- katipAddNamespace (Namespace ["mail"]) askLoggerIO
+  mailAsync <- liftIO $ async $ Mail.run cfgSmtp telegram_service (cfg^.katipEnv.hasqlDbPool) mail_logger
+  liftIO (void (waitAnyCancel [servAsync, mailAsync])) `logExceptionM` ErrorS
 
 middleware :: Cfg.Cors -> KatipLoggerIO -> Application -> Application
 middleware cors log app = mkCors cors $ Middleware.logger log app
