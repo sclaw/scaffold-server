@@ -63,6 +63,7 @@ mkToken urlsResetPassword user_id email token_type (token, valid_until) = do
           "block until " <>
           toS (show (fromJust tm))
       | otherwise -> fmap (const Right ()) putToken
+  where
     putToken = do
       name <- statement Auth.putResetPasswordToken (user_id, token_type, token, valid_until)
       statement Mail.new $ (email, TypeResetPassword, StatusNew, toJSON (ResetPassword (fmap (Protobuf.String . toS) name) (toS urlsResetPassword <> toS token)))

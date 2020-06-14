@@ -148,7 +148,7 @@ newtype Cors = Cors { corsOrigins :: (Maybe [T.Text]) } deriving Show
 data Smtp = Smtp { smtpServer :: !T.Text, smtpLogin :: !T.Text, smtpPassword :: !T.Text }
   deriving Show
 
-newtype Urls = Urls { urlsResetPassword :: T.Text } deriving Show
+data Urls = Urls { urlsResetPassword :: !T.Text, urlsSignIn :: !T.Text, urlMainPage :: !T.Text } deriving Show
 
 data Config =
      Config

@@ -1,6 +1,14 @@
 <!DOCTYPE html>
+
+<head>
+    <title>Account</title>
+</head>
+
+
 <html>
   <body>
-    <p>{{login}}, {{password}}, {{providerId}}</p>
+    <p>You have been registered at EdgeNode. Credentials: {{login}}, {{password}}, {{providerId}}. Use this link to sign in {{urlSignIn}}, or move directly to {{urlMainPage}}</p>
+    <br>
+    <p>Cheers!</p>
   </body>
 </html>

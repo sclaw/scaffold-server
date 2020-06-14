@@ -3,6 +3,7 @@
 {-# LANGUAGE TypeOperators  #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module EdgeNode.Controller.Provider.CreateAccount (controller) where
 
@@ -42,6 +43,7 @@ controller account user_id = do
   runTelegram $location (account, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   telegram <- fmap (^.katipEnv.telegram) ask
+  Urls {..} <- fmap (^.katipEnv.urls) ask
   response <- for (newAccount account) $ \(email, role) ->
     fmap (eitherToValidation . first (const [NewAccountErrorTaken])) $
     katipTransactionViolationError hasql $ do
@@ -57,7 +59,9 @@ controller account user_id = do
           NewProviderAccount
           (toS provider_id)
           (toS password)
-          (toS email)))
+          (toS email)
+          (toS urlsSignIn)
+          (toS urlMainPage)))
       log <- ask
       liftIO $ send telegram log $ toS $ "At module " <> $location <> " new account: " <> show (ident, password)
       statement Rbac.assignRoleToUser (ident, role, Nothing)
