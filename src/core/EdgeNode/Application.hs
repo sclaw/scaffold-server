@@ -66,6 +66,7 @@ import Control.Exception
 import Data.String.Conv
 import qualified Mail
 import qualified Network.HTTP.Types as H
+import Network.HTTP.Types.Method
 
 data Cfg =
      Cfg
@@ -200,4 +201,4 @@ mkCors cfg_cors =
     & field @"corsOrigins" .~ fmap ((, True) . map toS) (Cfg.corsOrigins cfg_cors)
     & field @"corsRequestHeaders" .~ [ "Authorization", "Content-Type", "Origin", "Access-Control-Allow-Origin"]
     & field @"corsExposedHeaders" ?~ ["X-Set-Bearer"]
-    & field @"corsMethods" .~ simpleMethods <> ["PUT", "PATCH", "DELETE", "OPTIONS"]
+    & field @"corsMethods" .~ simpleMethods <> [methodPut, methodPatch, methodDelete, methodOptions]
