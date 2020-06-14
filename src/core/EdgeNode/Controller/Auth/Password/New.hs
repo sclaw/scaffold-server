@@ -56,21 +56,13 @@ mkToken urlsResetPassword user_id email token_type (token, valid_until) = do
   token_status_m <- statement getTokenStatus (user_id, token_type)
   curr_tm <- liftIO getCurrentTime
   case token_status_m of
-    Nothing -> putToken
+    Nothing -> fmap (const Right ()) putToken
     Just tm
       | fmap (curr_tm <) tm == Just True ->
         pure $ Left $
           "block until " <>
           toS (show (fromJust tm))
-      | otherwise -> putToken
-  where
+      | otherwise -> fmap (const Right ()) putToken
     putToken = do
       name <- statement Auth.putResetPasswordToken (user_id, token_type, token, valid_until)
-      fmap (const Right ()) $ statement Mail.new $
-        ( email
-        , TypeResetPassword
-        , StatusNew
-        , toJSON (
-          ResetPassword
-          (fmap (Protobuf.String . toS) name)
-          (toS urlsResetPassword <> toS token)))
+      statement Mail.new $ (email, TypeResetPassword, StatusNew, toJSON (ResetPassword (fmap (Protobuf.String . toS) name) (toS urlsResetPassword <> toS token)))
