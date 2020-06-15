@@ -47,7 +47,7 @@ import qualified EdgeNode.Controller.Provider.GetQualification as Provider.GetQu
 import qualified EdgeNode.Controller.Provider.PatchQualification as Provider.PatchQualification
 import qualified EdgeNode.Controller.Provider.CreateTags as Provider.CreateTags
 import qualified EdgeNode.Controller.Provider.PublishTags as Provider.PublishTags
-import qualified EdgeNode.Controller.Provider.CreateAccount as Provider.CreateAccount
+import qualified EdgeNode.Controller.Provider.Settings.CreateAccount as Provider.Settings.CreateAccount
 import qualified EdgeNode.Controller.User.GetProfile as User.GetProfile
 import qualified EdgeNode.Controller.User.PatchProfile as User.PatchProfile
 import qualified EdgeNode.Controller.User.Trajectory.Add as User.AddTrajectory
@@ -204,72 +204,72 @@ password =
   }
 
 user :: AuthResult JWTUser -> UserApi (AsServerT KatipController)
-user user =
+user jwt =
   UserApi
   { _userApiGetProfile =
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["user", "profile"])
-    (applyController Nothing user $ \x ->
+    (applyController Nothing jwt $ \user ->
      verifyAuthorization
-     (jWTUserUserId x)
+     (jWTUserUserId user)
      Rbac.PermissionUser
      (User.GetProfile.controller))
   , _userApiPatchProfile = \profile ->
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["user", "profile"])
-    (applyController Nothing user $ \x ->
+    (applyController Nothing jwt $ \user ->
      verifyAuthorization
-     (jWTUserUserId x)
+     (jWTUserUserId user)
      Rbac.PermissionUser
      (User.PatchProfile.controller profile))
-  , _userApiTrajectory = toServant (trajectory user)
-  , _userApiQualification = toServant (userQualification user)
+  , _userApiTrajectory = toServant (trajectory jwt)
+  , _userApiQualification = toServant (userQualification jwt)
   }
 
 trajectory :: AuthResult JWTUser -> TrajectoryApi (AsServerT KatipController)
-trajectory user =
+trajectory jwt =
   TrajectoryApi
   { _trajectoryApiAddTrajaectory = \trajectory ->
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["user", "trajectory", "add"])
-    (applyController Nothing user $ \x ->
+    (applyController Nothing jwt $ \user ->
      verifyAuthorization
-     (jWTUserUserId x)
+     (jWTUserUserId user)
      Rbac.PermissionUser
      (User.AddTrajectory.controller trajectory))
   , _trajectoryApiGetTrajaectories =
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["user", "trajectory", "list"])
-    (applyController Nothing user $ \x ->
+    (applyController Nothing jwt $ \user ->
      verifyAuthorization
-     (jWTUserUserId x)
+     (jWTUserUserId user)
      Rbac.PermissionUser
      (User.GetTrajectories.controller))
   , _trajectoryApiDeleteTrajaectory = \trajectory_id ->
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["user", "trajectory", "remove"])
-    (applyController Nothing user $ \x ->
+    (applyController Nothing jwt $ \user ->
      verifyAuthorization
-     (jWTUserUserId x)
+     (jWTUserUserId user)
      Rbac.PermissionUser
      (User.Trajectory.Remove.controller trajectory_id))
   }
 
 userQualification :: AuthResult JWTUser -> UserQualificationApi (AsServerT KatipController)
-userQualification user =
+userQualification jwt =
   UserQualificationApi
   { _userQualificationApiGetDegreeTypesByCategory = \category ->
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["user", "qualification", "category"])
-    (applyController Nothing user $ \x ->
+    (applyController Nothing jwt $ \user ->
      verifyAuthorization
-     (jWTUserUserId x)
+     (jWTUserUserId user)
      Rbac.PermissionUser
      (const (User.GetDegreeTypesByCategory.controller category)))
   , _userQualificationApiGetCountriesByDegreeType =
@@ -277,9 +277,9 @@ userQualification user =
       flip logExceptionM ErrorS $
       katipAddNamespace
       (Namespace ["user", "qualification", "category, degree_type"])
-      (applyController Nothing user $ \x ->
+      (applyController Nothing jwt $ \user ->
        verifyAuthorization
-       (jWTUserUserId x)
+       (jWTUserUserId user)
        Rbac.PermissionUser
        (const (User.GetCountriesByDegreeType.controller category degree_type)))
   , _userQualificationApiGetBranchesByCountry =
@@ -287,18 +287,18 @@ userQualification user =
       flip logExceptionM ErrorS $
       katipAddNamespace
       (Namespace ["user", "qualification", "category degree_type, country"])
-      (applyController Nothing user $ \x ->
+      (applyController Nothing jwt $ \user ->
        verifyAuthorization
-       (jWTUserUserId x)
+       (jWTUserUserId user)
        Rbac.PermissionUser
        (const (User.GetBranchesByCountry.controller category degree_type country)))
   , _userQualificationApiGetQualificationsByBranch = \branch_id degree_type ->
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["user", "qualification", "list"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
       verifyAuthorization
-      (jWTUserUserId x)
+      (jWTUserUserId user)
       Rbac.PermissionUser
       (User.GetQualificationsByBranch.controller branch_id degree_type))
   , _userQualificationApiAddQualificationToTrajectory =
@@ -306,18 +306,18 @@ userQualification user =
       flip logExceptionM ErrorS $
       katipAddNamespace
       (Namespace ["user", "qualificaton", "add"])
-      (applyController Nothing user $ \x ->
+      (applyController Nothing jwt $ \user ->
        verifyAuthorization
-       (jWTUserUserId x)
+       (jWTUserUserId user)
        Rbac.PermissionUser
        (User.AddQualifications.controller qualifications))
   , _userQualificationApiGetQualificationList =
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["user", "qualificaton", "list"])
-    (applyController Nothing user $ \x ->
+    (applyController Nothing jwt $ \user ->
      verifyAuthorization
-     (jWTUserUserId x)
+     (jWTUserUserId user)
      Rbac.PermissionUser
      (User.GetQualificationList.controller))
   , _userQualificationApiPurgeQualifications =
@@ -325,27 +325,27 @@ userQualification user =
       flip logExceptionM ErrorS $
       katipAddNamespace
       (Namespace ["user", "qualificaton", "purge"])
-      (applyController Nothing user $ \x ->
+      (applyController Nothing jwt $ \user ->
        verifyAuthorization
-       (jWTUserUserId x)
+       (jWTUserUserId user)
        Rbac.PermissionUser
        (User.PurgeQualifications.controller provider_id qualification_list))
   , _userQualificationApiGetSuggestions =
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["user", "qualificaton", "suggestion", "list"])
-    (applyController Nothing user $ \x ->
+    (applyController Nothing jwt $ \user ->
      verifyAuthorization
-     (jWTUserUserId x)
+     (jWTUserUserId user)
      Rbac.PermissionUser
      User.GetSuggestions.controller)
   , _userQualificationApiMarkSuggestion = \ident mark ->
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["user", "qualificaton", "suggestion", "mark"])
-    (applyController Nothing user $ \x ->
+    (applyController Nothing jwt $ \user ->
      verifyAuthorization
-     (jWTUserUserId x)
+     (jWTUserUserId user)
      Rbac.PermissionUser
      (User.MarkSuggestion.controller ident mark))
   }
@@ -399,163 +399,163 @@ file =
   }
 
 admin :: AuthResult BasicUser -> AdminApi (AsServerT KatipController)
-admin user =
+admin basic =
   AdminApi
   { _adminApiProviderRegister = \provider ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["admin", "provider", "register"])
-     (withUser user (Admin.ProviderRegister.controller provider))
+     (withUser basic (Admin.ProviderRegister.controller provider))
   , _adminApiResetPassword = \provider_id email ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["admin", "provider", "password", "reset"])
-     (withUser user (const (Admin.ResetPassword.controller provider_id email)))
+     (withUser basic (const (Admin.ResetPassword.controller provider_id email)))
   }
 
 provider :: AuthResult JWTUser -> ProviderApi (AsServerT KatipController)
-provider user =
+provider jwt =
   ProviderApi
   { _providerApiGetBranches =
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["provider", "branch", "list"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
        verifyAuthorization
-       (jWTUserUserId x)
+       (jWTUserUserId user)
        Rbac.PermissionProviderGuest
        Provider.GetBranches.controller)
   , _providerApiCreateBranches = \branch ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["provider", "branch", "create"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
        verifyAuthorization
-       (jWTUserUserId x)
+       (jWTUserUserId user)
        Rbac.PermissionProviderEditor
        (Provider.CreateBranches.controller branch))
   , _providerApiPatchBranches = \branches ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["provider", "branch", "patch"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
        verifyAuthorization
-       (jWTUserUserId x)
+       (jWTUserUserId user)
        Rbac.PermissionProviderEditor
        (Provider.PatchBranch.controller branches))
   , _providerApiDeleteBranch = \ident ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["provider", "branch", "delete"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
        verifyAuthorization
-       (jWTUserUserId x)
+       (jWTUserUserId user)
        Rbac.PermissionProviderEditor
        (Provider.DeleteBranch.controller ident))
   , _providerApiSetHQ = \ident ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["provider", "branch", "hq"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
        verifyAuthorization
-       (jWTUserUserId x)
+       (jWTUserUserId user)
        Rbac.PermissionProviderEditor
        (Provider.SetHQ.controller ident))
   , _providerApiBuilderCreateQualification = \builder ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["provider", "qualification", "builder", "create"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
        verifyAuthorization
-       (jWTUserUserId x)
+       (jWTUserUserId user)
        Rbac.PermissionProviderEditor
        (QualificationBuilder.Create.controller builder))
   , _providerApiBuilderGetAvailableBranches =
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["provider", "qualification", "builder", "getBranches"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
        verifyAuthorization
-       (jWTUserUserId x)
+       (jWTUserUserId user)
        Rbac.PermissionProviderEditor
        QualificationBuilder.GetAvailableBranches.controller)
   , _providerApiPublish =
     flip logExceptionM ErrorS $
     katipAddNamespace
      (Namespace ["provider", "branch", "publish"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
       verifyAuthorization
-      (jWTUserUserId x)
+      (jWTUserUserId user)
       Rbac.PermissionProviderEditor
       Provider.Publish.controller)
   , _providerApiBuilderGetDependencyAreaToCountries = \area ->
     flip logExceptionM ErrorS $
     katipAddNamespace
      (Namespace ["provider", "qualification", "builder", "areaToCountries"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
       verifyAuthorization
-      (jWTUserUserId x)
+      (jWTUserUserId user)
       Rbac.PermissionProviderEditor
       (const (QualificationBuilder.GetAreaToCountries.controller area)))
   , _providerApiBuilderGetDependencyCountryToTypes = \area cntry ->
     flip logExceptionM ErrorS $
     katipAddNamespace
      (Namespace ["provider", "qualification", "builder", "CountryToTypes"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
       verifyAuthorization
-      (jWTUserUserId x)
+      (jWTUserUserId user)
       Rbac.PermissionProviderEditor
       (const (QualificationBuilder.GetCountryToTypes.controller area cntry)))
   , _providerApiBuilderGetDependencTypeToQualifications = \area cntry degree ->
     flip logExceptionM ErrorS $
     katipAddNamespace
      (Namespace ["provider", "qualification", "builder", "TypeToQualifications"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
       verifyAuthorization
-      (jWTUserUserId x)
+      (jWTUserUserId user)
       Rbac.PermissionProviderEditor
       (const (QualificationBuilder.GetTypeToQualifications.controller area cntry degree)))
   , _providerApiGetQualifications =
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["provider", "qualification", "list"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
       verifyAuthorization
-      (jWTUserUserId x)
+      (jWTUserUserId user)
       Rbac.PermissionProviderGuest
       Provider.GetQualifications.controller)
   , _providerApiGetQualification = \ident ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["provider", "qualification", "get"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
       verifyAuthorization
-      (jWTUserUserId x)
+      (jWTUserUserId user)
       Rbac.PermissionProviderEditor
       (Provider.GetQualification.controller ident))
   , _providerApiPatchQualification = \ident patch ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["provider", "qualification", "patch"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
       verifyAuthorization
-      (jWTUserUserId x)
+      (jWTUserUserId user)
       Rbac.PermissionProviderEditor
       (Provider.PatchQualification.controller ident patch))
-  , _providerApiPool = toServant (PoolApi { _poolApiTags = toServant (tags user) } :: PoolApi (AsServerT KatipController))
-  , _providerApiSettings = toServant (SettingsApi { _settingsApiAccount = toServant (account user) } :: SettingsApi (AsServerT KatipController))
+  , _providerApiPool = toServant (PoolApi { _poolApiTags = toServant (tags jwt) } :: PoolApi (AsServerT KatipController))
+  , _providerApiSettings = toServant (SettingsApi { _settingsApiAccount = toServant (account jwt) } :: SettingsApi (AsServerT KatipController))
   }
 
 tags :: AuthResult JWTUser -> TagsApi (AsServerT KatipController)
-tags user =
+tags jwt =
   TagsApi
   { _tagsApiCreate = \tags_builder ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["provider", "tags", "create"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
       verifyAuthorization
-      (jWTUserUserId x)
+      (jWTUserUserId user)
       Rbac.PermissionProviderEditor
       (Provider.CreateTags.controller tags_builder))
   , _tagsApiGet = undefined
@@ -565,46 +565,46 @@ tags user =
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["provider", "tags", "publish"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
       verifyAuthorization
-      (jWTUserUserId x)
+      (jWTUserUserId user)
       Rbac.PermissionProviderEditor
       (Provider.PublishTags.controller tags_id))
   }
 
 account :: AuthResult JWTUser -> AccountApi (AsServerT KatipController)
-account user =
+account jwt =
   AccountApi
   { _accountApiCreateAccount = \account ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["provider", "settings", "account"])
-     (applyController Nothing user $ \x ->
+     (applyController Nothing jwt $ \user ->
       verifyAuthorization
-      (jWTUserUserId x)
+      (jWTUserUserId user)
       Rbac.PermissionProviderSettings
-      (Provider.CreateAccount.controller account))
+      (Provider.Settings.CreateAccount.controller account))
   , _accountApiListAccounts = undefined
   , _accountApiPatchRoles = undefined
   , _accountApiPatchPersonal = undefined
   }
 
 statistics :: AuthResult BasicUser -> StatisticsApi (AsServerT KatipController)
-statistics user =
+statistics basic =
   StatisticsApi
   { _statisticsApiGetRegistrations = \from ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["statistics", "registrations"])
-     (withUser user (const (Statistics.GetRegistrations.controller from)))
+     (withUser basic (const (Statistics.GetRegistrations.controller from)))
   , _statisticsApiGetActiveUsers = \from ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["statistics", "users"])
-     (withUser user (const (Statistics.GetActiveUsers.controller from)))
+     (withUser basic (const (Statistics.GetActiveUsers.controller from)))
   , _statisticsApiGetApiCounter = \from ->
     flip logExceptionM ErrorS $
      katipAddNamespace
      (Namespace ["statistics", "api"])
-     (withUser user (const (Statistics.GetApiCounter.controller from)))
+     (withUser basic (const (Statistics.GetApiCounter.controller from)))
   }

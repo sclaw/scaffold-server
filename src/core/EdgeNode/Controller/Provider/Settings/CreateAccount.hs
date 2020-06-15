@@ -5,7 +5,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module EdgeNode.Controller.Provider.CreateAccount (controller) where
+module EdgeNode.Controller.Provider.Settings.CreateAccount (controller) where
 
 import EdgeNode.Transport.Id
 import EdgeNode.Transport.Response
