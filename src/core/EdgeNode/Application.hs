@@ -188,7 +188,7 @@ mk500Response :: SomeException -> Response
 mk500Response error = responseLBS status500 [(H.hContentType, "text/plain; charset=utf-8")] (showt error^.textbsl)
 
 logRequest :: KatipLoggerIO -> (KatipLoggerIO -> String -> IO ()) -> Request -> Status -> Maybe Integer -> IO ()
-logRequest log runTelegram req _ _ = log ErrorS (logStr (show req)) >> runTelegram log (mkPretty mempty req)
+logRequest log runTelegram req _ _ = log InfoS (logStr (show req)) >> runTelegram log (mkPretty mempty req)
 
 deriving instance Generic CorsResourcePolicy
 
