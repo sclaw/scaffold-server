@@ -145,10 +145,21 @@ newtype ServerConnection = ServerConnection { serverConnectionPort :: Int }
 
 newtype Cors = Cors { corsOrigins :: (Maybe [T.Text]) } deriving Show
 
-data Smtp = Smtp { smtpServer :: !T.Text, smtpLogin :: !T.Text, smtpPassword :: !T.Text }
-  deriving Show
+data Smtp =
+     Smtp
+     { smtpServer         :: !T.Text
+     , smtpLogin          :: !T.Text
+     , smtpPassword       :: !T.Text
+     , smtpEmail          :: !T.Text
+     , smtpDefaultSubject :: !T.Text
+     } deriving Show
 
-data Urls = Urls { urlsResetPassword :: !T.Text, urlsSignIn :: !T.Text, urlsMainPage :: !T.Text } deriving Show
+data Urls =
+     Urls
+     { urlsResetPassword :: !T.Text
+     , urlsSignIn        :: !T.Text
+     , urlsMainPage      :: !T.Text
+     } deriving Show
 
 data Config =
      Config

@@ -37,6 +37,7 @@ import Data.Foldable
 import Web.Telegram
 import Pretty
 import BuildInfo
+import Data.Either.Combinators
 
 run :: Smtp -> Web.Telegram.Service -> Pool Connection -> KatipLoggerIO -> IO ()
 run smtp@Smtp {..} telegram pool logger = do
@@ -48,17 +49,15 @@ run smtp@Smtp {..} telegram pool logger = do
     xs_e <- liftIO $ for xs $ \(ident, ty, to_whom, msg) -> do
       let path = dir </> "template" </> "email" </> fromType ty
       template_e <- Ginger.parseGingerFile loadGingerFile path
+      let subject_path = dir </> "template" </> "email" </> "subject" </> fromType ty
+      subject <- mkSubject logger telegram smtpDefaultSubject subject_path
       for template_e $ \tmpl -> do
         let payloadHtml = toS $ Ginger.htmlSource $ Ginger.easyRender @Ginger.Html msg tmpl
         let payloadText = mempty
-        mail <-
-          Network.Mail.Mime.simpleMail
+        mail <- Network.Mail.Mime.simpleMail
           (Network.Mail.Mime.Address Nothing to_whom)
-          (Network.Mail.Mime.Address Nothing "info@edgenode.org")
-          (mkSubject ty)
-          payloadText
-          payloadHtml
-          mempty
+          (Network.Mail.Mime.Address Nothing smtpEmail)
+          subject payloadText payloadHtml mempty
         logger DebugS $ ls @String $ show mail
         send telegram logger $ toS $ mkPretty ("At module " <> $location) mail
         sendMailTlsDefPort (toS smtpServer) (toS smtpLogin) (toS smtpPassword) mail $> ident
@@ -71,15 +70,12 @@ run smtp@Smtp {..} telegram pool logger = do
   run smtp telegram pool logger
 
 loadGingerFile :: FilePath -> IO (Maybe String)
-loadGingerFile path = do
-  res_e <- tryIOError $
-    openFile path ReadMode >>=
-    hGetContents
-  case res_e of
-    Right contents -> return (Just contents)
-    Left _ -> return Nothing
+loadGingerFile path = fmap (either (const Nothing) Just) $ tryIOError $ openFile path ReadMode >>= hGetContents
 
-mkSubject :: Type -> T.Text
-mkSubject TypeNewProviderAccount = "Account"
-mkSubject TypeResetPassword = "Reset password"
-mkSubject TypeNewPassword = "New Password"
+mkSubject :: KatipLoggerIO -> Web.Telegram.Service -> T.Text -> FilePath -> IO T.Text
+mkSubject logger telegram default_subject path = do
+  subject_e <- tryIOError $ openFile path ReadMode >>= hGetContents
+  whenLeft subject_e $ \e -> do
+    logger InfoS $ ls @String $ "subject not found. use default one. " <> show e
+    send telegram logger $ toS $ mkPretty ("At module " <> $location) ("subject not found. use default one. " <> show e)
+  pure $ either (const default_subject) toS subject_e

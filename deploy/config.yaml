@@ -61,6 +61,8 @@ configSmtp:
   smtpServer: smtp.gmail.com
   smtpLogin: fclaw007
   smtpPassword: hosvxrxoiuauokae
+  smtpEmail: info@edgenode.org
+  smtpDefaultSubject: Info
 
 configUrls:
   urlsMainPage: http://edgenode.org
