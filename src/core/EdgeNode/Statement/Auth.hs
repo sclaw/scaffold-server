@@ -251,14 +251,14 @@ setNewPassword =
     update auth.password_updater set done_tm = now()
     where id = any(select * from pass)|]
 
-getTokenUsageWithPass :: HS.Statement (Id "user", TokenType) (Maybe (Bool, B.ByteString))
+getTokenUsageWithPass :: HS.Statement (Id "user", TokenType, B.ByteString) (Maybe (Bool, B.ByteString))
 getTokenUsageWithPass =
   lmap (\x -> x & _1 %~ (coerce @_ @Int64) & _2 %~ (^.isoTokenType.stext))
   [maybeStatement|
     select pu.done_tm is not null :: bool, u.password :: bytea
     from auth.user_password_updater as upu
     inner join auth.password_updater as pu
-    on upu.password_updater_fk = pu.id
+    on upu.password_updater_fk = pu.id and pu.token = $3 :: bytea
     inner join auth.user as u
     on upu.user_fk = u.id
     where upu.user_fk = $1 :: int8

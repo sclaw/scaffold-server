@@ -61,7 +61,7 @@ controller account user_id = do
           (toS password)
           (toS email)
           (toS urlsSignIn)
-          (toS urlMainPage)))
+          (toS urlsMainPage)))
       log <- ask
       liftIO $ send telegram log $ toS $ "At module " <> $location <> " new account: " <> show (ident, password)
       statement Rbac.assignRoleToUser (ident, role, Nothing)

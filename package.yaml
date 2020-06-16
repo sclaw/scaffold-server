@@ -190,6 +190,7 @@ library:
     - base64-bytestring
     - ginger
     - reflection
+    - cryptonite
 
   source-dirs:
     - src/core

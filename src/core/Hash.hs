@@ -1,8 +1,10 @@
+{-# LANGUAGE PackageImports #-}
+
 module Hash (mkHash) where
 
-import Control.Lens.Iso.Extended    
+import Control.Lens.Iso.Extended
 import Control.Lens
-import Crypto.Hash
+import "hashing" Crypto.Hash
 import Data.Text
 
 mkHash :: Show a => a -> Text

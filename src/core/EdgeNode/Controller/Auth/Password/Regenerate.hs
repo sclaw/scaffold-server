@@ -27,6 +27,8 @@ import Data.Traversable
 import Database.Transaction
 import Data.Password
 import Validation
+import Hash
+import Data.ByteString (ByteString)
 
 controller :: RegeneratePassword -> KatipController (Response Unit)
 controller pass@RegeneratePassword {..} = do
@@ -36,10 +38,10 @@ controller pass@RegeneratePassword {..} = do
         $(logTM) DebugS (logStr (mkPretty "error while processing reset password token" e))
         pure $ Error $ Error.asError @T.Text "error while processing reset password token"
   token_e <- liftIO $ getUserResetPassData jwt_sett (toS regeneratePasswordToken)
-  either err (mkPassword pass) token_e
+  either err (mkPassword pass (toS (mkHash regeneratePasswordToken))) token_e
 
-mkPassword :: RegeneratePassword -> UserResetPassData -> KatipController (Response Unit)
-mkPassword x@RegeneratePassword {..} u@UserResetPassData {..} = do
+mkPassword :: RegeneratePassword -> ByteString -> UserResetPassData -> KatipController (Response Unit)
+mkPassword x@RegeneratePassword {..} hash u@UserResetPassData {..} = do
   response_v <- for (regeneratePassword x) $ const $ go
   pure $ case response_v of
     Failure err -> Errors $ map Error.asError err
@@ -52,7 +54,7 @@ mkPassword x@RegeneratePassword {..} u@UserResetPassData {..} = do
       let hashed_password = toS $ unPassHash $ hashPassWithSalt salt (mkPass (toS regeneratePasswordPassword))
       katipTransaction hasql $ do
         log <- ask
-        dat_m <- statement Auth.getTokenUsageWithPass (userResetPassDataUserId, userResetPassDataTokenType)
+        dat_m <- statement Auth.getTokenUsageWithPass (userResetPassDataUserId, userResetPassDataTokenType, hash)
         liftIO $ log DebugS $ ls $ "reset password: " <> show (fmap fst dat_m, regeneratePasswordToken, u)
         liftIO $ send telegram log $ toS $ "reset password: " <> show (fmap fst dat_m, regeneratePasswordToken, u)
         result_m <- for dat_m $ \(is_used, curr_pass) ->
