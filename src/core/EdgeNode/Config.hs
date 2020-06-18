@@ -6,6 +6,9 @@
 {-# LANGUAGE DerivingStrategies     #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module EdgeNode.Config
        ( Config
@@ -20,6 +23,7 @@ module EdgeNode.Config
        , Cors (..)
        , Smtp (..)
        , Urls (..)
+       , ServerError (..)
        , db
        , pass
        , port
@@ -58,6 +62,7 @@ module EdgeNode.Config
        , resetPasswordTokenLifetime
        , smtp
        , urls
+       , serverError
          -- * Iso
        , isoEnv
        )
@@ -73,7 +78,8 @@ import Data.Int
 import qualified Data.Text as T
 import TH.Mk
 import Data.String.Conv
-import Debug.Trace
+import GHC.Generics
+
 
 data Db = Db
      { dbHost :: !String
@@ -97,7 +103,7 @@ data Env = Prod | Dev deriving (Show, Eq)
 
 mkEnumConvertor ''Env
 
-instance FromJSON Env where parseJSON = withText "EdgeNode.Config:Env" (pure . (\x -> trace x (toEnv x)) . toS)
+instance FromJSON Env where parseJSON = withText "EdgeNode.Config:Env" (pure . toEnv . toS)
 
 data Katip =
      Katip
@@ -145,6 +151,11 @@ newtype ServerConnection = ServerConnection { serverConnectionPort :: Int }
 
 newtype Cors = Cors { corsOrigins :: (Maybe [T.Text]) } deriving Show
 
+newtype ServerError = ServerError { serverErrorMk500 :: Bool }
+  deriving stock Generic
+  deriving newtype FromJSON
+  deriving stock Show
+
 data Smtp =
      Smtp
      { smtpServer         :: !T.Text
@@ -175,6 +186,7 @@ data Config =
      , configCors             :: !Cors
      , configSmtp             :: !Smtp
      , configUrls             :: !Urls
+     , configServerError      :: !ServerError
      } deriving Show
 
 makeFields ''Config

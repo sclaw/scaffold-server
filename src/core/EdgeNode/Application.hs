@@ -25,6 +25,8 @@ import EdgeNode.Api
 import qualified EdgeNode.Controller.Controller as Controller
 import EdgeNode.Transport.Id
 import qualified EdgeNode.Config as Cfg
+import qualified EdgeNode.Transport.Response as Response
+import EdgeNode.Transport.Error
 
 import Auth
 import KatipController
@@ -67,6 +69,10 @@ import Data.String.Conv
 import qualified Mail
 import qualified Network.HTTP.Types as H
 import Network.HTTP.Types.Method
+import Data.Coerce
+import Data.Bool
+import qualified Data.Text as T
+import Data.Aeson
 
 data Cfg =
      Cfg
@@ -80,6 +86,7 @@ data Cfg =
      , cfgUserId        :: !(Id "user")
      , cfgCors          :: !Cfg.Cors
      , cfgSmtp          :: !Cfg.Smtp
+     , cfgServerError   :: !Cfg.ServerError
      }
 
 newtype AppMonad a = AppMonad { runAppMonad :: RWS.RWST KatipEnv KatipLogger KatipState IO a }
@@ -127,7 +134,7 @@ run Cfg {..} = katipAddNamespace (Namespace ["application"]) $ do
             , JWTSettings
             , KatipLoggerIO
             , Bool
-            , Id "user"
+            , UserId
             , Proxy Tmp
             , Pool.Pool Hasql.Connection
             , BasicAuthCfg]
@@ -146,7 +153,7 @@ run Cfg {..} = katipAddNamespace (Namespace ["application"]) $ do
         Warp.defaultSettings
         & Warp.setPort cfgServerPort
         & Warp.setOnException (logUncaughtException excep runTelegram)
-        & Warp.setOnExceptionResponse mk500Response
+        & Warp.setOnExceptionResponse (`mk500Response` (coerce cfgServerError))
         & Warp.setServerName ("edgenode api server, revision " <> $gitCommit)
         & Warp.setLogger (logRequest req_logger runTelegram)
   let multipartOpts =
@@ -184,8 +191,12 @@ logUncaughtException log runTelegram req e = when (Warp.defaultShouldDisplayExce
           runTelegram log $ "\"" <> toS (requestMethod r) <> " " <> toS (rawPathInfo r) <> " " <> toS (show (httpVersion r)) <> "500 - " <> show e
           log ErrorS (logStr ("\"" <> toS (requestMethod r) <> " " <> toS (rawPathInfo r) <> " " <> toS (show (httpVersion r)) <> "500 - " <> show e))
 
-mk500Response :: SomeException -> Response
-mk500Response error = responseLBS status500 [(H.hContentType, "text/plain; charset=utf-8")] (showt error^.textbsl)
+mk500Response :: SomeException -> Bool -> Response
+mk500Response error = bool
+  (responseLBS status200 [(H.hContentType, "application/json; charset=utf-8")] $
+   encode @(Response.Response ()) $
+   (Response.Error (asError @T.Text (showt error))))
+  (responseLBS status500 [(H.hContentType, "text/plain; charset=utf-8")] (showt error^.textbsl))
 
 logRequest :: KatipLoggerIO -> (KatipLoggerIO -> String -> IO ()) -> Request -> Status -> Maybe Integer -> IO ()
 logRequest log runTelegram req _ _ = log InfoS (logStr (show req)) >> runTelegram log (mkPretty mempty req)

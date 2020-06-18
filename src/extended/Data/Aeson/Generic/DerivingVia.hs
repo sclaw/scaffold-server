@@ -4,7 +4,7 @@
 {-# LANGUAGE PolyKinds, ScopedTypeVariables, StandaloneDeriving        #-}
 {-# LANGUAGE TypeApplications, TypeFamilies, TypeInType, TypeOperators #-}
 {-# LANGUAGE UndecidableInstances                                      #-}
-{-# OPTIONS_GHC -Wall #-}
+
 module Data.Aeson.Generic.DerivingVia
      ( StrFun(..), Setting(..), SumEncoding'(..), DefaultOptions, WithOptions(..)
      , -- Utility type synonyms to save ticks (') before promoted data constructors

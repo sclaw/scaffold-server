@@ -41,6 +41,8 @@ import Hash
 import System.Process (readProcess)
 import Data.Foldable
 import BuildInfo
+import qualified Network.HTTP.Types as H
+import Data.String.Conv
 
 data Option = Embedded | Raw deriving Show
 
@@ -86,7 +88,10 @@ embedded
   -> Either Error (B.ByteString, Int64, T.Text, T.Text)
   -> IO ResponseReceived
 embedded req resp _ | requestMethod req /= methodGet =
-  resp $ responseLBS status200 [] $ encode $ (Response.Error (asError @T.Text "only GET allowed") :: Response.Response ())
+  resp $
+  responseLBS status200 [(H.hContentType, "application/json; charset=utf-8")] $
+  encode @(Response.Response ()) $
+  (Response.Error (asError @T.Text ("only " <> toS methodGet <> " allowed")))
 embedded _ resp minioResp = resp $
   case minioResp of
     Right minio ->
@@ -106,4 +111,4 @@ raw _ resp (Right minio) = resp $
   , (hContentDisposition,
     "attachment;filename=" <>
     (mkHash (minio^._3)^.textbs))] $ (minio^._1.from bytesLazy)
-raw _ resp _ = resp $ responseLBS status404 [] mempty
+raw _ resp _ = resp $ responseLBS status404 [] "image not found"

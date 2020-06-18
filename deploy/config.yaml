@@ -68,3 +68,6 @@ configUrls:
   urlsMainPage: http://edgenode.org
   urlsResetPassword: http://edgenode.org/reset-password/
   urlsSignIn: http://edgenode.org/login/
+
+configServerError:
+  serverErrorMk500: true
