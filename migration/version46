@@ -1,0 +1,9 @@
+create table edgenode.user_roadmap (
+    id bigserial primary key,
+    user_fk int8 not null constraint "user_roadmap__user_id_fk" references auth.user(id),
+    qualification_dependency_fk int8 not null constraint "user_roadmap__provider_branch_qualification_dependency_id_fk" references edgenode.provider_branch_qualification_dependency(id),
+    created timestamp not null default now(),
+    passed timestamp,
+    constraint "user_roadmap__user_fk__qualification_dependency_fk__uq" unique (user_fk, qualification_dependency_fk));
+
+alter table edgenode.provider_branch_qualification_dependency add column exam_date not null default (now() :: date);

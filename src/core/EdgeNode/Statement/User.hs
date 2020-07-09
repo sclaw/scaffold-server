@@ -30,6 +30,7 @@ module EdgeNode.Statement.User
        , removeTokenizedQualifications
        , getSuggestions
        , markSuggestion
+       , loadRoadmap
        ) where
 
 import EdgeNode.Transport.Id
@@ -493,3 +494,6 @@ markSuggestion =
     where id = $1 :: int8 and "user_fk" = $2 :: int8
     returning case when $3 :: text = 'confirmed' then provider_branch_qualification_fk else null end :: int8?|]
   where mkEncoder x = x & _1 %~ (coerce @_ @Int64) & _2 %~ (coerce @_ @Int64) & _3 %~ (\x -> qualificationSuggestionStatus x^.trajectory)
+
+loadRoadmap :: HS.Statement UserId Int64
+loadRoadmap = lmap (coerce @_ @Int64) [singletonStatement|select $1 :: int8|]

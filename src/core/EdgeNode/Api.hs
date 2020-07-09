@@ -29,6 +29,7 @@ module EdgeNode.Api
        , SettingsApi (..)
        , AccountApi (..)
        , PasswordApi (..)
+       , RoadmapApi (..)
      --  , WebsocketApi (..)
        , api
        , swaggerHttpApi

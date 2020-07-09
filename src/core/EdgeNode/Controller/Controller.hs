@@ -62,6 +62,7 @@ import qualified EdgeNode.Controller.User.Trajectory.GetList as User.GetTrajecto
 import qualified EdgeNode.Controller.User.Trajectory.Remove as User.Trajectory.Remove
 import qualified EdgeNode.Controller.User.Qualification.GetSuggestions as User.GetSuggestions
 import qualified EdgeNode.Controller.User.Qualification.MarkSuggestion as User.MarkSuggestion
+import qualified EdgeNode.Controller.User.Roadmap.Load as Roadmap.Load
 import qualified EdgeNode.Controller.Feedback.Put as Feedback.Put
 import qualified EdgeNode.Controller.Service.Enum.GetCountries as Enum.GetCountries
 import qualified EdgeNode.Controller.Service.Enum.GetQualification as Enum.GetQualification
@@ -226,6 +227,7 @@ user jwt =
      (User.PatchProfile.controller profile))
   , _userApiTrajectory = toServant (trajectory jwt)
   , _userApiQualification = toServant (userQualification jwt)
+  , _userApiRoadmap = toServant (roadmap jwt)
   }
 
 trajectory :: AuthResult JWTUser -> TrajectoryApi (AsServerT KatipController)
@@ -348,6 +350,20 @@ userQualification jwt =
      (jWTUserUserId user)
      Rbac.PermissionUser
      (User.MarkSuggestion.controller ident mark))
+  }
+
+roadmap :: AuthResult JWTUser -> RoadmapApi (AsServerT KatipController)
+roadmap jwt =
+  RoadmapApi
+  { _roadmapApiLoad =
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["user", "roadmap", "load"])
+    (applyController Nothing jwt $ \user ->
+     verifyAuthorization
+     (jWTUserUserId user)
+     Rbac.PermissionUser
+     Roadmap.Load.controller)
   }
 
 search :: SearchApi (AsServerT KatipController)

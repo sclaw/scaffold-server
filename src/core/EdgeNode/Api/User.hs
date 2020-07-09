@@ -9,6 +9,7 @@ module EdgeNode.Api.User
        ( UserApi (..)
        , UserQualificationApi (..)
        , TrajectoryApi (..)
+       , RoadmapApi (..)
        ) where
 
 import EdgeNode.Transport.Id
@@ -16,6 +17,7 @@ import EdgeNode.Transport.Response
 import EdgeNode.Transport.User
 import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes (EdgeNodeQualificationDegreeCapture)
 import EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries (EdgeNodeCountryCapture)
+import EdgeNode.Transport.User.Roadmap
 
 import Servant.API.Generic
 import Servant.API
@@ -48,6 +50,10 @@ data UserApi route =
        :: route
        :- "qualification"
        :> ToServant UserQualificationApi AsApi
+     , _userApiRoadmap
+       :: route
+       :- "roadmap"
+       :> ToServant RoadmapApi AsApi
      } deriving stock Generic
 
 data UserQualificationApi route =
@@ -138,3 +144,11 @@ data TrajectoryApi route =
        :> Capture "trajectory_id" (Id "trajectory")
        :> Delete '[JSON] (Response Unit)
      } deriving stock Generic
+
+newtype RoadmapApi route =
+        RoadmapApi
+        { _roadmapApiLoad
+          :: route
+          :- Description "load roadmap for the given trajectory"
+          :> Get '[JSON] (Response Roadmap)
+        } deriving stock Generic
