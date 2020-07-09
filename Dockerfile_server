@@ -27,7 +27,8 @@ COPY --chown=nix:nix test test
 COPY --chown=nix:nix template template
 COPY --chown=nix:nix deploy deploy
 
-RUN touch .bash_profile && \ deploy/nix.sh
+RUN touch .bash_profile && \
+          deploy/nix.sh
 
 ENV PATH="/home/nix/bin:${PATH}"
 
