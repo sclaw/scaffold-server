@@ -51,11 +51,11 @@ configTelegram:
 
 configCors:
   corsOrigins:
-    - http://edgenode.org
-    - http://www.edgenode.org
-    - http://localhost:3000
-    - http://localhost:12000
-    - http://136.243.173.173:12000
+#     - http://edgenode.org
+#     - http://www.edgenode.org
+#     - http://localhost:3000
+#     - http://localhost:12000
+#     - http://136.243.173.173:12000
 
 configSmtp:
   smtpServer: smtp.gmail.com
@@ -69,5 +69,4 @@ configUrls:
   urlsResetPassword: http://edgenode.org/reset-password/
   urlsSignIn: http://edgenode.org/login/
 
-configServerError:
-  serverErrorMk500: true
+configServerError: true
