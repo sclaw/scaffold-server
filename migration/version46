@@ -6,4 +6,4 @@ create table edgenode.user_roadmap (
     passed timestamp,
     constraint "user_roadmap__user_fk__qualification_dependency_fk__uq" unique (user_fk, qualification_dependency_fk));
 
-alter table edgenode.provider_branch_qualification_dependency add column exam_date not null default (now() :: date);
+alter table edgenode.provider_branch_qualification_dependency add column exam_date date not null default (now() :: date);
