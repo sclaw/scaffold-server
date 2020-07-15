@@ -80,6 +80,7 @@ controller option id width_m height_m = do
       payload <- liftIO $ B.readFile path
       return (payload, size, x^._2.coerced @Name @_ @T.Text @_, x^._3.coerced @Mime @_ @T.Text @_)
     return $ first (asError . (\e -> show e^.stext)) r
+  runTelegram $location minioResp
   return $ \req resp -> case option of Embedded -> embedded req resp minioResp; Raw -> raw req resp minioResp
 
 embedded
