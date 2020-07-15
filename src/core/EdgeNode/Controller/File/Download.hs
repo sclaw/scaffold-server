@@ -14,6 +14,7 @@ import EdgeNode.Model.File
 import EdgeNode.Transport.Error
 import qualified EdgeNode.Transport.Response as Response
 
+import Katip
 import KatipController
 import Network.Wai
 import qualified Data.ByteString as B
@@ -55,7 +56,7 @@ imageMimeTypes = ["image/apng", "image/bmp", "image/gif", "image/x-icon", "image
 controller :: Option -> Id "file" -> Maybe Int -> Maybe Int -> KatipController Application
 controller option id width_m height_m = do
   runTelegram $location (option, id, width_m, height_m)
-  liftIO $ print $ show (width_m, height_m)
+  $(logTM) DebugS (logStr (show (option, id, width_m, height_m)))
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   let notFound = "file {" <> show (coerce @(Id "file") @Int64 id)^.stext <> "} not found"
   meta <- fmap (maybeToRight (asError notFound)) $
@@ -80,7 +81,8 @@ controller option id width_m height_m = do
       payload <- liftIO $ B.readFile path
       return (payload, size, x^._2.coerced @Name @_ @T.Text @_, x^._3.coerced @Mime @_ @T.Text @_)
     return $ first (asError . (\e -> show e^.stext)) r
-  runTelegram $location minioResp
+  runTelegram $location (second (^._3) minioResp)
+  $(logTM) DebugS (logStr (show (second (^._3) minioResp)))
   return $ \req resp -> case option of Embedded -> embedded req resp minioResp; Raw -> raw req resp minioResp
 
 embedded

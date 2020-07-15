@@ -32,6 +32,7 @@ import BuildInfo
 controller :: Id "file" -> File -> KatipController (Response Unit)
 controller id file = do
   runTelegram $location (id, file)
+  $(logTM) DebugS (logStr (show (id, file)))
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   let notFound = "file {" <> show (coerce @(Id "file") @Int64 id)^.stext <> "} not found"
   resp <- fmap (maybeToRight (asError notFound)) $

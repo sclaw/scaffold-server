@@ -30,6 +30,7 @@ import BuildInfo
 controller :: EdgeNodeBucket -> Files -> KatipController (Response [Id "file"])
 controller bucket x = do
   runTelegram $location (bucket, x)
+  $(logTM) DebugS (logStr (show (bucket, x)))
   Minio {..} <- fmap (^.katipEnv.minio) ask
   es <- for (coerce x) $ \File {..} -> do
     tm <- liftIO getCurrentTime

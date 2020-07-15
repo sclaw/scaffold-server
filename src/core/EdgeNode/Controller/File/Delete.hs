@@ -9,6 +9,7 @@ import EdgeNode.Transport.Response
 import EdgeNode.Transport.Id
 import EdgeNode.Statement.File as File
 
+import Katip
 import KatipController
 import Data.Aeson.Unit
 import Control.Lens
@@ -23,6 +24,7 @@ controller :: Id "file" -> KatipController (Response Unit)
 controller id = do
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
   let notFound = "file {" <> show (coerce @(Id "file") @Int64 id)^.stext <> "} not found"
+  $(logTM) DebugS (logStr (show id))
   runTelegram $location id
   isOk <- katipTransaction hasql $ statement File.delete id
   return $ bool (Error (asError notFound)) (Ok Unit) isOk
