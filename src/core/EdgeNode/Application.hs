@@ -193,10 +193,14 @@ logUncaughtException log runTelegram req e = when (Warp.defaultShouldDisplayExce
 
 mk500Response :: SomeException -> Bool -> Response
 mk500Response error = bool
-  (responseLBS status200 [(H.hContentType, "application/json; charset=utf-8")] $
+  (responseLBS status200
+   [(H.hContentType, "application/json; charset=utf-8"),
+    ("Access-Control-Allow-Origin", "*")] $
    encode @(Response.Response ()) $
    (Response.Error (asError @T.Text (showt error))))
-  (responseLBS status500 [(H.hContentType, "text/plain; charset=utf-8")] (showt error^.textbsl))
+  (responseLBS status500
+   [(H.hContentType, "text/plain; charset=utf-8"),
+    ("Access-Control-Allow-Origin", "*")] (showt error^.textbsl))
 
 logRequest :: KatipLoggerIO -> (KatipLoggerIO -> String -> IO ()) -> Request -> Status -> Maybe Integer -> IO ()
 logRequest log runTelegram req _ _ = log InfoS (logStr (show req)) >> runTelegram log (mkPretty mempty req)
