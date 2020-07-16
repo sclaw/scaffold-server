@@ -16,9 +16,10 @@ import Servant.Client.Core (HasClient(..), Client(..))
 import Servant.Server
 import Servant.Server.Internal
 import Servant.Swagger
-
 import Network.IP.Addr
 import Network.Wai
+import Network.Socket
+import Control.Applicative
 
 -- | Parses API from @X-REAL-IP@ or @X-FORWARD-FOR@ headers.
 data HeaderIP deriving Typeable
@@ -32,13 +33,14 @@ instance (HasServer api context) => HasServer (HeaderIP :> api) context where
       subserver `addHeaderCheck` withRequest headerCheck
     where
       headerCheck :: Request -> DelayedIO (Maybe IP4)
-      headerCheck req = do
-        let muserIp = getFirst $ mconcat
-                      [ First $ y `lookup` requestHeaders req
-                      | y <- ["x-real-ip", "x-forward-for"]
-                      ]
-        pure $ maybeParsed . parseAscii =<< muserIp
-
+      headerCheck req =
+        pure $ ((maybeParsed . parseAscii) =<<
+          (getFirst (mconcat
+            [ First $ y `lookup` requestHeaders req
+              | y <- ["x-real-ip", "x-forward-for"]
+            ]))) <|> (getRemoteAddress (remoteHost req))
+      getRemoteAddress (SockAddrInet _ addr) = Just $ IP4 addr
+      getRemoteAddress _ = Nothing
 
 instance (HasSwagger api) => HasSwagger (HeaderIP :> api) where
   toSwagger _ = toSwagger (Proxy :: Proxy api)

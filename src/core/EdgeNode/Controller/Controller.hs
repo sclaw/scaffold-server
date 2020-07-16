@@ -129,11 +129,11 @@ service :: ServiceApi (AsServerT KatipController)
 service =
   ServiceApi
   { _serviceApiEnum = toServant EdgeNode.Controller.Controller.enum
-  , _serviceApiTouchVisitor =
+  , _serviceApiTouchVisitor = \ip ->
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["service", "visitor"])
-    Service.TouchVisitor.controller
+    (Service.TouchVisitor.controller ip)
   }
 
 enum :: EnumApi (AsServerT KatipController)

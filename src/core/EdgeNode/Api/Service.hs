@@ -18,6 +18,7 @@ import qualified Data.Text as T
 import Data.Aeson.WithField
 import Data.Aeson.Unit
 import Data.Swagger.Schema
+import Servant.Ip
 
 instance ToSchema Country
 
@@ -31,6 +32,7 @@ data ServiceApi route =
      , _serviceApiTouchVisitor
        :: route
        :- Description "visitor"
+       :> HeaderIP
        :> "visitor"
        :> Post '[JSON] (Response Unit)
      } deriving stock Generic
