@@ -34,4 +34,4 @@ controller ip = do
             update set count =
             (select count + 1
              from public.visitor
-             where day = excluded.day)|]) ip
+             where day = excluded.day and ip = excluded.ip)|]) ip
