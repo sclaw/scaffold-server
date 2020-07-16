@@ -66,6 +66,7 @@ import qualified EdgeNode.Controller.User.Roadmap.Load as Roadmap.Load
 import qualified EdgeNode.Controller.Feedback.Put as Feedback.Put
 import qualified EdgeNode.Controller.Service.Enum.GetCountries as Enum.GetCountries
 import qualified EdgeNode.Controller.Service.Enum.GetQualification as Enum.GetQualification
+import qualified EdgeNode.Controller.Service.TouchVisitor as Service.TouchVisitor
 import qualified EdgeNode.Controller.Statistics.GetActiveUsers as Statistics.GetActiveUsers
 import qualified EdgeNode.Controller.Statistics.GetRegistrations as Statistics.GetRegistrations
 import qualified EdgeNode.Controller.Statistics.GetApiCounter as Statistics.GetApiCounter
@@ -125,7 +126,15 @@ news =
   }
 
 service :: ServiceApi (AsServerT KatipController)
-service = ServiceApi { _serviceApiEnum = toServant EdgeNode.Controller.Controller.enum }
+service =
+  ServiceApi
+  { _serviceApiEnum = toServant EdgeNode.Controller.Controller.enum
+  , _serviceApiTouchVisitor =
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["service", "visitor"])
+    Service.TouchVisitor.controller
+  }
 
 enum :: EnumApi (AsServerT KatipController)
 enum =

@@ -16,18 +16,24 @@ import Servant.API.Generic
 import Servant.API
 import qualified Data.Text as T
 import Data.Aeson.WithField
+import Data.Aeson.Unit
 import Data.Swagger.Schema
 
 instance ToSchema Country
 
-newtype ServiceApi route =
-        ServiceApi
-        { _serviceApiEnum
-          :: route
-          :- Description "enum api"
-          :> "enum"
-          :> ToServant EnumApi AsApi
-        } deriving stock Generic
+data ServiceApi route =
+     ServiceApi
+     { _serviceApiEnum
+       :: route
+       :- Description "enum api"
+       :> "enum"
+       :> ToServant EnumApi AsApi
+     , _serviceApiTouchVisitor
+       :: route
+       :- Description "visitor"
+       :> "visitor"
+       :> Post '[JSON] (Response Unit)
+     } deriving stock Generic
 
 data EnumApi route =
      EnumApi
