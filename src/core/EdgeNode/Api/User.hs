@@ -33,14 +33,16 @@ data UserApi route =
        :: route
        :- Description "load user's profile"
        :> "profile"
-       :> Get '[JSON] (Response (OptField "image" (Id "image") Profile))
+       :> Get '[JSON] (Response
+          (OptField "image" (Id "image")
+          (OptField "budget" Budget Profile)))
      , _userApiPatchProfile
        :: route
        :- Description "patchuser's profile"
        :> "profile"
        :> ReqBody '[JSON]
           (OptField "image"
-          (Id "image") Profile)
+          (Id "image") (OptField "budget" Budget Profile))
        :> Patch '[JSON] (Response Unit)
      , _userApiTrajectory
        :: route

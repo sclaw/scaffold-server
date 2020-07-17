@@ -16,7 +16,7 @@ import Database.Transaction
 import Control.Lens
 import BuildInfo
 
-controller :: OptField "image" (Id "image") Profile -> UserId -> KatipController (Response Unit)
+controller :: OptField "image" (Id "image") (OptField "budget" Budget Profile) -> UserId -> KatipController (Response Unit)
 controller patch user_id = do
   runTelegram $location (patch, user_id)
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask

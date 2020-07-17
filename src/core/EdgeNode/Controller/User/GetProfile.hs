@@ -16,7 +16,7 @@ import Control.Lens
 import Data.Functor
 import BuildInfo
 
-controller :: UserId -> KatipController (Response (OptField "image" (Id "image") Profile))
+controller :: UserId -> KatipController (Response (OptField "image" (Id "image") (OptField "budget" Budget Profile)))
 controller user_id = do
   runTelegram $location user_id
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask

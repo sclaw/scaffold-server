@@ -2,5 +2,5 @@ create table public.visitor (
     day date not null,
     count int4 not null,
     ip text not null,
-    constraint "visitor__day" unique (day, ip)
+    constraint "visitor__day__ip" unique (day, ip)
  );

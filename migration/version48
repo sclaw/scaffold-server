@@ -1,0 +1,2 @@
+alter table edgenode.user add column budget_amount int8;
+alter table edgenode.user add column budget_currency text;

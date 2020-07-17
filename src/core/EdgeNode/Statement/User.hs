@@ -77,18 +77,24 @@ mkEncoder ''FullDay
 mkArbitrary ''AddQualificationRequest
 mkArbitrary ''EdgeNodeProviderCategory
 mkArbitrary ''QualificationSuggestion
+mkArbitrary ''Budget
 
 mkFullDay x =
   case fromJSON x of
     Error e -> error $ "unable to convert json to FullDay, " ++ e
     Success x -> x
 
-getProfile :: HS.Statement UserId (OptField "image" (Id "image") Profile)
+instance ParamsShow Budget where
+  render (Budget a c) = show a <> ", " <> c^.currency.from stext
+
+getProfile :: HS.Statement UserId (OptField "image" (Id "image") (OptField "budget" Budget Profile))
 getProfile = dimap (coerce @_ @Int64) mkProfile $ statement
   where
     mkProfile x =
       OptField $
       WithField (x^?_1._Just.coerced) $
+      OptField $
+      WithField (Budget <$> (x^._8) <*> (x^?_9._Just.from currency)) $
       Profile
       (x^?_2._Just.from lazytext.to Protobuf.String)
       (x^?_3._Just.from lazytext.to Protobuf.String)
@@ -108,7 +114,9 @@ getProfile = dimap (coerce @_ @Int64) mkProfile $ statement
           jsonb_build_object(
             'year', pfd.year,
             'month', pfd.month,
-            'day', pfd.day) :: jsonb
+            'day', pfd.day) :: jsonb,
+          eu.budget_amount :: int8?,
+          eu.budget_currency :: text?
         from auth.user as au
         inner join edgenode.user as eu
         on au.id = eu.user_id
@@ -126,12 +134,14 @@ instance ParamsShow Profile where
     & _5 %~ maybe mempty (^.field @"allegianceMaybeValue".country.from stext)
     & _6 %~ maybe mempty (^.field @"genderMaybeValue".gender.from stext))^..each
 
-patchProfile :: HS.Statement (UserId, OptField "image" (Id "image") Profile) ()
+patchProfile :: HS.Statement (UserId, OptField "image" (Id "image") (OptField "budget" Budget Profile)) ()
 patchProfile = lmap mkTpl statement
   where
-    mkTpl (user_id, OptField (WithField img profile)) =
+    mkTpl (user_id, OptField (WithField img (OptField (WithField budget profile)))) =
       consT (coerce user_id) $
       consT (fmap coerce img) $
+      consT (fmap budgetAmount budget) $
+      consT (fmap (^.field @"budgetCurrency".currency) budget) $
       (mkEncoderProfile profile
       & _1 %~ (^?_Just.field @"stringValue".lazytext)
       & _2 %~ (^?_Just.field @"stringValue".lazytext)
@@ -144,17 +154,19 @@ patchProfile = lmap mkTpl statement
         with get_full_day_id as
          (update edgenode.user set
            avatar_id = coalesce($2 :: int8?, avatar_id),
-           name = coalesce($3 :: text?, name),
-           middlename = coalesce($4 :: text?, middlename),
-           surname = coalesce($5 :: text?, surname),
-           allegiance = coalesce($7 :: text?, allegiance),
-           gender = coalesce($8 :: text?, gender),
-           modified = now()
+           name = coalesce($5 :: text?, name),
+           middlename = coalesce($6 :: text?, middlename),
+           surname = coalesce($7 :: text?, surname),
+           allegiance = coalesce($9 :: text?, allegiance),
+           gender = coalesce($10 :: text?, gender),
+           modified = now(),
+           budget_amount = coalesce($3 :: int8?, budget_amount),
+           budget_currency = coalesce($4 :: text?, budget_currency)
           where "user_id" = $1 :: int8)
         update public.full_day set
-         year = coalesce(cast(($6 :: jsonb?)->'year' as integer), year),
-         month = coalesce(cast(($6 :: jsonb?)->'month' as integer), month),
-         day = coalesce(cast(($6 :: jsonb?)->'day' as integer), day)
+         year = coalesce(cast(($8 :: jsonb?)->'year' as integer), year),
+         month = coalesce(cast(($8 :: jsonb?)->'month' as integer), month),
+         day = coalesce(cast(($8 :: jsonb?)->'day' as integer), day)
         where id = (select birthday_id from edgenode.user where "user_id" = $1 :: int8)|]
 
 addTrajectory :: HS.Statement (UserId, OnlyField "id" (Id "qualification"), Double) Int64
