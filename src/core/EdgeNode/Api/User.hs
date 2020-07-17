@@ -75,7 +75,7 @@ data UserQualificationApi route =
        :> "qualification-degree"
        :> Capture "type" EdgeNodeQualificationDegree
        :> "countries"
-       :> Get '[JSON] (Response [EdgeNodeCountryCapture])
+       :> Get '[JSON] (Response [WithField "value" T.Text (OnlyField "enum" EdgeNodeCountryCapture)])
      , _userQualificationApiGetBranchesByCountry
        :: route
        :- Description "get provider's branches by given country"

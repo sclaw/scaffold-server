@@ -42,7 +42,6 @@ controller category = do
   dir <- liftIO getCurrentDirectory
   let qual_dir = dir </> "enum" </> "qualification"
   let path = qual_dir </> English^.isoEdgeNodeLanguage <> ".yaml"
-  response <- liftIO $ decodeFileEither @Values path
   let error e = do
         $(logTM) ErrorS (logStr (prettyPrintParseException e))
         runTelegram $location $ prettyPrintParseException e^.stext
