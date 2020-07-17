@@ -66,6 +66,7 @@ import qualified EdgeNode.Controller.User.Roadmap.Load as Roadmap.Load
 import qualified EdgeNode.Controller.Feedback.Put as Feedback.Put
 import qualified EdgeNode.Controller.Service.Enum.GetCountries as Enum.GetCountries
 import qualified EdgeNode.Controller.Service.Enum.GetQualification as Enum.GetQualification
+import qualified EdgeNode.Controller.Service.Enum.GetProvider as Enum.GetProvider
 import qualified EdgeNode.Controller.Service.TouchVisitor as Service.TouchVisitor
 import qualified EdgeNode.Controller.Statistics.GetActiveUsers as Statistics.GetActiveUsers
 import qualified EdgeNode.Controller.Statistics.GetRegistrations as Statistics.GetRegistrations
@@ -149,6 +150,11 @@ enum =
     katipAddNamespace
     (Namespace ["service", "enum", "qualification"])
     (Enum.GetQualification.controller lang)
+  , _enumApiGetProviderCategory = \lang ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["service", "enum", "provider"])
+    (Enum.GetProvider.controller lang)
   }
 
 feedback :: FeedbackApi (AsServerT KatipController)

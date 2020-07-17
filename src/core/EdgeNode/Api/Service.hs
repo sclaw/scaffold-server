@@ -10,6 +10,7 @@ module EdgeNode.Api.Service (ServiceApi (..), EnumApi (..)) where
 import EdgeNode.Transport.Response
 import EdgeNode.Country
 import EdgeNode.Transport.Provider.Qualification
+import EdgeNode.Transport.Provider
 
 import TH.Proto
 import Servant.API.Generic
@@ -21,6 +22,7 @@ import Data.Swagger.Schema
 import Servant.Ip
 
 instance ToSchema Country
+instance ToSchema ProviderCategory
 
 data ServiceApi route =
      ServiceApi
@@ -51,4 +53,10 @@ data EnumApi route =
        :> "qualification"
        :> Capture "language" EdgeNodeLanguage
        :> Get '[JSON] (Response Enums)
+     , _enumApiGetProviderCategory
+       :: route
+       :- Description "-"
+       :> "provider-category"
+       :> Capture "language" EdgeNodeLanguage
+       :> Get '[JSON] (Response [WithField "enum" ProviderCategory T.Text])
      } deriving stock Generic
