@@ -66,7 +66,7 @@ data UserQualificationApi route =
        :> "category"
        :> Capture "category" EdgeNodeProviderCategory
        :> "qualification-degrees"
-       :> Get '[JSON] (Response [EdgeNodeQualificationDegreeCapture])
+       :> Get '[JSON] (Response [WithField "value" T.Text (OnlyField "enum" EdgeNodeQualificationDegreeCapture)])
      , _userQualificationApiGetCountriesByDegreeType
        :: route
        :- Description "get countries by given qualification degree type"

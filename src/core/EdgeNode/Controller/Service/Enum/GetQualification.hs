@@ -5,7 +5,11 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module EdgeNode.Controller.Service.Enum.GetQualification (controller) where
+module EdgeNode.Controller.Service.Enum.GetQualification
+       ( controller
+       , Values (..)
+       , Values_QualificationDegree (..)
+       ) where
 
 import EdgeNode.Transport.Response
 import EdgeNode.Transport.Provider.Qualification

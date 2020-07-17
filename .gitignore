@@ -7,8 +7,9 @@ log/
 backend/proto
 frontend/proto
 dist/
-stack.yaml.lock 
+stack.yaml.lock
 /dist*
 site/
 .env
 *.lock
+.history/
