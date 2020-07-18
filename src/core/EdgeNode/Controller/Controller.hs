@@ -51,6 +51,7 @@ import qualified EdgeNode.Controller.Provider.Settings.CreateAccount as Provider
 import qualified EdgeNode.Controller.User.GetProfile as User.GetProfile
 import qualified EdgeNode.Controller.User.PatchProfile as User.PatchProfile
 import qualified EdgeNode.Controller.User.Trajectory.Add as User.AddTrajectory
+import qualified EdgeNode.Controller.User.Qualification.GetCategory as User.GetCategory
 import qualified EdgeNode.Controller.User.Qualification.AddQualifications as User.AddQualifications
 import qualified EdgeNode.Controller.User.Qualification.GetDegreeTypesByCategory as User.GetDegreeTypesByCategory
 import qualified EdgeNode.Controller.User.Qualification.GetCountriesByDegreeType as User.GetCountriesByDegreeType
@@ -280,10 +281,19 @@ trajectory jwt =
 userQualification :: AuthResult JWTUser -> UserQualificationApi (AsServerT KatipController)
 userQualification jwt =
   UserQualificationApi
-  { _userQualificationApiGetDegreeTypesByCategory = \category ->
+  { _userQualificationApiGetCategory =
     flip logExceptionM ErrorS $
     katipAddNamespace
     (Namespace ["user", "qualification", "category"])
+    (applyController Nothing jwt $ \user ->
+     verifyAuthorization
+     (jWTUserUserId user)
+     Rbac.PermissionUser
+     (const (User.GetCategory.controller)))
+  , _userQualificationApiGetDegreeTypesByCategory = \category ->
+    flip logExceptionM ErrorS $
+    katipAddNamespace
+    (Namespace ["user", "qualification", "category", "degree_type"])
     (applyController Nothing jwt $ \user ->
      verifyAuthorization
      (jWTUserUserId user)
@@ -293,7 +303,7 @@ userQualification jwt =
     \category degree_type ->
       flip logExceptionM ErrorS $
       katipAddNamespace
-      (Namespace ["user", "qualification", "category, degree_type"])
+      (Namespace ["user", "qualification", "category, degree_type", "country"])
       (applyController Nothing jwt $ \user ->
        verifyAuthorization
        (jWTUserUserId user)
@@ -303,7 +313,7 @@ userQualification jwt =
     \category degree_type country ->
       flip logExceptionM ErrorS $
       katipAddNamespace
-      (Namespace ["user", "qualification", "category degree_type, country"])
+      (Namespace ["user", "qualification", "category degree_type, country", "branch"])
       (applyController Nothing jwt $ \user ->
        verifyAuthorization
        (jWTUserUserId user)
