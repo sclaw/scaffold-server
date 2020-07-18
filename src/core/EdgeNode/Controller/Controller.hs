@@ -51,7 +51,7 @@ import qualified EdgeNode.Controller.Provider.Settings.CreateAccount as Provider
 import qualified EdgeNode.Controller.User.GetProfile as User.GetProfile
 import qualified EdgeNode.Controller.User.PatchProfile as User.PatchProfile
 import qualified EdgeNode.Controller.User.Trajectory.Add as User.AddTrajectory
-import qualified EdgeNode.Controller.User.Qualification.GetCategory as User.GetCategory
+import qualified EdgeNode.Controller.User.Qualification.GetCategories as User.GetCategories
 import qualified EdgeNode.Controller.User.Qualification.AddQualifications as User.AddQualifications
 import qualified EdgeNode.Controller.User.Qualification.GetDegreeTypesByCategory as User.GetDegreeTypesByCategory
 import qualified EdgeNode.Controller.User.Qualification.GetCountriesByDegreeType as User.GetCountriesByDegreeType
@@ -289,7 +289,7 @@ userQualification jwt =
      verifyAuthorization
      (jWTUserUserId user)
      Rbac.PermissionUser
-     (const (User.GetCategory.controller)))
+     (const (User.GetCategories.controller)))
   , _userQualificationApiGetDegreeTypesByCategory = \category ->
     flip logExceptionM ErrorS $
     katipAddNamespace

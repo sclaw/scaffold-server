@@ -17,7 +17,7 @@ import EdgeNode.Transport.Response
 import EdgeNode.Transport.User
 import EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes (EdgeNodeQualificationDegreeCapture)
 import EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries (EdgeNodeCountryCapture)
-import EdgeNode.Controller.User.Qualification.GetCategory (EdgeNodeCategoryCapture)
+import EdgeNode.Controller.User.Qualification.GetCategories (EdgeNodeCategoryCapture)
 import EdgeNode.Transport.User.Roadmap
 
 import Servant.API.Generic
@@ -64,7 +64,7 @@ data UserQualificationApi route =
      { _userQualificationApiGetCategory
        :: route
        :- Description "get category"
-       :> "category"
+       :> "categories"
        :> Get '[JSON] (Response [WithField "value" T.Text (OnlyField "enum" EdgeNodeCategoryCapture)])
      ,  _userQualificationApiGetDegreeTypesByCategory
        :: route

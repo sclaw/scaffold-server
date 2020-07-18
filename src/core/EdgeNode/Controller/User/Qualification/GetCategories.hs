@@ -9,7 +9,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module EdgeNode.Controller.User.Qualification.GetCategory (controller, EdgeNodeCategoryCapture (..)) where
+module EdgeNode.Controller.User.Qualification.GetCategories (controller, EdgeNodeCategoryCapture (..)) where
 
 import EdgeNode.Transport.Response
 import qualified  EdgeNode.Transport.Error as Error
