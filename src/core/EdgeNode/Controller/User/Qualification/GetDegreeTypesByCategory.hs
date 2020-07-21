@@ -14,6 +14,7 @@ import EdgeNode.Controller.Service.Enum.GetQualification (Values (..), Values_Qu
 import qualified  EdgeNode.Transport.Error as Error
 import EdgeNode.Transport.Provider.Qualification
 import EdgeNode.Transport.Iso
+import EdgeNode.Transport.Validator (degreeToValues)
 
 import Katip
 import TH.Proto
@@ -33,8 +34,15 @@ import Control.Lens.Iso.Extended
 import qualified Protobuf.Scalar as Protobuf
 import Data.String.Conv
 import Data.Coerce
+import Data.Maybe
 
-controller :: EdgeNodeProviderCategory -> KatipController (Response [WithField "value" T.Text (OnlyField "enum" EdgeNodeQualificationDegreeCapture)])
+controller
+  :: EdgeNodeProviderCategory
+  -> KatipController
+     (Response
+      [WithField "value" T.Text (
+       WithField "grades" [T.Text] (
+       OnlyField "enum" EdgeNodeQualificationDegreeCapture))])
 controller category = do
   runTelegram $location category
   hasql <- fmap (^.katipEnv.hasqlDbPool) ask
@@ -51,11 +59,25 @@ controller category = do
   response <- fmap fromEither $ bitraverse error (pure . ok) values
   runTelegram $location response $> response
 
-injectText :: [Enums_QualificationDegreeValue] -> EdgeNodeQualificationDegreeCapture -> WithField "value" T.Text (OnlyField "enum" EdgeNodeQualificationDegreeCapture)
+injectText
+  :: [Enums_QualificationDegreeValue]
+  -> EdgeNodeQualificationDegreeCapture
+  -> WithField "value" T.Text (
+     WithField "grades" [T.Text] (
+     OnlyField "enum" EdgeNodeQualificationDegreeCapture))
 injectText xs cap@(EdgeNodeQualificationDegreeCapture x) = go xs
   where go [] = error $ "unable to find " <> show x <> " at " <> show xs
         go (Enums_QualificationDegreeValue e v:xs)
           | e^.qualQualificationDegree ==
             coerce cap^.isoEdgeNodeQualificationDegree.stext
-            = WithField (maybe (toS (show x)) (toS . Protobuf.stringValue) v) $ OnlyField cap
+            = WithField (maybe (toS (show x)) (toS . Protobuf.stringValue) v) $
+              WithField (
+              map toS (
+              fromJust (
+              lookup (
+               e^.qualQualificationDegree.
+               to toS.
+               from isoQualificationDegree)
+              degreeToValues))) $
+              OnlyField cap
           | otherwise = go xs

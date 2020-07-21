@@ -65,14 +65,21 @@ data UserQualificationApi route =
        :: route
        :- Description "get category"
        :> "categories"
-       :> Get '[JSON] (Response [WithField "value" T.Text (OnlyField "enum" EdgeNodeCategoryCapture)])
+       :> Get '[JSON]
+          (Response
+           [WithField "value" T.Text (
+            OnlyField "enum" EdgeNodeCategoryCapture)])
      ,  _userQualificationApiGetDegreeTypesByCategory
        :: route
        :- Description "get degree types by given category"
        :> "category"
        :> Capture "category" EdgeNodeProviderCategory
        :> "qualification-degrees"
-       :> Get '[JSON] (Response [WithField "value" T.Text (OnlyField "enum" EdgeNodeQualificationDegreeCapture)])
+       :> Get '[JSON]
+          (Response
+           [WithField "value" T.Text (
+            WithField "grades" [T.Text] (
+            OnlyField "enum" EdgeNodeQualificationDegreeCapture))])
      , _userQualificationApiGetCountriesByDegreeType
        :: route
        :- Description "get countries by given qualification degree type"
@@ -81,7 +88,10 @@ data UserQualificationApi route =
        :> "qualification-degree"
        :> Capture "type" EdgeNodeQualificationDegree
        :> "countries"
-       :> Get '[JSON] (Response [WithField "value" T.Text (OnlyField "enum" EdgeNodeCountryCapture)])
+       :> Get '[JSON]
+          (Response
+           [WithField "value" T.Text (
+            OnlyField "enum" EdgeNodeCountryCapture)])
      , _userQualificationApiGetBranchesByCountry
        :: route
        :- Description "get provider's branches by given country"
