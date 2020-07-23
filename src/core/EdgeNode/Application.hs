@@ -66,7 +66,6 @@ import Pretty
 import Data.Either.Combinators
 import Control.Exception
 import Data.String.Conv
-import qualified Mail
 import qualified Network.HTTP.Types as H
 import Network.HTTP.Types.Method
 import Data.Coerce
@@ -176,8 +175,7 @@ run Cfg {..} = katipAddNamespace (Namespace ["application"]) $ do
 
   servAsync <- liftIO $ async $ Warp.runTLS tls_settings settings (middleware cfgCors mware_logger runServer)
   mail_logger <- katipAddNamespace (Namespace ["mail"]) askLoggerIO
-  mailAsync <- liftIO $ async $ Mail.run cfgSmtp telegram_service (cfg^.katipEnv.hasqlDbPool) mail_logger
-  liftIO (void (waitAnyCancel [servAsync, mailAsync])) `logExceptionM` ErrorS
+  liftIO (void (waitAnyCancel [servAsync])) `logExceptionM` ErrorS
 
 middleware :: Cfg.Cors -> KatipLoggerIO -> Application -> Application
 middleware cors log app = mkCors cors $ Middleware.logger log app

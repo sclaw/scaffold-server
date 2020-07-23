@@ -72,7 +72,7 @@ deriving instance Show (Cmd Unwrapped)
 
 main :: IO ()
 main = do
-  Cmd {..} <- unwrapRecord "edgenode server"
+  Cmd {..} <- unwrapRecord "scaffold"
   rawCfg <- EdgeNode.Config.load cfgPath
   let cfg =
         rawCfg
@@ -88,7 +88,7 @@ main = do
         & swagger.port %~ (`fromMaybe` swaggerPort)
         & serverConnection.port %~ (`fromMaybe` serverPort)
   pPrint cfg
-  haskellSay "Welcome to EdgeNode!!!"
+  haskellSay "Welcome to Scaffolding!!!"
 
   term <- hGetTerm stdout
   hSetBuffering stdout NoBuffering

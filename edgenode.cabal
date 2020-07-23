@@ -4,13 +4,14 @@ cabal-version: 2.4
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a64dd1ceb0a3a319b245d3a4c89c68a8d6c333bb2eb89223a0426a66be650bef
+-- hash: 104567441d38ee744db2992da5891464b4a43dfaa17ca492240e0ef1aa4580d4
 
 name:           edgenode
-version:        1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/web#readme>
+version:        2.1.0
+description:    Please see the README on GitHub at <https://gitlab.com/edgenode2/server/-/blob/master/README.md>
 author:         edgeNode
-maintainer:     Sergey Yakovlev<fclaw007@gmail.com>
+maintainer:     Sergey Yakovlev, home<fclaw007@gmail.com>,
+                Sergey Yakovlev, work<s.yakovlev@edgenode.org>
 copyright:      2020 edgenode
 license:        BSD-3-Clause
 license-file:   LICENSE
@@ -23,77 +24,26 @@ library
   exposed-modules:
       Auth
       BuildInfo
+      Crypto.SymmetricCipher
       Database.Migration
       Database.Migration.Batch
       Database.Migration.Test
       Database.Transaction
       EdgeNode.Api
-      EdgeNode.Api.Admin
       EdgeNode.Api.Api
-      EdgeNode.Api.Auth
-      EdgeNode.Api.Feedback
       EdgeNode.Api.File
-      EdgeNode.Api.Provider
-      EdgeNode.Api.Search
-      EdgeNode.Api.Service
-      EdgeNode.Api.Site
-      EdgeNode.Api.User
       EdgeNode.Application
       EdgeNode.Config
-      EdgeNode.Controller.Admin.ProviderRegister
-      EdgeNode.Controller.Admin.ResetPassword
-      EdgeNode.Controller.Auth.RefreshAccessToken
-      EdgeNode.Controller.Auth.Registration
-      EdgeNode.Controller.Auth.SignIn
-      EdgeNode.Controller.Auth.SignOut
       EdgeNode.Controller.Controller
-      EdgeNode.Controller.Feedback.Put
       EdgeNode.Controller.File.Delete
       EdgeNode.Controller.File.Download
       EdgeNode.Controller.File.Patch
       EdgeNode.Controller.File.Upload
-      EdgeNode.Controller.Provider.CreateBranches
-      EdgeNode.Controller.Provider.DeleteBranch
-      EdgeNode.Controller.Provider.GetBranches
-      EdgeNode.Controller.Provider.GetQualification
-      EdgeNode.Controller.Provider.GetQualifications
-      EdgeNode.Controller.Provider.PatchBranch
-      EdgeNode.Controller.Provider.PatchQualification
-      EdgeNode.Controller.Provider.Publish
-      EdgeNode.Controller.Provider.QualificationBuilder.Create
-      EdgeNode.Controller.Provider.QualificationBuilder.GetAreaToCountries
-      EdgeNode.Controller.Provider.QualificationBuilder.GetAvailableBranches
-      EdgeNode.Controller.Provider.QualificationBuilder.GetCountryToTypes
-      EdgeNode.Controller.Provider.QualificationBuilder.GetTypeToQualifications
-      EdgeNode.Controller.Provider.SetHQ
-      EdgeNode.Controller.Search.GetBarItems
-      EdgeNode.Controller.Search.GetQualificationList
-      EdgeNode.Controller.Search.GetQualificationModal
-      EdgeNode.Controller.Service.Enum.GetCountries
-      EdgeNode.Controller.Service.Enum.GetQualification
-      EdgeNode.Controller.User.GetProfile
-      EdgeNode.Controller.User.PatchProfile
-      EdgeNode.Controller.User.Qualification.AddQualificationToTrajectory
-      EdgeNode.Controller.User.Qualification.GetBranchesByCountry
-      EdgeNode.Controller.User.Qualification.GetCountriesByDegreeType
-      EdgeNode.Controller.User.Qualification.GetDegreeTypesByCategory
-      EdgeNode.Controller.User.Qualification.GetQualificationList
-      EdgeNode.Controller.User.Qualification.GetQualificationsByBranch
-      EdgeNode.Controller.User.Qualification.PurgeQualifications
-      EdgeNode.Controller.User.Trajectory.Add
-      EdgeNode.Controller.User.Trajectory.GetList
-      EdgeNode.Controller.User.Trajectory.Remove
+      EdgeNode.Model.Auth
       EdgeNode.Model.File
       EdgeNode.Model.Rbac
       EdgeNode.Model.User
-      EdgeNode.Statement.Admin
-      EdgeNode.Statement.Auth
-      EdgeNode.Statement.Feedback
       EdgeNode.Statement.File
-      EdgeNode.Statement.Provider
-      EdgeNode.Statement.Rbac
-      EdgeNode.Statement.Search
-      EdgeNode.Statement.User
       EdgeNode.Transport.Error
       EdgeNode.Transport.Extended
       EdgeNode.Transport.Id
@@ -104,6 +54,7 @@ library
       Hash
       KatipController
       Logo
+      Mail.Smtp
       Middleware
       Pretty
       Servant.Ip
@@ -117,6 +68,7 @@ library
       Control.Lens.Extended
       Control.Lens.Iso.Extended
       Data.Aeson.Extended
+      Data.Aeson.Generic.DerivingVia
       Data.Aeson.TH.Extended
       Data.Aeson.WithField.Extended
       Data.Default.Class.Extended
@@ -133,16 +85,25 @@ library
       Data.Time.Transport
       EdgeNode.Country
       EdgeNode.Lang
+      EdgeNode.Mail
       EdgeNode.Minio
-      EdgeNode.Rbac
       EdgeNode.Site
       EdgeNode.Transport.Auth
       EdgeNode.Transport.Feedback
       EdgeNode.Transport.Provider
-      EdgeNode.Transport.Qualification
+      EdgeNode.Transport.Provider.Pool.Tags
+      EdgeNode.Transport.Provider.Qualification
+      EdgeNode.Transport.Provider.Settings
+      EdgeNode.Transport.Rbac
       EdgeNode.Transport.Search
+      EdgeNode.Transport.Statistics
       EdgeNode.Transport.User
+      EdgeNode.Transport.User.Roadmap
       Protobuf.Scalar
+      Transport.Date
+      Transport.Feedback
+      Transport.Mail
+      Transport.Minio
       DoctestDriver
       EdgeNode.Api.Http.Test
       EdgeNode.Explain
@@ -173,6 +134,9 @@ library
     , conduit
     , containers
     , contravariant-extras
+    , cprng-aes
+    , crypto-random
+    , cryptonite
     , data-default
     , data-default-class
     , data-textual
@@ -194,6 +158,7 @@ library
     , generic-random
     , generics-sop
     , ghc-prim
+    , ginger
     , hashable
     , hashing
     , hasql
@@ -211,11 +176,13 @@ library
     , lifted-async
     , lifted-base
     , memory
+    , mime-mail
     , minio-hs
     , monad-control
     , monad-loops
     , monad-time
     , mtl
+    , network
     , network-ip
     , optparse-generic
     , password
@@ -227,6 +194,7 @@ library
     , proto3-suite
     , proto3-wire
     , random
+    , reflection
     , regex
     , regex-with-pcre
     , resource-pool
@@ -246,6 +214,7 @@ library
     , servant-swagger
     , servant-swagger-ui
     , servant-swagger-ui-core
+    , smtp-mail
     , sort
     , split
     , strict
@@ -264,6 +233,7 @@ library
     , text-show
     , th-printf
     , time
+    , tls
     , tmp-postgres
     , transformers
     , transformers-base
@@ -281,7 +251,7 @@ library
     , yaml
   default-language: Haskell2010
 
-executable edge-node-server
+executable edgenode-server
   main-is: app.hs
   other-modules:
       Paths_edgenode
