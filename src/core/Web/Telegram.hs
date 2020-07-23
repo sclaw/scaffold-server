@@ -5,7 +5,7 @@
 
 module Web.Telegram (Service (..), mkService) where
 
-import EdgeNode.Config (Telegram (..), Env (..))
+import Scaffold.Config (Telegram (..), Env (..))
 
 import qualified Data.Text as T
 import qualified Network.HTTP.Client as HTTP

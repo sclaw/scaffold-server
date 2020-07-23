@@ -1,6 +1,0 @@
-alter table edgenode.provider_branch_qualification_dependency add column position int4 not null default 0;
-alter table edgenode.provider_branch_qualification_tuition_fees add column position int4 not null default 0;
-alter table edgenode.provider_branch_qualification_dependency add column academic_area text not null;
-alter table edgenode.provider_branch_qualification_tuition_fees drop column country;
-alter table edgenode.provider_branch_qualification_tuition_fees add column country_only jsonb;
-alter table edgenode.provider_branch_qualification_tuition_fees add column country_except jsonb;

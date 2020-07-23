@@ -1,2 +1,0 @@
-alter table storage.file add column deleted timestamptz;
-alter table storage.file add column is_deleted bool default false;

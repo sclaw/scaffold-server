@@ -1,8 +1,0 @@
-create table public.feedback (
-  id bigserial primary key,
-  image_fk int8 constraint "provider_branch_public_image_id_fk" references storage.file(id),
-  email text not null,
-  who text not null,
-  message text not null,
-  reason text not null,
-  created timestamptz not null default now());

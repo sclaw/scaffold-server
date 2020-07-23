@@ -1,1 +1,0 @@
-alter table auth.token drop column token;

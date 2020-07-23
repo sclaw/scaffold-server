@@ -22,7 +22,7 @@ module Database.Transaction
       , lift
       ) where
 
-import EdgeNode.Transport.Error
+import Scaffold.Transport.Error
 
 import Hasql.TH
 import KatipController

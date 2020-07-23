@@ -1,1 +1,0 @@
-alter table stat.api_call_counter add column tm timestamptz not null default now();

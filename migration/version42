@@ -1,9 +1,0 @@
-alter table edgenode.provider_branch_promoted_qualification_user add column tags_fk int8 not null
-constraint "provider_branch_promoted_qualification_user___tags_id_fk" references edgenode.provider_pool_tags(id);
-
-alter table edgenode.provider_branch_promoted_qualification_user
-add constraint provider_branch_promoted_qualification_user__user_fk__provider_branch_qualification_fk__tags_fk unique
-(user_fk, provider_branch_qualification_fk, tags_fk);
-
-alter table edgenode.provider_pool_tags add column frozen_up_to timestamp null;
-alter table edgenode.provider_pool_tags add column status text not null default 'new';

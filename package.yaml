@@ -1,11 +1,10 @@
-name:                edgenode
-version:             2.1.0
+name:                scaffold
+version:             0.0.1
 license:             BSD-3-Clause
-author:              "edgeNode"
+author:              "scaffold"
 maintainer:
  - "Sergey Yakovlev, home<fclaw007@gmail.com>"
- - "Sergey Yakovlev, work<s.yakovlev@edgenode.org>"
-copyright:           "2020 edgenode"
+copyright:           "2020"
 ghc-options:
   - -threaded
   - -rtsopts
@@ -200,18 +199,18 @@ library:
     - app
 
 executables:
-  edgenode-server:
+  server:
     main:                app.hs
     source-dirs:         prog
     dependencies:
-    - edgenode
+    - scaffold
 
 tests:
   tasty:
     main:                test.hs
     source-dirs:         prog
     dependencies:
-    - edgenode
+    - scaffold
   doctest:
     main:             doctest.hs
     source-dirs:      prog

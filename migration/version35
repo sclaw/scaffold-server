@@ -1,2 +1,0 @@
-alter table edgenode.provider_branch_qualification_dependency
-add constraint provider_branch_qualification_dependency__cluster__provider_branch_qualification_fk__dependency_fk unique (cluster, provider_branch_qualification_fk, dependency_fk);

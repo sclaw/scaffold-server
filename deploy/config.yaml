@@ -23,14 +23,6 @@ configKatip:
   katipVerbosity: V3
   katipEnv: dev
 
-configAuth:
-  authJwk: symmetric.jwk
-  authIsAuthEnabled: true
-  authUserId: 1
-  authAccessTokenLifetime: 600
-  authRefreshTokenLifetime: 7000000
-  authResetPasswordTokenLifetime: 6000
-
 configService:
   serviceApiKeys:
    - [recaptcha, 6Lfq078UAAAAAHfSdWpLm9jLqwrZ_goGiyCtj5VG]
@@ -63,10 +55,5 @@ configSmtp:
   smtpPassword: hosvxrxoiuauokae
   smtpEmail: info@edgenode.org
   smtpDefaultSubject: Info
-
-configUrls:
-  urlsMainPage: http://edgenode.org
-  urlsResetPassword: http://edgenode.org/reset-password/
-  urlsSignIn: http://edgenode.org/login/
 
 configServerError: true

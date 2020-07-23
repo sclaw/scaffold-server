@@ -12,9 +12,8 @@
 
 module App (main) where
 
-import qualified EdgeNode.Application as App
-import EdgeNode.Config
-import EdgeNode.Transport.Id
+import qualified Scaffold.Application as App
+import Scaffold.Config
 
 import KatipController
 import BuildInfo (gitCommit)
@@ -27,9 +26,6 @@ import qualified Hasql.Connection as HasqlConn
 import Control.Lens.Iso.Extended
 import Control.Monad
 import Data.Time.Clock (getCurrentTime)
-import Data.Aeson (eitherDecode)
-import Data.Either.Combinators
-import qualified Data.ByteString.Lazy  as B
 import Data.Default.Class
 import Control.Monad.RWS.Strict (evalRWST)
 import qualified Network.HTTP.Client.TLS as Http
@@ -73,17 +69,14 @@ deriving instance Show (Cmd Unwrapped)
 main :: IO ()
 main = do
   Cmd {..} <- unwrapRecord "scaffold"
-  rawCfg <- EdgeNode.Config.load cfgPath
+  rawCfg <- Scaffold.Config.load cfgPath
   let cfg =
         rawCfg
         & db.host %~ (`fromMaybe` localhost)
         & db.port %~ (`fromMaybe` localport)
-        & auth.isAuthEnabled %~ (`fromMaybe` isAuth)
-        & auth.userId %~ (`fromMaybe` user)
         & katip.path %~ (\path -> maybe path (</> path) pathToKatip)
-        & auth.EdgeNode.Config.jwk %~ (\path -> maybe path (</> path) pathToJwk)
-        & EdgeNode.Config.minio.host %~ (`fromMaybe` minioHost)
-        & EdgeNode.Config.minio.port %~ (`fromMaybe` minioPort)
+        & Scaffold.Config.minio.host %~ (`fromMaybe` minioHost)
+        & Scaffold.Config.minio.port %~ (`fromMaybe` minioPort)
         & swagger.host %~ (`fromMaybe` swaggerHost)
         & swagger.port %~ (`fromMaybe` swaggerPort)
         & serverConnection.port %~ (`fromMaybe` serverPort)
@@ -119,23 +112,17 @@ main = do
           (permitItem (cfg^.katip.severity.from stringify))
           (cfg^.katip.verbosity.from stringify)
   let mkNm = Namespace [("<" ++ $(gitCommit) ++ ">")^.stext]
-  init_env <- initLogEnv mkNm (cfg^.katip.EdgeNode.Config.env.isoEnv.stext.coerced)
+  init_env <- initLogEnv mkNm (cfg^.katip.Scaffold.Config.env.isoEnv.stext.coerced)
   let env = do
         env' <- registerScribe "stdout" std defaultScribeSettings init_env
         registerScribe "file" file defaultScribeSettings env'
 
-  jwke <- eitherDecode `fmap` B.readFile (cfg^.auth.EdgeNode.Config.jwk)
-  jwke `whenLeft` (error . (<>) "jwk decode error: ")
   let appCfg =
         App.Cfg
         (cfg^.swagger.host.coerced)
         (cfg^.swagger.port)
         (cfg^.serverConnection.port)
-        (fromRight' jwke)
-        (cfg^.auth.isAuthEnabled)
-        (cfg^.auth.userId.coerced)
         (cfg^.cors)
-        (cfg^.smtp)
         (cfg^.serverError)
   let runApp le =
         runKatipContextT le (mempty :: LogContexts) mempty $ do
@@ -150,17 +137,16 @@ main = do
   minioEnv <-  flip Minio.mkMinioConn manager $
     Minio.setCreds
     (Minio.Credentials
-     (cfg^.EdgeNode.Config.minio.accessKey)
-     (cfg^.EdgeNode.Config.minio.secretKey))
-    (fromString (cfg^.EdgeNode.Config.minio.host <> ":" <> cfg^.EdgeNode.Config.minio.port))
+     (cfg^.Scaffold.Config.minio.accessKey)
+     (cfg^.Scaffold.Config.minio.secretKey))
+    (fromString (cfg^.Scaffold.Config.minio.host <> ":" <> cfg^.Scaffold.Config.minio.port))
 
-  telegram <- Web.Telegram.mkService manager (cfg^.EdgeNode.Config.telegram)
+  telegram <- Web.Telegram.mkService manager (cfg^.Scaffold.Config.telegram)
 
-  let katipMinio = Minio minioEnv (cfg^.EdgeNode.Config.minio.EdgeNode.Config.bucketPrefix)
-  let tokens = TokensLT (cfg^.auth.accessTokenLifetime) (cfg^.auth.refreshTokenLifetime) (cfg^.auth.resetPasswordTokenLifetime)
-  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) (fromRight' jwke) katipMinio telegram tokens (cfg^.EdgeNode.Config.urls)
+  let katipMinio = Minio minioEnv (cfg^.Scaffold.Config.minio.Scaffold.Config.bucketPrefix)
+  let katipEnv = KatipEnv term hasqlpool manager (cfg^.service.coerced) katipMinio telegram
 
   bracket env closeScribes (void . (\x -> evalRWST (App.runAppMonad x) katipEnv def) . runApp)
 
 mkRawConn :: Db -> HasqlConn.Settings
-mkRawConn x = HasqlConn.settings (x^.host.stext.textbs) (x^.port.to fromIntegral) (x^.EdgeNode.Config.user.stext.textbs) (x^.pass.stext.textbs) (x^.database.stext.textbs)
+mkRawConn x = HasqlConn.settings (x^.host.stext.textbs) (x^.port.to fromIntegral) (x^.Scaffold.Config.user.stext.textbs) (x^.pass.stext.textbs) (x^.database.stext.textbs)

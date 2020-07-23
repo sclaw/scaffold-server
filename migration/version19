@@ -1,4 +1,0 @@
-alter table edgenode.provider_branch_qualification_dependency add column dependency_fk int8 not null
-constraint "provider_branch_qualification_dependency__dependency_id_fk" 
-references edgenode.provider_branch_qualification(id);
-alter table edgenode.provider add column title text not null default '';

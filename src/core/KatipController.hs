@@ -20,8 +20,6 @@ module KatipController
        , KatipLoggerIO
        , KatipControllerState (..)
        , Minio (..)
-       , TokensLT (..)
-       , Urls (..)
          -- * lens
        , nm
        , ctx
@@ -30,14 +28,11 @@ module KatipController
        , terminal
        , httpReqManager
        , apiKeys
-       , jwk
        , minio
        , bucketPrefix
        , hasqlDbPool
        , conn
        , telegram
-       , tokensLT
-       , urls
          -- * run
        , runKatipController
          -- * re-export
@@ -48,8 +43,6 @@ module KatipController
          -- * aux
       , runTelegram
        ) where
-
-import EdgeNode.Config (Urls (..))
 
 import Control.Lens
 import Control.Monad.IO.Class
@@ -68,7 +61,6 @@ import Control.Monad.Catch hiding (Handler)
 import Data.Default.Class
 import Control.DeepSeq
 import Network.HTTP.Client
-import Crypto.JOSE.JWK
 import Control.Monad.Time
 import "time" Data.Time
 import qualified Control.Monad.RWS.Strict as RWS
@@ -80,7 +72,6 @@ import Web.Telegram as Web.Telegram
 import Pretty
 import Data.String.Conv
 import Control.Concurrent.Lifted
-import Data.Int
 
 type KatipLoggerIO = Severity -> LogStr -> IO ()
 
@@ -94,16 +85,11 @@ data KatipEnv =
        :: !Manager
      , katipEnvApiKeys
        :: ![(String, String)]
-     , katipEnvJwk :: !JWK
      , katipEnvMinio :: !Minio
      , katipEnvTelegram :: Web.Telegram.Service
-     , katipEnvTokensLT :: !TokensLT
-     , katipEnvUrls :: !Urls
      }
 
 data Minio = Minio { minioConn :: !Minio.MinioConn, minioBucketPrefix :: !T.Text }
-
-data TokensLT = TokensLT { tokensLTAccessLT :: !Int64, tokensLTRefreshLT :: !Int64, tokensLTResetLT :: !Int64 }
 
 newtype KatipLogger = KatipWriter [String]
   deriving newtype Monoid
@@ -158,7 +144,6 @@ newtype KatipController a =
 makeFields ''Config
 makeFields ''KatipEnv
 makeFields ''Minio
-makeFields ''TokensLT
 
 -- These instances get even easier with lenses!
 instance Katip KatipController where

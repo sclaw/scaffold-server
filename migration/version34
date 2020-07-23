@@ -1,1 +1,0 @@
-alter table edgenode.user_trajectory add column compatibility float8 not null default 0.0;

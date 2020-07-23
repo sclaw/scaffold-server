@@ -1,2 +1,0 @@
-alter table edgenode.provider add column category text not null default 'none';
-alter table edgenode.provider_branch_qualification drop column category;
