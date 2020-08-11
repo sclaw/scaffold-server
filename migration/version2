@@ -9,4 +9,4 @@ create table storage.file (
     bucket text not null default 'default',
     deleted timestamptz,
     is_deleted bool not null default false,
-    constraint "file_hash_uniq" unique ("hash"));
+    constraint "file__hash_unique" unique ("hash"));

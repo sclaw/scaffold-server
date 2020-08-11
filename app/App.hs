@@ -42,7 +42,6 @@ import qualified Data.Pool as Pool
 import Control.Exception
 import qualified Network.Minio as Minio
 import Data.String
-import Data.Int
 import System.IO
 import qualified Web.Telegram as Web.Telegram
 import Logo
@@ -52,12 +51,10 @@ data Cmd w =
      { cfgPath :: w ::: FilePath <?> "config file path"
      , localhost :: w ::: Maybe String <?> "override db host if needed, used along with port"
      , localport :: w ::: Maybe Int <?> "override db port if needed"
-     , isAuth :: w ::: Maybe Bool <?> "is auth turn on"
      , pathToKatip :: w ::: Maybe FilePath <?> "path to katip log"
      , pathToJwk :: w ::: Maybe FilePath <?> "path to jwk"
      , minioHost :: w ::: Maybe String <?> "minio host"
      , minioPort :: w ::: Maybe String <?> "minio port"
-     , user :: w ::: Maybe Int64 <?> "user"
      , swaggerHost :: w ::: Maybe String <?> "swagger host"
      , swaggerPort :: w ::: Maybe Int <?> "swagger port"
      , serverPort :: w ::: Maybe Int <?> "server port"

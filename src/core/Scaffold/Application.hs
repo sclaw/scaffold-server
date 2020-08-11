@@ -67,6 +67,7 @@ import Data.Coerce
 import Data.Bool
 import qualified Data.Text as T
 import Data.Aeson
+import Network.HTTP.Types.Header.Extended
 
 data Cfg =
      Cfg
@@ -163,12 +164,12 @@ mk500Response :: SomeException -> Bool -> Response
 mk500Response error = bool
   (responseLBS status200
    [(H.hContentType, "application/json; charset=utf-8"),
-    ("Access-Control-Allow-Origin", "*")] $
+    (hAccessControlAllowOrigin, "*")] $
    encode @(Response.Response ()) $
    (Response.Error (asError @T.Text (showt error))))
   (responseLBS status500
    [(H.hContentType, "text/plain; charset=utf-8"),
-    ("Access-Control-Allow-Origin", "*")] (showt error^.textbsl))
+    (hAccessControlAllowOrigin, "*")] (showt error^.textbsl))
 
 logRequest :: KatipLoggerIO -> (KatipLoggerIO -> String -> IO ()) -> Request -> Status -> Maybe Integer -> IO ()
 logRequest log runTelegram req _ _ = log InfoS (logStr (show req)) >> runTelegram log (mkPretty mempty req)
@@ -180,5 +181,5 @@ mkCors cfg_cors =
   cors $ const $ pure $
     simpleCorsResourcePolicy
     & field @"corsOrigins" .~ fmap ((, True) . map toS) (Cfg.corsOrigins cfg_cors)
-    & field @"corsRequestHeaders" .~ ["Content-Type", "Origin", "Access-Control-Allow-Origin"]
+    & field @"corsRequestHeaders" .~ [hAuthorization, hContentType, hOrigin, hAccessControlAllowOrigin]
     & field @"corsMethods" .~ simpleMethods <> [methodPut, methodPatch, methodDelete, methodOptions]
