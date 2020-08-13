@@ -24,7 +24,8 @@ ghc-options:
   - -Wunused-pattern-binds
   - -Wtabs
   - -Wmissing-pattern-synonym-signatures
- #  - -ddump-splices
+  - -fwrite-ide-info
+  - -hiedir=.hie
 
 verbatim:
   cabal-version: 2.4
